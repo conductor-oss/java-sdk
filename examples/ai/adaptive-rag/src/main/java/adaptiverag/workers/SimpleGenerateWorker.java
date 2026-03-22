@@ -43,18 +43,32 @@ public class SimpleGenerateWorker implements Worker {
     @Override
     @SuppressWarnings("unchecked")
     public TaskResult execute(Task task) {
+        String question = (String) task.getInputData().get("question");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
+
         List<String> context = (List<String>) task.getInputData().get("context");
-        int docCount = context != null ? context.size() : 0;
+        if (context == null || context.isEmpty()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'context' is required and must contain at least one document");
+            return fail;
+        }
+
+        int docCount = context.size();
 
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
 
         System.out.println("  [simple-gen] Calling OpenAI for direct answer from " + docCount + " docs");
         try {
-            String question = (String) task.getInputData().get("question");
-            String contextStr = context != null ? String.join("\n", context) : "";
+            String contextStr = String.join("\n", context);
             String systemPrompt = "You are a helpful assistant. Answer the question based on the provided context. Be concise and factual.";
-            String userPrompt = "Context:\n" + contextStr + "\n\nQuestion: " + (question != null ? question : "");
+            String userPrompt = "Context:\n" + contextStr + "\n\nQuestion: " + question;
 
             String answer = callChatCompletion(systemPrompt, userPrompt, result);
             if (answer == null) {

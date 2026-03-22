@@ -8,7 +8,14 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
  * Worker for cb_fallback -- returns cached/fallback data.
  *
  * Called when the circuit is OPEN (service is failing).
- * Returns a fallback result instead of calling the actual service.
+ *
+ * Input:
+ *   - serviceName (String, required): name of the service to provide fallback for
+ *
+ * Output:
+ *   - result (String): fallback data
+ *   - source (String): "cache"
+ *   - serviceName (String): name of the service
  */
 public class FallbackWorker implements Worker {
 
@@ -19,11 +26,17 @@ public class FallbackWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String serviceName = getStringInput(task, "serviceName", "default-service");
+        TaskResult result = new TaskResult(task);
+
+        String serviceName = getStringInput(task, "serviceName");
+        if (serviceName == null || serviceName.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: serviceName");
+            return result;
+        }
 
         System.out.println("  [cb_fallback] Returning fallback data for service: " + serviceName);
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("result", "Fallback data for " + serviceName);
         result.getOutputData().put("source", "cache");
@@ -31,8 +44,8 @@ public class FallbackWorker implements Worker {
         return result;
     }
 
-    private String getStringInput(Task task, String key, String defaultValue) {
+    private String getStringInput(Task task, String key) {
         Object value = task.getInputData().get(key);
-        return value != null ? value.toString() : defaultValue;
+        return value != null ? value.toString() : null;
     }
 }

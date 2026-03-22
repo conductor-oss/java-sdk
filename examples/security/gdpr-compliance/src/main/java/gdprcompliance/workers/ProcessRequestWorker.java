@@ -10,21 +10,65 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Processes GDPR data requests. Real PII detection using regex patterns.
+ * Processes GDPR data requests with real PII detection using regex patterns
+ * and PBKDF2-style hashing for anonymization.
+ *
+ * Detects: emails, SSNs, phone numbers (US and international), credit cards.
+ *
+ * Input:
+ *   - requestType (String, required): one of "access", "erasure", "anonymize", "portability"
+ *   - data (String, required): the data to scan for PII
+ *
+ * Output:
+ *   - piiFound (List): detected PII elements with type, masked value, position
+ *   - piiCount (int): total PII elements found
+ *   - processedData (String): data after processing (masked if erasure/anonymize)
+ *   - requestType (String): the request type processed
+ *   - processedAt (String): ISO-8601 timestamp
+ *   - auditLog (Map): timestamp, action, actor, result
  */
 public class ProcessRequestWorker implements Worker {
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
-    private static final Pattern SSN_PATTERN = Pattern.compile("\\b\\d{3}-\\d{2}-\\d{4}\\b");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b(\\+?1[-.]?)?\\(?\\d{3}\\)?[-.]?\\d{3}[-.]?\\d{4}\\b");
-    private static final Pattern CREDIT_CARD_PATTERN = Pattern.compile("\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b");
+    static final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+    static final Pattern SSN_PATTERN = Pattern.compile("\\b\\d{3}-\\d{2}-\\d{4}\\b");
+    // US phone numbers and international formats like +44, +91, etc.
+    static final Pattern PHONE_PATTERN = Pattern.compile(
+            "\\b(\\+?\\d{1,3}[-.]?)?\\(?\\d{3}\\)?[-.]?\\d{3}[-.]?\\d{4}\\b"
+    );
+    static final Pattern CREDIT_CARD_PATTERN = Pattern.compile("\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b");
+
+    private static final Set<String> VALID_REQUEST_TYPES = Set.of("access", "erasure", "anonymize", "portability");
 
     @Override public String getTaskDefName() { return "gdpr_process_request"; }
 
     @Override public TaskResult execute(Task task) {
-        String requestType = (String) task.getInputData().get("requestType");
-        String data = (String) task.getInputData().get("data");
-        if (requestType == null) requestType = "access";
-        if (data == null) data = "";
+        TaskResult result = new TaskResult(task);
+
+        // Validate required inputs
+        String requestType = getRequiredString(task, "requestType");
+        if (requestType == null || requestType.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: requestType");
+            result.getOutputData().put("auditLog",
+                    VerifyIdentityWorker.auditLog("gdpr_process_request", "SYSTEM", "FAILED", "Missing requestType"));
+            return result;
+        }
+
+        if (!VALID_REQUEST_TYPES.contains(requestType)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Invalid requestType: '" + requestType + "'. Must be one of: " + VALID_REQUEST_TYPES);
+            result.getOutputData().put("auditLog",
+                    VerifyIdentityWorker.auditLog("gdpr_process_request", "SYSTEM", "FAILED", "Invalid requestType: " + requestType));
+            return result;
+        }
+
+        String data = getRequiredString(task, "data");
+        if (data == null) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: data");
+            result.getOutputData().put("auditLog",
+                    VerifyIdentityWorker.auditLog("gdpr_process_request", "SYSTEM", "FAILED", "Missing data"));
+            return result;
+        }
 
         // Real PII detection
         List<Map<String, String>> piiFound = new ArrayList<>();
@@ -41,13 +85,15 @@ public class ProcessRequestWorker implements Worker {
 
         System.out.println("  [gdpr] " + requestType + ": found " + piiFound.size() + " PII elements");
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("piiFound", piiFound);
         result.getOutputData().put("piiCount", piiFound.size());
         result.getOutputData().put("processedData", processedData);
         result.getOutputData().put("requestType", requestType);
         result.getOutputData().put("processedAt", Instant.now().toString());
+        result.getOutputData().put("auditLog",
+                VerifyIdentityWorker.auditLog("gdpr_process_request", "SYSTEM", "SUCCESS",
+                        requestType + " processed, " + piiFound.size() + " PII elements found"));
         return result;
     }
 
@@ -63,12 +109,18 @@ public class ProcessRequestWorker implements Worker {
         return value.substring(0, 2) + "*".repeat(value.length() - 4) + value.substring(value.length() - 2);
     }
 
-    private String maskPII(String data) {
-        String result = data;
-        result = EMAIL_PATTERN.matcher(result).replaceAll("[EMAIL_REDACTED]");
-        result = SSN_PATTERN.matcher(result).replaceAll("[SSN_REDACTED]");
-        result = PHONE_PATTERN.matcher(result).replaceAll("[PHONE_REDACTED]");
-        result = CREDIT_CARD_PATTERN.matcher(result).replaceAll("[CC_REDACTED]");
-        return result;
+    String maskPII(String data) {
+        String masked = data;
+        masked = EMAIL_PATTERN.matcher(masked).replaceAll("[EMAIL_REDACTED]");
+        masked = SSN_PATTERN.matcher(masked).replaceAll("[SSN_REDACTED]");
+        masked = PHONE_PATTERN.matcher(masked).replaceAll("[PHONE_REDACTED]");
+        masked = CREDIT_CARD_PATTERN.matcher(masked).replaceAll("[CC_REDACTED]");
+        return masked;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

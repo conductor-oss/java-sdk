@@ -42,16 +42,26 @@ public class CreativeGenerateWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
+        String question = (String) task.getInputData().get("question");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
+
         String style = (String) task.getInputData().get("style");
+        if (style == null || style.isBlank()) {
+            style = "creative";
+        }
 
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
 
         System.out.println("  [creative-gen] Calling OpenAI for free-form generation (style: " + style + ")");
         try {
-            String question = (String) task.getInputData().get("question");
             String systemPrompt = "You are a creative writer. Produce an imaginative, engaging response in the requested style.";
-            String userPrompt = "Style: " + (style != null ? style : "creative") + "\n\nPrompt: " + (question != null ? question : "");
+            String userPrompt = "Style: " + style + "\n\nPrompt: " + question;
 
             String answer = callChatCompletion(systemPrompt, userPrompt, result);
             if (answer == null) {

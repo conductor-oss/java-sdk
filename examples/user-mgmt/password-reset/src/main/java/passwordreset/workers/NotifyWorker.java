@@ -14,9 +14,16 @@ public class NotifyWorker implements Worker {
 
     @Override public TaskResult execute(Task task) {
         String email = (String) task.getInputData().get("email");
+        if (email == null || email.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'email' is required and must not be blank");
+            return fail;
+        }
+
         Object resetObj = task.getInputData().get("resetSuccess");
-        if (email == null) email = "unknown";
         boolean wasReset = Boolean.TRUE.equals(resetObj);
+        String userId = (String) task.getInputData().get("userId");
 
         String subject = wasReset ? "Your password has been reset" : "Password reset failed";
         String body = wasReset
@@ -31,6 +38,7 @@ public class NotifyWorker implements Worker {
         result.getOutputData().put("emailSubject", subject);
         result.getOutputData().put("emailBody", body);
         result.getOutputData().put("sentAt", Instant.now().toString());
+        result.getOutputData().put("userId", userId != null ? userId : "unknown");
         return result;
     }
 }

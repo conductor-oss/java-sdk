@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
  *      (computed via transactionId hashing as a proxy for IP/device location)
  *
  * Overall velocityResult:
- *   "suspicious" — 2+ flags raised
- *   "elevated"   — exactly 1 flag raised
- *   "normal"     — no flags raised
+ *   "suspicious" -- 2+ flags raised
+ *   "elevated"   -- exactly 1 flag raised
+ *   "normal"     -- no flags raised
  *
  * Input: customerId, transactionId
  * Output: velocityResult, transactionsLastHour, transactionsLast24h, velocityFlags
@@ -50,10 +50,22 @@ public class VelocityCheckWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
+        TaskResult result = new TaskResult(task);
+
+        // --- Validate required inputs ---
         String customerId = (String) task.getInputData().get("customerId");
-        if (customerId == null) customerId = "UNKNOWN";
+        if (customerId == null || customerId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: customerId");
+            return result;
+        }
+
         String transactionId = (String) task.getInputData().get("transactionId");
-        if (transactionId == null) transactionId = "TXN-" + System.nanoTime();
+        if (transactionId == null || transactionId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: transactionId");
+            return result;
+        }
 
         Instant now = Instant.now();
 
@@ -122,7 +134,6 @@ public class VelocityCheckWorker implements Worker {
                 + " (5min=" + txInLast5Min + ", 1h=" + txLastHour + ", 24h=" + txLast24h
                 + ", regions=" + distinctRegionsLastHour + ")");
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("velocityResult", velocityResult);
         result.getOutputData().put("transactionsLast5Min", (int) txInLast5Min);

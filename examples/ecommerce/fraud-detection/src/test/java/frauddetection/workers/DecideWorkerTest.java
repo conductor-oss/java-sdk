@@ -14,8 +14,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for {@link DecideWorker} — verifies the APPROVE / REVIEW / BLOCK
- * decision logic using the weighted ensemble approach.
+ * Tests for {@link DecideWorker} -- verifies the APPROVE / REVIEW / BLOCK
+ * decision logic using the weighted ensemble approach, plus failure-path validation.
  */
 @SuppressWarnings("unchecked")
 class DecideWorkerTest {
@@ -38,9 +38,7 @@ class DecideWorkerTest {
 
     @Test
     void approve_lowScore_lowRisk_normal() {
-        // combined = 0.4*0.1 + 0.3*0 + 0.3*0 = 0.04
         TaskResult result = execute(0.1, "low_risk", "normal");
-
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         assertEquals("APPROVE", result.getOutputData().get("decision"));
         assertNotNull(result.getOutputData().get("reason"));
@@ -56,7 +54,6 @@ class DecideWorkerTest {
 
     @Test
     void approve_allSignalsLow() {
-        // combined = 0.4*0.2 + 0.3*0 + 0.3*0 = 0.08
         TaskResult result = execute(0.2, "low_risk", "normal");
         assertEquals("APPROVE", result.getOutputData().get("decision"));
     }
@@ -65,18 +62,12 @@ class DecideWorkerTest {
 
     @Test
     void review_mediumRiskRules() {
-        // combined = 0.4*0.1 + 0.3*0.5 + 0.3*0 = 0.19 -> APPROVE
-        // Actually: 0.04 + 0.15 = 0.19 < 0.4 threshold, so this would be APPROVE
-        // Need medium_risk + elevated velocity:
-        // combined = 0.4*0.3 + 0.3*0.5 + 0.3*0.5 = 0.12 + 0.15 + 0.15 = 0.42 -> REVIEW
         TaskResult result = execute(0.3, "medium_risk", "elevated");
         assertEquals("REVIEW", result.getOutputData().get("decision"));
     }
 
     @Test
     void review_moderateMLScore() {
-        // combined = 0.4*0.6 + 0.3*0.5 + 0.3*0 = 0.24 + 0.15 = 0.39 -> still approve
-        // Need higher: 0.4*0.8 + 0.3*0 + 0.3*0.5 = 0.32 + 0 + 0.15 = 0.47 -> REVIEW
         TaskResult result = execute(0.8, "low_risk", "elevated");
         assertEquals("REVIEW", result.getOutputData().get("decision"));
     }
@@ -85,9 +76,7 @@ class DecideWorkerTest {
 
     @Test
     void block_overrideHighMLAndHighRiskRules() {
-        // Override: mlScore > 0.8 AND ruleResult = high_risk -> instant BLOCK
         TaskResult result = execute(0.9, "high_risk", "normal");
-
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         assertEquals("BLOCK", result.getOutputData().get("decision"));
         assertTrue(((Number) result.getOutputData().get("riskScore")).doubleValue() >= 0.85);
@@ -95,14 +84,12 @@ class DecideWorkerTest {
 
     @Test
     void block_overrideSuspiciousVelocityHighML() {
-        // Override: velocity=suspicious AND mlScore > 0.5 -> instant BLOCK
         TaskResult result = execute(0.6, "low_risk", "suspicious");
         assertEquals("BLOCK", result.getOutputData().get("decision"));
     }
 
     @Test
     void block_highCombinedScore() {
-        // combined = 0.4*0.9 + 0.3*1.0 + 0.3*1.0 = 0.36 + 0.3 + 0.3 = 0.96 -> BLOCK
         TaskResult result = execute(0.9, "high_risk", "suspicious");
         assertEquals("BLOCK", result.getOutputData().get("decision"));
     }
@@ -119,7 +106,6 @@ class DecideWorkerTest {
     @Test
     void includesComponentScores() {
         TaskResult result = execute(0.5, "medium_risk", "elevated");
-
         Map<String, Object> scores = (Map<String, Object>) result.getOutputData().get("componentScores");
         assertNotNull(scores);
         assertEquals(0.5, ((Number) scores.get("mlScore")).doubleValue());
@@ -130,48 +116,111 @@ class DecideWorkerTest {
     @Test
     void includesSignalsList() {
         TaskResult result = execute(0.6, "medium_risk", "normal");
-
         List<String> signals = (List<String>) result.getOutputData().get("signals");
         assertNotNull(signals);
         assertTrue(signals.stream().anyMatch(s -> s.contains("ML fraud score")));
         assertTrue(signals.stream().anyMatch(s -> s.contains("Medium-risk")));
     }
 
-    // ---- Edge cases -----------------------------------------------------
+    // ---- Failure path: input validation ---------------------------------
 
     @Test
-    void nullMlScore_treatsAsZero() {
-        TaskResult result = execute(null, "low_risk", "normal");
-        assertEquals("APPROVE", result.getOutputData().get("decision"));
-        assertEquals(0.0, ((Number) result.getOutputData().get("combinedScore")).doubleValue());
+    void failsWithTerminalErrorOnMissingTransactionId() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("ruleResult", "low_risk");
+        input.put("mlScore", 0.1);
+        input.put("velocityResult", "normal");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("transactionId"));
     }
 
     @Test
-    void nullTransactionId_doesNotFail() {
+    void failsWithTerminalErrorOnMissingMlScore() {
         Task task = new Task();
         task.setStatus(Status.IN_PROGRESS);
-        task.setInputData(new HashMap<>(Map.of(
-                "ruleResult", "low_risk",
-                "mlScore", 0.1,
-                "velocityResult", "normal"
-        )));
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("ruleResult", "low_risk");
+        input.put("velocityResult", "normal");
+        task.setInputData(input);
 
         TaskResult result = worker.execute(task);
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        assertEquals("APPROVE", result.getOutputData().get("decision"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("mlScore"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingRuleResult() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("mlScore", 0.1);
+        input.put("velocityResult", "normal");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("ruleResult"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingVelocityResult() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("ruleResult", "low_risk");
+        input.put("mlScore", 0.1);
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("velocityResult"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnInvalidRuleResult() {
+        TaskResult result = execute(0.1, "garbage_value", "normal");
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("Invalid ruleResult"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnInvalidVelocityResult() {
+        TaskResult result = execute(0.1, "low_risk", "garbage_value");
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("Invalid velocityResult"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMlScoreOutOfRange() {
+        TaskResult result = execute(1.5, "low_risk", "normal");
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("between 0 and 1.0"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnNegativeMlScore() {
+        TaskResult result = execute(-0.1, "low_risk", "normal");
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("between 0 and 1.0"));
     }
 
     // ---- Helper ---------------------------------------------------------
 
-    private TaskResult execute(Object mlScore, String ruleResult, String velocityResult) {
+    private TaskResult execute(double mlScore, String ruleResult, String velocityResult) {
         Task task = new Task();
         task.setStatus(Status.IN_PROGRESS);
         Map<String, Object> input = new HashMap<>();
         input.put("transactionId", "TXN-TEST-001");
         input.put("ruleResult", ruleResult);
-        if (mlScore != null) {
-            input.put("mlScore", mlScore);
-        }
+        input.put("mlScore", mlScore);
         input.put("velocityResult", velocityResult);
         task.setInputData(input);
         return worker.execute(task);

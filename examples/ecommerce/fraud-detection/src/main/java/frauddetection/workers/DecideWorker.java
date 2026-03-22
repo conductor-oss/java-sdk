@@ -18,18 +18,40 @@ import java.util.Map;
  *   2. Apply override rules:
  *      - Instant BLOCK if ML score > 0.8 AND rules = high_risk
  *      - Instant BLOCK if velocity = suspicious AND ML score > 0.5
- *   3. Apply thresholds:
- *      BLOCK   — combined score > 0.7 or any override triggered
- *      REVIEW  — combined score > 0.4
- *      APPROVE — combined score <= 0.4
+ *   3. Apply configurable thresholds:
+ *      BLOCK   -- combined score > blockThreshold or any override triggered
+ *      REVIEW  -- combined score > reviewThreshold
+ *      APPROVE -- combined score <= reviewThreshold
  *
  * Input: transactionId, ruleResult, mlScore, velocityResult
  * Output: decision, riskScore, reason, signals
  */
 public class DecideWorker implements Worker {
 
-    public static final double BLOCK_THRESHOLD = 0.7;
-    public static final double REVIEW_THRESHOLD = 0.4;
+    /** Configurable via environment variables. */
+    public static final double BLOCK_THRESHOLD;
+    public static final double REVIEW_THRESHOLD;
+
+    static {
+        BLOCK_THRESHOLD = parseEnvDouble("FRAUD_BLOCK_THRESHOLD", 0.7);
+        REVIEW_THRESHOLD = parseEnvDouble("FRAUD_REVIEW_THRESHOLD", 0.4);
+    }
+
+    private static double parseEnvDouble(String name, double defaultValue) {
+        String val = System.getenv(name);
+        if (val != null && !val.isBlank()) {
+            try {
+                double parsed = Double.parseDouble(val);
+                if (parsed < 0 || parsed > 1.0) {
+                    throw new IllegalStateException(name + " must be between 0 and 1.0, got " + parsed);
+                }
+                return parsed;
+            } catch (NumberFormatException e) {
+                throw new IllegalStateException(name + " must be a valid decimal, got: " + val);
+            }
+        }
+        return defaultValue;
+    }
 
     @Override
     public String getTaskDefName() {
@@ -38,17 +60,41 @@ public class DecideWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String transactionId = (String) task.getInputData().get("transactionId");
-        if (transactionId == null) transactionId = "UNKNOWN";
-        String ruleResult = (String) task.getInputData().get("ruleResult");
-        if (ruleResult == null) ruleResult = "low_risk";
-        Object mlScoreObj = task.getInputData().get("mlScore");
-        String velocityResult = (String) task.getInputData().get("velocityResult");
-        if (velocityResult == null) velocityResult = "normal";
+        TaskResult result = new TaskResult(task);
 
-        double mlScore = 0.0;
-        if (mlScoreObj instanceof Number) {
-            mlScore = ((Number) mlScoreObj).doubleValue();
+        // --- Validate required inputs ---
+        String transactionId = (String) task.getInputData().get("transactionId");
+        if (transactionId == null || transactionId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: transactionId");
+            return result;
+        }
+
+        String ruleResult = (String) task.getInputData().get("ruleResult");
+        if (ruleResult == null || ruleResult.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: ruleResult");
+            return result;
+        }
+
+        Object mlScoreObj = task.getInputData().get("mlScore");
+        if (mlScoreObj == null || !(mlScoreObj instanceof Number)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or non-numeric required input: mlScore");
+            return result;
+        }
+        double mlScore = ((Number) mlScoreObj).doubleValue();
+        if (mlScore < 0 || mlScore > 1.0) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Invalid input: mlScore must be between 0 and 1.0, got " + mlScore);
+            return result;
+        }
+
+        String velocityResult = (String) task.getInputData().get("velocityResult");
+        if (velocityResult == null || velocityResult.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: velocityResult");
+            return result;
         }
 
         System.out.println("  [decide] Transaction " + transactionId
@@ -59,14 +105,24 @@ public class DecideWorker implements Worker {
         switch (ruleResult) {
             case "high_risk": ruleScore = 1.0; break;
             case "medium_risk": ruleScore = 0.5; break;
-            default: ruleScore = 0.0;
+            case "low_risk": ruleScore = 0.0; break;
+            default:
+                result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+                result.setReasonForIncompletion("Invalid ruleResult value: '" + ruleResult
+                        + "'. Must be one of: high_risk, medium_risk, low_risk");
+                return result;
         }
 
         double velocityScore;
         switch (velocityResult) {
             case "suspicious": velocityScore = 1.0; break;
             case "elevated": velocityScore = 0.5; break;
-            default: velocityScore = 0.0;
+            case "normal": velocityScore = 0.0; break;
+            default:
+                result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+                result.setReasonForIncompletion("Invalid velocityResult value: '" + velocityResult
+                        + "'. Must be one of: suspicious, elevated, normal");
+                return result;
         }
 
         // --- Weighted ensemble score ---
@@ -116,7 +172,6 @@ public class DecideWorker implements Worker {
         System.out.println("  [decide] Decision: " + decision + " (combined=" + combinedScore
                 + ", risk=" + riskScore + ")");
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("decision", decision);
         result.getOutputData().put("riskScore", riskScore);

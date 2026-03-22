@@ -58,14 +58,21 @@ class MultiHopRetrieveWorkerTest {
     }
 
     @Test
-    void handlesEmptyQuestion() {
+    void failsOnMissingQuestion() {
         Task task = taskWith(new HashMap<>());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> documents = (List<Map<String, Object>>) result.getOutputData().get("documents");
-        assertEquals(4, documents.size());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("question"));
+    }
+
+    @Test
+    void failsOnBlankQuestion() {
+        Task task = taskWith(new HashMap<>(Map.of("question", "")));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("question"));
     }
 
     private Task taskWith(Map<String, Object> input) {

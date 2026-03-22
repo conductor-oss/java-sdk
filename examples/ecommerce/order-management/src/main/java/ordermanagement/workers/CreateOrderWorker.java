@@ -6,7 +6,6 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -39,14 +38,21 @@ public class CreateOrderWorker implements Worker {
         TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
-        String customerId = task.getInputData().get("customerId") != null
-                ? task.getInputData().get("customerId").toString() : "UNKNOWN";
-
-        List<Map<String, Object>> items = new ArrayList<>();
-        Object itemsObj = task.getInputData().get("items");
-        if (itemsObj instanceof List) {
-            items = (List<Map<String, Object>>) itemsObj;
+        // --- Validate required inputs ---
+        String customerId = (String) task.getInputData().get("customerId");
+        if (customerId == null || customerId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: customerId");
+            return result;
         }
+
+        Object itemsObj = task.getInputData().get("items");
+        if (itemsObj == null || !(itemsObj instanceof List)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or invalid required input: items (must be a list)");
+            return result;
+        }
+        List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
 
         // Validate and calculate total
         double total = 0;
@@ -65,11 +71,11 @@ public class CreateOrderWorker implements Worker {
             int qty = item.get("qty") instanceof Number ? ((Number) item.get("qty")).intValue() : 0;
 
             if (price <= 0) {
-                errors.add("Item " + sku + ": invalid price");
+                errors.add("Item " + sku + ": invalid price (" + price + ")");
                 continue;
             }
             if (qty <= 0) {
-                errors.add("Item " + sku + ": invalid quantity");
+                errors.add("Item " + sku + ": invalid quantity (" + qty + ")");
                 continue;
             }
 
@@ -91,8 +97,8 @@ public class CreateOrderWorker implements Worker {
             output.put("error", "No valid items in order");
             if (!errors.isEmpty()) output.put("validationErrors", errors);
             result.setOutputData(output);
-            result.setStatus(TaskResult.Status.FAILED);
-            result.setReasonForIncompletion("Order must contain at least one valid item");
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Order must contain at least one valid item. Errors: " + String.join("; ", errors));
             return result;
         }
 

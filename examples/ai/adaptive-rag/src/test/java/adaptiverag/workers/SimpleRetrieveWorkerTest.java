@@ -55,23 +55,21 @@ class SimpleRetrieveWorkerTest {
     }
 
     @Test
-    void completesSuccessfully() {
-        Task task = taskWith(new HashMap<>(Map.of("question", "Any question")));
-        TaskResult result = worker.execute(task);
-
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-    }
-
-    @Test
-    void handlesEmptyQuestion() {
+    void failsOnMissingQuestion() {
         Task task = taskWith(new HashMap<>());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        @SuppressWarnings("unchecked")
-        List<String> documents = (List<String>) result.getOutputData().get("documents");
-        assertNotNull(documents);
-        assertEquals(2, documents.size());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("question"));
+    }
+
+    @Test
+    void failsOnBlankQuestion() {
+        Task task = taskWith(new HashMap<>(Map.of("question", "   ")));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("question"));
     }
 
     private Task taskWith(Map<String, Object> input) {

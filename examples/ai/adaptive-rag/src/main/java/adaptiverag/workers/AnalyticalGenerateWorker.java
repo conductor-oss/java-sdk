@@ -43,18 +43,32 @@ public class AnalyticalGenerateWorker implements Worker {
     @Override
     @SuppressWarnings("unchecked")
     public TaskResult execute(Task task) {
+        String question = (String) task.getInputData().get("question");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
+
         List<String> reasoning = (List<String>) task.getInputData().get("reasoning");
-        int steps = reasoning != null ? reasoning.size() : 0;
+        if (reasoning == null || reasoning.isEmpty()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'reasoning' is required and must contain at least one step");
+            return fail;
+        }
+
+        int steps = reasoning.size();
 
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
 
         System.out.println("  [analytical-gen] Calling OpenAI to synthesize from " + steps + "-step reasoning...");
         try {
-            String question = (String) task.getInputData().get("question");
-            String reasoningStr = reasoning != null ? String.join("\n", reasoning) : "";
+            String reasoningStr = String.join("\n", reasoning);
             String systemPrompt = "You are an analytical assistant. Synthesize a comprehensive answer from the reasoning chain provided. Compare and contrast different aspects.";
-            String userPrompt = "Reasoning chain:\n" + reasoningStr + "\n\nQuestion: " + (question != null ? question : "");
+            String userPrompt = "Reasoning chain:\n" + reasoningStr + "\n\nQuestion: " + question;
 
             String answer = callChatCompletion(systemPrompt, userPrompt, result);
             if (answer == null) {

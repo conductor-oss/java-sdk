@@ -13,10 +13,12 @@ class NotifyWorkerTest {
     @Test void notifiesSuccessOnResetSuccess() {
         NotifyWorker w = new NotifyWorker();
         Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
-        t.setInputData(new HashMap<>(Map.of("email", "user@test.com", "resetSuccess", true)));
+        t.setInputData(new HashMap<>(Map.of("email", "user@test.com", "resetSuccess", true, "userId", "USR-1")));
         TaskResult r = w.execute(t);
         assertEquals(true, r.getOutputData().get("notified"));
         assertEquals("Your password has been reset", r.getOutputData().get("emailSubject"));
+        assertNotNull(r.getOutputData().get("sentAt"));
+        assertEquals("USR-1", r.getOutputData().get("userId"));
     }
 
     @Test void notifiesFailureWhenResetFailed() {
@@ -34,5 +36,22 @@ class NotifyWorkerTest {
         t.setInputData(new HashMap<>(Map.of("email", "user@test.com")));
         TaskResult r = w.execute(t);
         assertEquals("Password reset failed", r.getOutputData().get("emailSubject"));
+    }
+
+    @Test void rejectsMissingEmail() {
+        NotifyWorker w = new NotifyWorker();
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>());
+        TaskResult r = w.execute(t);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("email"));
+    }
+
+    @Test void rejectsBlankEmail() {
+        NotifyWorker w = new NotifyWorker();
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>(Map.of("email", "   ")));
+        TaskResult r = w.execute(t);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
     }
 }

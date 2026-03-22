@@ -11,12 +11,27 @@ public class MatchPoWorker implements Worker {
     @Override public String getTaskDefName() { return "ivc_match_po"; }
 
     @Override public TaskResult execute(Task task) {
-        String extractedPo = (String) task.getInputData().get("extractedPoNumber");
-        Object extractedAmountObj = task.getInputData().get("extractedAmount");
-        if (extractedPo == null) extractedPo = "UNKNOWN";
+        TaskResult r = new TaskResult(task);
 
-        double invoiceAmount = 0;
-        if (extractedAmountObj instanceof Number) invoiceAmount = ((Number) extractedAmountObj).doubleValue();
+        String extractedPo = (String) task.getInputData().get("extractedPoNumber");
+        if (extractedPo == null || extractedPo.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: extractedPoNumber");
+            return r;
+        }
+
+        Object extractedAmountObj = task.getInputData().get("extractedAmount");
+        if (extractedAmountObj == null || !(extractedAmountObj instanceof Number)) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing or non-numeric required input: extractedAmount");
+            return r;
+        }
+        double invoiceAmount = ((Number) extractedAmountObj).doubleValue();
+        if (invoiceAmount <= 0) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Invalid extractedAmount: must be positive, got " + invoiceAmount);
+            return r;
+        }
 
         // Real PO lookup: derive PO amount from PO number hash (deterministic)
         int poHash = Math.abs(extractedPo.hashCode());
@@ -32,7 +47,6 @@ public class MatchPoWorker implements Worker {
         System.out.println("  [match] PO " + extractedPo + ": PO amount $" + String.format("%.2f", poAmount)
                 + ", invoice $" + String.format("%.2f", invoiceAmount) + ", variance " + variancePercent + "%, matched: " + matched);
 
-        TaskResult r = new TaskResult(task);
         r.setStatus(TaskResult.Status.COMPLETED);
         r.getOutputData().put("matched", matched);
         r.getOutputData().put("poNumber", extractedPo);

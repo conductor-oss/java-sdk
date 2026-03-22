@@ -22,6 +22,15 @@ class SecurityScanTest {
     }
 
     @Test
+    void failsOnMissingBuildId() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>());
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
     void returnsCompletedStatus() {
         Task task = taskWith("BLD-100001");
         TaskResult result = worker.execute(task);
@@ -53,7 +62,6 @@ class SecurityScanTest {
 
     @Test
     void detectsSensitiveFiles(@TempDir Path tempDir) throws IOException {
-        // Create a .env file which should be flagged
         Files.writeString(tempDir.resolve(".env"), "DATABASE_URL=postgres://user:pass@host/db");
 
         Task task = taskWithDir("BLD-100001", tempDir.toString());
@@ -65,7 +73,6 @@ class SecurityScanTest {
 
     @Test
     void detectsHardcodedSecrets(@TempDir Path tempDir) throws IOException {
-        // Create a file with a hardcoded secret
         Files.writeString(tempDir.resolve("config.java"),
                 "String apiKey = \"sk_" + "live_abcdef123456789012345678\";\n");
 
@@ -74,6 +81,28 @@ class SecurityScanTest {
 
         int critical = ((Number) result.getOutputData().get("critical")).intValue();
         assertTrue(critical > 0, "Should detect hardcoded API key");
+    }
+
+    @Test
+    void criticalFindingBlocksDeploy(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("secret.java"),
+                "String password = \"supersecretpassword123\";\n");
+
+        Task task = taskWithDir("BLD-100001", tempDir.toString());
+        TaskResult result = worker.execute(task);
+
+        assertEquals(true, result.getOutputData().get("blockDeploy"),
+                "Critical findings should block deploy");
+    }
+
+    @Test
+    void cleanDirDoesNotBlockDeploy(@TempDir Path tempDir) throws IOException {
+        Files.writeString(tempDir.resolve("Main.java"), "public class Main { }");
+
+        Task task = taskWithDir("BLD-100001", tempDir.toString());
+        TaskResult result = worker.execute(task);
+
+        assertEquals(false, result.getOutputData().get("blockDeploy"));
     }
 
     @Test

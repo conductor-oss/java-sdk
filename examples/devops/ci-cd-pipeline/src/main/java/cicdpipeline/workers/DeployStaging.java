@@ -14,15 +14,12 @@ import java.util.Map;
 
 /**
  * Deploys the build artifacts to a staging directory. Creates a real directory
- * structure under /tmp/cicd-staging/ (or system temp dir) containing a
- * deployment manifest, a version marker, and a health check file.
- *
- * This performs a real deployment by writing actual files that a downstream
- * health check could verify.
+ * structure under java.io.tmpdir/cicd-staging/ containing a deployment manifest,
+ * a version marker, and a health check file.
  *
  * Input:
- *   - buildId (String): build identifier
- *   - imageTag (String): docker image tag or artifact version
+ *   - buildId (String, required): build identifier
+ *   - imageTag (String, required): docker image tag or artifact version
  *
  * Output:
  *   - deployed (boolean): whether deployment succeeded
@@ -40,26 +37,35 @@ public class DeployStaging implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String buildId = (String) task.getInputData().get("buildId");
-        String imageTag = (String) task.getInputData().get("imageTag");
+        TaskResult result = new TaskResult(task);
+
+        String buildId = getRequiredString(task, "buildId");
+        if (buildId == null || buildId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: buildId");
+            return result;
+        }
+
+        String imageTag = getRequiredString(task, "imageTag");
+        if (imageTag == null || imageTag.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: imageTag");
+            return result;
+        }
 
         System.out.println("[cicd_deploy_staging] Deploying " + imageTag + " to staging");
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
-
         long startMs = System.currentTimeMillis();
 
         try {
-            // Create staging deployment directory
             Path stagingRoot = Path.of(System.getProperty("java.io.tmpdir"), "cicd-staging");
             Files.createDirectories(stagingRoot);
 
-            String deployDirName = "deploy-" + (buildId != null ? buildId : "unknown") + "-" + System.currentTimeMillis();
+            String deployDirName = "deploy-" + buildId + "-" + System.currentTimeMillis();
             Path deployDir = stagingRoot.resolve(deployDirName);
             Files.createDirectories(deployDir);
 
-            // Write deployment manifest
             String manifest = "{\n"
                     + "  \"buildId\": \"" + buildId + "\",\n"
                     + "  \"imageTag\": \"" + imageTag + "\",\n"
@@ -70,11 +76,9 @@ public class DeployStaging implements Worker {
             Path manifestPath = deployDir.resolve("manifest.json");
             Files.writeString(manifestPath, manifest, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            // Write version marker
-            Files.writeString(deployDir.resolve("VERSION"), imageTag != null ? imageTag : "unknown",
+            Files.writeString(deployDir.resolve("VERSION"), imageTag,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            // Write health check file
             Files.writeString(deployDir.resolve("health.json"),
                     "{\"status\": \"ok\", \"version\": \"" + imageTag + "\"}",
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -82,8 +86,6 @@ public class DeployStaging implements Worker {
             long durationMs = System.currentTimeMillis() - startMs;
 
             System.out.println("  Deployed to: " + deployDir);
-            System.out.println("  Manifest: " + manifestPath);
-            System.out.println("  Duration: " + durationMs + "ms");
 
             output.put("deployed", true);
             output.put("environment", "staging");
@@ -108,5 +110,11 @@ public class DeployStaging implements Worker {
         result.setStatus(TaskResult.Status.COMPLETED);
         result.setOutputData(output);
         return result;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

@@ -51,10 +51,10 @@ class CreateOrderWorkerTest {
     }
 
     @Test
-    void failsWithEmptyItems() {
+    void failsWithTerminalErrorOnEmptyItems() {
         Task task = taskWith(Map.of("customerId", "c3", "items", List.of()));
         TaskResult r = worker.execute(task);
-        assertEquals(TaskResult.Status.FAILED, r.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
     }
 
     @Test
@@ -79,19 +79,19 @@ class CreateOrderWorkerTest {
     }
 
     @Test
-    void rejectsItemsWithZeroPrice() {
+    void failsWithTerminalErrorOnItemsWithZeroPrice() {
         Task task = taskWith(Map.of("customerId", "c6", "items", List.of(
                 Map.of("sku", "BAD", "name", "Bad", "price", 0.0, "qty", 1))));
         TaskResult r = worker.execute(task);
-        assertEquals(TaskResult.Status.FAILED, r.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
     }
 
     @Test
-    void rejectsItemsWithZeroQuantity() {
+    void failsWithTerminalErrorOnItemsWithZeroQuantity() {
         Task task = taskWith(Map.of("customerId", "c7", "items", List.of(
                 Map.of("sku", "A", "name", "A", "price", 10.0, "qty", 0))));
         TaskResult r = worker.execute(task);
-        assertEquals(TaskResult.Status.FAILED, r.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
     }
 
     @Test
@@ -100,6 +100,29 @@ class CreateOrderWorkerTest {
                 Map.of("sku", "A", "name", "A", "price", 10.0, "qty", 1))));
         TaskResult r = worker.execute(task);
         assertNotNull(r.getOutputData().get("createdAt"));
+    }
+
+    // ---- Failure path ---------------------------------------------------
+
+    @Test
+    void failsWithTerminalErrorOnMissingCustomerId() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>(Map.of("items", List.of(
+                Map.of("sku", "A", "price", 10.0, "qty", 1)))));
+        TaskResult r = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("customerId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingItems() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>(Map.of("customerId", "c1")));
+        TaskResult r = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("items"));
     }
 
     private Task taskWith(Map<String, Object> input) {

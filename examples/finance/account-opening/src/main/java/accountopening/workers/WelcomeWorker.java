@@ -19,12 +19,28 @@ public class WelcomeWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
+        TaskResult r = new TaskResult(task);
+
         String applicantName = (String) task.getInputData().get("applicantName");
+        if (applicantName == null || applicantName.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: applicantName");
+            return r;
+        }
+
         String accountNumber = (String) task.getInputData().get("accountNumber");
+        if (accountNumber == null || accountNumber.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: accountNumber");
+            return r;
+        }
+
         String accountType = (String) task.getInputData().get("accountType");
-        if (applicantName == null) applicantName = "Valued Customer";
-        if (accountNumber == null) accountNumber = "UNKNOWN";
-        if (accountType == null) accountType = "checking";
+        if (accountType == null || accountType.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: accountType");
+            return r;
+        }
 
         // Real welcome package contents based on account type
         List<String> includes = new ArrayList<>();
@@ -48,7 +64,6 @@ public class WelcomeWorker implements Worker {
         System.out.println("  [welcome] Welcome package for " + applicantName
                 + " - account " + accountNumber + " (" + includes.size() + " items)");
 
-        TaskResult r = new TaskResult(task);
         r.setStatus(TaskResult.Status.COMPLETED);
         r.getOutputData().put("welcomeSent", true);
         r.getOutputData().put("includes", includes);

@@ -37,7 +37,10 @@ public class EmbedQueryWorker implements Worker {
     public TaskResult execute(Task task) {
         String question = (String) task.getInputData().get("question");
         if (question == null || question.isBlank()) {
-            question = "";
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
         }
 
         TaskResult result = new TaskResult(task);

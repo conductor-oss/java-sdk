@@ -37,9 +37,23 @@ public class GenerateAnswerWorker implements Worker {
     @Override
     public TaskResult execute(Task task) {
         String question = (String) task.getInputData().get("question");
-        List<Map<String, Object>> context = (List<Map<String, Object>>) task.getInputData().get("context");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
 
-        int contextSize = (context != null) ? context.size() : 0;
+        List<Map<String, Object>> context = (List<Map<String, Object>>) task.getInputData().get("context");
+        if (context == null || context.isEmpty()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'context' is required and must contain at least one document. "
+                    + "Cannot call LLM without retrieval context.");
+            return fail;
+        }
+
+        int contextSize = context.size();
 
         TaskResult result = new TaskResult(task);
 

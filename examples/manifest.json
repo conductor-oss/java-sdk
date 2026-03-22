@@ -30,7 +30,9 @@
       "advanced",
       "aggregator pattern",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -63,7 +65,9 @@
       "advanced",
       "at least once",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -101,7 +105,9 @@
       "conditional-branching",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -139,7 +145,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -170,7 +178,9 @@
       "advanced",
       "claim check",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -203,7 +213,9 @@
       "advanced",
       "competing consumers",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -236,7 +248,9 @@
       "advanced",
       "container orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -267,7 +281,9 @@
       "advanced",
       "content enricher",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -298,7 +314,9 @@
       "advanced",
       "correlation pattern",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -331,7 +349,9 @@
       "advanced",
       "cross region",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -364,7 +384,9 @@
       "advanced",
       "data versioning",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -395,7 +417,9 @@
       "advanced",
       "dynamic workflows",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -426,7 +450,9 @@
       "advanced",
       "edge orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -459,7 +485,9 @@
       "advanced",
       "exactly once",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -492,7 +520,9 @@
       "advanced",
       "experiment tracking",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -525,7 +555,9 @@
       "advanced",
       "feature store",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -558,7 +590,9 @@
       "advanced",
       "gpu orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -589,7 +623,9 @@
       "advanced",
       "graceful shutdown",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -627,7 +663,9 @@
       "hybrid cloud",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -663,7 +701,9 @@
       "idempotent processing",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -701,7 +741,9 @@
       "map reduce",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -734,7 +776,9 @@
       "advanced",
       "message broker",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -767,7 +811,9 @@
       "advanced",
       "model registry",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -800,7 +846,9 @@
       "advanced",
       "model serving",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -838,7 +886,9 @@
       "multi cluster",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -874,7 +924,9 @@
       "normalizer",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -905,7 +957,9 @@
       "advanced",
       "ordered processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -943,7 +997,9 @@
       "parallel processing",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -974,7 +1030,9 @@
       "advanced",
       "pipeline pattern",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1007,7 +1065,9 @@
       "advanced",
       "pipeline versioning",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1045,7 +1105,9 @@
       "parallel-execution",
       "publish subscribe",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1078,7 +1140,9 @@
       "advanced",
       "request reply",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1116,7 +1180,9 @@
       "parallel-execution",
       "scatter gather",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1147,7 +1213,9 @@
       "advanced",
       "serverless orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1183,7 +1251,9 @@
       "parallel-execution",
       "simple",
       "splitter pattern"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1219,7 +1289,9 @@
       "simple",
       "switch",
       "task dedup"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1257,7 +1329,9 @@
       "simple",
       "switch",
       "task priority"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1290,7 +1364,9 @@
       "advanced",
       "simple",
       "task routing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1328,7 +1404,9 @@
       "parallel-execution",
       "simple",
       "wire tap"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1359,7 +1437,9 @@
       "advanced",
       "simple",
       "worker pools"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1392,7 +1472,9 @@
       "advanced",
       "simple",
       "worker scaling"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1423,7 +1505,9 @@
       "advanced",
       "simple",
       "workflow composition"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1454,7 +1538,9 @@
       "advanced",
       "simple",
       "workflow debugging"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1485,7 +1571,9 @@
       "advanced",
       "simple",
       "workflow inheritance"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1518,7 +1606,9 @@
       "advanced",
       "simple",
       "workflow migration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1549,7 +1639,9 @@
       "advanced",
       "simple",
       "workflow optimization"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1591,7 +1683,9 @@
       "parallel-execution",
       "simple",
       "workflow patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1622,7 +1716,9 @@
       "advanced",
       "simple",
       "workflow profiling"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1653,7 +1749,9 @@
       "advanced",
       "simple",
       "workflow templating"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "advanced",
@@ -1686,7 +1784,9 @@
       "advanced",
       "simple",
       "workflow testing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1715,7 +1815,9 @@
       "agent collaboration",
       "agents",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1751,7 +1853,9 @@
       "conditional-branching",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1782,7 +1886,9 @@
       "agent memory",
       "agents",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1813,7 +1919,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1849,7 +1957,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1883,7 +1993,9 @@
       "do-while",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1914,7 +2026,9 @@
       "agents",
       "api calling agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1948,7 +2062,9 @@
       "do-while",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -1979,7 +2095,9 @@
       "agents",
       "calculator agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2014,7 +2132,9 @@
       "agents",
       "calendar agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2043,7 +2163,9 @@
       "agents",
       "chain of thought",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2074,7 +2196,9 @@
       "agents",
       "code interpreter",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2112,7 +2236,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2145,7 +2271,9 @@
       "agents",
       "crm agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2176,7 +2304,9 @@
       "agents",
       "database agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2210,7 +2340,9 @@
       "do-while",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2245,7 +2377,9 @@
       "agents",
       "email agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2278,7 +2412,9 @@
       "agents",
       "file processing agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2309,7 +2445,9 @@
       "agents",
       "function calling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2345,7 +2483,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2383,7 +2523,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2421,7 +2563,9 @@
       "multi agent code review",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2454,7 +2598,9 @@
       "agents",
       "multi agent content",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2492,7 +2638,9 @@
       "multi agent planning",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2530,7 +2678,9 @@
       "multi agent research",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2570,7 +2720,9 @@
       "multi agent support",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2599,7 +2751,9 @@
       "agents",
       "plan execute agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2633,7 +2787,9 @@
       "loop",
       "react agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2667,7 +2823,9 @@
       "loop",
       "reflection agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2705,7 +2863,9 @@
       "parallel-execution",
       "search agent",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2739,7 +2899,9 @@
       "self correction",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2770,7 +2932,9 @@
       "agents",
       "simple",
       "three agent pipeline"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2799,7 +2963,9 @@
       "agents",
       "simple",
       "tool augmented generation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2830,7 +2996,9 @@
       "agents",
       "simple",
       "tool use basics"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2868,7 +3036,9 @@
       "simple",
       "switch",
       "tool use caching"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2902,7 +3072,9 @@
       "simple",
       "switch",
       "tool use conditional"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2940,7 +3112,9 @@
       "simple",
       "switch",
       "tool use error handling"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -2975,7 +3149,9 @@
       "agents",
       "simple",
       "tool use logging"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3013,7 +3189,9 @@
       "parallel-execution",
       "simple",
       "tool use parallel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3051,7 +3229,9 @@
       "simple",
       "switch",
       "tool use rate limiting"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3082,7 +3262,9 @@
       "agents",
       "simple",
       "tool use sequential"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3113,7 +3295,9 @@
       "agents",
       "simple",
       "tool use validation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3149,7 +3333,9 @@
       "parallel-execution",
       "simple",
       "tree of thought"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3173,7 +3359,9 @@
       "agents",
       "simple",
       "two agent pipeline"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "agents",
@@ -3204,7 +3392,9 @@
       "agents",
       "simple",
       "web browsing agent"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3244,7 +3434,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3279,7 +3471,9 @@
       "ai fine tuning",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3314,7 +3508,9 @@
       "ai guardrails",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3349,7 +3545,9 @@
       "ai image generation",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3384,7 +3582,9 @@
       "ai model evaluation",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3417,7 +3617,9 @@
       "ai music generation",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3452,7 +3654,9 @@
       "ai orchestration platform",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3487,7 +3691,9 @@
       "ai prompt engineering",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3522,7 +3728,9 @@
       "ai video generation",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3557,7 +3765,9 @@
       "ai voice cloning",
       "ai-generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3590,7 +3800,9 @@
       "ai-generation",
       "code generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3628,7 +3840,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3661,7 +3875,9 @@
       "ai-generation",
       "deployment ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3692,7 +3908,9 @@
       "ai-generation",
       "documentation ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3725,7 +3943,9 @@
       "ai-generation",
       "incident ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3756,7 +3976,9 @@
       "ai-generation",
       "monitoring ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3787,7 +4009,9 @@
       "ai-generation",
       "pr review ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai-generation",
@@ -3820,7 +4044,9 @@
       "ai-generation",
       "release notes ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -3856,7 +4082,9 @@
       "conditional-branching",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "ai",
@@ -3887,7 +4115,9 @@
       "ai",
       "amazon bedrock",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -3922,7 +4152,9 @@
       "ai",
       "anthropic claude",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -3953,7 +4185,9 @@
       "ai",
       "basic rag",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "ai",
@@ -3986,7 +4220,9 @@
       "ai",
       "chatbot orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4010,7 +4246,9 @@
       "ai",
       "cohere",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4043,7 +4281,9 @@
       "ai",
       "conversational rag",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4079,7 +4319,9 @@
       "corrective rag",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4116,7 +4358,9 @@
       "ai",
       "document ingestion",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4147,7 +4391,9 @@
       "ai",
       "document qa",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4185,7 +4431,9 @@
       "enterprise rag",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4225,7 +4473,9 @@
       "fine tuned deployment",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4258,7 +4508,9 @@
       "ai",
       "first ai workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4293,7 +4545,9 @@
       "ai",
       "google gemini",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4324,7 +4578,9 @@
       "ai",
       "huggingface",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4350,7 +4606,9 @@
       "ai",
       "incremental rag",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4381,7 +4639,9 @@
       "ai",
       "knowledge base sync",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4414,7 +4674,9 @@
       "ai",
       "llm caching",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4447,7 +4709,9 @@
       "ai",
       "llm chain",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4480,7 +4744,9 @@
       "ai",
       "llm cost tracking",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4518,7 +4784,9 @@
       "llm fallback chain",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4551,7 +4819,9 @@
       "ai",
       "llm retry",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4575,7 +4845,9 @@
       "ai",
       "mistral ai",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4613,7 +4885,9 @@
       "multi document rag",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4648,7 +4922,9 @@
       "multi model compare",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4688,7 +4964,9 @@
       "multimodal rag",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4719,7 +4997,9 @@
       "ai",
       "ollama local",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4754,7 +5034,9 @@
       "ai",
       "openai gpt4",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4791,7 +5073,9 @@
       "ai",
       "prompt templates",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4822,7 +5106,9 @@
       "ai",
       "question answering",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4848,7 +5134,9 @@
       "ai",
       "rag access control",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4881,7 +5169,9 @@
       "ai",
       "rag chromadb",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4912,7 +5202,9 @@
       "ai",
       "rag citation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4945,7 +5237,9 @@
       "ai",
       "rag code",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -4978,7 +5272,9 @@
       "ai",
       "rag elasticsearch",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5011,7 +5307,9 @@
       "parallel-execution",
       "rag embedding selection",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5044,7 +5342,9 @@
       "parallel-execution",
       "rag evaluation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5082,7 +5382,9 @@
       "parallel-execution",
       "rag fusion",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5120,7 +5422,9 @@
       "parallel-execution",
       "rag hybrid search",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5158,7 +5462,9 @@
       "parallel-execution",
       "rag knowledge graph",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5184,7 +5490,9 @@
       "ai",
       "rag langchain",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5217,7 +5525,9 @@
       "ai",
       "rag milvus",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5252,7 +5562,9 @@
       "ai",
       "rag mongodb",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5290,7 +5602,9 @@
       "parallel-execution",
       "rag multi query",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5323,7 +5637,9 @@
       "ai",
       "rag pgvector",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5360,7 +5676,9 @@
       "ai",
       "rag pinecone",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5393,7 +5711,9 @@
       "ai",
       "rag qdrant",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5429,7 +5749,9 @@
       "rag quality gates",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5462,7 +5784,9 @@
       "ai",
       "rag redis",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5497,7 +5821,9 @@
       "ai",
       "rag reranking",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5530,7 +5856,9 @@
       "ai",
       "rag sql",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5556,7 +5884,9 @@
       "ai",
       "rag weaviate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5589,7 +5919,9 @@
       "ai",
       "raptor rag",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5625,7 +5957,9 @@
       "self rag",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5665,7 +5999,9 @@
       "parallel-execution",
       "semi structured rag",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5700,7 +6036,9 @@
       "ai",
       "simple",
       "streaming llm"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5733,7 +6071,9 @@
       "ai",
       "simple",
       "structured output"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5766,7 +6106,9 @@
       "ai",
       "simple",
       "system prompts"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5799,7 +6141,9 @@
       "ai",
       "simple",
       "voice bot"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ai",
@@ -5832,7 +6176,9 @@
       "ai",
       "simple",
       "web scraping rag"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -5863,7 +6209,9 @@
       "basics",
       "conductor ui",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -5894,7 +6242,9 @@
       "basics",
       "creating workers",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -5923,7 +6273,9 @@
       "basics",
       "docker setup",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -5960,7 +6312,9 @@
       "basics",
       "end to end app",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -5989,7 +6343,9 @@
       "basics",
       "hello world",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -6018,7 +6374,9 @@
       "basics",
       "orkes cloud",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -6047,7 +6405,9 @@
       "basics",
       "registering workflows",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -6076,7 +6436,9 @@
       "basics",
       "sdk setup",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -6109,7 +6471,9 @@
       "basics",
       "simple",
       "understanding workflows"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "basics",
@@ -6142,7 +6506,9 @@
       "basics",
       "simple",
       "workflow input output"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "crm",
@@ -6175,7 +6541,9 @@
       "campaign automation",
       "crm",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "crm",
@@ -6206,7 +6574,9 @@
       "crm",
       "customer journey",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "crm",
@@ -6239,7 +6609,9 @@
       "crm",
       "drip campaign",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "crm",
@@ -6272,7 +6644,9 @@
       "crm",
       "lead nurturing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "crm",
@@ -6305,7 +6679,9 @@
       "crm",
       "lead scoring",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6338,7 +6714,9 @@
       "audio transcription",
       "data",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6374,7 +6752,9 @@
       "do-while",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6407,7 +6787,9 @@
       "clickstream analytics",
       "data",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6440,7 +6822,9 @@
       "csv processing",
       "data",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6473,7 +6857,9 @@
       "dashboard data",
       "data",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6506,7 +6892,9 @@
       "data",
       "data aggregation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6537,7 +6925,9 @@
       "data",
       "data anonymization",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6570,7 +6960,9 @@
       "data",
       "data archival",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6603,7 +6995,9 @@
       "data",
       "data catalog",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6634,7 +7028,9 @@
       "data",
       "data compression",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6665,7 +7061,9 @@
       "data",
       "data dedup",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6694,7 +7092,9 @@
       "data",
       "data enrichment",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6734,7 +7134,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6767,7 +7169,9 @@
       "data",
       "data lake ingestion",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6800,7 +7204,9 @@
       "data",
       "data lineage",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6838,7 +7244,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6874,7 +7282,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6907,7 +7317,9 @@
       "data",
       "data reconciliation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6945,7 +7357,9 @@
       "data sampling",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -6980,7 +7394,9 @@
       "data",
       "data sync",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7011,7 +7427,9 @@
       "data",
       "data validation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7044,7 +7462,9 @@
       "data",
       "data warehouse load",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7081,7 +7501,9 @@
       "data",
       "etl basics",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7112,7 +7534,9 @@
       "data",
       "feature engineering",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7145,7 +7569,9 @@
       "data",
       "gdpr data deletion",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7185,7 +7611,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7216,7 +7644,9 @@
       "data",
       "json transformation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7249,7 +7679,9 @@
       "data",
       "log processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7282,7 +7714,9 @@
       "data",
       "ml data pipeline",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7311,7 +7745,9 @@
       "data",
       "named entity extraction",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7344,7 +7780,9 @@
       "data",
       "ocr pipeline",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7377,7 +7815,9 @@
       "data",
       "pdf processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7410,7 +7850,9 @@
       "data",
       "real time analytics",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7443,7 +7885,9 @@
       "data",
       "report generation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7476,7 +7920,9 @@
       "data",
       "schema evolution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7507,7 +7953,9 @@
       "data",
       "sentiment analysis",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7538,7 +7986,9 @@
       "data",
       "simple",
       "stream processing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7569,7 +8019,9 @@
       "data",
       "simple",
       "summarization pipeline"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7600,7 +8052,9 @@
       "data",
       "simple",
       "text classification"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7638,7 +8092,9 @@
       "parallel-execution",
       "simple",
       "video transcoding"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "data",
@@ -7669,7 +8125,9 @@
       "data",
       "simple",
       "xml parsing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7700,7 +8158,9 @@
       "api test generation",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7733,7 +8193,9 @@
       "apm workflow",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7764,7 +8226,9 @@
       "artifact management",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7797,7 +8261,9 @@
       "auto scaling",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7835,7 +8301,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7869,7 +8337,9 @@
       "devops",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7900,7 +8370,9 @@
       "capacity planning",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7931,7 +8403,9 @@
       "certificate rotation",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "devops",
@@ -7964,7 +8438,9 @@
       "change management",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -7995,7 +8471,9 @@
       "chaos engineering",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8035,7 +8513,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "devops",
@@ -8068,7 +8548,9 @@
       "commit analysis",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8099,7 +8581,9 @@
       "compliance scanning",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8130,7 +8614,9 @@
       "cost optimization",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8163,7 +8649,9 @@
       "custom metrics",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8200,7 +8688,9 @@
       "database backup",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8231,7 +8721,9 @@
       "database migration devops",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8262,7 +8754,9 @@
       "dependency update",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8293,7 +8787,9 @@
       "deployment rollback",
       "devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8324,7 +8820,9 @@
       "devops",
       "disaster recovery",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8357,7 +8855,9 @@
       "devops",
       "dns management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8390,7 +8890,9 @@
       "devops",
       "environment management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8421,7 +8923,9 @@
       "devops",
       "feature environment",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8452,7 +8956,9 @@
       "devops",
       "gitops workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8485,7 +8991,9 @@
       "devops",
       "incident response",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8518,7 +9026,9 @@
       "devops",
       "infrastructure provisioning",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8549,7 +9059,9 @@
       "devops",
       "load balancer config",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8582,7 +9094,9 @@
       "devops",
       "log aggregation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8615,7 +9129,9 @@
       "devops",
       "maintenance window",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8653,7 +9169,9 @@
       "metrics collection",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8686,7 +9204,9 @@
       "devops",
       "monitoring alerting",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8719,7 +9239,9 @@
       "devops",
       "multi region deploy",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8750,7 +9272,9 @@
       "devops",
       "network automation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8781,7 +9305,9 @@
       "devops",
       "observability pipeline",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8812,7 +9338,9 @@
       "devops",
       "on call rotation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8843,7 +9371,9 @@
       "devops",
       "patch management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8876,7 +9406,9 @@
       "devops",
       "performance testing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8907,7 +9439,9 @@
       "devops",
       "post mortem automation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8940,7 +9474,9 @@
       "devops",
       "predictive monitoring",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -8971,7 +9507,9 @@
       "devops",
       "release management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9002,7 +9540,9 @@
       "devops",
       "rolling update",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9033,7 +9573,9 @@
       "devops",
       "runbook automation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9068,7 +9610,9 @@
       "devops",
       "service discovery devops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9101,7 +9645,9 @@
       "devops",
       "service migration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9132,7 +9678,9 @@
       "devops",
       "simple",
       "sla monitoring"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9163,7 +9711,9 @@
       "devops",
       "simple",
       "smoke testing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9196,7 +9746,9 @@
       "devops",
       "simple",
       "test generation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9236,7 +9788,9 @@
       "simple",
       "switch",
       "threshold alerting"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "devops",
@@ -9282,7 +9836,9 @@
       "simple",
       "switch",
       "uptime monitor"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9320,7 +9876,9 @@
       "external-wait",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9353,7 +9911,9 @@
       "auction workflow",
       "ecommerce",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9388,7 +9948,9 @@
       "checkout flow",
       "ecommerce",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9423,7 +9985,9 @@
       "coupon engine",
       "ecommerce",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9454,7 +10018,9 @@
       "customer segmentation",
       "ecommerce",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9487,7 +10053,9 @@
       "ecommerce",
       "flash sale",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9529,7 +10097,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "ecommerce",
@@ -9564,7 +10134,9 @@
       "ecommerce",
       "inventory management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9597,7 +10169,9 @@
       "ecommerce",
       "loyalty program",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9630,7 +10204,9 @@
       "ecommerce",
       "marketplace seller",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9665,7 +10241,9 @@
       "ecommerce",
       "order management",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "ecommerce",
@@ -9704,7 +10282,9 @@
       "ecommerce",
       "payment processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9737,7 +10317,9 @@
       "ecommerce",
       "price optimization",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9774,7 +10356,9 @@
       "ecommerce",
       "product catalog",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9805,7 +10389,9 @@
       "ecommerce",
       "recommendation engine",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9845,7 +10431,9 @@
       "returns processing",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9884,7 +10472,9 @@
       "ecommerce",
       "shipping workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9917,7 +10507,9 @@
       "ecommerce",
       "shopping cart",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9952,7 +10544,9 @@
       "ecommerce",
       "simple",
       "subscription billing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "ecommerce",
@@ -9985,7 +10579,9 @@
       "ecommerce",
       "simple",
       "tax calculation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10018,7 +10614,9 @@
       "assessment creation",
       "education",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10051,7 +10649,9 @@
       "certificate issuance",
       "education",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10086,7 +10686,9 @@
       "course management",
       "education",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10119,7 +10721,9 @@
       "education",
       "education enrollment",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10152,7 +10756,9 @@
       "education",
       "grading workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10185,7 +10791,9 @@
       "education",
       "lesson planning",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10223,7 +10831,9 @@
       "plagiarism detection",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10258,7 +10868,9 @@
       "education",
       "scholarship processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10289,7 +10901,9 @@
       "education",
       "simple",
       "student progress"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "education",
@@ -10322,7 +10936,9 @@
       "education",
       "simple",
       "tutoring match"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10355,7 +10971,9 @@
       "cdc pipeline",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10391,7 +11009,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10427,7 +11047,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10467,7 +11089,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10500,7 +11124,9 @@
       "delayed event",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10533,7 +11159,9 @@
       "event aggregation",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10566,7 +11194,9 @@
       "event audit trail",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10602,7 +11232,9 @@
       "events",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10635,7 +11267,9 @@
       "event choreography",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10673,7 +11307,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10709,7 +11345,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10747,7 +11385,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10785,7 +11425,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10825,7 +11467,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10865,7 +11509,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10898,7 +11544,9 @@
       "event management",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10938,7 +11586,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -10969,7 +11619,9 @@
       "event monitoring",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11007,7 +11659,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11041,7 +11695,9 @@
       "events",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11077,7 +11733,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11113,7 +11771,9 @@
       "events",
       "loop",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11148,7 +11808,9 @@
       "event replay",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11186,7 +11848,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11222,7 +11886,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11258,7 +11924,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11291,7 +11959,9 @@
       "event transformation",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11331,7 +12001,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11365,7 +12037,9 @@
       "events",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11396,7 +12070,9 @@
       "event windowing",
       "events",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11433,7 +12109,9 @@
       "events",
       "kafka consumer",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11470,7 +12148,9 @@
       "events",
       "pubsub consumer",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11503,7 +12183,9 @@
       "events",
       "scheduled event",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11538,7 +12220,9 @@
       "events",
       "simple",
       "sqs consumer"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11571,7 +12255,9 @@
       "events",
       "simple",
       "webhook callback"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11609,7 +12295,9 @@
       "simple",
       "switch",
       "webhook rate limiting"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11645,7 +12333,9 @@
       "loop",
       "simple",
       "webhook retry"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11683,7 +12373,9 @@
       "simple",
       "switch",
       "webhook security"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11718,7 +12410,9 @@
       "events",
       "simple",
       "webhook trigger"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "events",
@@ -11751,7 +12445,9 @@
       "events",
       "simple",
       "webinar registration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -11786,7 +12482,9 @@
       "account opening",
       "finance",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "finance",
@@ -11826,7 +12524,9 @@
       "finance",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -11863,7 +12563,9 @@
       "claims processing",
       "finance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -11894,7 +12596,9 @@
       "credit scoring",
       "finance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -11932,7 +12636,9 @@
       "finance",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -11969,7 +12675,9 @@
       "expense management",
       "finance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12004,7 +12712,9 @@
       "finance",
       "financial audit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12044,7 +12754,9 @@
       "insurance underwriting",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12077,7 +12789,9 @@
       "finance",
       "investment workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12110,7 +12824,9 @@
       "finance",
       "invoice processing",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "finance",
@@ -12145,7 +12861,9 @@
       "finance",
       "kyc aml",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12180,7 +12898,9 @@
       "finance",
       "loan origination",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12215,7 +12935,9 @@
       "finance",
       "payment reconciliation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12246,7 +12968,9 @@
       "finance",
       "payroll workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12279,7 +13003,9 @@
       "finance",
       "portfolio rebalancing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12314,7 +13040,9 @@
       "finance",
       "regulatory reporting",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12352,7 +13080,9 @@
       "parallel-execution",
       "risk assessment",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12385,7 +13115,9 @@
       "finance",
       "simple",
       "tax filing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12424,7 +13156,9 @@
       "finance",
       "simple",
       "trade execution"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "finance",
@@ -12461,7 +13195,9 @@
       "finance",
       "simple",
       "wire transfer"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12494,7 +13230,9 @@
       "catering management",
       "food",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12527,7 +13265,9 @@
       "delivery tracking",
       "food",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12558,7 +13298,9 @@
       "food",
       "food ordering",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12589,7 +13331,9 @@
       "food",
       "food safety",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12622,7 +13366,9 @@
       "food",
       "kitchen workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12655,7 +13401,9 @@
       "food",
       "loyalty rewards",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12686,7 +13434,9 @@
       "food",
       "menu management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12719,7 +13469,9 @@
       "food",
       "nutrition tracking",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12754,7 +13506,9 @@
       "food",
       "reservation system",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "food",
@@ -12785,7 +13539,9 @@
       "food",
       "restaurant management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12821,7 +13577,9 @@
       "gaming",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12852,7 +13610,9 @@
       "game analytics",
       "gaming",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12885,7 +13645,9 @@
       "gaming",
       "gaming matchmaking",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12918,7 +13680,9 @@
       "gaming",
       "in app purchase",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12949,7 +13713,9 @@
       "gaming",
       "leaderboard update",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -12982,7 +13748,9 @@
       "gaming",
       "live ops",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -13015,7 +13783,9 @@
       "gaming",
       "player progression",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -13048,7 +13818,9 @@
       "gaming",
       "season management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -13081,7 +13853,9 @@
       "gaming",
       "simple",
       "tournament bracket"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "gaming",
@@ -13116,7 +13890,9 @@
       "gaming",
       "simple",
       "virtual economy"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13154,7 +13930,9 @@
       "government",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13187,7 +13965,9 @@
       "case management gov",
       "government",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13220,7 +14000,9 @@
       "citizen request",
       "government",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13253,7 +14035,9 @@
       "emergency response",
       "government",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13291,7 +14075,9 @@
       "government permit",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13327,7 +14113,9 @@
       "inspection workflow",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13365,7 +14153,9 @@
       "public health",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13398,7 +14188,9 @@
       "government",
       "public records",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13431,7 +14223,9 @@
       "government",
       "simple",
       "tax assessment"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "government",
@@ -13464,7 +14258,9 @@
       "government",
       "simple",
       "voting workflow"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13499,7 +14295,9 @@
       "appointment scheduling",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13534,7 +14332,9 @@
       "billing medical",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13567,7 +14367,9 @@
       "care coordination",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13600,7 +14402,9 @@
       "clinical decision",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13633,7 +14437,9 @@
       "clinical trials",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "healthcare",
@@ -13666,7 +14472,9 @@
       "discharge planning",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13697,7 +14505,9 @@
       "drug interaction",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13728,7 +14538,9 @@
       "ehr integration",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13761,7 +14573,9 @@
       "genomics pipeline",
       "healthcare",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13798,7 +14612,9 @@
       "healthcare",
       "insurance claims",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13831,7 +14647,9 @@
       "healthcare",
       "lab results",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13866,7 +14684,9 @@
       "healthcare",
       "medical imaging",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13899,7 +14719,9 @@
       "healthcare",
       "mental health",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13934,7 +14756,9 @@
       "healthcare",
       "patient intake",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -13967,7 +14791,9 @@
       "healthcare",
       "population health",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -14002,7 +14828,9 @@
       "healthcare",
       "prescription workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -14042,7 +14870,9 @@
       "prior authorization",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -14077,7 +14907,9 @@
       "healthcare",
       "referral management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -14113,7 +14945,9 @@
       "remote monitoring",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "healthcare",
@@ -14148,7 +14982,9 @@
       "healthcare",
       "simple",
       "telemedicine"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14186,7 +15022,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14217,7 +15055,9 @@
       "benefits enrollment",
       "hr",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14250,7 +15090,9 @@
       "hr",
       "hr onboarding",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14283,7 +15125,9 @@
       "hr",
       "interview scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14318,7 +15162,9 @@
       "hr",
       "leave management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14358,7 +15204,9 @@
       "offer management",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14391,7 +15239,9 @@
       "hr",
       "performance review",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14424,7 +15274,9 @@
       "hr",
       "recruitment pipeline",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14457,7 +15309,9 @@
       "hr",
       "simple",
       "time tracking"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "hr",
@@ -14490,7 +15344,9 @@
       "hr",
       "simple",
       "training management"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14524,7 +15380,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14564,7 +15422,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14602,7 +15462,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14635,7 +15497,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14677,7 +15541,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14713,7 +15579,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14757,7 +15625,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14791,7 +15661,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14820,7 +15692,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14854,7 +15728,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14890,7 +15766,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14928,7 +15806,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -14961,7 +15841,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15001,7 +15883,9 @@
       "parallel-execution",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15037,7 +15921,9 @@
       "human-in-loop",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15066,7 +15952,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15100,7 +15988,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15136,7 +16026,9 @@
       "human-in-loop",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15170,7 +16062,9 @@
       "legal contract review",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15204,7 +16098,9 @@
       "medical records review",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15240,7 +16136,9 @@
       "mobile approval flutter",
       "simple",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15282,7 +16180,9 @@
       "switch",
       "terminate",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15322,7 +16222,9 @@
       "simple",
       "switch",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15357,7 +16259,9 @@
       "switch",
       "terminate",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15395,7 +16299,9 @@
       "simple",
       "slack approval",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15428,7 +16334,9 @@
       "human-in-loop",
       "simple",
       "ticket management"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15468,7 +16376,9 @@
       "simple",
       "training data labeling",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15501,7 +16411,9 @@
       "switch",
       "wait",
       "wait rest api"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15530,7 +16442,9 @@
       "simple",
       "wait",
       "wait sdk"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15564,7 +16478,9 @@
       "simple",
       "wait",
       "wait task basics"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "human-in-loop",
@@ -15598,7 +16514,9 @@
       "simple",
       "wait",
       "wait timeout escalation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15631,7 +16549,9 @@
       "actuarial workflow",
       "insurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15664,7 +16584,9 @@
       "agency management",
       "insurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15697,7 +16619,9 @@
       "commission insurance",
       "insurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15730,7 +16654,9 @@
       "compliance insurance",
       "insurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15763,7 +16689,9 @@
       "endorsement processing",
       "insurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15801,7 +16729,9 @@
       "insurance renewal",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15834,7 +16764,9 @@
       "insurance",
       "policy issuance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15867,7 +16799,9 @@
       "insurance",
       "premium calculation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15900,7 +16834,9 @@
       "insurance",
       "reinsurance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "insurance",
@@ -15933,7 +16869,9 @@
       "insurance",
       "salvage recovery",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -15975,7 +16913,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16017,7 +16957,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16054,7 +16996,9 @@
       "cloudwatch integration",
       "integrations",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16089,7 +17033,9 @@
       "database integration",
       "integrations",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16122,7 +17068,9 @@
       "elasticsearch integration",
       "integrations",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16164,7 +17112,9 @@
       "join",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16199,7 +17149,9 @@
       "github integration",
       "integrations",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16234,7 +17186,9 @@
       "hubspot integration",
       "integrations",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16269,7 +17223,9 @@
       "integrations",
       "jira integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16302,7 +17258,9 @@
       "integrations",
       "lambda integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16337,7 +17295,9 @@
       "integrations",
       "redis integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16372,7 +17332,9 @@
       "integrations",
       "s3 integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16405,7 +17367,9 @@
       "integrations",
       "salesforce integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16440,7 +17404,9 @@
       "integrations",
       "sendgrid integration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16473,7 +17439,9 @@
       "integrations",
       "simple",
       "slack integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16506,7 +17474,9 @@
       "integrations",
       "simple",
       "sns sqs integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16543,7 +17513,9 @@
       "integrations",
       "simple",
       "stripe integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16576,7 +17548,9 @@
       "integrations",
       "simple",
       "teams integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16609,7 +17583,9 @@
       "integrations",
       "simple",
       "twilio integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "integrations",
@@ -16644,7 +17620,9 @@
       "integrations",
       "simple",
       "zendesk integration"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16675,7 +17653,9 @@
       "agriculture iot",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16711,7 +17691,9 @@
       "iot",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16744,7 +17726,9 @@
       "asset tracking",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16775,7 +17759,9 @@
       "building automation",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16806,7 +17792,9 @@
       "connected vehicles",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16841,7 +17829,9 @@
       "device management",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16876,7 +17866,9 @@
       "edge computing",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16907,7 +17899,9 @@
       "energy management",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16940,7 +17934,9 @@
       "environmental monitoring",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -16973,7 +17969,9 @@
       "firmware update",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17008,7 +18006,9 @@
       "fleet management",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17046,7 +18046,9 @@
       "iot",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17079,7 +18081,9 @@
       "industrial iot",
       "iot",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17110,7 +18114,9 @@
       "iot",
       "iot security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17143,7 +18149,9 @@
       "iot",
       "predictive maintenance",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17176,7 +18184,9 @@
       "iot",
       "sensor data processing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17216,7 +18226,9 @@
       "simple",
       "smart home",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17254,7 +18266,9 @@
       "simple",
       "supply chain iot",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17285,7 +18299,9 @@
       "iot",
       "simple",
       "water management"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "iot",
@@ -17316,7 +18332,9 @@
       "iot",
       "simple",
       "wearable data"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17347,7 +18365,9 @@
       "compliance review",
       "legal",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17378,7 +18398,9 @@
       "contract analysis",
       "legal",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17409,7 +18431,9 @@
       "document review",
       "legal",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17442,7 +18466,9 @@
       "e discovery",
       "legal",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17475,7 +18501,9 @@
       "legal",
       "legal billing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17508,7 +18536,9 @@
       "legal",
       "legal case management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17539,7 +18569,9 @@
       "legal",
       "litigation hold",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17572,7 +18604,9 @@
       "legal",
       "patent filing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17605,7 +18639,9 @@
       "legal",
       "regulatory filing",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "legal",
@@ -17636,7 +18672,9 @@
       "legal",
       "simple",
       "trademark search"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17673,7 +18711,9 @@
       "ab testing",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17708,7 +18748,9 @@
       "advertising workflow",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17741,7 +18783,9 @@
       "analytics reporting",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17774,7 +18818,9 @@
       "content archival",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17814,7 +18860,9 @@
       "media",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17849,7 +18897,9 @@
       "content publishing",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17882,7 +18932,9 @@
       "content recommendation",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17917,7 +18969,9 @@
       "content syndication",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17952,7 +19006,9 @@
       "digital asset management",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -17987,7 +19043,9 @@
       "email campaign",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18022,7 +19080,9 @@
       "image pipeline",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18057,7 +19117,9 @@
       "live streaming",
       "media",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18090,7 +19152,9 @@
       "media",
       "personalization",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18125,7 +19189,9 @@
       "media",
       "podcast workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18160,7 +19226,9 @@
       "media",
       "rights management",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18193,7 +19261,9 @@
       "media",
       "seo workflow",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18228,7 +19298,9 @@
       "media",
       "simple",
       "social media"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18261,7 +19333,9 @@
       "media",
       "simple",
       "translation pipeline"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18298,7 +19372,9 @@
       "media",
       "simple",
       "user generated content"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "media",
@@ -18333,7 +19409,9 @@
       "media",
       "simple",
       "video processing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18368,7 +19446,9 @@
       "api gateway routing",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18403,7 +19483,9 @@
       "api gateway",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18439,7 +19521,9 @@
       "microservices",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18472,7 +19556,9 @@
       "blue green deploy",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18505,7 +19591,9 @@
       "blue green deployment",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18538,7 +19626,9 @@
       "bulkhead pattern",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18571,7 +19661,9 @@
       "canary deployment",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18602,7 +19694,9 @@
       "canary release",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18635,7 +19729,9 @@
       "centralized config management",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18668,7 +19764,9 @@
       "choreography vs orchestration",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18704,7 +19802,9 @@
       "microservices",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18737,7 +19837,9 @@
       "config management",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18770,7 +19872,9 @@
       "cqrs pattern",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18803,7 +19907,9 @@
       "data migration",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18839,7 +19945,9 @@
       "microservices",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18872,7 +19980,9 @@
       "distributed locking",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18903,7 +20013,9 @@
       "distributed tracing",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18943,7 +20055,9 @@
       "microservices",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -18976,7 +20090,9 @@
       "event driven microservices",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19009,7 +20125,9 @@
       "event sourcing",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19042,7 +20160,9 @@
       "feature flag rollout",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19078,7 +20198,9 @@
       "microservices",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19109,7 +20231,9 @@
       "graceful service shutdown",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19140,7 +20264,9 @@
       "microservices",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19171,7 +20297,9 @@
       "microservices",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19209,7 +20337,9 @@
       "microservices",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19242,7 +20372,9 @@
       "inter service communication",
       "microservices",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19278,7 +20410,9 @@
       "microservices",
       "parallel-execution",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19311,7 +20445,9 @@
       "microservices",
       "multi tenancy",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19344,7 +20480,9 @@
       "microservices",
       "outbox pattern",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19382,7 +20520,9 @@
       "rate limiter microservice",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19418,7 +20558,9 @@
       "parallel-execution",
       "request aggregation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19449,7 +20591,9 @@
       "microservices",
       "secret rotation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19491,7 +20635,9 @@
       "service decomposition",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19522,7 +20668,9 @@
       "microservices",
       "service discovery",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19555,7 +20703,9 @@
       "microservices",
       "service mesh orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19588,7 +20738,9 @@
       "microservices",
       "service orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19621,7 +20773,9 @@
       "microservices",
       "service registry",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19657,7 +20811,9 @@
       "service versioning",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "microservices",
@@ -19688,7 +20844,9 @@
       "microservices",
       "shared nothing architecture",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19721,7 +20879,9 @@
       "beneficiary tracking",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19754,7 +20914,9 @@
       "compliance nonprofit",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19787,7 +20949,9 @@
       "donor management",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19820,7 +20984,9 @@
       "event fundraising",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19853,7 +21019,9 @@
       "fundraising campaign",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19886,7 +21054,9 @@
       "grant management",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19917,7 +21087,9 @@
       "impact reporting",
       "nonprofit",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19950,7 +21122,9 @@
       "nonprofit",
       "nonprofit donation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -19981,7 +21155,9 @@
       "nonprofit",
       "program evaluation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "nonprofit",
@@ -20014,7 +21190,9 @@
       "nonprofit",
       "simple",
       "volunteer coordination"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20047,7 +21225,9 @@
       "change request",
       "project-mgmt",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20083,7 +21263,9 @@
       "project-mgmt",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20116,7 +21298,9 @@
       "project closure",
       "project-mgmt",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20149,7 +21333,9 @@
       "project kickoff",
       "project-mgmt",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20182,7 +21368,9 @@
       "project-mgmt",
       "resource allocation",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20215,7 +21403,9 @@
       "project-mgmt",
       "retrospective",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20251,7 +21441,9 @@
       "risk management",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20282,7 +21474,9 @@
       "project-mgmt",
       "simple",
       "sprint planning"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20313,7 +21507,9 @@
       "project-mgmt",
       "simple",
       "stakeholder reporting"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "project-mgmt",
@@ -20346,7 +21542,9 @@
       "project-mgmt",
       "simple",
       "task assignment"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20379,7 +21577,9 @@
       "commission calculation",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20412,7 +21612,9 @@
       "escrow management",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20450,7 +21652,9 @@
       "real-estate",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20483,7 +21687,9 @@
       "maintenance request",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20516,7 +21722,9 @@
       "mortgage application",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20549,7 +21757,9 @@
       "property inspection",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20580,7 +21790,9 @@
       "property valuation",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20613,7 +21825,9 @@
       "real estate listing",
       "real-estate",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20646,7 +21860,9 @@
       "real-estate",
       "simple",
       "tenant screening"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "real-estate",
@@ -20679,7 +21895,9 @@
       "real-estate",
       "simple",
       "title search"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20719,7 +21937,9 @@
       "resilience",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "resilience",
@@ -20748,7 +21968,9 @@
       "compensation workflows",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20779,7 +22001,9 @@
       "dead letter",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20813,7 +22037,9 @@
       "resilience",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20842,7 +22068,9 @@
       "error notification",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20871,7 +22099,9 @@
       "exponential max retry",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20900,7 +22130,9 @@
       "failure workflow",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20934,7 +22166,9 @@
       "resilience",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -20974,7 +22208,9 @@
       "parallel-execution",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21007,7 +22243,9 @@
       "idempotent workers",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21025,7 +22263,9 @@
     "keywords": [
       "multi step compensation",
       "resilience"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21054,7 +22294,9 @@
       "network partitions",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21083,7 +22325,9 @@
       "optional tasks",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21112,7 +22356,9 @@
       "partial failure recovery",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21141,7 +22387,9 @@
       "per task retry",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21170,7 +22418,9 @@
       "poll timeout",
       "resilience",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21199,7 +22449,9 @@
       "resilience",
       "response timeout",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21228,7 +22480,9 @@
       "resilience",
       "retry exponential",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21257,7 +22511,9 @@
       "resilience",
       "retry fixed",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21286,7 +22542,9 @@
       "resilience",
       "retry jitter",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21315,7 +22573,9 @@
       "resilience",
       "retry linear",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21351,7 +22611,9 @@
       "resilience",
       "saga fork join",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21389,7 +22651,9 @@
       "simple",
       "switch",
       "terminate"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "resilience",
@@ -21427,7 +22691,9 @@
       "saga payment inventory",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21463,7 +22729,9 @@
       "self healing",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21492,7 +22760,9 @@
       "resilience",
       "simple",
       "timeout policies"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21521,7 +22791,9 @@
       "resilience",
       "simple",
       "transient vs permanent"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21550,7 +22822,9 @@
       "resilience",
       "simple",
       "worker health checks"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21579,7 +22853,9 @@
       "resilience",
       "simple",
       "workflow recovery"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "resilience",
@@ -21608,7 +22884,9 @@
       "resilience",
       "simple",
       "workflow timeout"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21646,7 +22924,9 @@
       "scheduling",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21679,7 +22959,9 @@
       "anomaly detection",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21712,7 +22994,9 @@
       "batch scheduling",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21745,7 +23029,9 @@
       "calendar integration",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21776,7 +23062,9 @@
       "capacity monitoring",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21809,7 +23097,9 @@
       "change tracking",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21847,7 +23137,9 @@
       "scheduling",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21880,7 +23172,9 @@
       "cost monitoring",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21913,7 +23207,9 @@
       "cron job orchestration",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21951,7 +23247,9 @@
       "scheduling",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -21982,7 +23280,9 @@
       "dependency mapping",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22020,7 +23320,9 @@
       "parallel-execution",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22056,7 +23358,9 @@
       "parallel-execution",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22094,7 +23398,9 @@
       "scheduling",
       "simple",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22127,7 +23433,9 @@
       "performance profiling",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22164,7 +23472,9 @@
       "recurring billing",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22197,7 +23507,9 @@
       "root cause analysis",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22230,7 +23542,9 @@
       "scheduled reports",
       "scheduling",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22261,7 +23575,9 @@
       "scheduling",
       "simple",
       "sla scheduling"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22297,7 +23613,9 @@
       "simple",
       "switch",
       "time based triggers"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22330,7 +23648,9 @@
       "scheduling",
       "simple",
       "timezone handling"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22363,7 +23683,9 @@
       "scheduling",
       "simple",
       "trace collection"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22396,7 +23718,9 @@
       "scheduling",
       "simple",
       "uptime monitoring"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "scheduling",
@@ -22429,7 +23753,9 @@
       "scheduling",
       "simple",
       "user behavior analytics"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22460,7 +23786,9 @@
       "access review",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22491,7 +23819,9 @@
       "api key rotation",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22524,7 +23854,9 @@
       "audit logging",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22555,7 +23887,9 @@
       "authentication workflow",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22588,7 +23922,9 @@
       "authorization rbac",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22619,7 +23955,9 @@
       "certificate management",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22650,7 +23988,9 @@
       "compliance reporting",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22681,7 +24021,9 @@
       "data classification",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22712,7 +24054,9 @@
       "data encryption",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22743,7 +24087,9 @@
       "data masking",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22774,7 +24120,9 @@
       "ddos mitigation",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22805,7 +24153,9 @@
       "devsecops pipeline",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22836,7 +24186,9 @@
       "gdpr compliance",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "security",
@@ -22869,7 +24221,9 @@
       "identity provisioning",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22900,7 +24254,9 @@
       "intrusion detection",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22931,7 +24287,9 @@
       "network segmentation",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22964,7 +24322,9 @@
       "oauth token management",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -22995,7 +24355,9 @@
       "penetration testing",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23030,7 +24392,9 @@
       "privileged access",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23063,7 +24427,9 @@
       "secrets management",
       "security",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23096,7 +24462,9 @@
       "security",
       "security incident",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23127,7 +24495,9 @@
       "security",
       "security orchestration",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23158,7 +24528,9 @@
       "security",
       "security posture",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23189,7 +24561,9 @@
       "security",
       "security training",
       "simple"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23220,7 +24594,9 @@
       "security",
       "simple",
       "soc2 automation"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23251,7 +24627,9 @@
       "security",
       "simple",
       "threat intelligence"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23282,7 +24660,9 @@
       "security",
       "simple",
       "vendor risk"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23313,7 +24693,9 @@
       "security",
       "simple",
       "vulnerability scanning"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "security",
@@ -23344,7 +24726,9 @@
       "security",
       "simple",
       "waf management"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "security",
@@ -23377,7 +24761,9 @@
       "security",
       "simple",
       "zero trust verification"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23410,7 +24796,9 @@
       "bid management",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23450,7 +24838,9 @@
       "simple",
       "supply-chain",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23483,7 +24873,9 @@
       "compliance vendor",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23518,7 +24910,9 @@
       "contract lifecycle",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23553,7 +24947,9 @@
       "customs clearance",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23586,7 +24982,9 @@
       "demand forecasting",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23621,7 +25019,9 @@
       "freight management",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23654,7 +25054,9 @@
       "goods receipt",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23685,7 +25087,9 @@
       "inventory optimization",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23718,7 +25122,9 @@
       "last mile delivery",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23751,7 +25157,9 @@
       "logistics optimization",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23786,7 +25194,9 @@
       "procurement workflow",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23819,7 +25229,9 @@
       "purchase order",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23857,7 +25269,9 @@
       "simple",
       "supply-chain",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23895,7 +25309,9 @@
       "simple",
       "supply-chain",
       "switch"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23928,7 +25344,9 @@
       "rfp automation",
       "simple",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23959,7 +25377,9 @@
       "simple",
       "supplier evaluation",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -23992,7 +25412,9 @@
       "simple",
       "supply chain mgmt",
       "supply-chain"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -24025,7 +25447,9 @@
       "simple",
       "supply-chain",
       "vendor onboarding"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "supply-chain",
@@ -24058,7 +25482,9 @@
       "simple",
       "supply-chain",
       "warehouse management"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24087,7 +25513,9 @@
       "bulk operations",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24125,7 +25553,9 @@
       "inline",
       "inline-script",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24159,7 +25589,9 @@
       "loop",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24195,7 +25627,9 @@
       "parallel-execution",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24226,7 +25660,9 @@
       "event handlers",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24262,7 +25698,9 @@
       "parallel-execution",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24291,7 +25729,9 @@
       "external payload",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24327,7 +25767,9 @@
       "parallel-execution",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24361,7 +25803,9 @@
       "loop",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24397,7 +25841,9 @@
       "parallel-execution",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "task-patterns",
@@ -24428,7 +25874,9 @@
       "graphql api",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24459,7 +25907,9 @@
       "idempotent start",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24495,7 +25945,9 @@
       "inline tasks",
       "inline-script",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24524,7 +25976,9 @@
       "jq transform advanced",
       "json-jq-transform",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24542,7 +25996,9 @@
     "keywords": [
       "nested sub workflows",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24580,7 +26036,9 @@
       "simple",
       "switch",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24611,7 +26069,9 @@
       "passing output to input",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24640,7 +26100,9 @@
       "rate limiting",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24671,7 +26133,9 @@
       "sequential tasks",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24702,7 +26166,9 @@
       "set-variable",
       "simple",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24736,7 +26202,9 @@
       "simple",
       "task-patterns",
       "wait"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24772,7 +26240,9 @@
       "simple",
       "simple plus system",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24809,7 +26279,9 @@
       "sub workflows",
       "sub-workflow",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24843,7 +26315,9 @@
       "switch",
       "switch default case",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24881,7 +26355,9 @@
       "switch",
       "switch javascript",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24923,7 +26399,9 @@
       "switch",
       "switch plus fork",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24961,7 +26439,9 @@
       "switch",
       "switch task",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -24992,7 +26472,9 @@
       "simple",
       "sync execution",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25026,7 +26508,9 @@
       "json-jq-transform",
       "system tasks",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25050,7 +26534,9 @@
       "simple",
       "task definitions",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25079,7 +26565,9 @@
       "simple",
       "task domains",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25112,7 +26600,9 @@
       "simple",
       "task input templates",
       "task-patterns"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25152,7 +26642,9 @@
       "task-patterns",
       "terminate",
       "terminate task"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25188,7 +26680,9 @@
       "task-patterns",
       "wait",
       "wait for event"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25217,7 +26711,9 @@
       "simple",
       "task-patterns",
       "workflow archival"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25248,7 +26744,9 @@
       "simple",
       "task-patterns",
       "workflow metadata"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25286,7 +26784,9 @@
       "simple",
       "task-patterns",
       "workflow variables"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "task-patterns",
@@ -25304,7 +26804,9 @@
     "keywords": [
       "task-patterns",
       "workflow versioning"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25335,7 +26837,9 @@
       "billing telecom",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25366,7 +26870,9 @@
       "capacity mgmt telecom",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25399,7 +26905,9 @@
       "customer churn",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25430,7 +26938,9 @@
       "network monitoring",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25463,7 +26973,9 @@
       "number porting",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25496,7 +27008,9 @@
       "roaming management",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25529,7 +27043,9 @@
       "service activation",
       "simple",
       "telecom"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25562,7 +27078,9 @@
       "simple",
       "telecom",
       "telecom provisioning"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25595,7 +27113,9 @@
       "simple",
       "telecom",
       "trouble ticket"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "telecom",
@@ -25626,7 +27146,9 @@
       "simple",
       "telecom",
       "usage analytics"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25661,7 +27183,9 @@
       "car rental",
       "simple",
       "travel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25692,7 +27216,9 @@
       "expense reporting",
       "simple",
       "travel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25727,7 +27253,9 @@
       "hotel booking",
       "simple",
       "travel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25760,7 +27288,9 @@
       "itinerary planning",
       "simple",
       "travel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25795,7 +27325,9 @@
       "reimbursement",
       "simple",
       "travel"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25826,7 +27358,9 @@
       "simple",
       "travel",
       "travel analytics"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25866,7 +27400,9 @@
       "switch",
       "travel",
       "travel approval"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25901,7 +27437,9 @@
       "simple",
       "travel",
       "travel booking"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25941,7 +27479,9 @@
       "switch",
       "travel",
       "travel policy"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "travel",
@@ -25974,7 +27514,9 @@
       "simple",
       "travel",
       "visa processing"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26005,7 +27547,9 @@
       "account deletion",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26036,7 +27580,9 @@
       "bulk user import",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26069,7 +27615,9 @@
       "data export request",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26100,7 +27648,9 @@
       "email verification",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26131,7 +27681,9 @@
       "gdpr consent",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26164,7 +27716,9 @@
       "multi factor auth",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26195,7 +27749,9 @@
       "notification preferences",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26226,7 +27782,9 @@
       "nps scoring",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26257,7 +27815,9 @@
       "password reset",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "reference-implementation",
+    "productionReady": true
   },
   {
     "category": "user-mgmt",
@@ -26288,7 +27848,9 @@
       "permission sync",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26319,7 +27881,9 @@
       "profile update",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26352,7 +27916,9 @@
       "role management",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26383,7 +27949,9 @@
       "session management",
       "simple",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26416,7 +27984,9 @@
       "simple",
       "social login",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26447,7 +28017,9 @@
       "simple",
       "user analytics",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26480,7 +28052,9 @@
       "simple",
       "user feedback",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26513,7 +28087,9 @@
       "simple",
       "user migration",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26548,7 +28124,9 @@
       "simple",
       "user onboarding",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26581,7 +28159,9 @@
       "simple",
       "user registration",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   },
   {
     "category": "user-mgmt",
@@ -26614,6 +28194,8 @@
       "simple",
       "user survey",
       "user-mgmt"
-    ]
+    ],
+    "tier": "example",
+    "productionReady": false
   }
 ]

@@ -51,6 +51,9 @@ public class SearchVectorsWorker implements Worker {
         return "brag_search_vectors";
     }
 
+    /** Minimum cosine similarity score for a document to be considered a match. */
+    private static final double MIN_SCORE_THRESHOLD = 0.05;
+
     @Override
     public TaskResult execute(Task task) {
         Object topKObj = task.getInputData().get("topK");
@@ -58,18 +61,30 @@ public class SearchVectorsWorker implements Worker {
         if (topKObj instanceof Number) {
             topK = ((Number) topKObj).intValue();
         }
+        if (topK <= 0) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'topK' must be a positive integer, got: " + topK);
+            return fail;
+        }
 
         // Build the query from input — use the original question text if available
-        String query = "";
+        String query = null;
         Object queryText = task.getInputData().get("queryText");
         if (queryText instanceof String && !((String) queryText).isBlank()) {
             query = (String) queryText;
         } else {
-            // Fall back to reconstructing from embedding metadata or empty query
             Object q = task.getInputData().get("question");
-            if (q instanceof String) {
+            if (q instanceof String && !((String) q).isBlank()) {
                 query = (String) q;
             }
+        }
+
+        if (query == null || query.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'queryText' or 'question' is required and must not be blank");
+            return fail;
         }
 
         // Compute TF-IDF similarity between query and each document
@@ -89,11 +104,22 @@ public class SearchVectorsWorker implements Worker {
             scoredDocs.add(entry);
         }
 
-        // Sort by score descending and take top-K
+        // Sort by score descending and take top-K, filtering by minimum threshold
         scoredDocs.sort((a, b) -> Double.compare((Double) b.get("score"), (Double) a.get("score")));
         List<Map<String, Object>> documents = scoredDocs.stream()
+                .filter(d -> ((Double) d.get("score")) >= MIN_SCORE_THRESHOLD)
                 .limit(topK)
                 .collect(Collectors.toList());
+
+        if (documents.isEmpty()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED);
+            fail.setReasonForIncompletion("No documents matched query above threshold ("
+                    + MIN_SCORE_THRESHOLD + "). Query: \"" + query + "\"");
+            fail.getOutputData().put("totalSearched", KNOWLEDGE_BASE.size());
+            fail.getOutputData().put("threshold", MIN_SCORE_THRESHOLD);
+            return fail;
+        }
 
         System.out.println("  [search] Found " + documents.size() + " relevant docs (topK=" + topK
                 + ", searched " + KNOWLEDGE_BASE.size() + " docs)");

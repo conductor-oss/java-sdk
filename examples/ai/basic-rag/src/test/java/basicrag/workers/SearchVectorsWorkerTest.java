@@ -22,7 +22,7 @@ class SearchVectorsWorkerTest {
     @Test
     void returnsRequestedNumberOfDocuments() {
         Task task = taskWith(new HashMap<>(Map.of(
-                "queryEmbedding", List.of(0.1, -0.3, 0.5),
+                "queryText", "What is Conductor orchestration?",
                 "topK", 3
         )));
         TaskResult result = worker.execute(task);
@@ -39,7 +39,7 @@ class SearchVectorsWorkerTest {
     @Test
     void eachDocumentContainsTextAndScore() {
         Task task = taskWith(new HashMap<>(Map.of(
-                "queryEmbedding", List.of(0.1, -0.3),
+                "queryText", "orchestration workflows microservices",
                 "topK", 3
         )));
         TaskResult result = worker.execute(task);
@@ -66,7 +66,7 @@ class SearchVectorsWorkerTest {
     @Test
     void scoresAreInDescendingOrder() {
         Task task = taskWith(new HashMap<>(Map.of(
-                "queryEmbedding", List.of(0.1),
+                "queryText", "vector embeddings semantic search",
                 "topK", 3
         )));
         TaskResult result = worker.execute(task);
@@ -87,7 +87,7 @@ class SearchVectorsWorkerTest {
     @Test
     void returnsTotalSearchedAsPositiveNumber() {
         Task task = taskWith(new HashMap<>(Map.of(
-                "queryEmbedding", List.of(0.1),
+                "queryText", "Conductor orchestration",
                 "topK", 3
         )));
         TaskResult result = worker.execute(task);
@@ -99,16 +99,63 @@ class SearchVectorsWorkerTest {
     }
 
     @Test
-    void handlesDefaultTopK() {
+    void failsOnMissingQuery() {
         Task task = taskWith(new HashMap<>());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("required"));
+    }
 
+    @Test
+    void failsOnBlankQuery() {
+        Task task = taskWith(new HashMap<>(Map.of("queryText", "   ")));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("required"));
+    }
+
+    @Test
+    void failsOnQueryWithNoResults() {
+        // Use a query that has zero overlap with the knowledge base
+        Task task = taskWith(new HashMap<>(Map.of(
+                "queryText", "xyzzy plugh qwerty zxcvb",
+                "topK", 3
+        )));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("No documents matched"));
+        assertNotNull(result.getOutputData().get("totalSearched"));
+        assertNotNull(result.getOutputData().get("threshold"));
+    }
+
+    @Test
+    void failsOnInvalidTopK() {
+        Task task = taskWith(new HashMap<>(Map.of(
+                "queryText", "Conductor",
+                "topK", 0
+        )));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("topK"));
+    }
+
+    @Test
+    void usesQuestionWhenQueryTextMissing() {
+        Task task = taskWith(new HashMap<>(Map.of(
+                "question", "What is Conductor orchestration?",
+                "topK", 2
+        )));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> documents = (List<Map<String, Object>>) result.getOutputData().get("documents");
         assertNotNull(documents);
-        assertFalse(documents.isEmpty(), "Default topK should still return documents");
+        assertFalse(documents.isEmpty());
     }
 
     private Task taskWith(Map<String, Object> input) {

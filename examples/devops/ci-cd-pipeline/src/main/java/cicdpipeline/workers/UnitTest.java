@@ -16,16 +16,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Runs unit tests via a real build tool invocation. Tries Maven (mvn test)
- * if a pom.xml exists in the build directory, otherwise runs a generic
- * "java -version" check to verify the JDK toolchain is functional.
- *
- * If the build directory from the Build worker is not available, the worker
- * executes "java -version" as a smoke test and reports success.
+ * Runs unit tests via a real build tool invocation.
  *
  * Input:
- *   - buildId (String): build identifier for correlation
- *   - buildDir (String): optional path to cloned source
+ *   - buildId (String, required): build identifier for correlation
+ *   - buildDir (String, optional): path to cloned source
  *
  * Output:
  *   - passed (int): number of tests that passed
@@ -44,12 +39,19 @@ public class UnitTest implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String buildId = (String) task.getInputData().get("buildId");
-        String buildDir = (String) task.getInputData().get("buildDir");
+        TaskResult result = new TaskResult(task);
+
+        String buildId = getRequiredString(task, "buildId");
+        if (buildId == null || buildId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: buildId");
+            return result;
+        }
+
+        String buildDir = getRequiredString(task, "buildDir");
 
         System.out.println("[cicd_unit_test] Running unit tests for build " + buildId);
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
         long startMs = System.currentTimeMillis();
@@ -99,7 +101,6 @@ public class UnitTest implements Worker {
             // Parse test results from Maven/Gradle output if available
             int passed = 0, failed = 0, skipped = 0;
             if ("maven".equals(tool) || "gradle".equals(tool)) {
-                // Maven format: "Tests run: X, Failures: Y, Errors: Z, Skipped: W"
                 Pattern mavenPattern = Pattern.compile("Tests run: (\\d+), Failures: (\\d+), Errors: (\\d+), Skipped: (\\d+)");
                 Matcher m = mavenPattern.matcher(testOutput);
                 while (m.find()) {
@@ -108,10 +109,9 @@ public class UnitTest implements Worker {
                     skipped += Integer.parseInt(m.group(4));
                 }
                 if (passed == 0 && failed == 0 && exitCode == 0) {
-                    passed = 1; // At least compilation succeeded
+                    passed = 1;
                 }
             } else {
-                // java -version check
                 passed = exitCode == 0 ? 1 : 0;
                 failed = exitCode == 0 ? 0 : 1;
             }
@@ -149,5 +149,11 @@ public class UnitTest implements Worker {
         result.setStatus(TaskResult.Status.COMPLETED);
         result.setOutputData(output);
         return result;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

@@ -10,25 +10,45 @@ import java.util.*;
  * Real rule-based fraud detection engine with weighted rules.
  *
  * Rules evaluated:
- *   R-101 amount_threshold       (weight 1.0) — fires when amount > 1000
- *   R-102 very_high_amount       (weight 2.0) — fires when amount > 10000
- *   R-204 new_merchant_high_value(weight 1.0) — fires when amount > 500 and profile indicates new merchant
- *   R-205 high_risk_merchant_cat (weight 1.5) — fires when merchant category is high-risk
- *   R-310 round_amount           (weight 0.5) — fires when amount is exact round number >= 1000
- *   R-311 just_below_threshold   (weight 1.0) — fires when amount is between 990-999.99
+ *   R-101 amount_threshold       (weight 1.0) -- fires when amount > configurable threshold (default 1000)
+ *   R-102 very_high_amount       (weight 2.0) -- fires when amount > configurable threshold (default 10000)
+ *   R-204 new_merchant_high_value(weight 1.0) -- fires when amount > 500 and profile indicates new merchant
+ *   R-205 high_risk_merchant_cat (weight 1.5) -- fires when merchant category is high-risk
+ *   R-310 round_amount           (weight 0.5) -- fires when amount is exact round number >= 1000
+ *   R-311 just_below_threshold   (weight 1.0) -- fires when amount is between 990-999.99
  *                                                (fraudsters often stay just below reporting limits)
- *   R-420 velocity_flag          (weight 1.0) — fires when transaction count > 10 in profile
- *   R-501 new_account_large_txn  (weight 1.5) — fires when account is "new" and amount > 200
+ *   R-420 velocity_flag          (weight 1.0) -- fires when transaction count > 10 in profile
+ *   R-501 new_account_large_txn  (weight 1.5) -- fires when account is "new" and amount > 200
  *
- * Weighted risk calculation:
- *   high_risk   — total weight >= 3.0
- *   medium_risk — total weight >= 1.0
- *   low_risk    — total weight < 1.0
+ * Weighted risk calculation thresholds are configurable via env vars:
+ *   FRAUD_RULE_HIGH_RISK_WEIGHT (default 3.0)
+ *   FRAUD_RULE_MEDIUM_RISK_WEIGHT (default 1.0)
  *
  * Input: transactionId, amount, profile
  * Output: ruleResult, rulesEvaluated, rulesFired, totalRiskWeight
  */
 public class RuleCheckWorker implements Worker {
+
+    /** Configurable thresholds. */
+    static final double HIGH_RISK_WEIGHT_THRESHOLD;
+    static final double MEDIUM_RISK_WEIGHT_THRESHOLD;
+
+    static {
+        HIGH_RISK_WEIGHT_THRESHOLD = parseEnvDouble("FRAUD_RULE_HIGH_RISK_WEIGHT", 3.0);
+        MEDIUM_RISK_WEIGHT_THRESHOLD = parseEnvDouble("FRAUD_RULE_MEDIUM_RISK_WEIGHT", 1.0);
+    }
+
+    private static double parseEnvDouble(String name, double defaultValue) {
+        String val = System.getenv(name);
+        if (val != null && !val.isBlank()) {
+            try {
+                return Double.parseDouble(val);
+            } catch (NumberFormatException e) {
+                throw new IllegalStateException(name + " must be a valid decimal, got: " + val);
+            }
+        }
+        return defaultValue;
+    }
 
     @Override
     public String getTaskDefName() {
@@ -38,13 +58,27 @@ public class RuleCheckWorker implements Worker {
     @SuppressWarnings("unchecked")
     @Override
     public TaskResult execute(Task task) {
-        String transactionId = (String) task.getInputData().get("transactionId");
-        if (transactionId == null) transactionId = "UNKNOWN";
-        Object amountObj = task.getInputData().get("amount");
+        TaskResult result = new TaskResult(task);
 
-        double amount = 0.0;
-        if (amountObj instanceof Number) {
-            amount = ((Number) amountObj).doubleValue();
+        // --- Validate required inputs ---
+        String transactionId = (String) task.getInputData().get("transactionId");
+        if (transactionId == null || transactionId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: transactionId");
+            return result;
+        }
+
+        Object amountObj = task.getInputData().get("amount");
+        if (amountObj == null || !(amountObj instanceof Number)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or non-numeric required input: amount");
+            return result;
+        }
+        double amount = ((Number) amountObj).doubleValue();
+        if (amount < 0) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Invalid input: amount must be non-negative, got " + amount);
+            return result;
         }
 
         // Extract profile data if available
@@ -85,7 +119,6 @@ public class RuleCheckWorker implements Worker {
         if (r204) totalWeight += 1.0;
 
         // R-205: High-risk merchant category
-        // We check if profile contains high-risk signals
         boolean r205 = "high".equals(riskTier);
         ruleResults.add(ruleEntry("R-205", "high_risk_profile", r205, 1.5,
                 "Customer profile indicates high risk tier"));
@@ -121,9 +154,9 @@ public class RuleCheckWorker implements Worker {
                 .filter(r -> Boolean.TRUE.equals(r.get("triggered"))).count();
 
         String ruleResult;
-        if (totalWeight >= 3.0) {
+        if (totalWeight >= HIGH_RISK_WEIGHT_THRESHOLD) {
             ruleResult = "high_risk";
-        } else if (totalWeight >= 1.0) {
+        } else if (totalWeight >= MEDIUM_RISK_WEIGHT_THRESHOLD) {
             ruleResult = "medium_risk";
         } else {
             ruleResult = "low_risk";
@@ -132,7 +165,6 @@ public class RuleCheckWorker implements Worker {
         System.out.println("  [rule_check] Result: " + ruleResult + " (weight=" + totalWeight
                 + ", fired=" + firedCount + "/" + ruleResults.size() + ")");
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("ruleResult", ruleResult);
         result.getOutputData().put("rulesEvaluated", ruleResults.size());

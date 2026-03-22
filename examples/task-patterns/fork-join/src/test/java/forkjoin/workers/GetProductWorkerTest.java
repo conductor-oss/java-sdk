@@ -39,6 +39,7 @@ class GetProductWorkerTest {
         Task task = taskWith(Map.of("productId", "PROD-003"));
         TaskResult result = worker.execute(task);
 
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         @SuppressWarnings("unchecked")
         Map<String, Object> product = (Map<String, Object>) result.getOutputData().get("product");
         assertEquals("USB-C Hub", product.get("name"));
@@ -47,51 +48,41 @@ class GetProductWorkerTest {
     }
 
     @Test
-    void handlesCustomProductId() {
+    void failsOnUnknownProductId() {
         Task task = taskWith(Map.of("productId", "PROD-999"));
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> product = (Map<String, Object>) result.getOutputData().get("product");
-        assertEquals("PROD-999", product.get("id"));
-        // Unknown product gets deterministic fallback
-        assertEquals("Product PROD-999", product.get("name"));
-        assertEquals("General", product.get("category"));
-        assertNotNull(product.get("price"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("PROD-999"));
+        assertTrue(result.getReasonForIncompletion().contains("not found"));
     }
 
     @Test
-    void defaultsProductIdWhenMissing() {
+    void failsOnMissingProductId() {
         Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> product = (Map<String, Object>) result.getOutputData().get("product");
-        assertEquals("UNKNOWN", product.get("id"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("productId"));
     }
 
     @Test
-    void defaultsProductIdWhenBlank() {
+    void failsOnBlankProductId() {
         Task task = taskWith(Map.of("productId", "   "));
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> product = (Map<String, Object>) result.getOutputData().get("product");
-        assertEquals("UNKNOWN", product.get("id"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("productId"));
     }
 
     @Test
-    void defaultsProductIdWhenNull() {
+    void failsOnNullProductId() {
         Map<String, Object> input = new HashMap<>();
         input.put("productId", null);
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> product = (Map<String, Object>) result.getOutputData().get("product");
-        assertEquals("UNKNOWN", product.get("id"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
     }
 
     @Test
@@ -110,8 +101,8 @@ class GetProductWorkerTest {
 
     @Test
     void outputIsDeterministic() {
-        Task task1 = taskWith(Map.of("productId", "PROD-XYZ"));
-        Task task2 = taskWith(Map.of("productId", "PROD-XYZ"));
+        Task task1 = taskWith(Map.of("productId", "PROD-002"));
+        Task task2 = taskWith(Map.of("productId", "PROD-002"));
 
         TaskResult result1 = worker.execute(task1);
         TaskResult result2 = worker.execute(task2);

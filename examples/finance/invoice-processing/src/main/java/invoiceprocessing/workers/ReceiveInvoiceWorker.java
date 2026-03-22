@@ -7,28 +7,48 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import java.time.Instant;
 
 /**
- * Receives and validates an incoming invoice. Real validation of invoice ID and vendor.
+ * Receives and validates an incoming invoice. Real validation of invoice ID, vendor, and document URL.
  */
 public class ReceiveInvoiceWorker implements Worker {
     @Override public String getTaskDefName() { return "ivc_receive_invoice"; }
 
     @Override public TaskResult execute(Task task) {
+        TaskResult r = new TaskResult(task);
+
         String invoiceId = (String) task.getInputData().get("invoiceId");
+        if (invoiceId == null || invoiceId.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: invoiceId");
+            return r;
+        }
+
         String vendorId = (String) task.getInputData().get("vendorId");
-        if (invoiceId == null) invoiceId = "UNKNOWN";
-        if (vendorId == null) vendorId = "UNKNOWN";
+        if (vendorId == null || vendorId.isBlank()) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: vendorId");
+            return r;
+        }
 
         boolean validInvoice = invoiceId.startsWith("INV-") || invoiceId.startsWith("INVOICE-");
-        boolean validVendor = vendorId.startsWith("VND-") || vendorId.startsWith("VENDOR-") || !vendorId.equals("UNKNOWN");
+        boolean validVendor = vendorId.startsWith("VND-") || vendorId.startsWith("VENDOR-");
 
-        System.out.println("  [receive] Invoice " + invoiceId + " from vendor " + vendorId
-                + " (valid: " + (validInvoice && validVendor) + ")");
+        if (!validInvoice) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Invalid invoiceId format: must start with 'INV-' or 'INVOICE-', got: " + invoiceId);
+            return r;
+        }
+        if (!validVendor) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Invalid vendorId format: must start with 'VND-' or 'VENDOR-', got: " + vendorId);
+            return r;
+        }
 
-        TaskResult r = new TaskResult(task);
+        System.out.println("  [receive] Invoice " + invoiceId + " from vendor " + vendorId + " (valid: true)");
+
         r.setStatus(TaskResult.Status.COMPLETED);
         r.getOutputData().put("receivedAt", Instant.now().toString());
-        r.getOutputData().put("validInvoice", validInvoice);
-        r.getOutputData().put("validVendor", validVendor);
+        r.getOutputData().put("validInvoice", true);
+        r.getOutputData().put("validVendor", true);
         return r;
     }
 }

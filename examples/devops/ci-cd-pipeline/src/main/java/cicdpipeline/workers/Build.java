@@ -16,14 +16,12 @@ import java.util.stream.Collectors;
 /**
  * Clones a git repository and checks out the specified branch using real
  * git commands via ProcessBuilder. Generates a build ID from the repo name,
- * branch, and timestamp. If git is unavailable or the clone fails, the worker
- * still completes (marking the build as "local") so downstream workers
- * can continue with the build artifacts.
+ * branch, and timestamp.
  *
  * Input:
- *   - repoUrl (String): git repository URL to clone
- *   - branch (String): branch to check out
- *   - commitSha (String): optional commit SHA for tagging
+ *   - repoUrl (String, required): git repository URL to clone
+ *   - branch (String, required): branch to check out
+ *   - commitSha (String, optional): commit SHA for tagging
  *
  * Output:
  *   - buildId (String): unique build identifier
@@ -43,22 +41,29 @@ public class Build implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String repoUrl = (String) task.getInputData().get("repoUrl");
-        String branch = (String) task.getInputData().get("branch");
-        String commitSha = (String) task.getInputData().get("commitSha");
+        TaskResult result = new TaskResult(task);
 
+        // Validate required inputs
+        String repoUrl = getRequiredString(task, "repoUrl");
         if (repoUrl == null || repoUrl.isBlank()) {
-            repoUrl = "https://github.com/example/app.git";
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: repoUrl. Provide a git repository URL.");
+            return result;
         }
+
+        String branch = getRequiredString(task, "branch");
         if (branch == null || branch.isBlank()) {
-            branch = "main";
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: branch. Provide a git branch name.");
+            return result;
         }
+
+        String commitSha = getRequiredString(task, "commitSha");
         String shortSha = commitSha != null && commitSha.length() >= 7
                 ? commitSha.substring(0, 7) : (commitSha != null ? commitSha : "HEAD");
 
         System.out.println("[cicd_build] Building " + repoUrl + " branch=" + branch + " @" + shortSha);
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
         // Generate deterministic build ID from inputs
@@ -120,7 +125,8 @@ public class Build implements Worker {
                 output.put("durationMs", durationMs);
                 output.put("cloneExitCode", exitCode);
             } else {
-                System.out.println("  Clone failed (exit " + exitCode + "), building locally");
+                System.out.println("  Clone failed (exit " + exitCode + ")");
+                // Clone failure is retryable (network issue, etc.)
                 output.put("buildId", buildId);
                 output.put("imageTag", imageTag);
                 output.put("buildDir", buildDir.toString());
@@ -164,6 +170,12 @@ public class Build implements Worker {
         int lastSlash = name.lastIndexOf('/');
         if (lastSlash >= 0) name = name.substring(lastSlash + 1);
         return name.isBlank() ? "app" : name;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 
     private void deleteRecursively(Path dir) throws Exception {

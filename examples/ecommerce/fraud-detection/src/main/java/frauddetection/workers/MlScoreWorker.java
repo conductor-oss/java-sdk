@@ -40,18 +40,27 @@ public class MlScoreWorker implements Worker {
     @SuppressWarnings("unchecked")
     @Override
     public TaskResult execute(Task task) {
+        TaskResult result = new TaskResult(task);
+
+        // --- Validate required inputs ---
         String transactionId = (String) task.getInputData().get("transactionId");
-        if (transactionId == null) transactionId = "UNKNOWN";
+        if (transactionId == null || transactionId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: transactionId");
+            return result;
+        }
+
+        Object featuresObj = task.getInputData().get("features");
+        if (featuresObj == null || !(featuresObj instanceof Map)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or invalid required input: features (must be a Map)");
+            return result;
+        }
+        Map<String, Object> features = (Map<String, Object>) featuresObj;
 
         System.out.println("  [ml_score] Scoring transaction " + transactionId + " with " + MODEL_VERSION);
 
         // --- Extract features (defensive defaults) ---
-        Map<String, Object> features = Map.of();
-        Object featuresObj = task.getInputData().get("features");
-        if (featuresObj instanceof Map) {
-            features = (Map<String, Object>) featuresObj;
-        }
-
         double amountDev = toDouble(features.get("amountDeviation"), 0.0);
         double distance = toDouble(features.get("distanceFromHome"), 0.0);
         boolean isNewMerchant = Boolean.TRUE.equals(features.get("isNewMerchant"));
@@ -110,7 +119,6 @@ public class MlScoreWorker implements Worker {
         System.out.println("  [ml_score] Transaction " + transactionId + ": score=" + score
                 + ", confidence=" + confidence + " (" + featuresPresent + "/7 features)");
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("fraudScore", score);
         result.getOutputData().put("modelVersion", MODEL_VERSION);

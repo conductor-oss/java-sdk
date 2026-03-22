@@ -12,11 +12,27 @@ public class ApproveInvoiceWorker implements Worker {
     @Override public String getTaskDefName() { return "ivc_approve_invoice"; }
 
     @Override public TaskResult execute(Task task) {
-        Object amountObj = task.getInputData().get("amount");
-        Object poMatchedObj = task.getInputData().get("poMatched");
+        TaskResult r = new TaskResult(task);
 
-        double amount = 0;
-        if (amountObj instanceof Number) amount = ((Number) amountObj).doubleValue();
+        Object amountObj = task.getInputData().get("amount");
+        if (amountObj == null || !(amountObj instanceof Number)) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing or non-numeric required input: amount");
+            return r;
+        }
+        double amount = ((Number) amountObj).doubleValue();
+        if (amount <= 0) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Invalid amount: must be positive, got " + amount);
+            return r;
+        }
+
+        Object poMatchedObj = task.getInputData().get("poMatched");
+        if (poMatchedObj == null) {
+            r.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            r.setReasonForIncompletion("Missing required input: poMatched");
+            return r;
+        }
         boolean poMatched = Boolean.TRUE.equals(poMatchedObj) || "true".equals(String.valueOf(poMatchedObj));
 
         // Real approval logic
@@ -45,7 +61,6 @@ public class ApproveInvoiceWorker implements Worker {
                 + " - PO matched: " + poMatched + " - " + (approved ? "APPROVED" : "REJECTED")
                 + " by " + approver);
 
-        TaskResult r = new TaskResult(task);
         r.setStatus(TaskResult.Status.COMPLETED);
         r.getOutputData().put("approved", approved);
         r.getOutputData().put("approver", approver);
