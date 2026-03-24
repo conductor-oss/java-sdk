@@ -111,4 +111,10 @@ Every worker uses `FAILED_WITH_TERMINAL_ERROR` for non-retryable conditions: inv
 
 ---
 
+## Production Notes
+
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
+
+---
+
 > **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

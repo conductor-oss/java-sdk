@@ -97,4 +97,10 @@ Performs a second TLS handshake to confirm the domain is still reachable and rep
 
 ---
 
+## Production Notes
+
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
+
+---
+
 > **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

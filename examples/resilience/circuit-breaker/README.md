@@ -109,4 +109,10 @@ The test suite contains 4 test classes with 27 tests across three categories:
 
 ---
 
+## Production Notes
+
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
+
+---
+
 > **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
