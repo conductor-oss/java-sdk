@@ -1,36 +1,41 @@
-# Task Domains in Java with Conductor
+# Task Domains
 
-Task Domains demo. route tasks to specific worker groups using domains.
+A task worker registers under a specific domain (e.g., `gpu`), enabling Conductor to route tasks to workers with specific capabilities. The workflow demonstrates how `taskDomain` configuration directs work to specialized worker pools.
 
-## The Problem
-
-You need to route tasks to specific worker groups, for example, sending GPU-intensive work to GPU-equipped workers or routing region-specific tasks to workers in that region. Task domains let you tag workers with domain labels so only workers in the matching domain pick up the task, without changing the workflow definition.
-
-Without task domains, you'd need separate task types for each worker group (e.g., `process_gpu`, `process_cpu`), duplicating workflow definitions. Task domains decouple routing from task identity, the same `td_process` task can go to different worker pools based on the domain configuration at runtime.
-
-## The Solution
-
-**You just write the processing worker and register it with domain labels. Conductor handles routing tasks to the correct worker pool based on runtime domain configuration.**
-
-This example runs two instances of the same `td_process` worker, each registered with a different domain label (e.g., "gpu" and "cpu"). The TdProcessWorker tags its output with the worker group name so you can verify which domain handled the task. The example code starts the workflow with a `taskToDomain` mapping that routes `td_process` to a specific domain at runtime, the same workflow definition, the same task name, but different worker pools handling it depending on the domain configuration passed at execution time. No workflow JSON changes are needed to shift work between groups.
-
-### What You Write: Workers
-
-A single worker demonstrates domain-based routing: TdProcessWorker tags its output with the worker group name so you can verify which domain pool (GPU, CPU, region) handled the task, while the workflow definition stays identical across all domain configurations.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **TdProcessWorker** | `td_process` | Processes data and tags output with the worker group name. When used with task domains, this worker can be routed to ... |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
 td_process
-
 ```
 
----
+Workflow `task_domain_demo` accepts `data`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**TdProcessWorker** (`td_process`) -- reads the processing `type` from input. Reports the processing type it handles, demonstrating domain-based routing.
+
+## Workflow Output
+
+The workflow produces `result`, `worker` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `td_process`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `task_domain_demo` defines 1 task with input parameters `data` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Task Domains demo — route tasks to specific worker groups using domains.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+8 tests verify domain-based task routing, worker capability matching, and correct processing output.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

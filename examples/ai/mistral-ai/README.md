@@ -1,42 +1,43 @@
-# Mistral AI in Java Using Conductor : Document Q&A via Mistral Chat Completions
+# Document Q&A via Mistral Chat Completions
 
-## Structured Mistral API Integration
+A team needs to answer questions about technical documents using Mistral's chat API. The workflow composes a request with system and user messages, calls the Mistral Chat Completions endpoint, and extracts the answer from the response.
 
-Mistral's chat completion API uses a messages-based format with system and user roles, supports safe prompt mode for content moderation, and returns responses with usage metadata. When you embed document context into a chat completion call, the request composition (building the messages array with the document as context and the question as the user message) should be separate from the API call itself, and the answer extraction (pulling text from the choices array) should be decoupled from both.
-
-Bundling request composition, API calls, and response parsing into a single method means changing the prompt format requires touching API code, a rate-limit error loses the composed request, and there's no record of which model/temperature combination produced which answer.
-
-## The Solution
-
-**You write the Mistral request composition and answer extraction logic. Conductor handles the API pipeline, retries, and observability.**
-
-Each concern is an independent worker. composing the Mistral chat request (messages array, generation config, safety settings), calling the chat completion API, and extracting the answer from the response. Conductor chains them so the composed request feeds into the API call, and the raw response feeds into the extractor. If Mistral rate-limits the call, Conductor retries it without re-composing the request.
-
-### What You Write: Workers
-
-Three workers manage the Mistral integration. composing the chat request with system and user messages, calling the Mistral Chat API, and extracting the answer from the choices array.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **MistralChatWorker** | `mistral_chat` | Simulates calling the Mistral chat completion API. In production this would make an HTTP call to the Mistral API. Her... |
-| **MistralComposeRequestWorker** | `mistral_compose_request` | Composes a Mistral chat completion request body from workflow inputs. Inputs: document, question, model, temperature,... |
-| **MistralExtractAnswerWorker** | `mistral_extract_answer` | Extracts the assistant's answer from a Mistral chat completion response. |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-mistral_compose_request
- │
- ▼
-mistral_chat
- │
- ▼
-mistral_extract_answer
-
+prompt, context, model
+       │
+       ▼
+┌────────────────────────────┐
+│ mistral_compose_request    │  Build system + user messages
+└─────────────┬──────────────┘
+              │  requestBody
+              ▼
+┌────────────────────────────┐
+│ mistral_chat               │  POST to api.mistral.ai
+└─────────────┬──────────────┘
+              │  apiResponse
+              ▼
+┌────────────────────────────┐
+│ mistral_extract_answer     │  Extract answer text
+└────────────────────────────┘
+              │
+              ▼
+       answer, model
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**MistralComposeRequestWorker** (`mistral_compose_request`) -- Builds a request body with a `messages` array containing a system message and a user message. Assembles the context and prompt into the appropriate Mistral Chat Completions format.
+
+**MistralChatWorker** (`mistral_chat`) -- Checks for `MISTRAL_API_KEY` env var. In live mode, POSTs to `https://api.mistral.ai/v1/chat/completions` with the composed request body. In fallback mode, returns a deterministic response. Handles HTTP errors by setting task to FAILED.
+
+**MistralExtractAnswerWorker** (`mistral_extract_answer`) -- Extracts the generated text from the Mistral response structure and returns it as the final answer.
+
+## Tests
+
+12 tests cover request composition, API calling in both modes, and answer extraction.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

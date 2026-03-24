@@ -1,32 +1,41 @@
-# Implementing Worker Health Checks in Java with Conductor : Monitoring Worker Availability and Performance
+# Worker Health Checks
 
-## The Problem
+Workers are deployed across multiple containers. The operations team needs to know: are they polling? How many tasks have they completed? If a worker stops polling due to a crash or network issue, tasks queue up and workflows stall. Health metrics must be tracked at the worker level without requiring external monitoring infrastructure.
 
-You have workers deployed across multiple hosts or containers. You need to know: are they running? Are they polling? How fast are they processing tasks? If a worker stops polling (process crashed, deployment failed, network issue), tasks queue up and workflows stall. You need visibility into worker health before it becomes a production incident.
-
-Without orchestration, worker health monitoring requires custom infrastructure. process supervisors, heartbeat endpoints, and separate monitoring dashboards. Each worker must implement its own health reporting, and there's no unified view of worker fleet health.
-
-## The Solution
-
-Conductor tracks worker health automatically. poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves.
-
-### What You Write: Workers
-
-WhcWorker processes tasks while tracking health metrics (poll counts, completion rates), and Conductor's APIs provide unified visibility into worker availability, queue depths, and execution performance across the fleet.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **WhcWorker** | `whc_task` | Worker for whc_task. processes tasks and tracks health metrics. Maintains thread-safe poll and completed counters th.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
 whc_task
-
 ```
 
----
+Workflow `worker_health_checks_demo` accepts `data` as input.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**WhcWorker** (`whc_task`) -- maintains two `AtomicInteger` counters: `pollCount` (incremented when a task is picked up) and `completedCount` (incremented after successful completion). Reads `data` from input (defaults to empty string if null). Returns `result` = `"done-" + data`, `pollCount` = the current poll counter, and `completedCount` = the current completion counter. Exposes `getPollCount()` and `getCompletedCount()` methods for external health monitoring systems to query. Both counters are thread-safe and persist across invocations within the same JVM.
+
+## Workflow Output
+
+The workflow produces `result`, `pollCount`, `completedCount` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `worker_health_checks_demo` defines 1 task with input parameters `data` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Worker health checks demo -- runs whc_task and demonstrates health monitoring APIs.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Implementation Notes
+
+All workers implement the `com.netflix.conductor.client.worker.Worker` interface. Input parameters are read from `task.getInputData()` and output is written to `result.getOutputData()`. Workers return `TaskResult.Status.COMPLETED` on success and `TaskResult.Status.FAILED` on failure. The workflow JSON definition in `src/main/resources/` declares the task graph, input wiring via `${ref.output}` expressions, and output parameters.
+
+To swap in production logic, replace the worker method bodies while keeping the same task names and input/output contracts. No workflow definition changes are needed.
+
+## Tests
+
+9 tests verify task processing, poll counter accuracy, completion counter accuracy, counter consistency across multiple invocations, and that the health metrics correctly reflect worker activity over time.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

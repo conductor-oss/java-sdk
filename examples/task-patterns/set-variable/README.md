@@ -1,48 +1,43 @@
-# Set Variable in Java with Conductor
+# Set Variable
 
-Demonstrates SET_VARIABLE system task for storing intermediate state accessible via ${workflow.variables.key} ## The Problem
+A workflow uses `SET_VARIABLE` system tasks to store intermediate results that can be accessed by any downstream task. The pipeline processes items, stores item results, applies business rules, stores rule results, and finalizes using all accumulated variables.
 
-You need to accumulate state across multiple workflow steps. processing a list of items to compute a total amount and category, then applying business rules based on those intermediate results (does this order need approval? what is the risk level?), and finally producing a decision that uses variables from both steps. The rules step needs the total amount and category from the processing step. The finalize step needs the original totals plus the approval and risk results. Intermediate state must be accessible from any downstream task without threading it through every task's input/output mapping.
-
-Without orchestration, you'd store intermediate values in instance variables, a shared map, or a database, threading state manually between method calls. If the process crashes between computing the total and applying rules, the intermediate state is lost. There is no way to inspect what the accumulated state looked like at any point in the execution without adding custom logging at every step.
-
-## The Solution
-
-**You just write the item processing, rules evaluation, and finalization workers. Conductor handles the workflow variable storage and cross-step state sharing.**
-
-This example demonstrates Conductor's SET_VARIABLE system task for storing intermediate state in workflow variables accessible via `${workflow.variables.key}`. ProcessItemsWorker computes totalAmount, itemCount, and category from the input items. A SET_VARIABLE task stores those results as workflow variables. ApplyRulesWorker reads the stored variables (not the task output directly) and applies business rules. orders over $500 need approval, high-value orders are high risk. A second SET_VARIABLE stores the rule results (needsApproval, riskLevel). FinalizeWorker reads all accumulated variables (totals + rules) to produce the final decision. Workflow variables persist across the entire execution and are visible in the Conductor UI, making intermediate state inspectable at any point.
-
-### What You Write: Workers
-
-Three workers build the order processing pipeline: ProcessItemsWorker computes totals and category, ApplyRulesWorker evaluates approval and risk thresholds from stored variables, and FinalizeWorker assembles the final decision using accumulated state from all previous steps.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ApplyRulesWorker** | `sv_apply_rules` | Applies business rules based on intermediate state stored in workflow variables. Rules: - needsApproval: totalAmount ... |
-| **FinalizeWorker** | `sv_finalize` | Produces the final decision string from all accumulated workflow variables. |
-| **ProcessItemsWorker** | `sv_process_items` | Processes a list of items: computes total amount, count, and category. Category rules: - high-value: total >= 1000 - ... |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-sv_process_items
- │
- ▼
-store_item_results [SET_VARIABLE]
- │
- ▼
-sv_apply_rules
- │
- ▼
-store_rule_results [SET_VARIABLE]
- │
- ▼
-sv_finalize
-
+sv_process_items ──> SET_VARIABLE(store_item_results) ──> sv_apply_rules ──> SET_VARIABLE(store_rule_results) ──> sv_finalize
 ```
 
----
+Workflow `set_variable_demo` accepts `items`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ProcessItemsWorker** (`sv_process_items`) -- processes items and reports the count and total dollar amount.
+
+**ApplyRulesWorker** (`sv_apply_rules`) -- reads `category` from input. Applies business rules based on the category.
+
+**FinalizeWorker** (`sv_finalize`) -- reads all accumulated variables. Produces the final result.
+
+## Workflow Output
+
+The workflow produces `decision`, `totalAmount`, `itemCount`, `category`, `needsApproval`, `riskLevel` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `sv_process_items`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sv_apply_rules`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sv_finalize`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `set_variable_demo` defines 5 tasks with input parameters `items` and a timeout of `60` seconds.
+
+## Tests
+
+6 tests verify item processing, variable storage, rule application, and finalization using stored variables.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

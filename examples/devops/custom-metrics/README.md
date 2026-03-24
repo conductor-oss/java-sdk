@@ -1,39 +1,47 @@
-# Custom Metrics Pipeline in Java with Conductor : Define, Collect, Aggregate, Dashboard Update
+# Building a Custom Metrics Pipeline for E-Commerce KPIs
 
-Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). This workflow defines custom metric definitions, collects raw data points for those metrics, aggregates them over a time window (sum, average, percentiles), and updates dashboards with the results.
+Standard infrastructure metrics (CPU, memory) do not tell you why checkout conversions
+dropped. You need business-specific metrics -- order processing time, cart abandonment rate,
+checkout success count, payment retry rate -- collected, aggregated, and pushed to a
+dashboard. This workflow registers metric definitions, collects raw data, aggregates over
+a time window, and updates the dashboard.
 
-## Business Metrics That Infrastructure Tools Cannot See
-
-Your standard monitoring covers CPU, memory, and request latency. But the business needs to track checkout conversion rate, cart abandonment by region, and API quota usage per tenant. These custom metrics require defining what to measure, collecting the raw events, aggregating them into meaningful numbers over time windows, and pushing the results to a dashboard the team actually watches.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the metric definitions and aggregation logic. Conductor handles the define-collect-aggregate-display pipeline and tracks every collection cycle.**
-
-`DefineMetricsWorker` specifies the metrics to collect. name, data source, collection interval, aggregation method (count, average, p99), and retention period. `CollectDataWorker` gathers raw data points from the configured sources, parsing application logs, querying databases, or consuming event streams. `AggregateWorker` computes aggregated values for each metric using the specified method, rolling averages, percentile calculations, rate computations. `UpdateDashboardWorker` pushes the aggregated metrics to monitoring dashboards in the appropriate format. Conductor records each collection and aggregation cycle for metrics pipeline health monitoring.
-
-### What You Write: Workers
-
-Four workers manage custom metrics. Defining what to measure, collecting raw data, aggregating over time windows, and updating dashboards.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **Aggregate** | `cus_aggregate` | Aggregates raw data points over the specified window. |
-| **CollectData** | `cus_collect_data` | Collects data points for registered custom metrics. |
-| **DefineMetrics** | `cus_define_metrics` | Registers custom metric definitions. |
-| **UpdateDashboard** | `cus_update_dashboard` | Updates the dashboard with aggregated metrics. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> Aggregate -> CollectData -> DefineMetrics -> UpdateDashboard -> Output
-
+metricDefinitions, collectionInterval, aggregationWindow
+                     |
+                     v
++---------------------+     +--------------------+     +----------------+     +-----------------------+
+| cus_define_metrics  | --> | cus_collect_data   | --> | cus_aggregate  | --> | cus_update_dashboard  |
++---------------------+     +--------------------+     +----------------+     +-----------------------+
+  4 metrics registered        4800 raw data points     4 aggregated           dashboardUpdated=true
+  (histogram, gauge,          collectedAt timestamp    metrics computed       dashboardUrl set
+   counter, gauge)
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DefineMetrics** -- Registers 4 custom metrics: `order_processing_time` (histogram),
+`cart_abandonment_rate` (gauge), `checkout_success_count` (counter), and
+`payment_retry_rate` (gauge). Returns `registeredMetrics: 4`.
+
+**CollectData** -- Takes `registeredMetrics` count and `collectionInterval`. Collects
+`rawDataPoints: 4800` data points at `collectedAt: "2026-03-08T06:00:00Z"`.
+
+**Aggregate** -- Aggregates 4800 raw data points over the specified `aggregationWindow`.
+Returns 4 aggregated metrics: `order_processing_time` (p50=1200, p99=5000),
+`cart_abandonment_rate` (12.5), `checkout_success_count` (total=8420),
+`payment_retry_rate` (2.3).
+
+**UpdateDashboard** -- Pushes the aggregated metrics to the dashboard. Returns
+`dashboardUrl: "https://dashboard.example.com/custom-metrics"` and
+`updatedAt: "2026-03-08T06:01:00Z"`.
+
+## Tests
+
+28 unit tests cover metric definition, data collection, aggregation, and dashboard updates.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

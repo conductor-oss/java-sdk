@@ -1,46 +1,41 @@
-# Root Cause Analysis in Java Using Conductor : Issue Detection, Evidence Collection, Analysis, and Root Cause Identification
+# Root Cause Analysis
 
-## The Problem
+A production incident needs diagnosis. The pipeline detects the issue from symptoms, collects evidence (logs and metrics), analyzes the evidence, and identifies the root cause with a confidence score.
 
-An incident is happening. high error rate, latency spike, service degradation. You need to find the root cause fast. This requires detecting the specific issue, collecting evidence from multiple sources (logs, metrics, traces, recent deployments), analyzing correlations (did the error rate spike after a deployment? does the latency correlate with CPU usage?), and identifying the root cause. Each step feeds the next, you can't analyze without evidence, and evidence collection depends on knowing what issue to investigate.
-
-Without orchestration, root cause analysis is manual. an engineer opens 5 dashboards, searches logs, checks recent deployments, and pieces together the story. This takes 30-60 minutes per incident. Automated RCA scripts exist but don't coordinate: one collects metrics, another parses logs, but they don't feed results to a common analysis step.
-
-## The Solution
-
-**You just write the evidence collection queries and correlation analysis logic. Conductor handles the detect-collect-analyze-identify sequence, retries when log or metric sources are temporarily unavailable, and a complete record of every RCA session's evidence and conclusions.**
-
-Each RCA step is an independent worker. issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked, you can see what evidence was collected, what correlations were found, and what root cause was identified.
-
-### What You Write: Workers
-
-Four workers automate RCA: DetectIssueWorker identifies the incident scope, CollectEvidenceWorker gathers logs/metrics/deployment data, an AnalyzeCorrelationsWorker finds patterns, and IdentifyRootCauseWorker pinpoints the most likely cause with a remediation recommendation.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CollectEvidenceWorker** | `rca_collect_evidence` | Gathers evidence from logs, metrics, and recent deployment changes for the affected services |
-| **DetectIssueWorker** | `rca_detect_issue` | Identifies the incident's time window, related services, and impact level from the reported symptom |
-| **IdentifyRootCauseWorker** | `rca_identify_root_cause` | Confirms the top candidate root cause based on confidence score and suggests a remediation action |
-| **RcaAnalyzeWorker** | `rca_analyze` | Analyzes collected logs and metrics to identify the most likely root cause candidate with a confidence percentage |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-rca_detect_issue
- │
- ▼
-rca_collect_evidence
- │
- ▼
-rca_analyze
- │
- ▼
-rca_identify_root_cause
-
+rca_detect_issue ──> rca_collect_evidence ──> rca_analyze ──> rca_identify_root_cause
 ```
 
----
+Workflow `root_cause_analysis_425` accepts `incidentId`, `affectedService`, and `symptom`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**DetectIssueWorker** (`rca_detect_issue`) -- detects the issue from the incident ID and symptom.
+
+**CollectEvidenceWorker** (`rca_collect_evidence`) -- collects logs and metrics as evidence.
+
+**RcaAnalyzeWorker** (`rca_analyze`) -- analyzes the collected logs and metrics.
+
+**IdentifyRootCauseWorker** (`rca_identify_root_cause`) -- identifies the root cause with a confidence percentage.
+
+## Workflow Output
+
+The workflow produces `rootCause`, `confidence`, `remediation`, `evidenceCount` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `root_cause_analysis_425` defines 4 tasks with input parameters `incidentId`, `affectedService`, `symptom` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify issue detection, evidence collection, analysis, and root cause identification.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

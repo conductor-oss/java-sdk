@@ -1,37 +1,46 @@
-# Implementing Security Incident Response in Java with Conductor : Triage, Containment, Investigation, and Remediation
+# Security Incident Response
 
-## The Problem
+A compromised API key is detected being used from an unauthorized IP. The system must triage the incident by type and severity, contain it by isolating the affected system, investigate the root cause, and remediate by revoking the key and preserving access logs.
 
-You need to respond to security incidents. unauthorized access attempts, data exfiltration, compromised credentials, following a structured playbook: triage the alert to determine severity (P1 through P4), contain the threat by isolating the affected system (e.g., an API gateway), investigate to identify root cause and blast radius, and remediate by patching the vulnerability or revoking compromised credentials. Mean time to containment directly impacts breach severity.
-
-Without orchestration, your incident response is a runbook document that engineers follow manually at 2 AM. Steps get skipped under pressure, containment is delayed while waiting for approvals, and there is no reliable record of what was done or when. If the on-call engineer's laptop crashes mid-investigation, the incident state lives in their browser tabs and terminal history.
-
-## The Solution
-
-**You just write the triage rules and containment actions. Conductor handles the ordered response playbook, retries containment if the first attempt fails, and a complete incident timeline for post-mortem review and regulatory reporting.**
-
-Each phase of the incident response playbook is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so triage output drives containment scope, containment completes before investigation begins, and remediation only runs after root cause is confirmed. If containment fails on the first attempt, Conductor retries automatically. Every action, decision, and timing is recorded, giving you a complete incident timeline for post-mortem review and regulatory reporting.
-
-### What You Write: Workers
-
-Four workers execute the incident response playbook: TriageWorker classifies severity and type, ContainWorker isolates the affected system, InvestigateWorker determines root cause and blast radius, and RemediateWorker applies the fix or credential revocation.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ContainWorker** | `si_contain` | Contains a security incident by isolating the affected system. |
-| **InvestigateWorker** | `si_investigate` | Investigates a security incident to determine root cause. |
-| **RemediateWorker** | `si_remediate` | Remediates a security incident by applying fixes. |
-| **TriageWorker** | `si_triage` | Triages a security incident based on type and severity. |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> ContainWorker -> InvestigateWorker -> RemediateWorker -> TriageWorker -> Output
-
+si_triage ──> si_contain ──> si_investigate ──> si_remediate
 ```
 
----
+Workflow `security_incident_workflow` accepts `incidentType`, `severity`, and `affectedSystem`. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**TriageWorker** (`si_triage`) -- reads `incidentType` (defaults to `"unknown"`) and `severity` (defaults to `"P3"`). Reports `incidentType + " -- severity: " + severity`. Returns `triageId` = `"TRIAGE-1381"`.
+
+**ContainWorker** (`si_contain`) -- isolates the affected system. Reports `"Isolated affected system from network"`. Returns `contain` = `true`.
+
+**InvestigateWorker** (`si_investigate`) -- determines root cause. Reports `"Root cause: compromised API key used from unauthorized IP"`. Returns `investigate` = `true`.
+
+**RemediateWorker** (`si_remediate`) -- applies fixes. Reports `"API key revoked, access logs preserved, patches applied"`. Returns `remediate` = `true` and `completedAt` = `"2026-01-15T10:05:00Z"`.
+
+## Workflow Output
+
+The workflow produces `triageResult`, `containmentResult`, `investigationResult`, `remediationResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `si_triage`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `si_contain`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `si_investigate`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `si_remediate`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `security_incident_workflow` defines 4 tasks with input parameters `incidentType`, `severity`, `affectedSystem` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify triage, containment, investigation, remediation, and the full incident response pipeline.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

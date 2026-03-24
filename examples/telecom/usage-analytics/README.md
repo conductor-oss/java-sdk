@@ -1,48 +1,53 @@
-# Usage Analytics in Java Using Conductor
+# Usage Analytics
 
-## Why Usage Analytics Needs Orchestration
+Orchestrates usage analytics through a multi-stage Conductor workflow.
 
-Analyzing telecom usage data requires a pipeline where each transformation depends on the previous one. You collect raw CDRs from network switches and media gateways for a region and time period. You process each record. normalizing formats, enriching with subscriber metadata, filtering duplicates, and converting to a standard usage event schema. You aggregate the processed records into metrics (total minutes, data volume, peak hours, geographic distribution) and detect anomalies (usage spikes, fraud patterns, revenue leakage). You generate the analytics report for business stakeholders. Finally, you raise alerts for any anomalies that need immediate attention.
+**Input:** `region`, `period` | **Timeout:** 60s
 
-If processing fails partway through, you need to know which CDRs were already processed to avoid counting them twice in the aggregation. If the report generates successfully but the alert worker fails, fraud patterns go unnotified even though they were detected. Without orchestration, you'd build a batch ETL job that mixes CDR collection, format normalization, aggregation SQL, report generation, and alerting into a single cron script. making it impossible to reprocess a subset of CDRs, test anomaly detection rules independently, or audit which raw records contributed to which report figures.
-
-## The Solution
-
-**You just write the CDR collection, record processing, metric aggregation, report generation, and anomaly alerting logic. Conductor handles ingestion retries, pattern analysis sequencing, and analytics audit trails.**
-
-Each worker handles one telecom operation. Conductor manages the provisioning pipeline, activation sequencing, billing triggers, and service state tracking.
-
-### What You Write: Workers
-
-Data ingestion, pattern analysis, anomaly detection, and report generation workers each process one layer of subscriber usage intelligence.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AggregateWorker** | `uag_aggregate` | Aggregates processed records into usage metrics and detects anomalies (spikes, fraud patterns, revenue leakage). |
-| **AlertWorker** | `uag_alert` | Raises alerts for detected anomalies that need immediate attention from operations or fraud teams. |
-| **CollectCdrsWorker** | `uag_collect_cdrs` | Collects raw call detail records (CDRs) from network switches for a region and time period. |
-| **ProcessWorker** | `uag_process` | Processes raw CDRs. normalizing formats, enriching with subscriber metadata, and filtering duplicates. |
-| **ReportWorker** | `uag_report` | Generates the usage analytics report with aggregated metrics, trends, and anomaly summaries. |
-
-### The Workflow
+## Pipeline
 
 ```
 uag_collect_cdrs
- │
- ▼
+    │
 uag_process
- │
- ▼
+    │
 uag_aggregate
- │
- ▼
+    │
 uag_report
- │
- ▼
+    │
 uag_alert
+```
 
+## Workers
+
+**AggregateWorker** (`uag_aggregate`)
+
+Outputs `aggregates`, `anomalies`.
+
+**AlertWorker** (`uag_alert`)
+
+Outputs `alertCount`, `notified`.
+
+**CollectCdrsWorker** (`uag_collect_cdrs`)
+
+Reads `region`. Outputs `cdrCount`, `sources`.
+
+**ProcessWorker** (`uag_process`)
+
+Outputs `processedRecords`, `duplicatesRemoved`.
+
+**ReportWorker** (`uag_report`)
+
+Reads `region`. Outputs `reportId`, `generated`.
+
+## Tests
+
+**2 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

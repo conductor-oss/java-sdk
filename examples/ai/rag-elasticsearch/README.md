@@ -1,42 +1,38 @@
-# RAG with Elasticsearch in Java Using Conductor : Dense Vector kNN Search and Generation
+# RAG with Elasticsearch kNN Vector Search
 
-## RAG on Your Existing Elasticsearch Cluster
+You already have an Elasticsearch cluster. Instead of adding another vector database, this pipeline runs dense vector kNN search directly in Elasticsearch: embed the query, execute a kNN search returning documents with `_score` values (top hit at 0.97), and generate an answer.
 
-If you already run Elasticsearch for full-text search, you don't need a separate vector database for RAG. Elasticsearch 8.x supports dense_vector fields and kNN search natively, so you can add vector search to existing indices alongside your traditional keyword queries. The RAG pipeline embeds the question, runs a kNN search against the index, and generates from the results.
-
-Each step can fail independently: the embedding API might time out, the Elasticsearch cluster might be rebalancing, or the LLM might be rate-limited.
-
-## The Solution
-
-**You write the embedding and Elasticsearch kNN query logic. Conductor handles the search pipeline, retries, and observability.**
-
-Each stage is an independent worker. question embedding, Elasticsearch kNN search, and answer generation. Conductor sequences them, retries the Elasticsearch query during cluster rebalancing, and tracks every search with the question, kNN results, and generated answer.
-
-### What You Write: Workers
-
-Three workers integrate Elasticsearch into the RAG pipeline. embedding the query, performing kNN dense vector search against an Elasticsearch index, and generating an answer from the matched documents.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **EsEmbedWorker** | `es_embed` | Worker that encodes a question into a fixed embedding vector for Elasticsearch knn search. |
-| **EsGenerateWorker** | `es_generate` | Worker that generates an answer from a question and Elasticsearch search hits. |
-| **EsKnnSearchWorker** | `es_knn_search` | Worker that simulates an Elasticsearch knn vector search. In production, this would issue a POST to /{index}/_search ... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-es_embed
- │
- ▼
-es_knn_search
- │
- ▼
-es_generate
-
+question, index
+       │
+       ▼
+┌──────────────┐
+│ es_embed     │  Embed query via OpenAI
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ es_knn_search│  kNN search in Elasticsearch index
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ es_generate  │  Generate answer from hits
+└──────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**EsEmbedWorker** (`es_embed`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls OpenAI Embeddings with `text-embedding-3-small`. Otherwise returns a `FIXED_EMBEDDING` vector.
+
+**EsKnnSearchWorker** (`es_knn_search`) -- Returns kNN search hits with `_score: 0.97` for the top result. In production, this would execute an Elasticsearch kNN query against the specified index.
+
+**EsGenerateWorker** (`es_generate`) -- Calls `gpt-4o-mini` with system prompt for context-based answering. Returns the generated answer.
+
+## Tests
+
+12 tests cover embedding, kNN search results, and generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

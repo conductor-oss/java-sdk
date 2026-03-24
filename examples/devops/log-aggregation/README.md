@@ -1,48 +1,44 @@
-# Log Aggregation in Java with Conductor : Collect, Parse, Enrich, Store
+# Collecting 15,000 Logs, Parsing to JSON, and Storing in Elasticsearch
 
-Aggregate logs: collect raw logs, parse them into structured format, enrich with metadata, and store in the log store. Pattern: collect -> parse -> enrich -> store.
+Your services emit logs in mixed formats -- some JSON, some plaintext, some syslog. Without
+a pipeline, searching across them means grepping through raw files on each box. This workflow
+collects 15,000 raw logs from multiple sources, parses them into structured JSON (with 200
+parse errors for malformed entries), enriches them with geo/service/traceId/userId fields,
+and stores 14,800 documents in Elasticsearch.
 
-## Raw Logs Are Useless Without Processing
-
-A production system generates gigabytes of logs daily across dozens of services. Raw log lines like `2025-01-15T14:32:01Z INFO [payment-svc] Payment processed for order ORD-12345` are useless in raw form. they need to be collected from all sources (files, stdout, syslog), parsed into structured fields (timestamp, level, service, message, order ID), enriched with context (deployment version, environment, geo-IP of the request), and stored in a searchable system (Elasticsearch, Loki, CloudWatch).
-
-Each step transforms the data: collection handles different log formats and transports. Parsing extracts structured fields using format-specific patterns (JSON, logfmt, regex). Enrichment adds context that isn't in the log line itself. Storage indexes the enriched data for search and analysis. If the storage step fails, parsed and enriched logs should be buffered. not lost.
-
-## The Solution
-
-**You write the parsing and enrichment logic. Conductor handles the collect-parse-enrich-store pipeline, retries on storage failures, and processing throughput tracking.**
-
-`CollectLogsWorker` gathers log entries from the configured sources and time range. application log files, container stdout, syslog streams, and cloud provider log services. `ParseLogsWorker` transforms raw log lines into structured records, extracting timestamp, level, service name, message, and any embedded fields using format-appropriate parsers. `EnrichLogsWorker` adds context metadata, deployment version, environment name, geo-IP lookup for request IPs, and trace correlation IDs. `StoreLogsWorker` indexes the enriched records in the log store for search, alerting, and dashboarding. Conductor pipelines these four steps and records processing throughput and error rates.
-
-### What You Write: Workers
-
-Four workers process the log pipeline. Collecting raw logs, parsing into structured records, enriching with metadata, and storing in a searchable index.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CollectLogs** | `la_collect_logs` | Collects raw logs from the specified sources for the given time range. |
-| **EnrichLogs** | `la_enrich_logs` | Enriches parsed logs with additional metadata fields. |
-| **ParseLogs** | `la_parse_logs` | Parses raw logs into a structured format. |
-| **StoreLogs** | `la_store_logs` | Stores enriched logs in the log store index. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-la_collect_logs
- │
- ▼
-la_parse_logs
- │
- ▼
-la_enrich_logs
- │
- ▼
-la_store_logs
-
+sources, timeRange, logLevel
+           |
+           v
++-------------------+     +------------------+     +------------------+     +------------------+
+| la_collect_logs   | --> | la_parse_logs    | --> | la_enrich_logs   | --> | la_store_logs    |
++-------------------+     +------------------+     +------------------+     +------------------+
+  15000 raw logs           14800 parsed             14800 enriched          logs-2026.03.08
+  format: "mixed"          200 parse errors          45MB, 4 fields added   14800 docs written
+                           avg 0.2ms/log             (geo,service,          3200ms storage
+                                                      traceId,userId)
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CollectLogs** -- Takes `sources` (list), `timeRange`, and `logLevel`. Returns
+`rawLogCount: 15000`, `format: "mixed"`, `collectedAt: "2026-03-08T06:00:00Z"`.
+
+**ParseLogs** -- Parses raw logs into structured JSON. Returns `parsedCount: 14800`,
+`parseErrors: 200`, `structuredLogs: "json"`, `avgParseTimeMs: 0.2`.
+
+**EnrichLogs** -- Adds 4 metadata fields: `geo`, `service`, `traceId`, `userId`. Returns
+`enrichedCount: 14800`, `sizeBytes: 45000000`.
+
+**StoreLogs** -- Writes enriched logs to Elasticsearch index `"logs-2026.03.08"`. Returns
+`documentsWritten: 14800`, `storageMs: 3200`.
+
+## Tests
+
+16 unit tests cover log collection and parsing.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

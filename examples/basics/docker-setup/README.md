@@ -1,36 +1,40 @@
-# Docker Setup Verification in Java with Conductor: One-Task Smoke Test
+# Docker Setup
 
-A minimal Java Conductor workflow with a single task that verifies your Docker-based Conductor setup is working correctly. If the workflow completes successfully, your Docker environment (Conductor server, worker connectivity, task polling) is properly configured. If it fails, the error tells you exactly what's wrong. Uses [Conductor](https://github.com/conductor-oss/conductor) running in Docker.
+Simple one-task workflow to verify Docker setup is working
 
-## Verifying Your Setup Before Building
+**Input:** `message` | **Timeout:** 60s
 
-Before building complex workflows, you need to confirm the basics work: Conductor is running in Docker, the health endpoint responds, workers can connect and poll for tasks, and workflow execution completes end-to-end. This single-task workflow is the quickest way to verify all of that.
+**Output:** `message`, `timestamp`
 
-A successful run means: Docker is running Conductor, the API is reachable, the worker registered and polled successfully, the task executed, and the result was recorded. If any of those steps fail, you get a specific error to debug.
-
-## The Solution
-
-**Run this first, build everything else second.**
-
-One worker, one task, one workflow. If it completes, your setup is correct. If it fails, the error pinpoints whether the issue is Docker, Conductor, connectivity, or the worker.
-
-### What You Write: Workers
-
-A single smoke-test worker verifies your Docker and Conductor setup is working correctly before you build anything more complex.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| `DockerTestWorker` | `docker_test_task` | Accepts a `message` string input (defaults to "Docker setup test" if blank), echoes it back with an ISO-8601 timestamp to confirm Docker-based Conductor connectivity |
-
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the demo logic for your real service calls, the worker contract stays the same.
-
-### The Workflow
+## Pipeline
 
 ```
 docker_test_task
+```
 
+## Workers
+
+**DockerTestWorker** (`docker_test_task`): Simple worker used to verify a Conductor Docker setup is working.
+
+Reads `message`. Outputs `message`, `timestamp`.
+
+## Workflow Output
+
+- `message`: `${docker_test_task_ref.output.message}`
+- `timestamp`: `${docker_test_task_ref.output.timestamp}`
+
+## Data Flow
+
+**docker_test_task**: `message` = `${workflow.input.message}`
+
+## Tests
+
+**5 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

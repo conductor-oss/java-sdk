@@ -1,46 +1,55 @@
-# SNS SQS Integration in Java Using Conductor
+# Sns Sqs Integration
 
-## Publishing Messages Through SNS to SQS
+Orchestrates sns sqs integration through a multi-stage Conductor workflow.
 
-Fan-out messaging with SNS and SQS involves a strict sequence: publish a message to an SNS topic, ensure the target SQS queue is subscribed to that topic, poll the queue for the delivered message, and process it (which typically includes parsing the SNS envelope and deleting the message from the queue). Each step depends on the previous one. you cannot receive a message that has not been published, and you need the subscription in place before messages will flow to the queue.
+**Input:** `topicArn`, `queueUrl`, `messageBody` | **Timeout:** 60s
 
-Without orchestration, you would chain AWS SDK calls manually, manage message IDs, subscription ARNs, and receipt handles between steps, and handle partial failures like a message published but not yet delivered. Conductor sequences the pipeline and routes topic ARNs, message IDs, and receipt handles between workers automatically.
-
-## The Solution
-
-**You just write the messaging workers. SNS publishing, SQS subscription, message receiving, and message processing. Conductor handles publish-to-process sequencing, SQS polling retries, and message ID and receipt handle routing between stages.**
-
-Each worker integrates with one external system. Conductor manages the integration sequence, retry logic, timeout handling, and data transformation between systems.
-
-### What You Write: Workers
-
-Four workers run the messaging pipeline: SnsPublishWorker sends to an SNS topic, SubscribeQueueWorker links the SQS queue, ReceiveMessageWorker polls for delivered messages, and ProcessMessageWorker parses and deletes them.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ProcessMessageWorker** | `sns_process_message` | Processes a received SQS message. |
-| **ReceiveMessageWorker** | `sns_receive_message` | Receives a message from an SQS queue. |
-| **SnsPublishWorker** | `sns_publish` | Publishes a message to an SNS topic. |
-| **SubscribeQueueWorker** | `sns_subscribe_queue` | Subscribes an SQS queue to an SNS topic. |
-
-the workflow orchestration and error handling stay the same.
-
-### The Workflow
+## Pipeline
 
 ```
 sns_publish
- │
- ▼
+    │
 sns_subscribe_queue
- │
- ▼
+    │
 sns_receive_message
- │
- ▼
+    │
 sns_process_message
+```
 
+## Workers
+
+**ProcessMessageWorker** (`sns_process_message`): Processes a received SQS message.
+
+Reads `messageBody`, `receiptHandle`. Outputs `processed`, `deletedFromQueue`, `processedAt`.
+
+**ReceiveMessageWorker** (`sns_receive_message`): Receives a message from an SQS queue.
+
+```java
+String receiptHandle = "rh-" + Long.toString(System.currentTimeMillis(), 36);
+```
+
+Reads `messageId`, `queueUrl`. Outputs `body`, `receiptHandle`, `approximateReceiveCount`.
+
+**SnsPublishWorker** (`sns_publish`): Publishes a message to an SNS topic.
+
+```java
+String messageId = "sns-msg-" + Long.toString(System.currentTimeMillis(), 36);
+```
+
+Reads `topicArn`. Outputs `messageId`, `sequenceNumber`.
+
+**SubscribeQueueWorker** (`sns_subscribe_queue`): Subscribes an SQS queue to an SNS topic.
+
+Reads `queueUrl`, `topicArn`. Outputs `subscriptionArn`, `protocol`.
+
+## Tests
+
+**8 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

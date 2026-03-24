@@ -1,50 +1,43 @@
-# Signals in Java with Conductor
+# Signals (Wait Tasks)
 
-Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data.
+An order workflow pauses at two points waiting for external signals -- once for shipping confirmation and once for delivery confirmation. `WAIT` tasks suspend the workflow until a signal is received via Conductor's API.
 
-## The Problem
-
-You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state. prepared, shipped, or delivered, potentially for hours or days.
-
-Without orchestration, you'd poll a database or message queue for shipping and delivery updates, maintaining a state machine in application code that tracks where each order is in the fulfillment process. If the polling service crashes, orders are stuck until it restarts. There is no built-in way for an external system to "push" data into a running process at a specific step, and correlating incoming signals with the right order workflow requires custom routing logic.
-
-## The Solution
-
-**You just write the order preparation, shipping processing, and delivery completion workers. Conductor handles the durable WAIT pauses and signal-to-workflow routing.**
-
-This example demonstrates Conductor's WAIT task for pausing a workflow until an external signal arrives. SigPrepareWorker prepares the order for shipping. The workflow then hits a WAIT task (`wait_shipping`) and pauses indefinitely until an external system completes the task with shipping data (tracking number and carrier). When the signal arrives, SigProcessShippingWorker processes the shipping information. The workflow pauses again at a second WAIT task (`wait_delivery`) until the carrier sends delivery confirmation (timestamp and signature). Finally, SigCompleteWorker marks the order as delivered. Each WAIT task's output data comes from the external signal, wired into the next worker via `${wait_shipping_ref.output.trackingNumber}` and `${wait_delivery_ref.output.signature}`.
-
-### What You Write: Workers
-
-Three workers handle the order fulfillment flow between WAIT pauses: SigPrepareWorker readies the order for shipping, SigProcessShippingWorker handles the tracking data after the first external signal, and SigCompleteWorker marks delivery after the second signal arrives.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **SigCompleteWorker** | `sig_complete` | Completes the order after the delivery signal is received. Takes orderId, deliveredAt, and signature. Returns { done:... |
-| **SigPrepareWorker** | `sig_prepare` | Prepares the order for shipping. Takes an orderId and returns { ready: true }. |
-| **SigProcessShippingWorker** | `sig_process_shipping` | Processes shipping information after the shipping signal is received. Takes orderId, trackingNumber, and carrier. Ret... |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-sig_prepare
- │
- ▼
-wait_shipping [WAIT]
- │
- ▼
-sig_process_shipping
- │
- ▼
-wait_delivery [WAIT]
- │
- ▼
-sig_complete
-
+sig_prepare ──> WAIT(wait_shipping) ──> sig_process_shipping ──> WAIT(wait_delivery) ──> sig_complete
 ```
 
----
+Workflow `signal_demo` accepts `orderId`. Times out after `120` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**SigPrepareWorker** (`sig_prepare`) -- prepares the order for processing.
+
+**SigProcessShippingWorker** (`sig_process_shipping`) -- processes the shipping details after the shipping signal is received.
+
+**SigCompleteWorker** (`sig_complete`) -- completes the order after the delivery signal is received.
+
+## Workflow Output
+
+The workflow produces `orderId`, `tracking`, `delivered` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `sig_prepare`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sig_process_shipping`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sig_complete`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `signal_demo` defines 5 tasks with input parameters `orderId` and a timeout of `120` seconds.
+
+## Tests
+
+6 tests verify order preparation, wait task suspension, signal reception, shipping processing, and delivery completion.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

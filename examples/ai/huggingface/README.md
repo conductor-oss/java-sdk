@@ -1,42 +1,43 @@
-# Hugging Face Inference in Java Using Conductor : Task-Based Model Selection and API Orchestration
+# Multi-Task NLP via Hugging Face: Model Selection by Task Type
 
-## Multi-Task NLP with a Single Workflow
+Different NLP tasks need different models with different output formats. Summarization uses BART and returns `summary_text`. Text generation uses Mixtral and returns `generated_text`. Sentiment analysis uses DistilBERT and returns `label`. This workflow routes to the right model based on the task type, calls the Hugging Face Inference API, and parses the task-specific output format.
 
-Different NLP tasks require different models with different input formats and output structures. Summarization uses BART and returns a summary string. Text generation uses GPT-2 and returns a continuation. Sentiment analysis uses a classifier and returns labels with scores. Each model has its own API parameters (`min_length` for summarization, `max_new_tokens` for generation) and its own output format.
-
-When you hardcode a single model call, adding a new task type means duplicating the entire pipeline. When you handle model selection and inference in the same method, a Hugging Face API timeout means re-running the model selection logic. And without tracking which model was used for which request, you can't debug why a particular summarization was poor.
-
-## The Solution
-
-**You write the model selection, inference call, and result formatting logic. Conductor handles the task routing, retries, and observability.**
-
-Each concern is an independent worker. model selection (mapping task types to Hugging Face model IDs and parameters), inference (calling the Hugging Face Inference API), and result formatting (extracting the relevant field from the model's output based on task type). Conductor chains them so the selected model feeds into the inference call, and the raw output feeds into the task-specific formatter. If the Inference API is rate-limited or a model is loading, Conductor retries automatically. Every execution records which model handled which task.
-
-### What You Write: Workers
-
-Three workers cover task-based model routing. selecting the right Hugging Face model for the task (summarization, generation, or sentiment), running inference, and formatting the task-specific result.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **HfFormatResultWorker** | `hf_format_result` | Formats the raw inference output based on the task type. Extracts the relevant field from the model output (e.g, summ... |
-| **HfInferenceWorker** | `hf_inference` | Simulates a call to the Hugging Face Inference API. In production, this would POST to https://api-inference.huggingfa... |
-| **HfSelectModelWorker** | `hf_select_model` | Selects the appropriate Hugging Face model based on the requested task type. Maps task types (summarization, text-gen... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-hf_select_model
- │
- ▼
-hf_inference
- │
- ▼
-hf_format_result
-
+text, task
+   │
+   ▼
+┌──────────────────┐
+│ hf_select_model  │  Map task type to model ID + params
+└────────┬─────────┘
+         │  modelId, formattedInput, parameters, options
+         ▼
+┌──────────────────┐
+│ hf_inference     │  POST to api-inference.huggingface.co
+└────────┬─────────┘
+         │  rawOutput
+         ▼
+┌──────────────────┐
+│ hf_format_result │  Extract task-specific field
+└──────────────────┘
+         │
+         ▼
+   result, model, task
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**HfSelectModelWorker** (`hf_select_model`) -- Maps task types to model IDs via a static `TASK_MODEL_MAP`: `"text-generation"` -> `"mistralai/Mixtral-8x7B-Instruct-v0.1"`, `"summarization"` -> `"facebook/bart-large-cnn"`, `"sentiment-analysis"` -> `"distilbert-base-uncased-finetuned-sst-2-english"`, `"translation"` -> `"Helsinki-NLP/opus-mt-en-fr"`. Unknown task types default to text-generation. Returns inference parameters: `max_new_tokens: 250`, `temperature: 0.6`, `top_p: 0.9`, `repetition_penalty: 1.1`, `do_sample: true`. Also sets `options: {wait_for_model: true, use_cache: false}`.
+
+**HfInferenceWorker** (`hf_inference`) -- Checks `HUGGINGFACE_TOKEN` at construction. In live mode, POSTs `{"inputs": text}` to `https://api-inference.huggingface.co/models/<modelId>` with a 10-second connect timeout and 120-second request timeout, `Authorization: Bearer <token>`. In fallback mode, returns a hardcoded summarization result about a hybrid work study (2,500 workers, 12 countries, 18%/23% productivity improvements).
+
+**HfFormatResultWorker** (`hf_format_result`) -- Extracts the result based on task type: `"summarization"` reads `output.get(0).get("summary_text")`, `"sentiment-analysis"` reads `.get("label")`, everything else reads `.get("generated_text")` with a `.toString()` fallback. Logs the first 60 characters of the result.
+
+## Tests
+
+17 tests cover model selection for all task types, inference in both modes, and format extraction for each output shape.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

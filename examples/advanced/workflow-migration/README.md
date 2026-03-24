@@ -1,37 +1,45 @@
-# Workflow Migration in Java Using Conductor : Export from Legacy, Transform, Import to New, Verify
+# Workflow Migration
 
-## Migrating from Legacy Orchestration Without Losing History
+A platform is migrating from workflow definition v1 to v2. In-flight v1 executions must complete, new executions must use v2, and the migration pipeline must validate that v2 produces equivalent results for a test suite of historical inputs.
 
-You're moving from Airflow to Conductor (or Jenkins to Conductor, or a custom cron-based system). The legacy system has 200 workflow definitions, execution history that auditors need, and active runs that can't be interrupted. Migration means exporting the old definitions and history, transforming them into the target format (different task naming, different input/output schemas), importing them into the new system, and verifying that the migrated workflows produce identical results.
-
-Doing this manually per workflow is tedious and error-prone. Automating it as a pipeline lets you batch-migrate workflows, catch transformation errors early, and verify each migration before decommissioning the old system.
-
-## The Solution
-
-**You write the export and transformation logic. Conductor handles the migration pipeline, retries, and verification tracking.**
-
-`WmExportOldWorker` extracts workflow definitions and execution history from the source system. `WmTransformWorker` converts the exported data into the target system's format. mapping task names, translating input/output schemas, and adjusting configuration. `WmImportNewWorker` loads the transformed definitions into the new orchestration platform. `WmVerifyWorker` runs test executions on the migrated workflows and compares outputs against the legacy system's results. Conductor records the export, transformation, import, and verification for each migrated workflow.
-
-### What You Write: Workers
-
-Four workers handle the migration pipeline: legacy system export, schema transformation, new-platform import, and output verification, each targeting one phase of the system cutover.
-
-### The Workflow
+## Pipeline
 
 ```
-wm_export_old
- │
- ▼
-wm_transform
- │
- ▼
-wm_import_new
- │
- ▼
-wm_verify
-
+[wm_export_old]
+     |
+     v
+[wm_transform]
+     |
+     v
+[wm_import_new]
+     |
+     v
+[wm_verify]
 ```
+
+**Workflow inputs:** `sourceSystem`, `targetSystem`, `workflowName`
+
+## Workers
+
+**WmExportOldWorker** (task: `wm_export_old`)
+
+- Sets `format` = `"legacy_json"`
+- Writes `exported`, `definition`, `format`, `taskCount`
+
+**WmImportNewWorker** (task: `wm_import_new`)
+
+- Writes `imported`, `importedTaskCount`, `newWorkflowId`
+
+**WmTransformWorker** (task: `wm_transform`)
+
+- Writes `transformed`, `transformSuccess`
+
+**WmVerifyWorker** (task: `wm_verify`)
+
+- Reads `originalTasks`, `importedTasks`. Writes `verified`, `taskDelta`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**16 tests** | Workflow: `workflow_migration_demo` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

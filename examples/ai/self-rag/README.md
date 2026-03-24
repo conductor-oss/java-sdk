@@ -1,57 +1,58 @@
-# Self-RAG in Java Using Conductor : Self-Reflective Retrieval with Hallucination and Usefulness Grading
+# Self-RAG: Retrieve, Grade, Generate, Then Check for Hallucination and Usefulness
 
-## A RAG Pipeline That Checks Its Own Work
+A RAG pipeline that checks its own work. After retrieving 4 documents (3 relevant at score >= 0.5, 1 irrelevant at 0.22), it grades them, generates an answer, then runs hallucination detection (score: 0.92) and usefulness grading (score: 0.88). If both scores pass (>= 0.7), the answer is served; otherwise it enters a refinement retry loop.
 
-Standard RAG generates and serves. no self-reflection. Self-RAG adds three grading steps: after retrieval, grade documents for relevance. After generation, grade the answer for hallucination (does it go beyond what the context supports?) and usefulness (does it actually answer the question?). If the answer passes both checks, format and return it. If it fails, route to a refinement step that retries with adjusted parameters.
-
-This creates a conditional pipeline with a quality gate after generation: retrieve, grade docs, generate, grade hallucination, grade usefulness, then branch. format output on success, refine and retry on failure.
-
-## The Solution
-
-**You write the retrieval grading, hallucination detection, and usefulness scoring logic. Conductor handles the self-reflective routing, retries, and observability.**
-
-Each grading step is an independent worker. document grading, hallucination grading, usefulness grading. Conductor's `SWITCH` task routes to either the output formatter or the refinement step based on quality scores. Every execution records all grading scores, making it easy to see which questions trigger refinement and why.
-
-### What You Write: Workers
-
-Seven workers implement the self-reflective pipeline. retrieval, document grading, generation, hallucination grading, usefulness grading, output formatting on pass, and query refinement on fail, with a SWITCH gate after the quality checks.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FormatOutputWorker** | `sr_format_output` | Formats the final output when quality gate passes. Returns {answer, sourceCount}. |
-| **GenerateWorker** | `sr_generate` | Generates an answer from relevant documents. Returns a fixed answer about Conductor task types. |
-| **GradeDocsWorker** | `sr_grade_docs` | Grades retrieved documents for relevance. Filters documents with score >= 0.5. Returns {relevantDocs, filteredCount}. |
-| **GradeHallucinationWorker** | `sr_grade_hallucination` | Grades the generated answer for hallucination against source docs. Returns {score: 0.92, grounded: true}. |
-| **GradeUsefulnessWorker** | `sr_grade_usefulness` | Grades the generated answer for usefulness: score = 0.88. If score >= 0.7 AND halScore >= 0.7, verdict = "pass". Retu... |
-| **RefineRetryWorker** | `sr_refine_retry` | Refines the query when quality gate fails. Returns {refinedQuery}. |
-| **RetrieveWorker** | `sr_retrieve` | Retrieves documents relevant to a question. Returns 4 docs: 3 relevant (score >= 0.5) and 1 irrelevant (0.22). |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-sr_retrieve
- │
- ▼
-sr_grade_docs
- │
- ▼
-sr_generate
- │
- ▼
-sr_grade_hallucination
- │
- ▼
-sr_grade_usefulness
- │
- ▼
-SWITCH (switch_ref)
- ├── pass: sr_format_output
- └── default: sr_refine_retry
-
+question
+    │
+    ▼
+┌──────────────────┐
+│ sr_retrieve      │  4 docs: 3 relevant, 1 irrelevant (0.22)
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ sr_grade_docs    │  Filter: keep docs with score >= 0.5
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ sr_generate      │  Generate from graded docs
+└────────┬─────────┘
+         ▼
+┌────────────────────────────┐
+│ sr_grade_hallucination     │  Score: 0.92, grounded: true
+└────────┬───────────────────┘
+         ▼
+┌──────────────────────────┐
+│ sr_grade_usefulness      │  Score: 0.88, verdict: pass/fail
+└────────┬─────────────────┘
+         ▼
+    SWITCH (quality_gate)
+    ├── "pass": sr_format_output
+    └── default: sr_refine_retry
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**RetrieveWorker** (`sr_retrieve`) -- Returns 4 docs: `d1` (score 0.91, SIMPLE/SYSTEM tasks), `d2` (0.85), `d3` (0.78), and `d4` (0.22, irrelevant).
+
+**GradeDocsWorker** (`sr_grade_docs`) -- Filters documents using `.filter(d -> ((Number) d.get("score")).doubleValue() >= 0.5)`. Logs count of docs passing threshold 0.5.
+
+**GenerateWorker** (`sr_generate`) -- Generates from the graded documents using system prompt.
+
+**GradeHallucinationWorker** (`sr_grade_hallucination`) -- Returns `score: 0.92` and `grounded: true`.
+
+**GradeUsefulnessWorker** (`sr_grade_usefulness`) -- Returns `score: 0.88`. Verdict is `"pass"` if score >= 0.7 AND hallucination score >= 0.7.
+
+**FormatOutputWorker** (`sr_format_output`) -- Formats the final answer for output.
+
+**RefineRetryWorker** (`sr_refine_retry`) -- Handles the refinement loop when quality gate fails.
+
+## Tests
+
+25 tests cover retrieval, score-based grading, generation, hallucination detection, usefulness evaluation, and both SWITCH paths.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

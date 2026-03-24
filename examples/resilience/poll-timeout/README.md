@@ -1,32 +1,41 @@
-# Implementing Poll Timeout in Java with Conductor : Detecting Absent Workers via Queue Wait Limits
+# Poll Timeout
 
-## The Problem
+A task is scheduled but no worker picks it up -- the worker process crashed, the deployment failed, or the worker is polling the wrong queue. Without a poll timeout, the task sits in the queue indefinitely and the workflow hangs. The system needs to detect absent workers within a bounded time window.
 
-You schedule a task, but no worker picks it up. the worker process crashed, the deployment failed, or the worker is polling a different task queue. Without a poll timeout, the task sits in the queue indefinitely and the workflow hangs forever. You need to detect when no worker is available within a reasonable time window and take action (alert, fail the workflow, route to a fallback).
-
-Without orchestration, detecting absent workers requires custom health check infrastructure. heartbeat monitoring, process supervisors, and manual alerting when tasks are stuck. Each task queue needs its own monitoring, and the detection logic is separate from the task definition.
-
-## The Solution
-
-The task definition includes `pollTimeoutSeconds`. if no worker picks up the task within that window, Conductor automatically marks it as timed out. This triggers retry logic or failure handling as configured. Every poll timeout event is recorded, so you can see exactly when and why a task was not picked up.
-
-### What You Write: Workers
-
-PollNormalTaskWorker processes tasks normally, while Conductor's pollTimeoutSeconds setting automatically detects when no worker picks up a task within the configured window. Indicating crashed or missing workers.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **PollNormalTaskWorker** | `poll_normal_task` | Worker for the poll_normal_task task. Picks up the task and processes it immediately. Takes a mode input and returns ... |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
 poll_normal_task
-
 ```
 
----
+Workflow `poll_timeout_demo` accepts `mode` as input. The task definition for `poll_normal_task` sets `pollTimeoutSeconds` = `30`, `retryCount` = `2`, `timeoutSeconds` = `60`, and `responseTimeoutSeconds` = `30`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**PollNormalTaskWorker** (`poll_normal_task`) -- reads `mode` from input. If `mode` is `null`, blank, or empty, defaults to `"default"`. Returns `result` = `"processed"`. The `pollTimeoutSeconds` = `30` setting means if no worker picks up this task within 30 seconds of scheduling, Conductor marks it as timed out and applies retry logic.
+
+## Workflow Output
+
+The workflow produces `result` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `poll_normal_task`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `poll_timeout_demo` defines 1 task with input parameters `mode` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Poll timeout demo — demonstrates how pollTimeoutSeconds defines how long a task waits in the queue for a worker.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+8 tests verify successful task pickup, mode input handling, default mode behavior, and that the poll timeout configuration is correctly applied to detect absent workers.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

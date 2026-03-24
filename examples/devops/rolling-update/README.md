@@ -1,48 +1,46 @@
-# Rolling Update in Java with Conductor : Analyze, Plan, Execute, Verify
+# Rolling Update with Batch Execution and Automatic Rollback
 
-Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy.
+Updating all replicas at once risks a full outage if the new version has a bug. This
+workflow analyzes the current deployment, plans a rolling strategy (1 replica at a time,
+20% max unavailable), executes the update in batches, and verifies all replicas are healthy
+-- with automatic rollback if any batch fails.
 
-## Zero-Downtime Updates Need Careful Orchestration
-
-Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches. update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
-
-The batch size and health check interval determine the trade-off between speed and safety. Updating 1 at a time is safest but slow (20 rounds). Updating 5 at a time is faster but riskier (a bad version affects 25% of capacity before detection). The plan step should consider current traffic levels, resource headroom, and the service's tolerance for reduced capacity during the update.
-
-## The Solution
-
-**You write the batch update and health check logic. Conductor handles rollout sequencing, batch-by-batch verification, and automatic rollback triggers.**
-
-`AnalyzeWorker` examines the current deployment. instance count, health status, traffic distribution, and resource utilization, to determine the starting state. `PlanWorker` calculates the rollout strategy, batch size, health check wait time between batches, rollback triggers, and success criteria. `ExecuteWorker` performs the rolling update in batches, updating instances, waiting for health checks, and proceeding to the next batch. `VerifyWorker` confirms the full rollout completed, all instances running the new version, health checks passing, and metrics stable. Conductor sequences these steps and records each batch's execution for rollout audit.
-
-### What You Write: Workers
-
-Four workers manage the rolling update. Analyzing current state, planning the batch strategy, executing the rollout, and verifying all replicas are healthy.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **Analyze** | `ru_analyze` | Analyzes the current deployment state before a rolling update. |
-| **ExecuteUpdate** | `ru_execute` | Executes the rolling update according to the plan. |
-| **PlanUpdate** | `ru_plan` | Plans the rolling update strategy (batch size, max unavailable, etc.). |
-| **VerifyUpdate** | `ru_verify` | Verifies all replicas are healthy after the rolling update. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-ru_analyze
- │
- ▼
-ru_plan
- │
- ▼
-ru_execute
- │
- ▼
-ru_verify
-
+service, newVersion
+       |
+       v
++--------------+     +---------------+     +------------------+     +-----------------+
+| ru_analyze   | --> | ru_plan       | --> | ru_execute       | --> | ru_verify       |
++--------------+     +---------------+     +------------------+     +-----------------+
+  ANALYZE-1342        strategy: rolling     batchesCompleted         allHealthy=true
+  currentReplicas     batchSize: 1          = totalBatches           rollbackOccurred
+  currentVersion      maxUnavailable: 20%   rollbackTriggered        = false
+  healthyReplicas     rollbackOnFailure     = false
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**Analyze** -- Takes `service` and `newVersion`. Returns `analyzeId: "ANALYZE-1342"` with
+`currentReplicas`, `currentVersion`, and `healthyReplicas`.
+
+**PlanUpdate** -- Plans the rolling strategy: `batchSize: 1`,
+`maxUnavailable: max(1, replicas/5)`, `totalBatches` equal to replica count, and
+`rollbackOnFailure: true`.
+
+**ExecuteUpdate** -- Executes the rolling update across all batches. Returns
+`batchesCompleted` equal to `totalBatches`, `rollbackTriggered: false`, and an `updatedAt`
+timestamp.
+
+**VerifyUpdate** -- Confirms all replicas are healthy. `allHealthy` is true when no rollback
+was triggered. Returns `rollbackOccurred` flag and a `completedAt` timestamp.
+
+## Tests
+
+33 unit tests cover deployment analysis, update planning, batch execution, and health
+verification.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

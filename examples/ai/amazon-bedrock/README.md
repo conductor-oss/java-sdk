@@ -1,42 +1,43 @@
-# Amazon Bedrock Integration in Java Using Conductor : Build Payload, Invoke Model, Parse Output
+# Classifying Support Tickets Through Amazon Bedrock
 
-## Calling Bedrock Models Reliably in Production
+An enterprise support system needs to classify incoming tickets for urgency and compliance risk. The classification must go through Amazon Bedrock's InvokeModel API using Claude on Bedrock, with the Anthropic Messages API payload format, and the response needs to be parsed from Bedrock's specific envelope structure.
 
-Amazon Bedrock provides access to foundation models from AI21, Anthropic, Cohere, Meta, and Stability AI. But calling `InvokeModel` in production means more than a single API call. you need to construct the model-specific payload format (Claude uses `messages`, Titan uses `inputText`), handle throttling and quota errors with retry logic, parse the model-specific response format, and log the prompt, response, and latency for cost tracking and debugging.
-
-Without orchestration, the payload construction, API call, and response parsing get tangled in a single method. When you switch from Claude to Titan, you change the payload format and break the parser. When Bedrock throttles you, the retry logic is mixed in with the business logic.
-
-## The Solution
-
-**You write the Bedrock payload construction and response parsing. Conductor handles the invocation pipeline, retries, and observability.**
-
-`BedrockBuildPayloadWorker` constructs the model-specific request body based on the prompt and use case. selecting the right payload format, temperature, and max tokens for the target model. `BedrockInvokeModelWorker` calls the Bedrock `InvokeModel` API and handles throttling/quota responses. `BedrockParseOutputWorker` extracts the generated text from the model-specific response format and structures it for downstream use. Conductor retries throttled invocations with backoff, and records every prompt, model response, and latency for cost analysis and debugging.
-
-### What You Write: Workers
-
-Three workers separate the Bedrock integration into payload construction, model invocation, and response parsing. isolating the model-specific formats from the orchestration logic.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **BedrockBuildPayloadWorker** | `bedrock_build_payload` | Builds the Bedrock InvokeModel payload for Claude on Bedrock. |
-| **BedrockInvokeModelWorker** | `bedrock_invoke_model` | Simulates calling Amazon Bedrock InvokeModel API. In production, this would use the AWS SDK BedrockRuntimeClient to c... |
-| **BedrockParseOutputWorker** | `bedrock_parse_output` | Parses the Bedrock response to extract the classification text. |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-bedrock_build_payload
- │
- ▼
-bedrock_invoke_model
- │
- ▼
-bedrock_parse_output
-
+prompt, useCase
+       │
+       ▼
+┌─────────────────────┐
+│ bedrock_build_payload│  Build Anthropic Messages API body
+└─────────┬───────────┘
+          │  payload, modelId, region
+          ▼
+┌─────────────────────┐
+│ bedrock_invoke_model │  Call Bedrock InvokeModel
+└─────────┬───────────┘
+          │  responseBody (Claude-on-Bedrock format)
+          ▼
+┌─────────────────────┐
+│ bedrock_parse_output │  Extract classification text
+└─────────────────────┘
+          │
+          ▼
+   classification, modelId, latency, tokens
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**BedrockBuildPayloadWorker** (`bedrock_build_payload`) -- Assembles the Bedrock-specific request body. Sets `anthropic_version` to `"bedrock-2023-05-31"`, injects `maxTokens` and `temperature` from workflow input, and wraps the user prompt with a `"Use case: " + useCase` prefix inside a single-message `messages` array. The workflow hardcodes `modelId` to `anthropic.claude-3-sonnet-20240229-v1:0`, region to `us-east-1`, `maxTokens` to 512, and `temperature` to 0.5.
+
+**BedrockInvokeModelWorker** (`bedrock_invoke_model`) -- Checks for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables at construction time via `System.getenv()`. In production, this is where you'd wire in the AWS SDK v2 `BedrockRuntimeClient.invokeModel()` call. The deterministic fallback returns a response with `stop_reason: "end_turn"`, a `usage` map of 67 input / 89 output tokens, and a classification of "URGENT -- Compliance Risk" referencing incident playbook `IR-003` and GDPR Article 33. Tracks `latencyMs` (1850) in a metrics map.
+
+**BedrockParseOutputWorker** (`bedrock_parse_output`) -- Navigates the Claude-on-Bedrock response structure: casts `responseBody` to `Map`, extracts `content` as a `List<Map>`, and pulls `.get(0).get("text")`. Logs the first 45 characters of the extracted classification via `Math.min(45, text.length())`.
+
+## Tests
+
+13 tests across 3 test files cover payload construction, model invocation in fallback mode, and response parsing.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

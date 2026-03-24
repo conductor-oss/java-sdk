@@ -1,42 +1,59 @@
-# Expense Approval in Java Using Conductor: Policy Validation, SWITCH for Auto-Approve vs. Manager Approval via WAIT, and Processing
+# Expense Approval
 
-## Expenses Above Policy Thresholds Need Human Approval
+Expense approval with policy validation and conditional human approval
 
-An employee submits an expense report, but not all expenses can be auto-approved. The workflow validates the expense against policy rules. If the amount exceeds $100 or the category is "travel", a human manager must approve it via a WAIT task. Otherwise, the expense is processed automatically. The SWITCH task routes between the approval path and the direct-processing path based on the policy check. If processing fails after approval, you need to retry it without asking the manager to re-approve.
+**Output:** `approvalRequired`, `processed`
 
-## The Solution
-
-**You just write the policy validation and expense processing workers. Conductor handles the routing, approval holds, and retries.**
-
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. Your code handles the decision logic.
-
-### What You Write: Workers
-
-ValidatePolicyWorker checks expense amounts and categories, while ProcessWorker handles reimbursement. Neither knows about the SWITCH or WAIT tasks that connect them.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ValidatePolicyWorker** | `exp_validate_policy` | Checks the expense amount and category against policy rules. amounts over $100 or "travel" category require manager approval; returns `approvalRequired: "true"` or `"false"` as a string for the SWITCH evaluator |
-| *SWITCH task* | `approval_switch` | Routes based on `approvalRequired`. `"true"` sends to a WAIT task for manager approval, default skips straight to processing | Built-in Conductor SWITCH.; no worker needed |
-| *WAIT task* | `wait_for_approval` | Pauses the workflow until a manager approves or rejects the expense via `POST /tasks/{taskId}`. See [Completing the WAIT Task](#completing-the-wait-task-human-approval) | Built-in Conductor WAIT.; no worker needed |
-| **ProcessWorker** | `exp_process` | Finalizes the approved expense: posts the reimbursement to payroll, updates the general ledger, and sends the employee a confirmation email; returns `processed: true` |
-
-Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
-
-### The Workflow
+## Pipeline
 
 ```
 exp_validate_policy
- │
- ▼
-SWITCH (approval_switch)
- ├── "true": wait_for_approval (WAIT)
- │
- ▼
+    │
+approval_switch [SWITCH]
+  └─ true: wait_for_approval
+    │
 exp_process
+```
 
+## Workers
+
+**ProcessWorker** (`exp_process`): Processes the approved expense. Real processing.
+
+```java
+int daysToReimburse = amount > 5000 ? 14 : amount > 500 ? 7 : 3;
+```
+
+Reads `amount`, `category`. Outputs `processed`, `transactionId`, `reimbursementDays`, `processedAt`.
+
+**ValidatePolicyWorker** (`exp_validate_policy`): Worker for exp_validate_policy task -- validates expense against policy rules.
+
+- If amount > 100 OR category equals "travel", approvalRequired = "true"
+- Otherwise, approvalRequired = "false"
+
+```java
+String approvalRequired = needsApproval ? "true" : "false";
+```
+
+Reads `amount`, `category`. Outputs `approvalRequired`.
+
+## Workflow Output
+
+- `approvalRequired`: `${validate_policy.output.approvalRequired}`
+- `processed`: `${process.output.processed}`
+
+## Data Flow
+
+**exp_validate_policy**: `amount` = `${workflow.input.amount}`, `category` = `${workflow.input.category}`
+**approval_switch** [SWITCH]: `approvalRequired` = `${validate_policy.output.approvalRequired}`
+
+## Tests
+
+**6 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

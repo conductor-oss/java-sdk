@@ -1,36 +1,36 @@
-# LLM Retry in Java Using Conductor : Exponential Backoff for Transient API Failures
+# Surviving LLM Rate Limits with Automatic Retries
 
-## LLM APIs Fail Transiently : A Lot
+LLM APIs fail transiently -- 429 Too Many Requests, 503 Service Unavailable -- and without retry logic, each failure crashes your pipeline. This workflow demonstrates Conductor's built-in retry mechanism: the worker deliberately fails the first two attempts (simulating rate limits), then succeeds on the third.
 
-LLM APIs are notorious for transient failures. OpenAI returns 429 (rate limited) when you exceed your tokens-per-minute quota. Anthropic returns 529 (overloaded) during peak usage. Google Gemini times out when model loading takes too long. These failures are temporary. the same request succeeds seconds later.
-
-Writing retry logic by hand means wrapping every API call in a loop with exponential backoff, tracking attempt counts, handling different error codes, and deciding when to give up. That logic gets duplicated across every LLM call in your codebase, is easy to get wrong (forgetting to cap the backoff, retrying non-retryable errors), and obscures the actual business logic.
-
-## The Solution
-
-The LLM call worker contains only the API call logic. no retry loops, no backoff calculations, no attempt counting. Retry behavior is declared in the workflow definition: `retryCount: 3`, `retryLogic: EXPONENTIAL_BACKOFF`, `retryDelaySeconds: 1`. Conductor handles the rest. Every attempt is tracked with its inputs, outputs, and timing, so you can see exactly how many retries a specific call needed and why each attempt failed.
-
-### What You Write: Workers
-
-Two workers demonstrate retry resilience. an LLM call worker that may fail transiently, and a report worker that records the outcome, with Conductor's built-in exponential backoff handling the retries automatically.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **RetryLlmCallWorker** | `retry_llm_call` | LLM API call that fails with 429 rate-limit errors on the first two attempts, then succeeds on the third. Calls OpenAI API in live mode on success attempt. |
-| **RetryReportWorker** | `retry_report` | Summarises the retry outcome. Receives the LLM response and the number of attempts it took to succeed. | Processing only |
-
-**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, the successful attempt (3rd+) of `RetryLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. The retry simulation (first 2 attempts fail with 429) always runs regardless of mode.
-
-### The Workflow
+## Workflow
 
 ```
-retry_llm_call
- │
- ▼
-retry_report
-
+prompt, model
+     │
+     ▼
+┌──────────────────┐
+│ retry_llm_call   │  Fail twice, succeed on attempt 3
+└────────┬─────────┘
+         │  response, model, attempts
+         ▼
+┌──────────────────┐
+│ retry_report     │  Report attempt count
+└──────────────────┘
+         │
+         ▼
+   response, model, attempts, summary
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**RetryLlmCallWorker** (`retry_llm_call`) -- Uses a static `ConcurrentHashMap<String, Integer>` called `attemptTracker` keyed by workflow ID. On each execution, calls `attemptTracker.merge(wfId, 1, Integer::sum)` to increment the count. If `attempt <= 2`, returns `FAILED` with `reasonForIncompletion: "429 Too Many Requests (attempt N)"` and `error: "rate_limited"`. On attempt 3+, when `CONDUCTOR_OPENAI_API_KEY` is set, calls `gpt-4o-mini` Chat Completions. In fallback mode, returns a fixed response. Conductor's retry configuration replays the task automatically.
+
+**RetryReportWorker** (`retry_report`) -- Logs the number of attempts and returns `summary: "Retry succeeded"`.
+
+## Tests
+
+8 tests cover the attempt tracking, failure on early attempts, success after threshold, and report generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

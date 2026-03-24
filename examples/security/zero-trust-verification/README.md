@@ -1,46 +1,41 @@
-# Implementing Zero Trust Verification in Java with Conductor : Identity Verification, Device Assessment, Context Evaluation, and Policy Enforcement
+# Zero Trust Verification
 
-## The Problem
+Every access request is verified regardless of network location. The pipeline verifies the user's identity (MFA verified, trust score 95), assesses device compliance (LAPTOP-A1B2C3: compliant, patched, encrypted), evaluates context (corporate network, business hours, normal behavior), and enforces the policy with a composite trust score of 91.
 
-Zero trust means "never trust, always verify". every access request must be verified regardless of network location. When a user requests access to a resource, you must verify their identity (MFA, certificate), assess their device (patched, encrypted, managed), evaluate the context (is this a normal login time? is the location consistent?), and enforce the combined policy (allow, deny, step-up authentication).
-
-Without orchestration, zero trust checks are scattered across different systems. identity in Okta, device health in MDM, context in the SIEM, and none of them share a unified decision point. Each system makes independent allow/deny decisions, and there's no single place that evaluates all trust signals together.
-
-## The Solution
-
-**You just write the identity checks and device posture assessments. Conductor handles the strict verification sequence so no access is granted without all trust signals evaluated, retries when identity providers are slow, and a complete audit of every access decision with all contributing signals.**
-
-Each trust signal is evaluated by an independent worker. identity verification, device assessment, context evaluation, and policy enforcement. Conductor runs them in sequence: verify identity, assess device, evaluate context, then enforce the combined policy. Every access decision is tracked with all trust signals, you can audit exactly why access was granted or denied.
-
-### What You Write: Workers
-
-Four trust-signal evaluators work in sequence: VerifyIdentityWorker checks MFA and certificates, AssessDeviceWorker validates patch level and encryption, EvaluateContextWorker analyzes location and behavior, and EnforcePolicyWorker computes a composite trust score to grant or deny access.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AssessDeviceWorker** | `zt_assess_device` | Checks device compliance. patch level, disk encryption, and MDM enrollment status |
-| **EnforcePolicyWorker** | `zt_enforce_policy` | Computes a composite trust score from all signals and grants or denies access |
-| **EvaluateContextWorker** | `zt_evaluate_context` | Evaluates request context. network location, time of day, and behavioral anomalies |
-| **VerifyIdentityWorker** | `zt_verify_identity` | Verifies user identity via MFA and returns a trust score |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-zt_verify_identity
- │
- ▼
-zt_assess_device
- │
- ▼
-zt_evaluate_context
- │
- ▼
-zt_enforce_policy
-
+zt_verify_identity ──> zt_assess_device ──> zt_evaluate_context ──> zt_enforce_policy
 ```
 
----
+Workflow `zero_trust_verification_workflow` accepts `userId`, `deviceId`, and `requestedResource`. Times out after `30` seconds for low-latency access decisions.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**VerifyIdentityWorker** (`zt_verify_identity`) -- verifies user identity. Reports `"engineer-01: MFA verified, trust score 95"`. Returns `verify_identityId` = `"VERIFY_IDENTITY-1366"`.
+
+**AssessDeviceWorker** (`zt_assess_device`) -- evaluates device posture. Reports `"LAPTOP-A1B2C3: compliant, patched, encrypted"`. Returns `assess_device` = `true`.
+
+**EvaluateContextWorker** (`zt_evaluate_context`) -- checks contextual signals. Reports `"Corporate network, business hours, normal behavior"`. Returns `evaluate_context` = `true`.
+
+**EnforcePolicyWorker** (`zt_enforce_policy`) -- makes the access decision. Reports `"Access GRANTED -- composite trust score: 91"`. Returns `enforce_policy` = `true`.
+
+## Workflow Output
+
+The workflow produces `verify_identityResult`, `enforce_policyResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `zero_trust_verification_workflow` defines 4 tasks with input parameters `userId`, `deviceId`, `requestedResource` and a timeout of `30` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end zero trust verification pipeline from identity through policy enforcement.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

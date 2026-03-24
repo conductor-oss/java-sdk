@@ -1,32 +1,41 @@
-# Implementing Response Timeout in Java with Conductor : Detecting Stuck Workers via Response Time Limits
+# Response Timeout
 
-## The Problem
+A worker picks up a task but gets stuck -- deadlocked on a resource, blocked on a network call that never returns, or trapped in an infinite loop. Without a response timeout, Conductor waits forever, the workflow hangs, and all downstream steps are blocked. The system needs to detect stuck workers and trigger retry logic within a bounded time.
 
-A worker picks up a task but never returns a result. it's stuck in an infinite loop, waiting on a deadlocked resource, or blocked on a network call that will never complete. Without a response timeout, Conductor waits forever, the workflow hangs, and downstream steps never execute. You need to detect stuck workers and trigger retry or failure handling within a bounded time.
-
-Without orchestration, detecting stuck workers requires external watchdogs. process-level timeouts, thread dumps, and manual restarts. The business logic must implement its own internal timeouts for every blocking call, and there's no centralized view of which workers are stuck across the system.
-
-## The Solution
-
-The task definition includes `responseTimeoutSeconds`. if a worker doesn't complete within that window after picking up the task, Conductor marks it as timed out and retries or fails it as configured. Stuck workers are detected automatically without any timeout logic in the worker code. Every timeout event is recorded with timing details.
-
-### What You Write: Workers
-
-RespTimeoutWorker processes tasks within the configured time limit, while Conductor's responseTimeoutSeconds setting automatically detects workers that pick up a task but never return a result due to deadlocks, infinite loops, or blocked network calls.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **RespTimeoutWorker** | `resp_timeout_task` | Worker for the resp_timeout_task. Responds quickly within the 3-second response timeout. Tracks the attempt number ac... |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
 resp_timeout_task
-
 ```
 
----
+Workflow `resp_timeout_demo` accepts `mode` as input and times out after `30` seconds. The task definition for `resp_timeout_task` sets `responseTimeoutSeconds` = `3`, `retryCount` = `2`, `retryLogic` = `FIXED`, and `retryDelaySeconds` = `1`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**RespTimeoutWorker** (`resp_timeout_task`) -- maintains an `AtomicInteger` called `attempt` that increments on every invocation. Reads `mode` from input (defaults to `"fast"` if null or blank). Returns `result` = `"fast-response"` and `attempt` = the current counter value. Exposes `getAttemptCount()` and `resetAttemptCount()` for monitoring and testing. The `responseTimeoutSeconds` = `3` means Conductor will mark this task as timed out if the worker does not respond within 3 seconds of picking it up.
+
+## Workflow Output
+
+The workflow produces `result`, `attempt` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `resp_timeout_task`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=1, timeoutSeconds=30, responseTimeoutSeconds=3
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `resp_timeout_demo` defines 1 task with input parameters `mode` and a timeout of `30` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Response timeout demo — detect stuck workers using responseTimeoutSeconds.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+8 tests verify fast completion within the timeout window, attempt counter tracking, mode input handling, and that the `responseTimeoutSeconds` configuration correctly bounds worker response time.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

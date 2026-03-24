@@ -1,42 +1,43 @@
-# Prompt Templates in Java Using Conductor : Versioned Templates, Variable Resolution, and LLM Invocation
+# Versioned Prompt Templates with Variable Resolution
 
-## Prompt Engineering Needs Version Control
+Prompt engineering needs version control. When you change a prompt, you need to A/B test the old and new versions, roll back if the new one performs worse, and track which version produced which output. This workflow resolves a versioned template from a store, substitutes variables, calls the LLM, and collects the result with metadata.
 
-When prompts are hardcoded in application code, changing a prompt means a code deploy. You can't A/B test prompts, roll back to a previous version, or track which prompt version produced which results. And when multiple applications share the same prompt patterns (summarization, classification, extraction), each one maintains its own copy.
-
-A template system solves this: prompts are stored with IDs and version numbers, variables are resolved at runtime, and every LLM call records which template version was used. You can deploy a new prompt version without touching application code, and you can trace any output back to the exact prompt that produced it.
-
-## The Solution
-
-**You write the template resolution and LLM invocation logic. Conductor handles the versioned pipeline, retries, and observability.**
-
-Each concern is an independent worker. template resolution (looking up the template by ID and version, substituting variables), LLM invocation (calling the model with the rendered prompt), and result collection (packaging the response with template metadata for auditability). Conductor chains them, retries the LLM call on transient errors, and records the template ID, version, rendered prompt, and response for every execution.
-
-### What You Write: Workers
-
-Three workers manage templated LLM calls. resolving a versioned template with variable substitution, calling the LLM with the resolved prompt, and collecting the result with template metadata for tracking.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CallLlmWorker** | `pt_call_llm` | Calls an LLM with a prompt. Uses OpenAI API in live mode, returns deterministic output in demo mode. |
-| **CollectWorker** | `pt_collect` | Collects and logs the results of the prompt template pipeline. | Processing only |
-| **ResolveTemplateWorker** | `pt_resolve_template` | Resolves a prompt template by substituting variables into placeholders. Template store contains versioned prompt templates. | Processing only |
-
-**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CallLlmWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`). Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. Non-LLM workers (template resolution, collection) always run their real logic.
-
-### The Workflow
+## Workflow
 
 ```
-pt_resolve_template
- │
- ▼
-pt_call_llm
- │
- ▼
-pt_collect
-
+templateId, templateVersion, variables, model
+       │
+       ▼
+┌──────────────────────────┐
+│ pt_resolve_template      │  Look up template + substitute variables
+└───────────┬──────────────┘
+            │  resolvedPrompt, templateKey
+            ▼
+┌──────────────────────────┐
+│ pt_call_llm              │  Call OpenAI with resolved prompt
+└───────────┬──────────────┘
+            │  response, tokens
+            ▼
+┌──────────────────────────┐
+│ pt_collect               │  Log and collect results
+└──────────────────────────┘
+            │
+            ▼
+     response, templateKey, tokens
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ResolveTemplateWorker** (`pt_resolve_template`) -- Looks up templates from a static `TEMPLATE_STORE` keyed by `"templateId:vVersion"`. Contains two templates: `"summarize:v2"` with pattern `"Summarize the following {{format}}:\n\nTopic: {{topic}}\nAudience: {{audience}}\n\nProvide a {{length}} summary."` and `"classify:v1"` with pattern `"Classify the following text into one of these categories: {{categories}}.\n\nText: {{text}}\n\nCategory:"`. Substitutes each variable by calling `resolved.replace("{{" + key + "}}", value)` for each entry in the `variables` map. Returns FAILED with `"Template not found: <key>"` if the template doesn't exist.
+
+**CallLlmWorker** (`pt_call_llm`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls OpenAI with the resolved prompt. In fallback mode, returns a `FIXED_RESPONSE` with `tokens: 42`.
+
+**CollectWorker** (`pt_collect`) -- Logs the result and returns `logged: true`.
+
+## Tests
+
+13 tests cover template resolution, variable substitution, missing template handling, and LLM calling.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

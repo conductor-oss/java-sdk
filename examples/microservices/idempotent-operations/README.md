@@ -1,47 +1,49 @@
-# Idempotent Operations in Java with Conductor
+# Idempotent Operations with Duplicate Detection via SWITCH
 
-Idempotent operations with duplicate detection.
+Retries in a distributed system can cause the same operation to execute twice. This workflow
+generates an idempotency key, checks if it has been seen before, then routes via SWITCH:
+new operations execute and record completion, while duplicates return the cached result.
 
-## The Problem
-
-In a distributed system, duplicate requests are inevitable (network retries, user double-clicks). Each operation must be idempotent. Executing it twice must produce the same result. This workflow generates a deterministic idempotency key, checks whether the operation was already executed, and either skips execution (duplicate) or executes and records the completion.
-
-Without orchestration, idempotency checks are sprinkled throughout business logic with ad-hoc Redis or database lookups. Missing a check on one endpoint leads to duplicate charges, double inventory deductions, or repeated notifications.
-
-## The Solution
-
-**You just write the key-generation, duplicate-check, execution, and completion-recording workers. Conductor handles conditional skip-or-execute routing, guaranteed completion recording, and full visibility into duplicate detection.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers enforce exactly-once semantics: GenerateKeyWorker computes a deterministic idempotency key, CheckDuplicateWorker queries the dedup store, ExecuteWorker performs the operation if not a duplicate, and RecordCompletionWorker persists the result.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CheckDuplicateWorker** | `io_check_duplicate` | Checks the idempotency store to determine whether this key was already processed. |
-| **ExecuteWorker** | `io_execute` | Executes the operation (only if not a duplicate) and returns the result. |
-| **GenerateKeyWorker** | `io_generate_key` | Generates a deterministic idempotency key from the operation ID and action name. |
-| **RecordCompletionWorker** | `io_record_completion` | Records the idempotency key and result in the store to prevent future duplicates. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-io_generate_key
- │
- ▼
-io_check_duplicate
- │
- ▼
-SWITCH (decision_ref)
- ├── true: 
- └── default: io_execute -> io_record_completion
-
+operationId, action, data
+           |
+           v
++-------------------+     +----------------------+
+| io_generate_key   | --> | io_check_duplicate   |
++-------------------+     +----------------------+
+  key generated               isDuplicate: false
+           |
+           v
+      SWITCH on isDuplicate
+      +--false (new)----------+--true (duplicate)--+
+      | io_execute            | (return cached)    |
+      | result: "success"     |                    |
+      |       |               |                    |
+      |       v               |                    |
+      | io_record_completion  |                    |
+      | recorded: true        |                    |
+      +-----------------------+--------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**GenerateKeyWorker** -- Generates an idempotency `key` from the operation inputs.
+
+**CheckDuplicateWorker** -- Checks if the key has been seen. Returns `isDuplicate: false`
+for new operations.
+
+**ExecuteWorker** -- Executes the `action` with the idempotency `key`. Returns
+`result: "success"`.
+
+**RecordCompletionWorker** -- Stores the completion record for the key. Returns
+`recorded: true`.
+
+## Tests
+
+8 unit tests cover key generation, duplicate detection, execution, and completion recording.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

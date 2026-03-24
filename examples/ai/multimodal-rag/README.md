@@ -1,54 +1,56 @@
-# Multimodal RAG in Java Using Conductor : Text, Image, and Audio Processing in Parallel
+# Multimodal RAG: Processing Text, Images, and Audio in Parallel
 
-## When Questions Include More Than Text
+A question arrives with attached images and audio files. Plain text RAG can't handle these -- images need object detection, audio needs transcription, and the text needs embedding. This workflow detects all modalities, processes them in parallel via FORK_JOIN, runs a multimodal search across the combined features, and generates a unified answer.
 
-Users don't just ask text questions. A support ticket might include a screenshot of an error dialog, a voice memo describing the problem, and a text description. A product review might have photos alongside written feedback. Answering these questions requires processing each modality. extracting text embeddings, image features (via CLIP or a vision model), and audio features (via Whisper transcription), then searching a multimodal index that spans all content types.
-
-Each modality processor is independent: text embedding can run simultaneously with image feature extraction and audio transcription. But all three must complete before the multimodal search can run. If the image processor fails (corrupt image, model timeout), you need to retry it without re-processing the text and audio that already succeeded.
-
-Without orchestration, parallel multimodal processing means managing thread pools for heterogeneous workloads (CPU-bound text embedding, GPU-bound image processing, API-bound audio transcription), handling partial failures, and synchronizing results before search.
-
-## The Solution
-
-**You write the modality-specific processors and cross-modal search logic. Conductor handles the parallel processing, retries, and observability.**
-
-Each modality processor is an independent worker. text embedding, image feature extraction, audio processing. Conductor's `FORK_JOIN` runs all three in parallel and waits for all to complete. A multimodal search worker combines all feature vectors for a cross-modal search, and a generation worker produces an answer citing text, image, and audio sources. If the audio processor times out, Conductor retries it independently.
-
-### What You Write: Workers
-
-Six workers handle multi-modal content. detecting input modality, processing text, image, and audio in parallel via FORK_JOIN, searching across all modalities, and generating an answer from the unified multi-modal context.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DetectModalityWorker** | `mm_detect_modality` | Worker that detects modalities from a question and its attachments. Returns detected modalities (text, image, audio),... |
-| **GenerateWorker** | `mm_generate` | Worker that generates a final answer from the question, multimodal search results, and detected modalities. Produces ... |
-| **MultimodalSearchWorker** | `mm_multimodal_search` | Worker that performs a multimodal search using text embeddings, image features, and audio features. Returns ranked se... |
-| **ProcessAudioWorker** | `mm_process_audio` | Worker that processes audio references by extracting audio features. Returns a list of features for each audio clip, ... |
-| **ProcessImageWorker** | `mm_process_image` | Worker that processes image references by extracting visual features. Returns a list of features for each image, incl... |
-| **ProcessTextWorker** | `mm_process_text` | Worker that processes text content by generating an embedding vector and extracting keywords. Returns an 8-dimensiona... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-mm_detect_modality
- │
- ▼
-FORK_JOIN
- ├── mm_process_text
- ├── mm_process_image
- └── mm_process_audio
- │
- ▼
-JOIN (wait for all branches)
-mm_multimodal_search
- │
- ▼
-mm_generate
-
+question, attachments
+       │
+       ▼
+┌──────────────────────┐
+│ mm_detect_modality   │  Identify text, image, audio
+└──────────┬───────────┘
+           │  modalities, imageRefs, audioRefs
+           ▼
+┌─── FORK_JOIN ─────────────────────────────────────┐
+│                    │                               │
+│ ┌────────────────┐ │ ┌─────────────────┐          │ ┌──────────────────┐
+│ │mm_process_text │ │ │mm_process_image │          │ │mm_process_audio  │
+│ └────────────────┘ │ └─────────────────┘          │ └──────────────────┘
+└────────┬───────────┴─────────────┬────────────────┘
+         ▼                         ▼
+    ┌──────────┐
+    │   JOIN   │
+    └────┬─────┘
+         ▼
+┌────────────────────────┐
+│ mm_multimodal_search   │  Search across combined features
+└────────┬───────────────┘
+         ▼
+┌────────────────────────┐
+│ mm_generate            │  Generate answer from all modalities
+└────────────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DetectModalityWorker** (`mm_detect_modality`) -- Returns detected modalities `["text", "image", "audio"]`. Provides image references with IDs like `"img-001"`, URLs at `storage.example.com`, and descriptions. Provides audio references similarly.
+
+**ProcessTextWorker** (`mm_process_text`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls OpenAI Embeddings at `/v1/embeddings`. Returns keywords `["multimodal", "search", "retrieval", "embedding", "analysis"]` and the embedding vector.
+
+**ProcessImageWorker** (`mm_process_image`) -- Returns image features including detected objects like `["diagram", "workflow", "arrows", "nodes"]` and descriptions for each image reference.
+
+**ProcessAudioWorker** (`mm_process_audio`) -- Returns audio features including transcription and extracted entities for each audio reference.
+
+**MultimodalSearchWorker** (`mm_multimodal_search`) -- Returns 4 hardcoded search results combining information across all modalities with relevance scores.
+
+**GenerateWorker** (`mm_generate`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls `gpt-4o-mini` with the combined multimodal context. Returns the generated answer incorporating text, image, and audio information.
+
+## Tests
+
+38 tests extensively cover modality detection, each processing pipeline, multimodal search, and generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

@@ -1,36 +1,45 @@
-# Implementing Failure Workflow in Java with Conductor : Automatic Error Handling When a Workflow Fails
+# Failure Workflow
 
-## The Problem
+A processing pipeline fails mid-execution. The system must automatically clean up resources and notify the team without any manual trigger -- the failure handler must receive the original workflow's ID, type, and failure reason.
 
-You have a processing pipeline that can fail. When it does, you need automatic cleanup. release held resources, rollback partial changes, notify the team. The cleanup must happen reliably even if the main process crashed unexpectedly. And you need it to happen automatically, not rely on someone manually triggering a recovery script.
-
-Without orchestration, failure handling lives in finally blocks and shutdown hooks that may not run if the process crashes. Cleanup logic is interleaved with business logic, making both harder to understand and test. Nobody can tell whether cleanup ran for a given failure.
-
-## The Solution
-
-**You just write the processing logic and error cleanup handlers. Conductor handles automatic failure detection, triggering the cleanup workflow with full error context, retries on cleanup steps, and tracking of every failure with its cleanup outcome.**
-
-The main workflow runs the processing step. Conductor's failure workflow feature automatically triggers a separate error handler workflow when the main one fails. running cleanup and notification workers without any manual intervention. The failure workflow receives the original workflow's context (what failed, why, at which step), so cleanup workers have full information.
-
-### What You Write: Workers
-
-ProcessWorker executes the main business logic, and when it fails, Conductor's failure workflow automatically triggers CleanupWorker to release resources and NotifyFailureWorker to alert the team, all with the original failure context.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CleanupWorker** | `fw_cleanup` | Cleanup worker for the failure handler workflow. Runs after the main workflow fails, performing cleanup operations. R... |
-| **NotifyFailureWorker** | `fw_notify_failure` | Notification worker for the failure handler workflow. Sends a failure alert after cleanup is done. Returns { notified... |
-| **ProcessWorker** | `fw_process` | Processes the main workflow task. Takes a shouldFail flag. if true, fails the task to trigger the failure workflow. .. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-fw_process
-
+fw_process ──(fails when shouldFail=true)──> failureWorkflow: error_handler_wf
+                                                     │
+                                              fw_cleanup ──> fw_notify_failure
 ```
 
----
+The primary workflow `main_with_failure_handler` runs `fw_process` with `retryCount` = `0` and `failureWorkflow` = `"error_handler_wf"`. The error handler workflow `error_handler_wf` chains `fw_cleanup` then `fw_notify_failure`, both configured with `retryCount` = `2` and `responseTimeoutSeconds` = `30`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ProcessWorker** (`fw_process`) -- reads `shouldFail` from task input using a `toBoolean()` helper that handles `Boolean`, `String`, and `null` types. When `true`, returns `FAILED` with `reasonForIncompletion` = `"Intentional failure: shouldFail was true"` and outputs `status` = `"FAILED"`. Otherwise returns `status` = `"SUCCESS"`.
+
+**CleanupWorker** (`fw_cleanup`) -- receives `failedWorkflowId`, `failedWorkflowType`, and `reason` from the error handler workflow's input parameters. Returns `cleaned` = `true` and `message` = `"Cleanup completed successfully"`.
+
+**NotifyFailureWorker** (`fw_notify_failure`) -- receives `failedWorkflowId`, `cleaned` status from the cleanup step, and the original `reason`. Returns `notified` = `true` and `message` = `"Failure notification sent"`.
+
+## Workflow Output
+
+The workflow produces `status`, `message` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `fw_process`: retryCount=0, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `fw_cleanup`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `fw_notify_failure`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `main_with_failure_handler` defines 1 task with input parameters `shouldFail` and a timeout of `60` seconds.
+
+## Tests
+
+4 tests verify successful processing, failure triggering, cleanup execution, and notification delivery with correct failure context propagation.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

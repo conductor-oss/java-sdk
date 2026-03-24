@@ -1,42 +1,43 @@
-# Cohere Marketing Copy Generation in Java Using Conductor : Build Prompt, Generate Candidates, Select Best
+# Generating Marketing Copy with Cohere and Picking the Best Candidate
 
-## One Generation Is Not Enough for Production Copy
+A marketing team needs multiple variations of product copy, not just one shot. The system generates three candidates via Cohere's Generate API, then selects the one with the highest likelihood score. This separates prompt construction, multi-generation, and quality-based selection into distinct pipeline stages.
 
-Asking an LLM to write marketing copy once gives you one option, and it might be mediocre. The best practice is to generate multiple candidates with different temperature settings or prompt variations, then select the one that best matches your criteria: engagement score, reading level, brand voice alignment, and call-to-action strength. But generating multiple candidates, scoring each one, and selecting the winner requires coordinating three distinct steps.
-
-Without orchestration, you'd loop through generations in a single function, mix scoring logic with API calls, and have no record of which candidates were generated and why one was selected over the others. When the marketing team asks "why did we pick that version?", you can't answer.
-
-## The Solution
-
-**You write the prompt construction, Cohere API call, and candidate selection logic. Conductor handles the pipeline, retries, and observability.**
-
-`CohereBuildPromptWorker` constructs a prompt tailored for marketing content. specifying tone, audience, product details, and desired call-to-action. `CohereGenerateWorker` calls the Cohere Generate API to produce multiple text candidates. `CohereSelectBestWorker` evaluates each candidate against quality criteria and selects the winner. Conductor records the prompt, all generated candidates, and the selection rationale, so the marketing team can review alternatives and understand why one version was chosen.
-
-### What You Write: Workers
-
-Three workers cover the full copy generation pipeline. prompt construction with tone and audience parameters, multi-candidate generation via Cohere, and quality-based selection of the best candidate.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CohereBuildPromptWorker** | `cohere_build_prompt` | Builds a Cohere generate request body from workflow input parameters. |
-| **CohereGenerateWorker** | `cohere_generate` | Simulates a Cohere API generate call, returning a fixed response with 3 generations. |
-| **CohereSelectBestWorker** | `cohere_select_best` | Selects the generation with the highest likelihood (least negative value). |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-cohere_build_prompt
- │
- ▼
-cohere_generate
- │
- ▼
-cohere_select_best
-
+productDescription, targetAudience
+       │
+       ▼
+┌──────────────────────┐
+│ cohere_build_prompt  │  Assemble generate request body
+└──────────┬───────────┘
+           │  requestBody
+           ▼
+┌──────────────────────┐
+│ cohere_generate      │  Call Cohere API (3 generations)
+└──────────┬───────────┘
+           │  apiResponse.generations
+           ▼
+┌──────────────────────┐
+│ cohere_select_best   │  Pick highest-likelihood generation
+└──────────────────────┘
+           │
+           ▼
+    bestGeneration, allTexts
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CohereBuildPromptWorker** (`cohere_build_prompt`) -- Builds a `LinkedHashMap` request body for the Cohere Generate API. Constructs the prompt as `"Write a compelling marketing copy for the following product. Target audience: " + targetAudience + ". Product: " + productDescription`. Workflow defaults: model `"command"`, `maxTokens: 300`, `temperature: 0.9`, `k: 0`, `p: 0.75`, `numGenerations: 3`. Also sets `return_likelihoods: "GENERATION"` and `truncate: "END"`.
+
+**CohereGenerateWorker** (`cohere_generate`) -- Checks `COHERE_API_KEY` env var at construction. In live mode, POSTs to `https://api.cohere.ai/v1/generate` with a 10-second connect timeout and 60-second request timeout. In fallback mode, returns 3 hardcoded generations with likelihoods of `-1.82`, `-1.65`, and `-1.91`, plus billing metadata of 42 input / 185 output tokens. The fallback generations are realistic SmartBoard Pro marketing copy variants.
+
+**CohereSelectBestWorker** (`cohere_select_best`) -- Iterates through the `generations` list, comparing each entry's `likelihood` (a `Number` cast to `double`) against `Double.NEGATIVE_INFINITY` to find the maximum. The least-negative likelihood wins -- in the fallback data, that's `-1.65` (the second generation). Also collects all texts into an `allTexts` list via `.stream().map(...).toList()`.
+
+## Tests
+
+15 tests across 3 test files cover prompt construction, API call modes, and best-candidate selection logic.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

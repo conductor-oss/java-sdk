@@ -1,39 +1,46 @@
-# Change Management in Java with Conductor : Submit, Assess Risk, Approve, Implement
+# ITIL Change Management with Risk-Based Approval
 
-Automates ITIL-style change management using [Conductor](https://github.com/conductor-oss/conductor). This workflow submits a change request with a tracking ID, assesses the risk level (low/medium/high), routes through Change Advisory Board (CAB) approval, and implements the approved change.
+A database migration needs to go to production. Someone files the change request, but then
+it sits in a shared inbox. Nobody assesses the risk, the CAB never sees it, and the change
+gets applied without approval. This workflow enforces the full ITIL lifecycle: submit, assess
+risk, route through CAB approval, and implement -- with risk scores driving the approval
+path.
 
-## Controlled Changes, Not Cowboy Deploys
-
-An engineer wants to modify the production database connection pool settings. Without a process, they SSH in and change it. With change management, the request is submitted and tracked, risk is assessed (is this a low-risk config change or a high-risk schema migration?), CAB approval is obtained for anything above low risk, and only then is the change implemented. If the approval is denied or the risk assessment flags concerns, the workflow stops cleanly.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the risk assessment and approval logic. Conductor handles the submit-assess-approve-implement pipeline and the full change audit trail.**
-
-`SubmitChangeWorker` creates the change request with description, justification, affected systems, implementation plan, and rollback procedure. `AssessRiskWorker` evaluates the change's risk level based on affected systems, blast radius, change complexity, and historical failure rates for similar changes. `ApproveChangeWorker` routes the change through the approval process. auto-approving low-risk changes or queuing for CAB review. `ImplementChangeWorker` executes the approved change with monitoring and records the outcome. Conductor tracks the full change lifecycle for compliance auditing.
-
-### What You Write: Workers
-
-Four workers implement the change process. Submitting the request, assessing risk, routing through CAB approval, and implementing the change.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ApproveChange** | `cm_approve` | Processes CAB (Change Advisory Board) approval for a change. |
-| **AssessRisk** | `cm_assess_risk` | Assesses risk level for a submitted change request. |
-| **ImplementChange** | `cm_implement` | Implements the approved change. |
-| **SubmitChange** | `cm_submit` | Submits a change request and generates a tracking ID. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> ApproveChange -> AssessRisk -> ImplementChange -> SubmitChange -> Output
-
+changeType, description, system
+              |
+              v
+  +-------------+     +-----------------+     +-------------+     +----------------+
+  | cm_submit   | --> | cm_assess_risk  | --> | cm_approve  | --> | cm_implement   |
+  +-------------+     +-----------------+     +-------------+     +----------------+
+    SUBMIT-1351         riskLevel by type     CAB decision        implemented=true
+    success=true        riskScore computed     note varies         rollbackPlan set
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**SubmitChange** -- Takes `changeType` (default `"standard"`), `description`, and `system`.
+Returns `submitId: "SUBMIT-1351"` with the inputs echoed back.
+
+**AssessRisk** -- Reads `changeType` from the submit output. `"emergency"` yields `riskLevel:
+"high"`, `riskScore: 85`, `requiresApproval: true`. `"normal"` yields `"medium"` / 50 / true.
+Default `"standard"` yields `"low"` / 25 / false.
+
+**ApproveChange** -- Reads `riskLevel`. High-risk changes are `"Approved with additional
+monitoring required"`. Medium-risk get `"Approved by CAB with standard review"`. Low-risk
+are `"Auto-approved for low-risk change"`. Approver is always `"cab-board"`.
+
+**ImplementChange** -- Checks the `approved` flag from the approval output. Stamps
+`completedAt: "2026-03-14T10:00:00Z"` and provides `rollbackPlan: "Restore previous RDS
+snapshot"`.
+
+## Tests
+
+33 unit tests cover submission, risk scoring for all change types, approval routing, and
+implementation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

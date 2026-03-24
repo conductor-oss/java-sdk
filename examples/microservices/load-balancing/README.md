@@ -1,44 +1,42 @@
-# Load Balancing in Java with Conductor
+# Distributing a Request Batch Across Instances with FORK_JOIN
 
-Distribute requests across service instances in parallel.
+A batch of requests arrives and needs to be processed across multiple service instances in
+parallel to reduce total latency. This workflow uses FORK_JOIN to distribute partitions to
+3 instances, each processing its share on a different host, then aggregates the results with
+total processed count and average latency.
 
-## The Problem
-
-Processing a large batch of requests efficiently requires distributing the work across multiple service instances in parallel, collecting results from each instance, and aggregating them into a single response. The work is partitioned so each instance handles a subset, and the aggregation waits for all partitions.
-
-Without orchestration, fan-out/fan-in patterns are implemented with manual thread management, CompletableFuture chains, and custom aggregation logic. Handling a failed partition (retrying just that instance) is complex, and there is no visibility into which partition is slow.
-
-## The Solution
-
-**You just write the instance-call and result-aggregation workers. Conductor handles parallel partition dispatch, per-instance retry on failure, and automatic join before aggregation.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Two worker types implement fan-out/fan-in: CallInstanceWorker processes a partition on a specific service instance, and AggregateResultsWorker merges all partition results into a single response.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AggregateResultsWorker** | `lb_aggregate_results` | Aggregates results from all parallel instance calls. |
-| **CallInstanceWorker** | `lb_call_instance` | Processes a partition of a batch on a specific instance. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-FORK_JOIN
- ├── lb_call_instance
- ├── lb_call_instance
- └── lb_call_instance
- │
- ▼
-JOIN (wait for all branches)
-lb_aggregate_results
-
+requestBatch
+     |
+     v
+  FORK_JOIN: lb_call_instance (3 instances)
+    instance-1: partition A on host-1
+    instance-2: partition B on host-2
+    instance-3: partition C on host-3
+     |
+     v
+  JOIN
+     |
+     v
++-----------------------+
+| lb_aggregate_results  |   totalProcessed, avgLatency
++-----------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CallInstanceWorker** -- Processes a partition on a specific host. Returns a result map
+with the `instanceId`, `partition`, and processing details.
+
+**AggregateResultsWorker** -- Combines results from all instances. Returns `totalProcessed`,
+`avgLatency`, and the aggregated result list.
+
+## Tests
+
+16 unit tests cover instance calls and result aggregation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,67 +1,41 @@
-# Implementing Dead Letter Queue Pattern in Java with Conductor: Capture Poison Messages Instead of Losing Them
+# Dead Letter Queue
 
-## The Problem
+A data processing task receives messages that occasionally contain poison payloads. Rather than losing those failures silently, this workflow captures them into a dead-letter log file on disk and tracks them in memory for potential replay.
 
-You have a message processing pipeline where some messages are "poison". They will never succeed no matter how many times you retry. A malformed JSON payload, a reference to a deleted customer, a request for a discontinued product. After exhausting retries, those failed messages need to be captured somewhere durable (a dead letter queue) with full context about why they failed, instead of being silently dropped.
-
-### What Goes Wrong Without Dead Letter Handling
-
-Consider an order processing pipeline that ingests events from a queue:
-
-1. Message arrives: `{orderId: "ORD-456", customerId: "DELETED-CUST"}`
-2. Worker tries to process. **FAILS** (customer not found in database)
-3. Conductor retries 3 times. **FAILS** each time (same error, customer is permanently deleted)
-4. Message is exhausted and discarded
-
-Without dead letter handling:
-- The order is silently lost. Nobody knows it failed
-- The customer may have already been charged but never received their order
-- The operations team has no record of the failure to investigate
-- The same class of error keeps happening without anyone noticing the pattern
-
-With the dead letter pattern, the failed message and its full context (original input, error details, retry count, timestamps) are routed to a dead letter handler workflow. Operations gets an alert, the message is persisted for manual review, and patterns of failure become visible.
-
-## The Solution
-
-**You just write the message processor and dead letter handler. Conductor handles retry exhaustion detection, automatic routing of poison messages to the dead-letter handler workflow, and a complete record of every failed message with its error context and retry history.**
-
-The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried.
-
-### What You Write: Workers
-
-ProcessWorker handles message processing and reports success or failure, while HandleFailureWorker captures permanently failed messages with full context: original inputs, error details, and retry history, for investigation and manual review.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ProcessWorker** | `dl_process` | Processes data based on mode input. When `mode="fail"`, returns FAILED with `{error: "Processing failed for data: order-456"}`. When mode is anything else (or missing), returns COMPLETED with `{result: "Processed: order-456"}`. Only accepts String inputs. Non-string mode defaults to "success", non-string data defaults to empty string. |
-| **HandleFailureWorker** | `dl_handle_failure` | Handles dead letter entries by logging the failed task details. Receives `failedWorkflowId`, `failedTaskName`, and `error` as inputs. Returns `{handled: true, summary: "Failure handled for workflow wf-123, task dl_process: ..."}`. Always succeeds. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflows
-
-**Main workflow** (`dead_letter_demo`):
+## Workflow
 
 ```
-dl_process
- |
- |-- success: workflow COMPLETED with {result: "Processed: order-123"}
- |-- failure: workflow FAILED (retries exhausted). Triggers dead letter handler
-
+dl_process ──(fails when mode="fail")──> dl_handle_failure
 ```
 
-**Dead letter handler** (`dead_letter_handler`):
+Workflow `dead_letter_demo` accepts `mode` and `data` as input parameters. When `mode` is `"fail"`, the process task returns `FAILED`, and the failure handler records the details.
 
-```
-dl_handle_failure
- |
- v
-(logs failure details, marks as handled, alerts operators)
+## Workers
 
-```
+**ProcessWorker** (`dl_process`) -- reads `mode` and `data` from task input. When `mode` equals `"fail"`, returns `FAILED` with output `error` = `"Processing failed for data: " + data`. Any other mode value produces `COMPLETED` with `result` = `"Processed: " + data`.
 
-The main workflow has `retryCount: 0` on the process task, so a failure immediately triggers the dead letter path. In production, you would set retries to 2-3 so that transient failures resolve before reaching the dead letter queue.
+**HandleFailureWorker** (`dl_handle_failure`) -- accepts `failedWorkflowId`, `failedTaskName`, and `error` as inputs. Writes a timestamped entry to a temp file created via `Files.createTempFile("dead-letter-", ".log")` using `StandardOpenOption.APPEND`. Also stores the failure in a static `ConcurrentHashMap<String, String>` called `HANDLED_FAILURES` keyed by `workflowId + ":" + taskName`. Returns `handled` = `true`, the `summary` string, `writtenToFile` flag, and `totalTrackedFailures` count.
 
----
+## Workflow Output
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+The workflow produces `result`, `mode` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 2 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `dead_letter_demo` defines 1 task with input parameters `mode`, `data` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Dead letter queue demo -- dl_process task that can fail based on mode input. Failed tasks are captured for dead letter handling.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Implementation Notes
+
+All workers implement the `com.netflix.conductor.client.worker.Worker` interface. Input parameters are read from `task.getInputData()` and output is written to `result.getOutputData()`. Workers return `TaskResult.Status.COMPLETED` on success and `TaskResult.Status.FAILED` on failure. The workflow JSON definition in `src/main/resources/` declares the task graph, input wiring via `${ref.output}` expressions, and output parameters.
+
+## Tests
+
+7 tests verify successful processing, intentional failure, dead-letter capture to file, in-memory tracking, and the complete round-trip from failure to logged entry.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,52 +1,43 @@
-# Data Migration in Java with Conductor
+# Migrating 50,000 Records with Schema Transformation and Validation
 
-Data migration with backup, transform, migrate, validate, and cutover.
+Moving data from one database to another without a backup, schema transform, and validation
+step risks data loss and schema mismatches. This workflow backs up the source (12 GB),
+transforms the schema from v1 to v2, migrates 50,000 records in 120 seconds, validates a
+100% source-target match, and performs the cutover.
 
-## The Problem
-
-Migrating data between databases requires a strict sequence: back up the source, transform the data to match the target schema, load the transformed data, validate that source and target match, and then cut over. Each step is long-running and must not be repeated on a restart.
-
-Without orchestration, data migrations are run as monolithic scripts that restart from scratch on any failure. Re-backing up and re-transforming gigabytes of data. There is no visibility into progress, and partial failures (e.g., 90% of records migrated) require manual investigation to find the gap.
-
-## The Solution
-
-**You just write the backup, transform, migrate, validate, and cutover workers. Conductor handles long-running step durability, crash-safe resume without re-processing data, and per-step progress tracking.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Five workers cover the full migration lifecycle: BackupWorker snapshots the source, TransformWorker reshapes data for the target schema, MigrateWorker bulk-loads records, ValidateWorker verifies parity, and CutoverWorker switches live traffic.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **BackupWorker** | `dm_backup` | Creates a full backup of the source database and returns a backup ID and size. |
-| **CutoverWorker** | `dm_cutover` | Switches application traffic to the new database after validation passes. |
-| **MigrateWorker** | `dm_migrate` | Loads the transformed data into the target database, reporting record count and duration. |
-| **TransformWorker** | `dm_transform` | Transforms the backed-up data from the source schema (v1) to the target schema (v2). |
-| **ValidateWorker** | `dm_validate` | Compares source and target databases to verify 100% data match. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-dm_backup
- │
- ▼
-dm_transform
- │
- ▼
-dm_migrate
- │
- ▼
-dm_validate
- │
- ▼
-dm_cutover
-
+sourceDb, targetDb, migrationName
+              |
+              v
++--------------+     +----------------+     +---------------+     +----------------+     +----------------+
+| dm_backup    | --> | dm_transform   | --> | dm_migrate    | --> | dm_validate    | --> | dm_cutover     |
++--------------+     +----------------+     +---------------+     +----------------+     +----------------+
+  backupId: BKP-...   v1 -> v2 schema       50000 records          matchRate: 100%        cutover: true
+  sizeGb: 12          /tmp/transformed-      durationSec: 120      valid: true             switched to new
+                      data
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**BackupWorker** -- Backs up the source database. Returns `backupId: "BKP-{timestamp}"`,
+`sizeGb: 12`.
+
+**TransformWorker** -- Transforms schema from v1 to v2. Writes to
+`dataPath: "/tmp/transformed-data"` with `recordCount: 50000`.
+
+**MigrateWorker** -- Migrates 50,000 records to the target. Returns `recordCount: 50000`,
+`durationSec: 120`.
+
+**ValidateWorker** -- Compares source and target: `matchRate: 100`, `valid: true`.
+
+**CutoverWorker** -- Switches to the new database. Returns `cutover: true`.
+
+## Tests
+
+10 unit tests cover backup, transformation, migration, validation, and cutover.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

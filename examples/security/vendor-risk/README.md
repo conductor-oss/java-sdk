@@ -1,46 +1,41 @@
-# Implementing Vendor Risk Assessment in Java with Conductor : Questionnaire, SOC2 Review, Risk Scoring, and Decision
+# Vendor Risk Assessment
 
-## The Problem
+A new vendor (CloudAnalytics Inc) needs security vetting before onboarding. The pipeline collects a security questionnaire, scores the vendor at 72/100 (medium risk with data encryption gaps), reviews their SOC 2 Type II report (valid, no qualifications), and makes a conditional approval decision requiring encryption at rest.
 
-Before giving a vendor access to your data, you need to assess their security posture. This requires collecting their security questionnaire responses, reviewing their compliance certifications (SOC2 Type II, ISO 27001), scoring the overall risk based on data access level and security maturity, and making a go/no-go decision. If the vendor handles PII, the bar is higher.
-
-Without orchestration, vendor risk assessment lives in email threads. Someone sends the questionnaire, waits weeks for a response, forwards the SOC2 report to security, and the approval decision happens in a meeting with no audit trail. Three months later, nobody can tell why a vendor was approved.
-
-## The Solution
-
-**You just write the questionnaire collection and risk scoring logic. Conductor handles the assessment sequence, retries when vendor portals are slow to respond, and a complete audit trail of every risk score, SOC2 review, and onboarding decision.**
-
-Each assessment step is an independent worker. questionnaire collection, SOC2 review, risk scoring, and decision. Conductor runs them in sequence: collect the questionnaire, review certifications, score the risk, then make the decision. Every assessment is tracked with responses, review findings, risk score, and decision rationale for audit.
-
-### What You Write: Workers
-
-The assessment pipeline chains CollectQuestionnaireWorker to gather vendor responses, AssessRiskWorker to calculate a risk score, ReviewSoc2Worker to verify compliance certifications, and MakeDecisionWorker to produce an approve/conditional/deny ruling.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AssessRiskWorker** | `vr_assess_risk` | Calculates a risk score (0-100) and identifies specific security gaps (e.g., data encryption) |
-| **CollectQuestionnaireWorker** | `vr_collect_questionnaire` | Collects the completed security questionnaire from the vendor |
-| **MakeDecisionWorker** | `vr_make_decision` | Makes an approve/deny/conditional decision based on risk score and SOC 2 review |
-| **ReviewSoc2Worker** | `vr_review_soc2` | Reviews the vendor's SOC 2 Type II report for validity and qualifications |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-vr_collect_questionnaire
- │
- ▼
-vr_assess_risk
- │
- ▼
-vr_review_soc2
- │
- ▼
-vr_make_decision
-
+vr_collect_questionnaire ──> vr_assess_risk ──> vr_review_soc2 ──> vr_make_decision
 ```
 
----
+Workflow `vendor_risk_workflow` accepts `vendorName` and `dataAccess`. Times out after `86400` seconds (24 hours, accounting for vendor response time).
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CollectQuestionnaireWorker** (`vr_collect_questionnaire`) -- reports `"CloudAnalytics Inc: security questionnaire completed"`. Returns `collect_questionnaireId` = `"COLLECT_QUESTIONNAIRE-1362"`.
+
+**AssessRiskWorker** (`vr_assess_risk`) -- scores the vendor. Reports `"Risk score: 72/100 -- medium risk, data encryption gaps identified"`. Returns `assess_risk` = `true`.
+
+**ReviewSoc2Worker** (`vr_review_soc2`) -- evaluates the SOC 2 report. Reports `"SOC 2 Type II report valid, no qualifications"`. Returns `review_soc2` = `true`.
+
+**MakeDecisionWorker** (`vr_make_decision`) -- makes the onboarding decision. Reports `"Approved with conditions: require encryption at rest"`. Returns `make_decision` = `true`.
+
+## Workflow Output
+
+The workflow produces `collect_questionnaireResult`, `make_decisionResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `vendor_risk_workflow` defines 4 tasks with input parameters `vendorName`, `dataAccess` and a timeout of `86400` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end vendor risk assessment pipeline from questionnaire through decision.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

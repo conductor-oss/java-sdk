@@ -1,40 +1,30 @@
-# RAG with Weaviate in Java Using Conductor : GraphQL-Powered Vector Search and Generation
+# RAG with Weaviate: GraphQL-Powered Vector Search
 
-## RAG with Weaviate's Rich Query Interface
+Weaviate's GraphQL interface enables rich queries with filters, limits, and hybrid search modes. This pipeline embeds the query, runs a Weaviate nearVector search returning objects with properties, and generates an answer.
 
-Weaviate provides vector search through a GraphQL API that supports nearVector, nearText (with built-in vectorizers), BM25, and hybrid queries. all in a single API. It also supports multi-tenancy, batch operations, and cross-references between objects. The RAG pipeline embeds the query, searches a Weaviate class for relevant objects, and generates from the results.
-
-## The Solution
-
-**You write the embedding and Weaviate GraphQL query logic. Conductor handles the RAG pipeline, retries, and observability.**
-
-Each stage is an independent worker. query embedding, Weaviate GraphQL search, and answer generation. Conductor sequences them, retries the Weaviate query if the server is temporarily unavailable, and tracks every search with the query, retrieved objects, and generated answer.
-
-### What You Write: Workers
-
-Three workers integrate Weaviate into the RAG pipeline. embedding the query, searching via Weaviate's GraphQL nearVector or nearText operators, and generating an answer from the retrieved objects.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **WeavEmbedWorker** | `weav_embed` | Converts a text question into a fixed embedding vector (demo). |
-| **WeavGenerateWorker** | `weav_generate` | Generates an answer from the user question and retrieved Weaviate objects (demo). |
-| **WeavSearchWorker** | `weav_search` | Performs a vector-similarity search against Weaviate (demo). |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-weav_embed
- │
- ▼
-weav_search
- │
- ▼
-weav_generate
-
+question, className
+       │
+       ▼
+┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│ weav_embed   │ --> │ weav_search      │ --> │ weav_generate    │
+└──────────────┘     └──────────────────┘     └──────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**WeavEmbedWorker** (`weav_embed`) -- Returns a fixed 5-dimensional embedding `[0.0123, -0.0456, 0.0789, -0.0321, 0.0654]`. Calls OpenAI when API key is set.
+
+**WeavSearchWorker** (`weav_search`) -- Simulates a Weaviate nearVector query. Returns 3 objects with properties and certainty scores.
+
+**WeavGenerateWorker** (`weav_generate`) -- Extracts objects from response (defaulting to empty list). Generates answer from context.
+
+## Tests
+
+16 tests cover embedding, Weaviate search, and generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

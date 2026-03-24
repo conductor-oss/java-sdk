@@ -1,52 +1,57 @@
-# Conversational RAG in Java Using Conductor : Multi-Turn Chat with Context-Aware Retrieval
+# Multi-Turn Chat with Conversation-Aware Document Retrieval
 
-## Why Conversational RAG Is Harder Than Single-Shot RAG
+A user asks "Tell me about Conductor workflows" and gets a good answer. Then they ask "What about versioning?" -- but without conversation history, the retrieval system has no idea what "versioning" refers to. This workflow maintains session state across turns: it loads history from a `ConcurrentHashMap`-backed session store, combines the last 2 turns with the current message for contextual embedding, retrieves documents, generates a history-aware response, and persists the new turn.
 
-A single-turn RAG pipeline is straightforward: embed the query, retrieve documents, generate a response. But once users ask follow-up questions ("What about the pricing?" after asking "Tell me about product X"), the query alone is ambiguous. You need conversation history to resolve references and maintain coherence.
-
-That means every request now depends on session state. loading prior turns, rewriting the query with conversational context, retrieving against the enriched query, generating a history-aware response, and persisting the new turn. Each of these steps can fail independently (embedding service timeout, vector store unreachable, LLM rate-limited), and if any step fails mid-conversation, you need to retry without corrupting session state or losing the user's place.
-
-Without orchestration, you'd build this as a single method with nested try/catch blocks, manual session locking, and ad-hoc retry logic. code that's fragile, hard to test, and impossible to observe when a user reports "the bot forgot what I said."
-
-## The Solution
-
-**You write the session management, context-aware embedding, and generation logic. Conductor handles the multi-turn sequencing, retries, and observability.**
-
-Each stage of the conversational RAG pipeline is an independent worker. loading history, embedding with context, retrieving documents, generating a response, saving the turn. Conductor sequences them, passes outputs between stages, retries on transient failures, and tracks every turn of every conversation for debugging. You get durable, observable multi-turn RAG without writing a line of orchestration code.
-
-### What You Write: Workers
-
-Five workers manage the full conversation turn. loading session history, embedding with conversational context, retrieving documents, generating a history-aware response, and persisting the new turn.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **EmbedWithContextWorker** | `crag_embed_with_context` | Worker that embeds the user query with conversational context. Combines recent history with the current message to fo... |
-| **GenerateWorker** | `crag_generate` | Worker that generates a response using user message, conversation history, and retrieved context documents. Returns a... |
-| **LoadHistoryWorker** | `crag_load_history` | Worker that loads conversation history for a given session. Uses a static in-memory ConcurrentHashMap as the session ... |
-| **RetrieveWorker** | `crag_retrieve` | Worker that retrieves relevant documents based on the contextual query. Returns 3 fixed documents with text and simil... |
-| **SaveHistoryWorker** | `crag_save_history` | Worker that saves the current turn to conversation history. Appends user + assistant messages to the shared SESSION_S... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-crag_load_history
- │
- ▼
-crag_embed_with_context
- │
- ▼
-crag_retrieve
- │
- ▼
-crag_generate
- │
- ▼
-crag_save_history
-
+sessionId, userMessage
+       │
+       ▼
+┌───────────────────┐
+│ crag_load_history │  Load prior turns from SESSION_STORE
+└────────┬──────────┘
+         │  history, turnCount
+         ▼
+┌──────────────────────────┐
+│ crag_embed_with_context  │  Embed query + last 2 turns
+└────────┬─────────────────┘
+         │  embedding, contextualQuery
+         ▼
+┌──────────────────┐
+│ crag_retrieve    │  Search with contextual embedding
+└────────┬─────────┘
+         │  documents (3 results with scores)
+         ▼
+┌──────────────────┐
+│ crag_generate    │  Generate history-aware response
+└────────┬─────────┘
+         │  response
+         ▼
+┌──────────────────┐
+│ crag_save_history│  Persist turn to session store
+└──────────────────┘
+         │
+         ▼
+   response, turnNumber, sourcesUsed
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**LoadHistoryWorker** (`crag_load_history`) -- Reads from a static `ConcurrentHashMap<String, List<Map<String, String>>>` called `SESSION_STORE`, keyed by `sessionId` (defaults to `"default"`). Returns the conversation history list and its size as `turnCount`.
+
+**EmbedWithContextWorker** (`crag_embed_with_context`) -- Concatenates the `user` field from the last 2 history turns (via `stream().skip(Math.max(0, history.size() - 2))`) with the current message to form `contextualQuery`. When `CONDUCTOR_OPENAI_API_KEY` is set, calls OpenAI Embeddings API with model `text-embedding-3-small`. Otherwise returns a fixed 8-dimensional vector `[0.1, -0.3, 0.5, 0.2, -0.8, 0.4, -0.1, 0.7]`. Truncates the query preview at 60 characters for logging.
+
+**RetrieveWorker** (`crag_retrieve`) -- Returns 3 hardcoded documents about Conductor features (versioning with score 0.93, polyglot workers with 0.88, JSON data flow with 0.84). In production, this would query a vector database.
+
+**GenerateWorker** (`crag_generate`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls `gpt-4o-mini` Chat Completions (`max_tokens: 512`, `temperature: 0.3`) with a system prompt, context documents, full conversation history (alternating user/assistant messages), and the current query. In fallback mode, returns different responses depending on whether history is empty (first turn mentions "versioning, polyglot workers, and JSON inputs/outputs") or not (follow-up mentions the context count and prior turn count). Uses the same retryable vs terminal error distinction (429/503 -> `FAILED`, other 4xx -> `FAILED_WITH_TERMINAL_ERROR`).
+
+**SaveHistoryWorker** (`crag_save_history`) -- Creates a mutable copy of the history list via `new ArrayList<>(history)`, appends the current `user`/`assistant` turn as a `Map.of(...)`, and writes it back to `LoadHistoryWorker.SESSION_STORE` using `put(sessionId, history)`.
+
+## Tests
+
+29 tests cover session loading, contextual embedding, retrieval, generation with/without history, and history persistence.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

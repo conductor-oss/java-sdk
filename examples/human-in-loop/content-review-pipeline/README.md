@@ -1,42 +1,67 @@
-# Content Review Pipeline in Java Using Conductor : AI Draft Generation, Human Review via WAIT, and Publishing
+# Content Review Pipeline
 
-## The Problem
+Content Review Pipeline -- AI generates draft, human reviews/edits, then publish.
 
-You need a content pipeline where AI generates first drafts and humans review them before publishing. An AI model produces content for a given topic and audience. a blog post, marketing copy, product description, or documentation page. The draft includes the generated text, word count, and model used. A human editor must review the AI output for accuracy, tone, brand voice, and factual correctness. The editor may approve it as-is, edit it and approve the revised version, or reject it entirely. Only approved content should be published. Without a review step, AI hallucinations, off-brand tone, or factual errors reach your audience.
+**Input:** `topic`, `audience` | **Timeout:** 300s
 
-Without orchestration, you'd call the AI API, store the draft in a database, email the editor a link to review it, poll for their response, and then call the CMS publish API. If the AI API times out, you'd need retry logic. If the system crashes after the editor approves but before publishing, the reviewed content never goes live. There is no single view showing which drafts are awaiting review, how long reviews take, or the approval rate of AI-generated content.
+**Output:** `content`, `wordCount`, `model`, `published`, `url`
 
-## The Solution
-
-**You just write the AI draft-generation and publishing workers. Conductor handles the durable pause for editorial review and the content lifecycle tracking.**
-
-The WAIT task is the key pattern here. After the AI generates the draft, the workflow pauses at the WAIT task. Conductor holds the draft content, word count, and model metadata until a human editor completes the review with an approved/rejected decision and optionally edited content. The publish worker only fires after the review is complete. Conductor takes care of holding the draft durably while the editor reviews (minutes, hours, or days), passing the editor's approved flag and edited content to the publish worker, tracking the complete content lifecycle from AI generation through review to publication, and providing metrics on review turnaround time and approval rates.
-
-### What You Write: Workers
-
-CrpAiDraftWorker generates content for a topic and audience, and CrpPublishWorker posts approved copy to the CMS, the editorial review pause between them is handled entirely by Conductor.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CrpAiDraftWorker** | `crp_ai_draft` | Generates an AI content draft for the given topic and target audience, returning the draft text, word count, and model used |
-| *WAIT task* | `crp_human_review` | Pauses the workflow with the AI draft content until a human editor submits their review. approved/rejected flag and optionally edited content, via `POST /tasks/{taskId}` | Built-in Conductor WAIT, no worker needed |
-| **CrpPublishWorker** | `crp_publish` | Publishes the approved content to the CMS, returning the published URL; skips publishing if the review was rejected |
-
-Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments. the workflow structure stays the same.
-
-### The Workflow
+## Pipeline
 
 ```
 crp_ai_draft
- │
- ▼
+    │
 crp_human_review [WAIT]
- │
- ▼
+    │
 crp_publish
+```
 
+## Workers
+
+**CrpAiDraftWorker** (`crp_ai_draft`): Worker for crp_ai_draft task -- generates an AI content draft.
+
+- topic:    the content topic
+- audience: the target audience
+- content:   generated draft content string incorporating topic and audience
+- wordCount: 42 (deterministic.word count)
+
+Reads `audience`, `topic`. Outputs `content`, `wordCount`, `model`.
+
+**CrpPublishWorker** (`crp_publish`): Worker for crp_publish task -- publishes content if approved.
+
+- approved: boolean indicating whether the content was approved
+- content:  the content to publish
+- published: true if approved and published, false otherwise
+- url:       the published URL (only present when published=true)
+
+```java
+boolean approved = Boolean.TRUE.equals(approvedObj);
+```
+
+Reads `approved`. Outputs `published`, `url`.
+
+## Workflow Output
+
+- `content`: `${crp_ai_draft_ref.output.content}`
+- `wordCount`: `${crp_ai_draft_ref.output.wordCount}`
+- `model`: `${crp_ai_draft_ref.output.model}`
+- `published`: `${crp_publish_ref.output.published}`
+- `url`: `${crp_publish_ref.output.url}`
+
+## Data Flow
+
+**crp_ai_draft**: `topic` = `${workflow.input.topic}`, `audience` = `${workflow.input.audience}`
+**crp_human_review** [WAIT]: `content` = `${crp_ai_draft_ref.output.content}`, `wordCount` = `${crp_ai_draft_ref.output.wordCount}`, `model` = `${crp_ai_draft_ref.output.model}`
+**crp_publish**: `approved` = `${crp_human_review_ref.output.approved}`, `content` = `${crp_human_review_ref.output.editedContent}`
+
+## Tests
+
+**16 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

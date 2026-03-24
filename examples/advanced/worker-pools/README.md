@@ -1,37 +1,46 @@
-# Worker Pool Management in Java Using Conductor : Categorize, Assign Pool, Execute, Return
+# Worker Pools
 
-## Specialized Tasks Need Specialized Workers
+A task processing system needs to manage multiple worker pools for different task types. CPU-intensive tasks go to one pool; I/O-bound tasks go to another. Each pool has configurable concurrency, health monitoring, and independent scaling.
 
-A video transcoding task needs workers with high-CPU instances and FFmpeg installed. An image recognition task needs GPU workers with CUDA drivers. A PDF generation task just needs a basic worker with LibreOffice. Sending all tasks to a single general-purpose pool wastes expensive GPU time on PDF generation and leaves transcoding tasks waiting behind image recognition jobs.
-
-Worker pool management means categorizing each task to determine what kind of worker it needs, selecting the right pool (GPU pool, high-CPU pool, general pool), executing the task on a worker from that pool, and returning the worker for reuse when the task finishes.
-
-## The Solution
-
-**You write the categorization and pool assignment logic. Conductor handles task dispatch, retries, and pool utilization tracking.**
-
-`WplCategorizeTaskWorker` examines the task payload and category to determine what resources it needs. `WplAssignPoolWorker` maps the task category to the appropriate worker pool. `WplExecuteTaskWorker` runs the task on a worker from the assigned pool. `WplReturnToPoolWorker` releases the worker back to the pool for reuse. Conductor sequences these steps, retries if execution fails, and records which pool handled each task. enabling pool utilization analysis.
-
-### What You Write: Workers
-
-Four workers handle pool-based dispatch. Task categorization, pool assignment by resource profile, execution on the assigned worker, and pool return for reuse.
-
-### The Workflow
+## Pipeline
 
 ```
-wpl_categorize_task
- │
- ▼
-wpl_assign_pool
- │
- ▼
-wpl_execute_task
- │
- ▼
-wpl_return_to_pool
-
+[wpl_categorize_task]
+     |
+     v
+[wpl_assign_pool]
+     |
+     v
+[wpl_execute_task]
+     |
+     v
+[wpl_return_to_pool]
 ```
+
+**Workflow inputs:** `taskPayload`, `taskCategory`
+
+## Workers
+
+**WplAssignPoolWorker** (task: `wpl_assign_pool`)
+
+- Uses randomization
+- Writes `assignedPool`, `workerId`, `poolSize`
+
+**WplCategorizeTaskWorker** (task: `wpl_categorize_task`)
+
+- Writes `category`, `resourceProfile`
+
+**WplExecuteTaskWorker** (task: `wpl_execute_task`)
+
+- Sets `result` = `"task_completed_successfully"`
+- Writes `result`, `durationMs`
+
+**WplReturnToPoolWorker** (task: `wpl_return_to_pool`)
+
+- Writes `returned`, `poolAvailability`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**16 tests** | Workflow: `wpl_worker_pools` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

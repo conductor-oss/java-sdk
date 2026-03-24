@@ -1,46 +1,48 @@
-# Incident Response Automation in Java with Conductor
+# Automated Incident Response with Real System Diagnostics
 
-The PagerDuty alert fired at 2:14 AM. The on-call engineer saw the Slack notification, opened their laptop, SSHed into the wrong box, ran `top` for a while, then remembered they needed to check the dashboard, which was on a different VPN. Forty minutes later they found the actual issue: the API gateway was at 95% CPU. They scaled it up manually, forgot to create an incident ticket, and went back to sleep. The status page still says "All Systems Operational." Tomorrow, nobody will know what happened, what was tried, or whether the fix actually worked. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate incident response end-to-end: create the ticket, page the responder, pull diagnostics, and attempt automated remediation, with a complete audit trail of every step.
+An alert fires at 2 AM. The on-call engineer opens their laptop, SSHes into the wrong box,
+runs `top` for a while, and 40 minutes later finds the API gateway at 95% CPU. No ticket
+was created, no one knows what happened. This workflow creates the incident record as a JSON
+file in `/tmp/incidents/`, pages the on-call via webhook, gathers real system diagnostics,
+and attempts auto-remediation.
 
-## When Incidents Strike
-
-A production alert fires at 2 AM. Someone needs to create an incident ticket, page the on-call engineer, pull CPU and error-rate diagnostics from the affected service, and attempt an automated fix (like scaling up replicas), all before the SLA window closes. If any step fails silently or runs out of order, mean-time-to-recovery climbs and customers notice.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. Managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the incident handling logic. Conductor handles step sequencing, retries, and the complete incident audit trail.**
-
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. Your workers call the infrastructure APIs.
-
-### What You Write: Workers
-
-Four workers handle the incident lifecycle. Creating the ticket, paging the responder, pulling diagnostics, and attempting automated remediation.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| `CreateIncidentWorker` | `ir_create_incident` | Creates a tracked incident record with ID `INC-42` and the provided severity level (e.g., P1) |
-| `NotifyOncallWorker` | `ir_notify_oncall` | Pages the current on-call engineer with the incident ID so they can begin investigation |
-| `GatherDiagnosticsWorker` | `ir_gather_diagnostics` | Collects live metrics from the affected service. Returns CPU usage (95%) and error rate (5%) |
-| `AutoRemediateWorker` | `ir_auto_remediate` | Attempts automated recovery (scales up 2 replicas) and reports whether remediation succeeded |
-
-### The Workflow
+## Workflow
 
 ```
-ir_create_incident
- |
- v
-ir_notify_oncall
- |
- v
-ir_gather_diagnostics
- |
- v
-ir_auto_remediate
-
+alertName, severity
+        |
+        v
++-----------------------+     +--------------------+     +---------------------------+     +------------------------+
+| ir_create_incident    | --> | ir_notify_oncall   | --> | ir_gather_diagnostics     | --> | ir_auto_remediate      |
++-----------------------+     +--------------------+     +---------------------------+     +------------------------+
+  INC-{uuid} written           webhook POST with          real CPU load (uptime),          identify-cpu-hogs (ps),
+  to /tmp/incidents/           5s timeout                  disk usage (FileStore API),      identify-disk-usage (du),
+  severity: P1-P4              incidentId sent             heap memory stats                service status check
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CreateIncidentWorker** -- Takes `alertName` and `severity` (default `"P3"`). Generates a
+UUID-based `incidentId` like `"INC-A3B2C1D4"` and writes a JSON file to
+`/tmp/incidents/{incidentId}.json` with alert details, status `"open"`, and a timeline entry.
+
+**NotifyOncallWorker** -- Sends a webhook POST with the `incidentId` and incident details.
+Uses a 5-second connection and read timeout. Falls back gracefully on webhook errors.
+
+**GatherDiagnosticsWorker** -- Collects real system data: CPU load via `uptime`, disk usage
+via Java's `FileStore` API (total/used/available bytes, `usedPercent`), and JVM heap memory
+(`heapUsedBytes`).
+
+**AutoRemediateWorker** -- Analyzes diagnostics and takes action: if `cpuLoad > 2.0`, runs
+`ps aux` to identify top CPU-consuming processes. If any disk exceeds 90% usage, runs `du -sh
+/tmp`. If a service name is provided, checks status via `launchctl list` (macOS) or
+`systemctl status` (Linux). Never runs destructive commands (no `kill -9`, no `rm -rf`).
+
+## Tests
+
+29 unit tests cover incident creation, on-call notification, diagnostics gathering, and
+auto-remediation scenarios.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

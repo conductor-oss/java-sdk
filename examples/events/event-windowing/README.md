@@ -1,44 +1,43 @@
-# Event Windowing in Java Using Conductor
+# Event Windowing
 
-Event Windowing. collect events into a time window, compute aggregate statistics, and emit the windowed result.
+A real-time analytics system needs to compute metrics over sliding time windows: events per minute, average value per 5-minute window, peak count per hour. The windowing pipeline needs to assign events to windows, detect when a window closes, and emit aggregated results.
 
-## The Problem
-
-You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows. computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
-
-Without orchestration, you'd manage window boundaries with timers, buffer events in memory, trigger window closure on timeout, compute aggregates inline, and handle late-arriving events that fall into an already-closed window.
-
-## The Solution
-
-**You just write the window-collection, stats-computation, and result-emission workers. Conductor handles window lifecycle management, retry on emission failure, and a durable record of every windowed computation.**
-
-Each windowing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result, retrying if aggregation fails, tracking every window computation, and resuming if the process crashes.
-
-### What You Write: Workers
-
-Three workers implement time-based windowing: CollectWindowWorker gathers events within a configurable window, ComputeStatsWorker calculates aggregate statistics (count, sum, average, min, max), and EmitResultWorker publishes the windowed output.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CollectWindowWorker** | `ew_collect_window` | Collects incoming events into a fixed time window. Passes through all events that fall within the configured window, ... |
-| **ComputeStatsWorker** | `ew_compute_stats` | Computes aggregate statistics (count, min, max, sum, avg) over the value field of windowed events. Returns fixed dete... |
-| **EmitResultWorker** | `ew_emit_result` | Emits the final windowed result, confirming the window was successfully processed and published. |
-
-Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
-
-### The Workflow
+## Pipeline
 
 ```
-ew_collect_window
- │
- ▼
-ew_compute_stats
- │
- ▼
-ew_emit_result
-
+[ew_collect_window]
+     |
+     v
+[ew_compute_stats]
+     |
+     v
+[ew_emit_result]
 ```
+
+**Workflow inputs:** `events`, `windowSizeMs`
+
+## Workers
+
+**CollectWindowWorker** (task: `ew_collect_window`)
+
+Collects incoming events into a fixed time window. Passes through all events that fall within the configured window, tagging them with a window identifier.
+
+- Reads `events`, `windowSizeMs`. Writes `windowEvents`, `windowId`, `windowSizeMs`
+
+**ComputeStatsWorker** (task: `ew_compute_stats`)
+
+Computes aggregate statistics (count, min, max, sum, avg) over the value field of windowed events. Returns consistent values.
+
+- Reads `windowId`. Writes `stats`, `windowId`
+
+**EmitResultWorker** (task: `ew_emit_result`)
+
+Emits the final windowed result, confirming the window was successfully processed and published.
+
+- Reads `windowId`. Writes `emitted`, `windowId`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**27 tests** | Workflow: `event_windowing` | Timeout: 120s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

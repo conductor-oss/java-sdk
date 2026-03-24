@@ -1,45 +1,40 @@
-# Alerting Pipeline in Java Using Conductor : Metric Evaluation, Anomaly Detection, Suppression, and Alert Dispatch
+# Alerting Pipeline
 
-## The Problem
+A metric crosses its threshold. The pipeline detects the anomaly by comparing `currentValue` against `threshold`, evaluates alerting rules based on severity, either suppresses the alert (with a reason) or fires it via the configured channel.
 
-You need to evaluate incoming metrics against alerting rules. When a metric exceeds its threshold, you need to detect whether it's a genuine anomaly (not just noise), suppress duplicate alerts if the same condition was already flagged recently, and send notifications to the appropriate channel. A naive threshold check fires too many alerts; a proper pipeline requires anomaly detection and suppression logic.
-
-Without orchestration, alerting logic is scattered. threshold checks in one script, suppression in another, notification dispatch in a third. Alerts fire for every metric sample above threshold instead of once per incident. Engineers suffer alert fatigue from duplicates and false positives.
-
-## The Solution
-
-**You just write the threshold evaluation and notification dispatch logic. Conductor handles sequential evaluation with conditional routing, retries on notification delivery failures, and a full record of every alert evaluated, suppressed, or dispatched.**
-
-Each alerting concern is an independent worker. rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context, you can see which metrics triggered, which were suppressed, and which actually fired.
-
-### What You Write: Workers
-
-The alerting pipeline chains DetectAnomalyWorker to flag metric deviations, EvaluateRulesWorker to apply severity-based firing criteria, and then routes to either SendAlertWorker for dispatch or SuppressAlertWorker for duplicate suppression.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DetectAnomalyWorker** | `alt_detect_anomaly` | Compares a metric's current value against its threshold and flags anomalies, returning severity and a deviation score |
-| **EvaluateRulesWorker** | `alt_evaluate_rules` | Evaluates alerting rules based on severity. decides whether to fire or suppress the alert and selects the notification channel |
-| **SendAlertWorker** | `alt_send_alert` | Dispatches the alert to the selected channel (e.g., PagerDuty) and returns an alert ID for tracking |
-| **SuppressAlertWorker** | `alt_suppress_alert` | Suppresses alerts that don't meet firing criteria, logging the suppression reason for audit |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-alt_detect_anomaly
- │
- ▼
-alt_evaluate_rules
- │
- ▼
-SWITCH (alt_switch_ref)
- ├── fire: alt_send_alert
- └── default: alt_suppress_alert
-
+alt_detect_anomaly ──> alt_evaluate_rules ──> SWITCH
+                                                ├── suppress ──> alt_suppress_alert
+                                                └── fire ──> alt_send_alert
 ```
 
----
+Workflow `alerting_pipeline_413` accepts `metricName`, `currentValue`, and `threshold`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**DetectAnomalyWorker** (`alt_detect_anomaly`) -- compares the current value against the threshold and flags anomalies.
+
+**EvaluateRulesWorker** (`alt_evaluate_rules`) -- evaluates alerting rules based on the metric name and severity level.
+
+**SuppressAlertWorker** (`alt_suppress_alert`) -- suppresses the alert and reports the suppression reason.
+
+**SendAlertWorker** (`alt_send_alert`) -- fires the alert at the configured severity via the specified channel.
+
+## Workflow Output
+
+The workflow produces `severity`, `action`, `metricName` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `alerting_pipeline_413` defines 3 tasks with input parameters `metricName`, `currentValue`, `threshold` and a timeout of `60` seconds.
+
+## Tests
+
+3 tests verify anomaly detection, rule evaluation, and the suppress/fire routing decision.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

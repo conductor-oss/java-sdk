@@ -1,42 +1,40 @@
-# Implementing Optional Tasks in Java with Conductor : Required Processing with Non-Blocking Enrichment
+# Optional Tasks
 
-## The Problem
+A data pipeline has three stages: required processing, optional enrichment, and summarization. The enrichment step adds metadata but is not critical. If it fails, the summarize step must detect the missing data and produce a degraded summary rather than failing the entire pipeline.
 
-Your pipeline has a required processing step and an optional enrichment step. The enrichment adds value (e.g., appending metadata, fetching supplementary data) but isn't critical. if it fails, the pipeline should continue with whatever data is available. The summarize step must handle both the enriched case and the degraded case where enrichment data is missing.
-
-Without orchestration, optional tasks are implemented with try/catch blocks that swallow errors. The summarize step has no way to know whether enrichment was skipped due to a genuine failure or was never attempted. Testing the degraded path requires manually breaking the enrichment service.
-
-## The Solution
-
-**You just write the core processing and optional enrichment logic. Conductor handles marking tasks as optional, continuing the pipeline when optional tasks fail, and clear tracking of whether enrichment succeeded or was skipped for every execution.**
-
-The required worker runs first. The optional enrichment worker is configured to continue on failure. Conductor marks it as optional. The summarize worker checks whether enrichment data is present and adapts its output accordingly. Every execution shows clearly whether enrichment succeeded or was skipped, and why.
-
-### What You Write: Workers
-
-RequiredWorker handles the core processing that must succeed, OptionalEnrichWorker adds supplementary data that can fail without blocking, and SummarizeWorker produces the final output while gracefully handling missing enrichment.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **OptionalEnrichWorker** | `opt_optional_enrich` | Worker for opt_optional_enrich. enriches data with additional information. This task is marked as optional in the wo.. |
-| **RequiredWorker** | `opt_required` | Worker for opt_required. processes the input data. Returns { result: "processed-{data}" } on success. |
-| **SummarizeWorker** | `opt_summarize` | Worker for opt_summarize. summarizes the workflow results. Checks whether the enrichment data is available. If enric.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-opt_required
- │
- ▼
-opt_optional_enrich
- │
- ▼
-opt_summarize
-
+opt_required ──> opt_optional_enrich (optional: true) ──> opt_summarize
 ```
 
----
+Workflow `optional_tasks_demo` accepts `data` as input. The enrichment task `opt_optional_enrich_ref` has `optional` = `true` in the workflow definition, so its failure does not fail the workflow.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**RequiredWorker** (`opt_required`) -- reads `data` from input (defaults to empty string if `null`). Returns `result` = `"processed-" + data`. Always completes.
+
+**OptionalEnrichWorker** (`opt_optional_enrich`) -- receives `processedData` from `${opt_required_ref.output.result}`. Returns `enriched` = `"extra-data-added"`. When this task fails, the workflow continues because `optional` is `true`.
+
+**SummarizeWorker** (`opt_summarize`) -- receives `processedData` from the required worker and `enrichedData` from the optional enrichment. If `enrichedData` is non-null and non-empty, returns `summary` = `"Processed: " + processedData + ", Enriched: " + enrichedData`. If enrichment was skipped, returns `summary` = `"Processed: " + processedData + ", Enrichment: skipped"`.
+
+## Workflow Output
+
+The workflow produces `summary` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `optional_tasks_demo` defines 3 tasks with input parameters `data` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Optional task demo -- required task, optional enrichment (continues on failure), and summarize that handles missing data.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+8 tests verify the full enrichment path, the degraded path when enrichment fails, that the summary correctly reflects whether enrichment data was present, and that the `optional` flag allows the workflow to continue past enrichment failures.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

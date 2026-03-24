@@ -1,44 +1,47 @@
-# Contract Analysis in Java with Conductor
+# Contract Analysis
 
-## The Problem
+Orchestrates contract analysis through a multi-stage Conductor workflow.
 
-A new vendor contract lands on the legal team's desk. You need to parse the document, extract key clauses (termination terms, liability caps, non-compete provisions), assess risk levels across each clause, and produce a consolidated summary for the business team to review before signing. Doing this manually across dozens of contracts per quarter leads to missed risk clauses and inconsistent analysis.
+**Input:** `contractId`, `contractType` | **Timeout:** 60s
 
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You just write the contract parsing, clause extraction, risk assessment, and summary generation logic. Conductor handles extraction retries, risk scoring sequencing, and contract review audit trails.**
-
-Each worker handles one legal operation. Conductor manages the review pipeline, approval chains, deadline enforcement, and audit trail.
-
-### What You Write: Workers
-
-Clause extraction, risk identification, obligation mapping, and summary generation workers each analyze one dimension of contract language.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ParseWorker** | `cna_parse` | Parses the contract document, extracting page count (42) and section count (18) for downstream analysis |
-| **ExtractWorker** | `cna_extract` | Extracts key clauses from the parsed contract. termination terms (90-day notice), liability caps, and clause inventory |
-| **AnalyzeWorker** | `cna_analyze` | Evaluates risk across extracted clauses, flags high-risk items (e.g., non-compete clauses), and assigns an overall risk level (low/medium/high) |
-| **SummarizeWorker** | `cna_summarize` | Generates a summary with a unique ID (SUM-694), consolidating parsed data, clause details, and identified risks into a single output |
-
-### The Workflow
+## Pipeline
 
 ```
 cna_parse
- │
- ▼
+    │
 cna_extract
- │
- ▼
+    │
 cna_analyze
- │
- ▼
+    │
 cna_summarize
+```
 
+## Workers
+
+**AnalyzeWorker** (`cna_analyze`)
+
+Outputs `overallRisk`, `parsed`, `clauses`, `risks`.
+
+**ExtractWorker** (`cna_extract`)
+
+Outputs `clauses`, `parsed`, `risks`.
+
+**ParseWorker** (`cna_parse`)
+
+Outputs `parsed`, `clauses`, `risks`.
+
+**SummarizeWorker** (`cna_summarize`)
+
+Outputs `summaryId`, `parsed`, `clauses`, `risks`.
+
+## Tests
+
+**8 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

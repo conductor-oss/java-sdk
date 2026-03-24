@@ -1,35 +1,43 @@
-# Implementing Exponential Backoff with Max Retries in Java with Conductor : Unreliable API Calls with Dead Letter Fallback
+# Exponential Backoff with Max Retries
 
-## The Problem
+An unreliable external API fails intermittently. The system must retry with exponential backoff up to a configured maximum, then route permanently failed calls to a dead-letter log rather than retrying forever.
 
-You call an external API that intermittently fails. rate limits, temporary outages, network blips. Retrying immediately causes a thundering herd that makes things worse. You need exponential backoff (1s, 2s, 4s, 8s) to give the service time to recover. But you also need a maximum retry limit, if the API is down for hours, you can't retry forever. After exhausting retries, the failed request must be captured in a dead letter handler rather than silently lost.
-
-Without orchestration, exponential backoff means writing retry loops with Thread.sleep(), tracking attempt counts, and manually routing to a dead letter queue after max retries. Each API caller implements backoff slightly differently, some forget the max retry cap, and dead letter routing is often missing entirely.
-
-## The Solution
-
-**You just write the API call and dead letter capture logic. Conductor handles exponential backoff retries with configurable delay and max attempts, automatic dead-letter routing when retries are exhausted, and a complete log of every retry attempt with timing and error details.**
-
-The unreliable API worker makes the call and reports success or failure. Conductor handles exponential backoff retries automatically. configured per task with retry count, delay, and backoff rate. When retries are exhausted, the failure workflow routes to the dead letter handler. Every retry attempt is tracked with timing and error details.
-
-### What You Write: Workers
-
-UnreliableApiWorker makes the external call and reports success or failure, while DeadLetterLogWorker captures permanently failed requests after all retry attempts are exhausted.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DeadLetterLogWorker** | `emr_dead_letter_log` | Worker for emr_dead_letter_log. logs details of a failed workflow. Receives failed workflow details (workflowId, rea.. |
-| **UnreliableApiWorker** | `emr_unreliable_api` | Worker for emr_unreliable_api. simulates an unreliable API call. If shouldSucceed=true, returns success with status=.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-emr_unreliable_api
-
+emr_unreliable_api ──(retries with EXPONENTIAL_BACKOFF, retryCount=3)──> success
+       │
+       └── (all retries exhausted) ──> failureWorkflow: emr_dead_letter_handler
+                                                │
+                                        emr_dead_letter_log
 ```
 
----
+Workflow `emr_exponential_max_retry` accepts `shouldSucceed` as input. The task definition for `emr_unreliable_api` is configured with `retryCount` = `3`, `retryLogic` = `EXPONENTIAL_BACKOFF`, and `retryDelaySeconds` = `1`. On final failure, the `failureWorkflow` named `"emr_dead_letter_handler"` fires.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**UnreliableApiWorker** (`emr_unreliable_api`) -- reads `shouldSucceed` from task input. When `true`, returns `COMPLETED` with `status` = `"API call successful"` and `data` = `"processed"`. When `false`, returns `FAILED` with `error` = `"API call failed"` and `status` = `"FAILED"`.
+
+**DeadLetterLogWorker** (`emr_dead_letter_log`) -- reads `failedWorkflowId` and `reason` from task input (both default to `"unknown"` if absent). Logs both fields to stdout and returns `logged` = `true` along with the original details.
+
+## Workflow Output
+
+The workflow produces `status`, `data` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 2 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `emr_exponential_max_retry` defines 1 task with input parameters `shouldSucceed` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Exponential backoff with max retries -- calls emr_unreliable_api with exponential backoff retries. On final failure, triggers dead letter handler.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+The `failureWorkflow` is set to `"emr_dead_letter_handler"`, which triggers automatically when the main workflow fails.
+
+## Tests
+
+8 tests cover the successful API call, forced failure, exponential retry configuration, dead-letter logging after exhaustion, and end-to-end failure-to-log round trips.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

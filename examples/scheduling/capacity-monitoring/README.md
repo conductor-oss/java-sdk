@@ -1,42 +1,40 @@
-# Capacity Monitoring in Java Using Conductor : Resource Measurement, Forecasting, and Capacity Alerts
+# Capacity Monitoring
 
-## The Problem
+A cluster needs capacity forecasting. The pipeline measures current resource utilization, forecasts capacity for the specified number of days ahead, and alerts if any resource (e.g., disk) will run out within the forecast window.
 
-You need to monitor infrastructure capacity. CPU, memory, disk, network. across your clusters. Beyond current utilization, you need to forecast when resources will run out based on growth trends. If current usage exceeds thresholds or the forecast predicts exhaustion within your planning window, capacity alerts must fire so you can provision before outages occur.
-
-Without orchestration, capacity monitoring is a dashboard that shows current state but doesn't predict. Forecasting runs separately from measurement, uses stale data, and alerting is disconnected from both. By the time someone notices a capacity issue, it's already causing production problems.
-
-## The Solution
-
-**You just write the resource measurement and capacity forecasting logic. Conductor handles the measure-forecast-alert pipeline, retries when cluster metric endpoints are slow, and historical tracking of capacity trends over time.**
-
-Each capacity concern is an independent worker. resource measurement, growth forecasting, and alerting. Conductor runs them in sequence: measure current state, forecast future needs, then alert if thresholds are breached. Every monitoring run is tracked with measurements, forecasts, and alert decisions.
-
-### What You Write: Workers
-
-Three workers monitor infrastructure capacity: MeasureResourcesWorker samples CPU, memory, and disk utilization, ForecastWorker predicts days until exhaustion based on growth trends, and CapAlertWorker fires when capacity thresholds are breached or exhaustion is imminent.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CapAlertWorker** | `cap_alert` | Sends a capacity alert if forecasted disk exhaustion is within 30 days, with severity based on urgency |
-| **ForecastWorker** | `cap_forecast` | Forecasts days until CPU, memory, and disk exhaustion based on current usage trends, with scaling recommendations |
-| **MeasureResourcesWorker** | `cap_measure_resources` | Measures current CPU, memory, and disk utilization percentages and node count for a cluster |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-cap_measure_resources
- │
- ▼
-cap_forecast
- │
- ▼
-cap_alert
-
+cap_measure_resources ──> cap_forecast ──> cap_alert
 ```
 
----
+Workflow `capacity_monitoring_418` accepts `cluster` and `forecastDays`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**MeasureResourcesWorker** (`cap_measure_resources`) -- measures current resource utilization for the specified cluster.
+
+**ForecastWorker** (`cap_forecast`) -- forecasts capacity for the specified forecast period.
+
+**CapAlertWorker** (`cap_alert`) -- evaluates forecast results. Reports disk capacity alerts with projected days until full.
+
+## Workflow Output
+
+The workflow produces `cpuUsage`, `memoryUsage`, `diskUsage`, `daysUntilDiskFull`, `alertSent` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `capacity_monitoring_418` defines 3 tasks with input parameters `cluster`, `forecastDays` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+3 tests verify resource measurement, capacity forecasting, and alert generation.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

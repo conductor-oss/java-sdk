@@ -1,48 +1,53 @@
-# Idempotent Message Processing in Java Using Conductor: Check, Process-or-Skip, Record
+# Idempotent Processing
 
-Kafka delivers a payment event. Your service processes it, charges the customer $49.99, and then: network blip, the acknowledgment never reaches the broker. Kafka redelivers. Your service processes it again. The customer is now out $99.98 and your support queue has a new ticket. At-least-once delivery guarantees duplicates will arrive; the only question is whether your system charges twice or catches the replay. This example builds an idempotent processing pipeline with Conductor: check a dedup store before doing any work, route new messages to processing and duplicates to a skip path via a `SWITCH` task, and record every message ID so future replays are caught. The example submits the same message twice to prove both paths. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
+A webhook endpoint occasionally receives the same event twice due to network retries. Processing it twice would create duplicate records. The idempotent processing pipeline needs to compute a deterministic idempotency key for each event, check if it has already been processed, skip duplicates, and return the cached result.
 
-## Duplicates Are Inevitable, Double-Processing Is Not
-
-Message queues guarantee at-least-once delivery, which means your consumer will see the same message more than once. After a network timeout, a consumer restart, or a broker failover. If your processing logic charges a credit card, sends an email, or updates an inventory count, processing the same message twice produces incorrect results.
-
-Idempotent processing solves this by checking a deduplication store before doing any work. If the message ID has been seen before, the workflow returns the previous result without re-executing the business logic. If it's new, the workflow processes it normally. Either way, the final state is recorded so future duplicates are caught. The `SWITCH` task makes this branch explicit. Unprocessed messages go to `idp_process`, already-processed messages go to `idp_skip`.
-
-## The Solution
-
-**You write the dedup check and processing logic. Conductor handles the process-or-skip routing, retries, and execution history.**
-
-`CheckProcessedWorker` looks up the message ID in the deduplication store and returns the processing state. `unprocessed` if the message is new, `processed` if it's been seen before (along with the previous result hash). A `SWITCH` task routes accordingly: new messages go to `ProcessWorker` for execution, duplicates go to `SkipWorker` which returns the cached result. `RecordWorker` persists the message ID in the dedup store so future duplicates are caught. Conductor makes the dedup-then-route pattern declarative, and every execution records whether the message was processed or skipped.
-
-### What You Write: Workers
-
-Four workers implement the dedup-or-process pattern. Duplicate detection, business logic execution for new messages, skip-with-cached-result for duplicates, and dedup store recording.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CheckProcessedWorker** | `idp_check_processed` | Looks up the messageId in the in-memory `DedupStore`. Returns `processingState=unprocessed` for new messages, `processingState=processed` (with previous result hash) for duplicates. |
-| **ProcessWorker** | `idp_process` | Executes business logic for new messages. Produces a deterministic SHA-256 hash of the messageId as the result. Same input always produces the same output. |
-| **RecordWorker** | `idp_record` | Writes the messageId and resultHash to the `DedupStore` so future runs with the same messageId are detected as duplicates. |
-| **SkipWorker** | `idp_skip` | Returns the skip reason and the previous result hash for messages that have already been processed. No business logic is re-executed. |
-
-The `DedupStore` is a `ConcurrentHashMap` shared across workers within the same JVM. To go to production, swap it for Redis, DynamoDB, or a database, the worker interface stays the same, and no workflow changes are needed.
-
-### The Workflow
+## Pipeline
 
 ```
-idp_check_processed
- │
- ▼
-SWITCH (idp_switch_ref)
- ├── unprocessed: idp_process
- ├── processed: idp_skip
- └── default: idp_process
- │
- ▼
-idp_record
-
+[idp_check_processed]
+     |
+     v
+     <SWITCH>
+       |-- unprocessed -> [idp_process]
+       |-- processed -> [idp_skip]
+       +-- default -> [idp_process]
+     |
+     v
+[idp_record]
 ```
+
+**Workflow inputs:** `messageId`, `payload`
+
+## Workers
+
+**CheckProcessedWorker** (task: `idp_check_processed`)
+
+Checks if a message has been previously processed by looking it up in the in-memory {@link DedupStore}.
+
+- Reads `messageId`. Writes `processingState`, `previousResult`
+
+**ProcessWorker** (task: `idp_process`)
+
+Processes a message that has not been seen before. Outputs are deterministic — the resultHash is derived from the messageId so repeated invocations with the same input always produce the same output.
+
+- Computes sha-256 hashes, formats output strings
+- Reads `messageId`, `payload`. Writes `success`, `resultHash`
+
+**RecordWorker** (task: `idp_record`)
+
+Records a successfully processed message in the {@link DedupStore} so that future runs with the same messageId are detected as duplicates.
+
+- Reads `messageId`, `resultHash`. Writes `recorded`
+
+**SkipWorker** (task: `idp_skip`)
+
+Skips processing for a message that was already handled. Returns the reason for skipping and the previous result hash so callers can verify the original processing outcome.
+
+- Reads `messageId`, `previousResult`. Writes `skipped`, `reason`, `messageId`, `previousResult`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**15 tests** | Workflow: `idp_idempotent_processing` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

@@ -1,50 +1,57 @@
-# Reservation System in Java with Conductor
+# Reservation System
 
-Manages restaurant reservations end-to-end: checking table availability, booking, sending confirmation and reminder, and seating the party on arrival.
+Orchestrates reservation system through a multi-stage Conductor workflow.
 
-## The Problem
+**Input:** `guestName`, `date`, `time`, `partySize` | **Timeout:** 60s
 
-You need to manage restaurant reservations from booking to seating. The workflow checks table availability for the requested date, time, and party size, creates the reservation, sends a confirmation to the guest, sends a reminder before the reservation, and seats the party when they arrive. Double-booking a table ruins the dining experience; forgetting to send reminders leads to no-shows.
-
-Without orchestration, you'd build a single reservation service that queries availability, inserts bookings, sends confirmation emails, schedules reminder jobs, and updates table status. manually handling overlapping reservations, cancellations, waitlist management, and the timing of reminder notifications.
-
-## The Solution
-
-**You just write the availability check, booking, confirmation, reminder, and seating logic. Conductor handles availability retries, table assignment, and reservation lifecycle tracking.**
-
-Each reservation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (check availability, book, confirm, remind, seat), retrying if the notification service is unavailable, tracking every reservation from booking to seating, and resuming from the last step if the process crashes.
-
-### What You Write: Workers
-
-Availability checking, table assignment, confirmation, and reminder workers handle restaurant reservations as a sequence of independent steps.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **BookWorker** | `rsv_book` | Creates the reservation for the guest and returns a reservation ID |
-| **CheckAvailabilityWorker** | `rsv_check_availability` | Checks table availability for the requested date, time, and party size, returning the table ID and section |
-| **ConfirmWorker** | `rsv_confirm` | Sends a confirmation to the guest and returns a confirmation code |
-| **RemindWorker** | `rsv_remind` | Sends a reminder to the guest before the reservation via SMS |
-| **SeatWorker** | `rsv_seat` | Seats the party at the assigned table and marks the reservation as seated |
-
-### The Workflow
+## Pipeline
 
 ```
 rsv_check_availability
- │
- ▼
+    │
 rsv_book
- │
- ▼
+    │
 rsv_confirm
- │
- ▼
+    │
 rsv_remind
- │
- ▼
+    │
 rsv_seat
+```
 
+## Workers
+
+**BookWorker** (`rsv_book`)
+
+Reads `guestName`. Outputs `reservationId`, `booked`.
+
+**CheckAvailabilityWorker** (`rsv_check_availability`)
+
+Reads `date`, `partySize`, `time`. Outputs `slot`.
+
+**ConfirmWorker** (`rsv_confirm`)
+
+Reads `guestName`. Outputs `confirmed`, `confirmationCode`.
+
+**RemindWorker** (`rsv_remind`)
+
+Reads `reservationId`. Outputs `reminded`, `channel`.
+
+**SeatWorker** (`rsv_seat`)
+
+```java
+result.addOutputData("seated", Map.of("reservationId", reservationId != null ? reservationId : "RSV-736", "table", "T-8", "status", "SEATED"));
+```
+
+Reads `partySize`, `reservationId`. Outputs `seated`.
+
+## Tests
+
+**2 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

@@ -1,48 +1,52 @@
-# Event Replay in Java Using Conductor
+# Event Replay
 
-Event Replay Workflow. load event history, filter by criteria, replay failed events, and generate a summary report.
+After deploying a bugfix to an event processor, the operations team needs to replay the last 24 hours of events through the corrected logic. The replay pipeline needs to load historical events from storage, re-process them through the fixed handler, and produce a report comparing old vs. new results.
 
-## The Problem
-
-You need to replay failed or historical events from an event stream. The workflow loads event history from a source stream for a given time range, filters events by criteria (e.g., only failed events, specific event types), replays the filtered events through your processing pipeline, and generates a summary report of replay outcomes. Without replay capability, failed events are lost forever and historical reprocessing requires manual intervention.
-
-Without orchestration, you'd write a one-off script to query your event store, filter events, resubmit them to the processing queue, and track which ones succeeded. manually handling idempotency so replayed events do not cause duplicates, and logging everything to prove the replay was complete.
-
-## The Solution
-
-**You just write the history-load, event-filter, replay, and report-generation workers. Conductor handles replay sequencing, per-event retry during reprocessing, and a durable report of every replay operation.**
-
-Each replay concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of loading history, filtering, replaying, and reporting, retrying individual event replays that fail, tracking the entire replay operation, and providing a complete audit trail.
-
-### What You Write: Workers
-
-Four workers manage event replay: LoadHistoryWorker reads from the event store, FilterEventsWorker selects events by criteria, ReplayEventsWorker reprocesses the filtered set, and GenerateReportWorker summarizes replay outcomes.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FilterEventsWorker** | `ep_filter_events` | Filters events based on the provided filter criteria (status and eventType). With status="failed" and eventType="orde... |
-| **GenerateReportWorker** | `ep_generate_report` | Generates a summary report from the replay results. Returns reportId, success rate, success/fail counts, and a fixed ... |
-| **LoadHistoryWorker** | `ep_load_history` | Loads event history from the specified source stream within the given time range. Returns a fixed set of 6 events rep... |
-| **ReplayEventsWorker** | `ep_replay_events` | Replays filtered events. Each event is replayed with a deterministic success status. Returns replay results with repl... |
-
-Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
-
-### The Workflow
+## Pipeline
 
 ```
-ep_load_history
- │
- ▼
-ep_filter_events
- │
- ▼
-ep_replay_events
- │
- ▼
-ep_generate_report
-
+[ep_load_history]
+     |
+     v
+[ep_filter_events]
+     |
+     v
+[ep_replay_events]
+     |
+     v
+[ep_generate_report]
 ```
+
+**Workflow inputs:** `sourceStream`, `startTime`, `endTime`, `filterCriteria`
+
+## Workers
+
+**FilterEventsWorker** (task: `ep_filter_events`)
+
+Filters events based on the provided filter criteria (status and eventType). With status="failed" and eventType="order.created", returns 2 matching events.
+
+- Reads `events`, `filterCriteria`. Writes `filteredEvents`, `filteredCount`
+
+**GenerateReportWorker** (task: `ep_generate_report`)
+
+Generates a summary report from the replay results. Returns reportId, success rate, success/fail counts, and a fixed generatedAt timestamp.
+
+- Reads `replayResults`, `totalReplayed`, `sourceStream`. Writes `reportId`, `successRate`, `successCount`, `failCount`, `generatedAt`
+
+**LoadHistoryWorker** (task: `ep_load_history`)
+
+Loads event history from the specified source stream within the given time range. Returns a fixed set of 6 events representing various order and payment events.
+
+- Reads `sourceStream`, `startTime`, `endTime`. Writes `events`, `totalLoaded`
+
+**ReplayEventsWorker** (task: `ep_replay_events`)
+
+Replays filtered events. Each event is replayed with a deterministic success status. Returns replay results with replayStatus "success" and a fixed replayedAt timestamp.
+
+- Reads `filteredEvents`. Writes `results`, `totalReplayed`, `successCount`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**34 tests** | Workflow: `event_replay_wf` | Timeout: 120s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

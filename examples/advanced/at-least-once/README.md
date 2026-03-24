@@ -1,37 +1,46 @@
-# At-Least-Once Message Delivery in Java Using Conductor : Receive, Process, Acknowledge, Verify
+# At Least Once
 
-## Guaranteeing Every Message Gets Processed
+A payment notification system must guarantee that every payment event is processed, even if the worker crashes mid-execution. The pipeline needs message acknowledgment only after successful processing, automatic redelivery on failure, and duplicate detection so that a retried event does not charge a customer twice.
 
-Message queues like SQS and Kafka deliver messages with a receipt handle and a visibility timeout. If your consumer crashes after processing but before acknowledging, the message reappears on the queue and gets delivered again. If it crashes after acknowledging but before recording delivery, you lose the audit trail. The gap between "processed" and "acknowledged" is where messages get lost or silently duplicated.
-
-Manually coordinating receive, process, acknowledge, and verify steps means tracking receipt handles, managing visibility timeout windows, retrying failed acknowledgments before the message becomes visible again, and logging every outcome for auditability. One missed edge case and you either lose a message or process it without anyone knowing.
-
-## The Solution
-
-**You write the receive and acknowledge logic. Conductor handles retries, delivery verification, and execution history.**
-
-Each stage of the delivery pipeline is a separate worker. `AloReceiveWorker` ingests the message and produces a receipt handle with a visibility timeout. `AloProcessWorker` handles the business logic for the payload. `AloAcknowledgeWorker` deletes the message from the queue using the receipt handle, confirming successful processing. `AloVerifyDeliveryWorker` checks that the acknowledgment was recorded, closing the loop. If any step fails. the process call times out, the acknowledge call gets a transient error. Conductor retries it automatically, and the full execution history shows exactly where things stand.
-
-### What You Write: Workers
-
-Four workers own the delivery lifecycle: receive, process, acknowledge, and verify, each responsible for one step of the at-least-once guarantee.
-
-### The Workflow
+## Pipeline
 
 ```
-alo_receive
- │
- ▼
-alo_process
- │
- ▼
-alo_acknowledge
- │
- ▼
-alo_verify_delivery
-
+[alo_receive]
+     |
+     v
+[alo_process]
+     |
+     v
+[alo_acknowledge]
+     |
+     v
+[alo_verify_delivery]
 ```
+
+**Workflow inputs:** `messageId`, `payload`, `topic`
+
+## Workers
+
+**AloAcknowledgeWorker** (task: `alo_acknowledge`)
+
+- Captures `instant.now()` timestamps
+- Writes `acknowledged`, `ackTimestamp`
+
+**AloProcessWorker** (task: `alo_process`)
+
+- Writes `processed`, `result`
+
+**AloReceiveWorker** (task: `alo_receive`)
+
+- Records wall-clock milliseconds
+- Writes `receiptHandle`, `deliveryCount`, `visibilityTimeout`
+
+**AloVerifyDeliveryWorker** (task: `alo_verify_delivery`)
+
+- Reads `acknowledged`. Writes `deliveryVerified`, `deliveryGuarantee`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**16 tests** | Workflow: `alo_at_least_once` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

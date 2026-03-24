@@ -1,50 +1,49 @@
-# Semi-Structured RAG in Java Using Conductor : Parallel Structured and Unstructured Search with Classification
+# Semi-Structured RAG: Parallel Search Across Tables and Documents
 
-## When Answers Live in Both Tables and Documents
+When the answer lives in both a database table (revenue: $4.2M, match: 0.95) and a text chunk (chunk-001, score: 0.91), you need to search both in parallel. This pipeline classifies the data into structured fields and unstructured text, searches both via FORK_JOIN, merges the results, and generates a unified answer.
 
-Enterprise knowledge spans structured data (databases, spreadsheets, APIs) and unstructured data (documents, emails, wikis). A question might need revenue figures from a database and context from an analyst report. Querying only one source gives an incomplete answer.
-
-Semi-structured RAG classifies the question first (does it need structured data, unstructured data, or both?), then searches the appropriate sources in parallel. A merge step combines SQL results with document passages into a unified context for generation.
-
-## The Solution
-
-**You write the data classification and the structured/unstructured search logic. Conductor handles the parallel retrieval, merging, and observability.**
-
-A classifier determines which sources to search. Conductor's `FORK_JOIN` runs structured and unstructured searches in parallel. A merge worker combines the results, and a generation worker produces the answer from the unified context. If the database query is slow, Conductor retries it without re-running the document search.
-
-### What You Write: Workers
-
-Five workers handle dual-source retrieval. classifying the question's data needs, searching structured and unstructured sources in parallel via FORK_JOIN, merging both result types, and generating a unified answer.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ClassifyDataWorker** | `ss_classify_data` | Worker that classifies input data into structured fields and unstructured text chunks. Returns structuredFields (fiel... |
-| **GenerateWorker** | `ss_generate` | Worker that generates a final answer from the question and merged context. Simulates LLM generation by producing a de... |
-| **MergeResultsWorker** | `ss_merge_results` | Worker that merges structured and unstructured search results into a unified context string. Formats structured resul... |
-| **SearchStructuredWorker** | `ss_search_structured` | Worker that searches structured data sources based on the classified structured fields. Returns results with field, v... |
-| **SearchUnstructuredWorker** | `ss_search_unstructured` | Worker that searches unstructured text chunks for relevant passages. Returns results with chunkId, relevance score, a... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-ss_classify_data
- │
- ▼
-FORK_JOIN
- ├── ss_search_structured
- └── ss_search_unstructured
- │
- ▼
-JOIN (wait for all branches)
-ss_merge_results
- │
- ▼
-ss_generate
-
+question, dataContext
+       │
+       ▼
+┌────────────────────────┐
+│ ss_classify_data       │  Identify structured fields + unstructured text
+└───────────┬────────────┘
+            ▼
+┌─── FORK_JOIN ──────────────────────────────────────┐
+│ ┌────────────────────────┐ ┌──────────────────────┐│
+│ │ss_search_structured    │ │ss_search_unstructured││
+│ │(field/value/table)     │ │(chunkId/score/snippet)││
+│ └────────────────────────┘ └──────────────────────┘│
+└──────────────────────┬─────────────────────────────┘
+                       ▼
+            ┌────────────────────┐
+            │ ss_merge_results   │  Combine both result types
+            └────────┬───────────┘
+                     ▼
+            ┌────────────────────┐
+            │ ss_generate        │  Generate from merged context
+            └────────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ClassifyDataWorker** (`ss_classify_data`) -- Returns structured fields: `{field: "revenue", type: "numeric", source: "financials_db"}`, `{field: "employee_count", type: "numeric", source: "hr_db"}`.
+
+**SearchStructuredWorker** (`ss_search_structured`) -- Returns `{field: "revenue", value: "$4.2M", table: "financials_db", match: 0.95}` and more.
+
+**SearchUnstructuredWorker** (`ss_search_unstructured`) -- Returns `{chunkId: "chunk-001", score: 0.91, snippet: "..."}`.
+
+**MergeResultsWorker** (`ss_merge_results`) -- Combines structured and unstructured results, appending scores and sources.
+
+**GenerateWorker** (`ss_generate`) -- Parses context by splitting on newlines. Generates from the combined context.
+
+## Tests
+
+35 tests cover data classification, both search types, result merging, and generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

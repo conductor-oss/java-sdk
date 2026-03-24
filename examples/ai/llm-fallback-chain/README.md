@@ -1,48 +1,54 @@
-# LLM Fallback Chain in Java Using Conductor: GPT-4, Claude, Gemini with Automatic Provider Failover
+# Automatic Provider Failover: GPT-4 to Claude to Gemini
 
-GPT-4 returns a 429 and your entire AI feature goes dark. Because you bet everything on a single provider. Claude has a maintenance window the same week. Your users see error pages while three other perfectly capable models sit idle. This example builds an automatic fallback chain using [Conductor](https://github.com/conductor-oss/conductor) that tries GPT-4 first, falls back to Claude on failure, then to Gemini, and reports which model actually served the request, so a single provider outage never takes down your AI feature again.
+GPT-4 returns a 429 and your AI feature goes dark -- because you bet everything on one provider. This workflow tries GPT-4 first, falls back to Claude on failure, then to Gemini, using nested SWITCH tasks that inspect each provider's `status` output.
 
-## LLM Providers Go Down
-
-No single LLM provider has 100% uptime. GPT-4 rate-limits under heavy load. Claude has maintenance windows. Gemini returns 503s during capacity crunches. If your application depends on a single provider, an outage means your users get errors. Even though two other perfectly capable models are available.
-
-A fallback chain tries GPT-4 first (your preferred model). If GPT-4 returns a failure status, the workflow calls Claude. If Claude also fails, it tries Gemini. The response comes from whichever provider succeeds first. A formatting step at the end normalizes the output and records which model was used and how many fallbacks were triggered.
-
-This creates nested conditional logic. Try A, check status, try B on failure, check status, try C on failure. Without orchestration, this becomes a deeply nested try/catch chain where you lose visibility into which provider failed, why it failed, and how often each fallback is triggered.
-
-## The Solution
-
-**You write the API integration for each LLM provider. Conductor handles the failover routing, retries, and observability.**
-
-Each provider is an independent worker. GPT-4, Claude, Gemini, each returning a status and response. Conductor's nested `SWITCH` tasks inspect each status and route to the next provider only when the previous one failed. Every execution records the full fallback path: which providers were tried, which failed, and which ultimately served the request.
-
-### What You Write: Workers
-
-Four workers implement the multi-provider fallback. One per LLM provider (GPT-4, Claude, Gemini) plus a formatter that reports which model served the request and how many failovers occurred.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FbCallGpt4Worker** | `fb_call_gpt4` | Calls GPT-4 (the preferred model). In live mode, calls the OpenAI Chat Completions API. In demo mode, returns a `503 Service Unavailable` failure to trigger the fallback chain |
-| **FbCallClaudeWorker** | `fb_call_claude` | Calls Claude (first fallback). In live mode, calls the Anthropic Messages API. In demo mode, returns a `429 Too Many Requests` failure to trigger the next fallback |
-| **FbCallGeminiWorker** | `fb_call_gemini` | Calls Gemini (last resort). In live mode, calls the Google Generative Language API. In demo mode, returns a `` success response completing the fallback chain |
-| **FbFormatResultWorker** | `fb_format_result` | Inspects the status of each model's response, selects the first successful response, and reports which model was used and how many fallbacks were triggered (0 = GPT-4 succeeded, 1 = Claude, 2 = Gemini) | Always runs locally |
-
-Each worker auto-detects whether to make live API calls or return demo responses based on the corresponding environment variable. No code changes are needed to switch between modes. Just set or unset the API key. All API calls use `java.net.http.HttpClient` (built into Java 21) with Jackson for JSON serialization.
-
-### The Workflow
+## Workflow
 
 ```
-fb_call_gpt4
- │
- ▼
-SWITCH (check_gpt4_ref)
- ├── failed: fb_call_claude -> check_claude_status
- │
- ▼
-fb_format_result
-
+prompt
+  │
+  ▼
+┌──────────────────┐
+│ fb_call_gpt4     │  Try GPT-4 first
+└────────┬─────────┘
+         │  status: "success"/"failed"
+         ▼
+    SWITCH (check_gpt4_status)
+    ├── "failed":
+    │       ┌──────────────────┐
+    │       │ fb_call_claude   │  Fallback #1
+    │       └────────┬─────────┘
+    │                ▼
+    │          SWITCH (check_claude_status)
+    │          └── "failed":
+    │                 ┌──────────────────┐
+    │                 │ fb_call_gemini   │  Fallback #2
+    │                 └──────────────────┘
+    └── (success: skip fallbacks)
+         │
+         ▼
+┌──────────────────┐
+│ fb_format_result │  Report which model served
+└──────────────────┘
+         │
+         ▼
+   response, modelUsed, fallbacksTriggered
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**FbCallGpt4Worker** (`fb_call_gpt4`) -- Requires `CONDUCTOR_OPENAI_API_KEY`. Calls OpenAI Chat Completions with model `gpt-4`, `max_tokens: 512`. Returns `status: "success"` with the response and model name, or `status: "failed"` with an `error` field. Always sets status to COMPLETED (the SWITCH routes on the output `status` field, not the task status).
+
+**FbCallClaudeWorker** (`fb_call_claude`) -- Requires `CONDUCTOR_ANTHROPIC_API_KEY`. Calls `https://api.anthropic.com/v1/messages` with model `claude-sonnet-4-6`, `anthropic-version: 2023-06-01`. Same `status`/`response`/`model` output contract as GPT-4.
+
+**FbCallGeminiWorker** (`fb_call_gemini`) -- Requires `GOOGLE_API_KEY`. Calls `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`. Uses `contents[0].parts[0].text` request format. Same output contract.
+
+**FbFormatResultWorker** (`fb_format_result`) -- Collects the response from whichever provider succeeded, reports `modelUsed` and `fallbacksTriggered` count.
+
+## Tests
+
+11 tests cover each provider call, SWITCH routing for success/failure paths, and result formatting.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

@@ -1,36 +1,45 @@
-# Orkes Cloud Connection Test in Java with Conductor: Verify Your Cloud Environment
+# Orkes Cloud
 
-A minimal Java Conductor workflow that verifies your connection to Orkes Cloud, the managed Conductor service. A single greet task confirms that your API key, secret, and server URL are correctly configured, and that your local workers can poll tasks from the Orkes Cloud environment. Uses [Orkes Cloud](https://orkes.io/) as the managed Conductor server.
+Orkes Cloud connection test workflow — single greet task
 
-## Connecting to Orkes Cloud
+**Input:** `name` | **Timeout:** 60s
 
-Orkes Cloud runs Conductor as a managed service.; no Docker, no infrastructure. But you need to verify three things before building workflows: your API credentials are valid, your worker can reach the Orkes Cloud server, and task polling works end-to-end. This single-task workflow confirms all three.
+**Output:** `greeting`, `mode`
 
-If the workflow completes, your Orkes Cloud connection is working. If it fails, the error tells you whether the issue is authentication, connectivity, or worker configuration.
-
-## The Solution
-
-**One worker, one task, one verification.**
-
-A single greet worker polls the Orkes Cloud Conductor server, executes a task, and returns the result. A successful run means your entire Orkes Cloud setup: credentials, connectivity, and worker registration, is correctly configured.
-
-### What You Write: Workers
-
-One verification worker confirms connectivity to your Orkes Cloud environment, validating credentials and endpoint configuration.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CloudGreetWorker** | `` | Worker that greets a user with a cloud/local indicator. In cloud mode, the task name is "cloud_greet" and the greetin |
-
-Workers in this example use in-memory simulation so you can run the full workflow without external dependencies. To move to production, swap the demo logic for your real service calls, the worker contract stays the same.
-
-### The Workflow
+## Pipeline
 
 ```
 cloud_greet
+```
 
+## Workers
+
+**CloudGreetWorker** (`CloudGreetWorker`): Worker that greets a user with a cloud/local indicator.
+
+```java
+this.taskDefName = cloudMode ? "cloud_greet" : "local_greet";
+String modeLabel = cloudMode ? "Cloud" : "Local";
+```
+
+Reads `name`. Outputs `greeting`, `mode`.
+
+## Workflow Output
+
+- `greeting`: `${cloud_greet_ref.output.greeting}`
+- `mode`: `${cloud_greet_ref.output.mode}`
+
+## Data Flow
+
+**cloud_greet**: `name` = `${workflow.input.name}`
+
+## Tests
+
+**8 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

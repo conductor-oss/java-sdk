@@ -1,32 +1,49 @@
-# Recurring Billing in Java Using Conductor : Scheduled Invoice Generation, Payment Processing, and Notification
+# Recurring Billing
 
-## The Problem
+A subscription billing cycle runs monthly. The pipeline fetches the subscription details, calculates charges for the billing period, generates an invoice, processes payment, and sends a billing notification to the customer.
 
-You need to bill customers on a recurring basis. monthly subscriptions, annual renewals, usage-based charges. Each billing cycle must generate an invoice, attempt to charge the customer's saved payment method, handle payment failures (retry, update card prompt), and send a receipt or failure notification. If the invoice generation step fails, you can't charge. If the charge fails, you need to retry before suspending service.
-
-Without orchestration, recurring billing is a cron job that queries subscribers, charges each one in a loop, and sends emails. When the payment gateway times out for one customer, the entire batch stalls. Failed charges aren't retried systematically, and there's no audit trail connecting invoices to payments to notifications.
-
-## The Solution
-
-**You just write the invoice generation and payment gateway integration. Conductor handles the generate-charge-notify sequence, automatic retries on payment gateway failures, and a complete audit trail linking every invoice to its payment attempt and customer notification.**
-
-Each billing concern is an independent worker. invoice generation, payment processing, and notification. Conductor runs them in sequence: generate the invoice, charge the payment method, then notify the customer. Failed payments are retried automatically with Conductor's retry logic. Every billing cycle is tracked with invoice details, payment status, and notification delivery.
-
-### What You Write: Workers
-
-This workflow uses Conductor system tasks to generate invoices, process payments against saved methods, and send customer notifications, each billing step handled by built-in task types.
-
-This example uses Conductor system tasks. no custom workers needed.
-
-The workflow relies on Conductor's built-in task types. To go to production, add custom workers as needed. the worker interface is simple, and no workflow changes are required.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> -> Output
-
+billing_fetch_subscription ──> billing_calculate_charges ──> billing_generate_invoice ──> billing_process_payment ──> billing_send_notification
 ```
 
----
+Workflow `recurring_billing` accepts `customerId`, `planId`, `billingCycleStart`, `billingCycleEnd`, and `subscriptionStart`. Times out after `300` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**FetchSubscription** (`billing_fetch_subscription`) -- fetches subscription details for the customer and plan.
+
+**CalculateCharges** (`billing_calculate_charges`) -- calculates charges for the billing period.
+
+**GenerateInvoice** (`billing_generate_invoice`) -- generates the invoice from calculated charges.
+
+**ProcessPayment** (`billing_process_payment`) -- processes the payment against the invoice.
+
+**SendBillingNotification** (`billing_send_notification`) -- sends the billing notification to the customer.
+
+## Workflow Output
+
+The workflow produces `invoice`, `payment`, `charges`, `notification` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `billing_fetch_subscription`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `billing_calculate_charges`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `billing_process_payment`: retryCount=3, retryLogic=FIXED, retryDelaySeconds=5, timeoutSeconds=60, responseTimeoutSeconds=30
+- `billing_generate_invoice`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `billing_send_notification`: retryCount=3, retryLogic=FIXED, retryDelaySeconds=2, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 5 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `recurring_billing` defines 5 tasks with input parameters `customerId`, `planId`, `billingCycleStart`, `billingCycleEnd`, `subscriptionStart` and a timeout of `300` seconds.
+
+## Tests
+
+13 tests verify subscription fetching, charge calculation, invoice generation, payment processing, and notification delivery.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

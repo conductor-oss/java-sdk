@@ -1,44 +1,43 @@
-# Google Gemini in Java Using Conductor: Structured Gemini API Calls with Content Preparation and Output Formatting
+# Calling Google Gemini with Structured Content and Safety Settings
 
-Your team picks Gemini for multimodal tasks, but the API latency varies wildly: sometimes 2 seconds, sometimes 30, and your users stare at a spinner while you have no idea if it's a quota issue, a cold start, or a malformed request. A rate-limit 429 loses the parts-based content you just assembled, and there's zero visibility into token consumption across calls. This example builds a structured Gemini pipeline using [Conductor](https://github.com/conductor-oss/conductor), content preparation, API invocation, and response formatting, so every call is retryable, observable, and decoupled from the request-building logic.
+Your team picks Gemini for a content generation task, but the API has its own request format: parts-based content structure, generation config with `topK`/`topP` controls, and safety settings per harm category. A rate-limit 429 loses the assembled request body, and without tracking `usageMetadata.totalTokenCount`, you have no cost visibility. This pipeline separates content preparation, API invocation, and output formatting.
 
-## Calling Gemini in Production
-
-Google Gemini's API has a specific request format. Content must be structured as parts, generation config specifies temperature/topK/topP/maxOutputTokens, and safety settings control content filtering. The response comes back as candidates with safety ratings and usage metadata that need to be extracted and formatted for downstream consumers.
-
-When you embed all of this in a single method: building the request body, making the HTTP call, parsing the nested candidate structure, you end up with tightly coupled code where changing the prompt format means touching API call logic, a rate-limit error loses the prepared request, and there's no record of token consumption across calls. Retrying a failed API call means re-building the entire request from scratch.
-
-## The Solution
-
-**You write the Gemini content preparation and output formatting logic. Conductor handles the API invocation pipeline, durability, and observability.**
-
-Each concern is an independent worker. Content preparation (building Gemini's parts-based request with generation config), API invocation (the actual generateContent call), and output formatting (extracting text from the candidate structure with usage metadata). Conductor chains them so the prepared request body feeds into the API call, and the raw candidate response feeds into the formatter. In this example the task defs are configured to fail fast on provider errors, which makes quota and model-access problems obvious during local validation. Every call records the prompt, model, token usage, and formatted output.
-
-### What You Write: Workers
-
-Three workers handle the Gemini integration. Preparing parts-based content with safety settings, calling the Gemini API, and formatting the candidate response with token counts and finish reason.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **GeminiFormatOutputWorker** | `gemini_format_output` | Extracts the generated text from Gemini's candidate structure and returns it as formattedResult. |
-| **GeminiGenerateWorker** | `gemini_generate` | Calls the Google Gemini generateContent REST API using the configured model (`GEMINI_MODEL`, default `gemini-2.5-flash`). Falls back to a demo response when GOOGLE_API_KEY is not set. |
-| **GeminiPrepareContentWorker** | `gemini_prepare_content` | Prepares a Gemini-style request body with parts-based content structure, generation config, and safety settings. |
-
-When `GOOGLE_API_KEY` is set and has active billing/quota for the Gemini API, `GeminiGenerateWorker` makes a real HTTP call to the Gemini REST API using `java.net.http.HttpClient` (built into Java 21). The model comes from `GEMINI_MODEL` by default and can also be overridden via workflow input. If your API key lacks quota (HTTP 429), the worker fails fast with a clear terminal message and includes the `Retry-After` value when Google returns one. When the key is absent, it falls back to a demo response (prefixed with ``) so the workflow runs end-to-end without credentials.
-
-### The Workflow
+## Workflow
 
 ```
-gemini_prepare_content
- │
- ▼
-gemini_generate
- │
- ▼
-gemini_format_output
-
+prompt, context, model
+       │
+       ▼
+┌──────────────────────────┐
+│ gemini_prepare_content   │  Build parts + generationConfig + safetySettings
+└───────────┬──────────────┘
+            │  requestBody, model
+            ▼
+┌──────────────────────────┐
+│ gemini_generate          │  POST to generativelanguage.googleapis.com
+└───────────┬──────────────┘
+            │  apiResponse (candidates, usageMetadata)
+            ▼
+┌──────────────────────────┐
+│ gemini_format_output     │  Extract text from candidates[0].content.parts[0]
+└──────────────────────────┘
+            │
+            ▼
+     result, model, tokens
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**GeminiPrepareContentWorker** (`gemini_prepare_content`) -- Builds the Gemini-specific request body. Combines `context` and `prompt` as `"Context: " + context + "\n\n" + prompt` inside a `contents[0].parts[0].text` structure. Sets `generationConfig` with explicit type coercion: `temperature` via `((Number) ...).doubleValue()`, `topK` via `.intValue()`, `topP` via `.doubleValue()`, `maxOutputTokens` via `.intValue()` -- necessary because Conductor's JSON round-trip can change Integer to Long or Double to BigDecimal. Workflow defaults: `temperature: 0.4`, `topK: 40`, `topP: 0.95`, `maxOutputTokens: 1024`. Adds two `safetySettings` entries blocking `HARM_CATEGORY_HARASSMENT` and `HARM_CATEGORY_DANGEROUS_CONTENT` at `BLOCK_MEDIUM_AND_ABOVE`. Model defaults to `gemini-2.5-flash` via `GEMINI_MODEL` env var fallback.
+
+**GeminiGenerateWorker** (`gemini_generate`) -- Requires `GOOGLE_API_KEY` (throws `IllegalStateException` at construction if missing). POSTs to `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent?key=<apiKey>`. On 429 errors, checks the `Retry-After` response header and reports it in the failure reason; marks as `FAILED_WITH_TERMINAL_ERROR`. On 5xx errors, marks as `FAILED` (retryable). Logs `usageMetadata.totalTokenCount` from the response. Truncates error bodies to 220 chars.
+
+**GeminiFormatOutputWorker** (`gemini_format_output`) -- Navigates Gemini's candidate structure: `candidates.get(0).get("content")` -> `content.get("parts")` -> `parts.get(0).get("text")`. Logs the first 50 characters of the formatted result.
+
+## Tests
+
+12 tests cover content preparation with type coercion, API invocation with error handling, and output extraction.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

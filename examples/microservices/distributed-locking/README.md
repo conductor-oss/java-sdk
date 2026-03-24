@@ -1,44 +1,40 @@
-# Distributed Locking in Java with Conductor
+# Distributed Lock for Safe Concurrent Resource Updates
 
-Distributed locking for concurrency control.
+Two services trying to update the same resource simultaneously can corrupt it. Without a
+lock, both read the current value, apply their change, and the second write silently
+overwrites the first. This workflow acquires a distributed lock with a TTL, executes the
+critical operation within the lock, and releases it afterward -- ensuring only one writer
+accesses the resource at a time.
 
-## The Problem
-
-When multiple service instances process the same resource concurrently, you need a distributed lock to prevent race conditions. The workflow acquires a lock with a TTL on a named resource, executes the critical-section operation while holding the lock, and then releases it. If the process crashes, the TTL ensures the lock is eventually released.
-
-Without orchestration, distributed locking is implemented inline with try/finally blocks around Redis or ZooKeeper calls. If the process crashes between acquiring and releasing, the lock may be held until TTL expires with no visibility into what operation was in progress.
-
-## The Solution
-
-**You just write the lock-acquire, critical-section, and lock-release workers. Conductor handles ordered lock lifecycle, crash-safe state so locks are eventually freed, and full audit of lock acquisitions.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Three workers enforce mutual exclusion: AcquireLockWorker obtains a distributed lock with a TTL, ExecuteCriticalWorker performs the protected operation, and ReleaseLockWorker frees the lock token.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AcquireLockWorker** | `dl_acquire_lock` | Acquires a distributed lock on the specified resource with a TTL and returns a lock token. |
-| **ExecuteCriticalWorker** | `dl_execute_critical` | Executes the critical-section operation on the locked resource (e.g., update a shared counter). |
-| **ReleaseLockWorker** | `dl_release_lock` | Releases the distributed lock using the lock token. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-dl_acquire_lock
- │
- ▼
-dl_execute_critical
- │
- ▼
-dl_release_lock
-
+resourceId, operation, ttlSeconds
+              |
+              v
++---------------------+     +------------------------+     +---------------------+
+| dl_acquire_lock     | --> | dl_execute_critical    | --> | dl_release_lock     |
++---------------------+     +------------------------+     +---------------------+
+  lockToken: LOCK-...         result: "updated"              released: true
+  acquired: true              version: 5
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AcquireLockWorker** -- Acquires a lock on `resourceId` with `ttlSeconds`. Returns
+`lockToken: "LOCK-{timestamp}"`, `acquired: true`.
+
+**ExecuteCriticalWorker** -- Executes the `operation` on `resourceId` within the lock.
+Returns `result: "updated"`, `version: 5`.
+
+**ReleaseLockWorker** -- Releases the lock using `lockToken`, freeing the resource for other
+callers. Returns `released: true`.
+
+## Tests
+
+6 unit tests cover lock acquisition, critical section execution, and lock release.
+The lock token is timestamp-based for uniqueness across concurrent requests.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

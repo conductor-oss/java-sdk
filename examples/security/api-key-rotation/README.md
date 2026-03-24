@@ -1,37 +1,46 @@
-# Implementing API Key Rotation in Java with Conductor : Generate, Dual-Active Period, Consumer Migration, and Revocation
+# API Key Rotation
 
-## The Problem
+A service's API key needs rotation without downtime. The system must generate a new key, run both old and new keys simultaneously during a transition period, migrate all 5 consumers to the new key, then revoke the old one.
 
-You need to rotate API keys without downtime. Simply replacing the old key with a new one breaks every consumer that's still using the old key. Safe rotation requires generating a new key, keeping both old and new active simultaneously (dual-active period), migrating each consumer to the new key, and only revoking the old key once all consumers have switched. If revocation happens before migration, services go down.
-
-Without orchestration, API key rotation is either avoided entirely (keys never rotate, increasing breach risk) or done recklessly (old key revoked before consumers migrate, causing outages). There's no tracking of which consumers have migrated, and the dual-active period is managed manually.
-
-## The Solution
-
-**You just write the key generation and consumer migration logic. Conductor handles strict ordering so revocation never happens before migration, retries if a consumer update fails, and tracking of which consumers are still on the old key.**
-
-Each rotation step is an independent worker. key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status, you can see exactly which consumers are still on the old key.
-
-### What You Write: Workers
-
-Four workers execute zero-downtime rotation: GenerateNewWorker creates a fresh API key, DualActiveWorker keeps both old and new keys valid simultaneously, MigrateConsumersWorker switches each consumer to the new key, and RevokeOldWorker retires the old key once all consumers have migrated.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DualActiveWorker** | `akr_dual_active` | Activates dual-key mode so both old and new keys are valid during the transition window |
-| **GenerateNewWorker** | `akr_generate_new` | Generates a new API key for the specified service |
-| **MigrateConsumersWorker** | `akr_migrate_consumers` | Migrates all consumers to the new key and confirms each has switched |
-| **RevokeOldWorker** | `akr_revoke_old` | Revokes the old API key after all consumers have been migrated to the new one |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> DualActiveWorker -> GenerateNewWorker -> MigrateConsumersWorker -> RevokeOldWorker -> Output
-
+akr_generate_new ──> akr_dual_active ──> akr_migrate_consumers ──> akr_revoke_old
 ```
 
----
+Workflow `api_key_rotation_workflow` accepts `service` and `keyId` as inputs. All tasks have `retryCount` = `2` and `responseTimeoutSeconds` = `30`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**GenerateNewWorker** (`akr_generate_new`) -- reads `service` from input (defaults to `"unknown"`). Generates a new API key and returns `generate_newId` = `"GENERATE_NEW-1374"` and `success` = `true`.
+
+**DualActiveWorker** (`akr_dual_active`) -- receives `oldKeyId` and `newKeyId`. Enables both keys simultaneously during the transition window. Returns `dual_active` = `true`.
+
+**MigrateConsumersWorker** (`akr_migrate_consumers`) -- updates consumers to use the new key and reports `"5 consumers updated to new key"`. Returns `migrate_consumers` = `true`.
+
+**RevokeOldWorker** (`akr_revoke_old`) -- revokes the old key after all consumers are migrated. Returns `revoke_old` = `true` and `completedAt` = `"2024-01-15T10:30:00Z"`.
+
+## Workflow Output
+
+The workflow produces `newKeyId`, `consumersMigrated`, `oldKeyRevoked` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `akr_generate_new`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `akr_dual_active`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `akr_migrate_consumers`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `akr_revoke_old`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `api_key_rotation_workflow` defines 4 tasks with input parameters `service`, `keyId` and a timeout of `1800` seconds.
+
+## Tests
+
+4 tests verify key generation, dual-active period, consumer migration, and old key revocation.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

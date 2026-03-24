@@ -1,48 +1,53 @@
-# Donor Management in Java with Conductor
+# Donor Management
 
-## The Problem
+Orchestrates donor management through a multi-stage Conductor workflow.
 
-A new donor makes their first gift to your nonprofit. The development team needs to acquire the donor by recording their contact information, begin stewardship with engagement touchpoints, send a tax-deductible donation acknowledgment letter, create a retention plan based on their giving level, and evaluate whether they qualify for upgrade to major-donor status. Each step depends on the previous one's output.
+**Input:** `donorName`, `donorEmail`, `firstGift` | **Timeout:** 60s
 
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You just write the donor intake, gift recording, acknowledgment, and stewardship logic. Conductor handles gift processing retries, acknowledgment sequencing, and donor engagement audit trails.**
-
-Each worker handles one nonprofit operation. Conductor manages the donation pipeline, campaign sequencing, receipt generation, and reporting.
-
-### What You Write: Workers
-
-Donor intake, gift processing, acknowledgment, and stewardship workers each manage one phase of the donor relationship lifecycle.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AcknowledgeWorker** | `dnr_acknowledge` | Sends a personalized donation acknowledgment letter to the donor for tax purposes |
-| **AcquireWorker** | `dnr_acquire` | Records the new donor's name and email, assigning a unique donor ID |
-| **RetainWorker** | `dnr_retain` | Creates a retention plan for the donor based on their giving level, with a recommended next action (e.g., annual report) |
-| **StewardWorker** | `dnr_steward` | Manages donor engagement touchpoints, tracking contact history and sentiment for the donor's first gift |
-| **UpgradeWorker** | `dnr_upgrade` | Evaluates whether the donor qualifies for upgrade from their current level to major-donor status |
-
-### The Workflow
+## Pipeline
 
 ```
 dnr_acquire
- │
- ▼
+    │
 dnr_steward
- │
- ▼
+    │
 dnr_acknowledge
- │
- ▼
+    │
 dnr_retain
- │
- ▼
+    │
 dnr_upgrade
+```
 
+## Workers
+
+**AcknowledgeWorker** (`dnr_acknowledge`)
+
+Reads `donorName`. Outputs `acknowledged`, `method`.
+
+**AcquireWorker** (`dnr_acquire`)
+
+Reads `donorEmail`, `donorName`. Outputs `donorId`, `acquired`.
+
+**RetainWorker** (`dnr_retain`)
+
+Reads `donorId`. Outputs `level`, `retained`, `nextAction`.
+
+**StewardWorker** (`dnr_steward`)
+
+Reads `donorId`, `firstGift`. Outputs `engagement`.
+
+**UpgradeWorker** (`dnr_upgrade`)
+
+Reads `currentLevel`, `donorId`. Outputs `donor`.
+
+## Tests
+
+**2 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

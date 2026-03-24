@@ -1,36 +1,41 @@
-# Jq Transform Advanced in Java with Conductor
+# Advanced JQ Transforms
 
-Advanced JQ data transformations. flatten orders, aggregate by customer, classify into tiers.
+An order processing pipeline uses three `JSON_JQ_TRANSFORM` tasks to flatten nested order structures, aggregate totals, and classify orders by value tier -- all without custom workers.
 
-## The Problem
-
-You need to transform raw order data into customer analytics. starting with nested order objects containing customer details and line items, flattening them into a uniform structure with computed line totals, grouping by customer to calculate total spend and average order value, and finally classifying each customer into gold/silver/bronze tiers based on their spending. These are pure data transformations with no external API calls, just reshaping, aggregating, and classifying JSON.
-
-Without a server-side transformation engine, you'd write a worker for each reshape step, deploy three separate Java classes that do nothing but manipulate JSON, and pay the operational cost of three polling workers for logic that is pure data plumbing. The transformation logic lives in Java code that is harder to iterate on than a declarative query expression.
-
-## The Solution
-
-**You just write JQ expressions in the workflow definition. Conductor evaluates them server-side. No workers, no polling, no deployment.**
-
-This example uses zero workers. Every task is a JSON_JQ_TRANSFORM. a JQ expression that runs on the Conductor server. The `jq_flatten` step takes nested order objects and produces a flat list with computed line totals (`price * qty`) and order totals. The `jq_aggregate` step groups flattened orders by customer, computing order count, total spent, and average order value per customer. The `jq_classify` step assigns each customer a tier (gold for $500+, silver for $200+, bronze otherwise) and produces a tier breakdown listing customers in each category. All three transformations are declarative JQ expressions, no Java code, no worker deployment, no polling.
-
-### What You Write: Workers
-
-This example uses Conductor system tasks (JSON_JQ_TRANSFORM). no custom workers needed. All three transformations are declarative JQ expressions that run on the Conductor server.
-
-### The Workflow
+## Workflow
 
 ```
-jq_flatten [JSON_JQ_TRANSFORM]
- │
- ▼
-jq_aggregate [JSON_JQ_TRANSFORM]
- │
- ▼
-jq_classify [JSON_JQ_TRANSFORM]
-
+jq_flatten (JSON_JQ_TRANSFORM) ──> jq_aggregate (JSON_JQ_TRANSFORM) ──> jq_classify (JSON_JQ_TRANSFORM)
 ```
 
----
+Workflow `jq_advanced_demo` accepts `orders`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+No custom workers. All three tasks use Conductor's `JSON_JQ_TRANSFORM` task type with jq expressions for data manipulation.
+
+## Workflow Output
+
+The workflow produces `flattenedOrders`, `customerSummary`, `tieredCustomers` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 0 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `jq_advanced_demo` defines 3 tasks with input parameters `orders` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Advanced JQ data transformations — flatten orders, aggregate by customer, classify into tiers". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Implementation Notes
+
+All workers implement the `com.netflix.conductor.client.worker.Worker` interface. Input parameters are read from `task.getInputData()` and output is written to `result.getOutputData()`. Workers return `TaskResult.Status.COMPLETED` on success and `TaskResult.Status.FAILED` on failure. The workflow JSON definition in `src/main/resources/` declares the task graph, input wiring via `${ref.output}` expressions, and output parameters.
+
+To swap in production logic, replace the worker method bodies while keeping the same task names and input/output contracts. No workflow definition changes are needed.
+
+## Tests
+
+24 tests verify order flattening, total aggregation, tier classification, and correct jq expression evaluation across various input shapes.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

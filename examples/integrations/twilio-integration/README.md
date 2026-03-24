@@ -1,46 +1,60 @@
-# Twilio Integration in Java Using Conductor
+# Twilio Integration
 
-## Running Two-Way SMS Conversations Through Twilio
+Orchestrates twilio integration through a multi-stage Conductor workflow.
 
-Two-way SMS involves more than sending a single message. You send an outbound SMS, wait for the recipient to reply (polling or webhook), process the reply to determine the appropriate response (parsing keywords, looking up context, generating a follow-up), and send the reply back. Each step depends on the previous one. you cannot wait for a reply without a message SID from the send step, and you cannot generate a reply without the response body.
+**Input:** `toNumber`, `fromNumber`, `messageBody` | **Timeout:** 60s
 
-Without orchestration, you would chain Twilio REST API calls manually, manage message SIDs and response bodies between steps, and build custom polling or webhook handling for inbound messages. Conductor sequences the pipeline and routes message SIDs, response content, and reply text between workers automatically.
-
-## The Solution
-
-**You just write the SMS workers. Outbound sending, reply waiting, response processing, and follow-up replies. Conductor handles send-wait-reply sequencing, Twilio API retries, and message SID routing between outbound and inbound stages.**
-
-Each worker integrates with one external system. Conductor manages the integration sequence, retry logic, timeout handling, and data transformation between systems.
-
-### What You Write: Workers
-
-Four workers run two-way SMS conversations: SendSmsWorker delivers the outbound message, WaitResponseWorker captures the reply, ProcessResponseWorker generates contextual follow-up content, and SendReplyWorker transmits the response.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ProcessResponseWorker** | `twl_process_response` | Processes an SMS response. |
-| **SendReplyWorker** | `twl_send_reply` | Sends a reply SMS. |
-| **SendSmsWorker** | `twl_send_sms` | Sends an SMS via Twilio. |
-| **WaitResponseWorker** | `twl_wait_response` | Waits for an SMS response. |
-
-The workers auto-detect Twilio credentials at startup. When `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` are set, SendSmsWorker and SendReplyWorker use the real Twilio API to deliver messages. Without credentials, they fall back to demo mode with realistic output shapes so the workflow runs end-to-end without a Twilio account.
-
-### The Workflow
+## Pipeline
 
 ```
 twl_send_sms
- │
- ▼
+    │
 twl_wait_response
- │
- ▼
+    │
 twl_process_response
- │
- ▼
+    │
 twl_send_reply
+```
 
+## Workers
+
+**ProcessResponseWorker** (`twl_process_response`): Processes an SMS response.
+
+```java
+? "Thank you for confirming! Your appointment is set."
+String intent = "YES".equals(responseBody) ? "confirm" : "decline";
+```
+
+Reads `responseBody`. Outputs `replyMessage`, `intent`.
+
+**SendReplyWorker** (`twl_send_reply`): Sends a reply SMS.
+
+```java
+this.liveMode = sid != null && !sid.isBlank() && token != null && !token.isBlank();
+```
+
+Reads `body`, `from`, `to`. Outputs `messageSid`, `status`.
+
+**SendSmsWorker** (`twl_send_sms`): Sends an SMS via Twilio.
+
+```java
+this.liveMode = sid != null && !sid.isBlank() && token != null && !token.isBlank();
+```
+
+Reads `body`, `from`, `to`. Outputs `messageSid`, `status`.
+
+**WaitResponseWorker** (`twl_wait_response`): Waits for an SMS response.
+
+Reads `toNumber`. Outputs `responseBody`, `receivedAt`.
+
+## Tests
+
+**8 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

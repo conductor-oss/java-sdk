@@ -1,48 +1,43 @@
-# Implementing E-Commerce Order Saga in Java with Conductor : Inventory, Payment, and Shipping with Compensation
+# E-Commerce Order Saga
 
-## The Problem
+An e-commerce order must reserve inventory, charge the customer, and ship the package. If shipping fails (item damaged, carrier unavailable), the payment must be refunded and the inventory released. The compensation steps must receive the specific IDs from the forward steps -- `paymentId` = `"PAY-001"` and `reservationId` = `"INV-001"` -- to know exactly what to reverse.
 
-You process an e-commerce order: reserve the inventory so it's not sold to someone else, charge the customer's payment method, and ship the order. If shipping fails (item damaged, carrier unavailable), the payment must be refunded and the inventory must be released back to stock. Each step depends on the previous one. you can't charge without reserved inventory, and you can't ship without payment.
-
-Without orchestration, order processing is a monolithic transaction attempt. A shipping failure after successful payment leaves the customer charged with no shipment. A payment failure after inventory reservation leaves stock locked. Compensating each combination of partial success requires tangled error-handling code.
-
-## The Solution
-
-**You just write the order processing and compensation logic. Conductor handles the reserve-charge-ship sequence, SWITCH-based failure detection, reverse-order compensation (refund then release), retries on each step, and a complete audit trail of every order showing which steps completed and which compensations ran.**
-
-Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation. refund payment, then release inventory, in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran.
-
-### What You Write: Workers
-
-ReserveInventoryWorker locks stock, ChargePaymentWorker processes the charge, and ShipOrderWorker dispatches the package, with ReleaseInventoryWorker and RefundPaymentWorker as compensating transactions that execute in reverse order when shipping fails.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ChargePaymentWorker** | `spi_charge_payment` | Worker for spi_charge_payment. Charges payment for an order. Produces a deterministic payment ID "PAY-001" and mark.. |
-| **RefundPaymentWorker** | `spi_refund_payment` | Worker for spi_refund_payment. Compensation worker that refunds a payment. This is called as part of the saga compe.. |
-| **ReleaseInventoryWorker** | `spi_release_inventory` | Worker for spi_release_inventory. Compensation worker that releases reserved inventory. This is called as part of t.. |
-| **ReserveInventoryWorker** | `spi_reserve_inventory` | Worker for spi_reserve_inventory. Reserves inventory for an order. Produces a deterministic reservation ID "INV-001.. |
-| **ShipOrderWorker** | `spi_ship_order` | Worker for spi_ship_order. Ships an order. If the input parameter "shouldFail" is true, the worker returns shipStat.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-spi_reserve_inventory
- │
- ▼
-spi_charge_payment
- │
- ▼
-spi_ship_order
- │
- ▼
-SWITCH (check_ship_ref)
- ├── failed: spi_refund_payment -> spi_release_inventory
-
+spi_reserve_inventory ──> spi_charge_payment ──> spi_ship_order
+                                                      │
+                                               SWITCH(shipStatus)
+                                                 ├── "failed" ──> spi_refund_payment ──> spi_release_inventory
+                                                 └── default ──> (done)
 ```
 
----
+Workflow `saga_payment_inventory` accepts `orderId`, `amount`, and `shouldFail`. The SWITCH task `check_ship_ref` evaluates `${ship_ref.output.shipStatus}`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ReserveInventoryWorker** (`spi_reserve_inventory`) -- reads `orderId` from input (defaults to `"unknown"`). Returns `reservationId` = `"INV-001"` and `inventoryStatus` = `"reserved"`.
+
+**ChargePaymentWorker** (`spi_charge_payment`) -- reads `orderId` and `amount` from input. Returns `paymentId` = `"PAY-001"` and `paymentStatus` = `"charged"`.
+
+**ShipOrderWorker** (`spi_ship_order`) -- reads `orderId` and `shouldFail` from input. Always returns `COMPLETED`. When `shouldFail` is `true`, sets `shipStatus` = `"failed"`. Otherwise sets `shipStatus` = `"shipped"`. Both paths return `shipmentId` = `"SHIP-001"`.
+
+**RefundPaymentWorker** (`spi_refund_payment`) -- receives `paymentId` and `orderId` from the forward steps. Returns `refundStatus` = `"refunded"`.
+
+**ReleaseInventoryWorker** (`spi_release_inventory`) -- receives `reservationId` and `orderId` from the forward steps. Returns `inventoryStatus` = `"released"`.
+
+## Workflow Output
+
+The workflow produces `orderId`, `shipStatus`, `shipmentId`, `compensated` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 5 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `saga_payment_inventory` defines 4 tasks with input parameters `orderId`, `amount`, `shouldFail` and a timeout of `120` seconds.
+
+## Tests
+
+20 tests cover the happy shipping path, the compensation path when shipping fails, correct ID propagation from forward to compensation steps, and the SWITCH routing based on `shipStatus`.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

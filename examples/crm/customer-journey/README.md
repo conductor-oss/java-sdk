@@ -1,44 +1,51 @@
-# Customer Journey in Java with Conductor : Track Touchpoints, Map Stages, and Optimize the Path to Conversion
+# Customer Journey
 
-## Seeing the Full Picture of How Customers Convert
+Orchestrates customer journey through a multi-stage Conductor workflow.
 
-Customers interact with your product through dozens of touchpoints. website visits, email opens, support tickets, feature usage, social engagement. These interactions are scattered across systems and channels. Understanding the path from first touch to conversion (or churn) requires collecting all touchpoints, organizing them into stages (awareness, consideration, decision), analyzing where customers drop off, and recommending changes to improve the funnel.
+**Input:** `customerId`, `timeWindow` | **Timeout:** 60s
 
-This workflow performs that analysis end-to-end. The touchpoint tracker collects all interactions for a customer within the specified time window. The journey mapper organizes those touchpoints into sequential stages. The analyzer identifies patterns. which stages have the highest drop-off, which channels are most effective, where friction slows the journey. The optimizer generates specific recommendations based on the analysis insights.
-
-## The Solution
-
-**You just write the touchpoint-tracking, journey-mapping, analysis, and optimization workers. Conductor handles the four-step pipeline and data flow.**
-
-Four workers handle the journey analysis. touchpoint tracking, journey mapping, insight analysis, and optimization. The tracker collects cross-channel interactions for the customer. The mapper groups touchpoints into journey stages. The analyzer extracts insights about drop-offs and friction points. The optimizer recommends changes based on those insights. Conductor sequences the four steps and passes touchpoints, journey maps, and insights between them automatically.
-
-### What You Write: Workers
-
-TrackTouchpointsWorker collects cross-channel interactions, MapJourneyWorker organizes them into stages, AnalyzeWorker identifies drop-off points, and OptimizeWorker generates conversion recommendations.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeWorker** | `cjy_analyze` | Analyzes the customer journey for insights. |
-| **MapJourneyWorker** | `cjy_map_journey` | Maps customer touchpoints into journey stages. |
-| **OptimizeWorker** | `cjy_optimize` | Generates optimization recommendations based on journey insights. |
-| **TrackTouchpointsWorker** | `cjy_track_touchpoints` | Tracks customer touchpoints across channels. |
-
-### The Workflow
+## Pipeline
 
 ```
 cjy_track_touchpoints
- │
- ▼
+    │
 cjy_map_journey
- │
- ▼
+    │
 cjy_analyze
- │
- ▼
+    │
 cjy_optimize
+```
 
+## Workers
+
+**AnalyzeWorker** (`cjy_analyze`): Analyzes the customer journey for insights.
+
+Outputs `insights`.
+
+**MapJourneyWorker** (`cjy_map_journey`): Maps customer touchpoints into journey stages.
+
+```java
+Map<String, Integer> journeyMap = Map.of(
+```
+
+Outputs `journeyMap`, `stageCount`.
+
+**OptimizeWorker** (`cjy_optimize`): Generates optimization recommendations based on journey insights.
+
+Outputs `recommendations`.
+
+**TrackTouchpointsWorker** (`cjy_track_touchpoints`): Tracks customer touchpoints across channels.
+
+Reads `customerId`. Outputs `touchpoints`, `touchpointCount`.
+
+## Tests
+
+**14 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

@@ -1,45 +1,63 @@
-# Four-Eyes Approval in Java Using Conductor: Dual Independent Approvals via Parallel WAIT Tasks in FORK/JOIN
+# Four Eyes Approval
 
-## Some Decisions Require Two Independent Approvals (Four-Eyes Principle)
+Four-Eyes Approval -- two independent approvals required via parallel WAIT tasks in a FORK/JOIN.
 
-Regulated industries require the four-eyes principle: no single person can approve a critical action alone. The workflow submits the request, then two independent WAIT tasks run in parallel (via FORK/JOIN), each assigned to a different approver. Both must approve before finalization proceeds. If finalization fails, you need to retry it without asking both approvers to re-approve.
+**Input:** `requestId` | **Timeout:** 120s
 
-## The Solution
+**Output:** `submitted`, `finalized`
 
-**You just write the request submission and finalization workers. Conductor handles the parallel dual-approval gates and the join.**
-
-Each worker handles one stage of the approval chain. Conductor manages task assignment, wait states, timeout escalation, and audit logging. Your code handles the decision logic.
-
-### What You Write: Workers
-
-SubmitWorker prepares the request for dual review, and FinalizeWorker records both approvers' decisions, each runs independently within the FORK/JOIN approval structure.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **SubmitWorker** | `fep_submit` | Submits the request for dual approval. validates the request ID and marks it as ready for the parallel FORK/JOIN approval gates |
-| *FORK/JOIN* | `fork_approvers` | Launches two parallel WAIT tasks. One for each independent approver, and waits until both have responded | Built-in Conductor FORK/JOIN.; no worker needed |
-| *WAIT task* | `approver_1` | Pauses for the first approver's independent decision via `POST /tasks/{taskId}` with `{ "approval": true/false }` | Built-in Conductor WAIT.; no worker needed |
-| *WAIT task* | `approver_2` | Pauses for the second approver's independent decision, running in parallel with approver 1 | Built-in Conductor WAIT.; no worker needed |
-| **FinalizeWorker** | `fep_finalize` | Receives both approvers' decisions and finalizes: proceeds only if both approved, otherwise rejects and records which approver dissented |
-
-Workers implement the approval steps and human decisions so the workflow runs end-to-end without manual intervention. In production, replace the auto-approve logic with real human task assignments, the workflow structure stays the same.
-
-### The Workflow
+## Pipeline
 
 ```
 fep_submit
- │
- ▼
-FORK_JOIN
- ├── approver_1
- └── approver_2
- │
- ▼
-JOIN (wait for all branches)
+    │
+    ┌────────────┬────────────┐
+    │ approver_1 │ approver_2 │
+    └────────────┴────────────┘
 fep_finalize
+```
 
+## Workers
+
+**FinalizeWorker** (`fep_finalize`): Worker for fep_finalize -- finalizes the request after both approvals.
+
+- finalized: true
+- bothApproved: true if both approvers approved, false otherwise
+- approval1: first approver's decision
+- approval2: second approver's decision
+
+```java
+boolean approved1 = Boolean.TRUE.equals(a1) || "true".equals(String.valueOf(a1));
+```
+
+Reads `approval1`, `approval2`. Outputs `finalized`, `bothApproved`, `approval1`, `approval2`.
+
+**SubmitWorker** (`fep_submit`): Submits a request for dual (four-eyes) approval.
+
+```java
+String tier2Role = amount > 50000 ? "Director" : "Manager";
+```
+
+Reads `amount`, `requestId`. Outputs `submitted`, `requestId`, `tier1Role`, `tier2Role`, `submittedAt`.
+
+## Workflow Output
+
+- `submitted`: `${fep_submit_ref.output.submitted}`
+- `finalized`: `${fep_finalize_ref.output.finalized}`
+
+## Data Flow
+
+**fep_submit**: `requestId` = `${workflow.input.requestId}`
+**fep_finalize**: `approval1` = `${approver_1_ref.output.approval}`, `approval2` = `${approver_2_ref.output.approval}`
+
+## Tests
+
+**5 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

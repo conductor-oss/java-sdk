@@ -1,44 +1,47 @@
-# Sprint Retrospective in Java with Conductor : Feedback Collection, Categorization, Prioritization, and Action Items
+# Retrospective
 
-## The Problem
+Retrospective: collect feedback, categorize, prioritize, create action items.
 
-You need to run retrospectives consistently across sprints and teams. After each sprint, the team provides feedback. blockers they hit, processes that worked, tools that slowed them down. That feedback needs to be collected from multiple sources (survey forms, Slack threads, meeting notes), categorized into themes (process, tooling, communication, technical debt), prioritized by how many people raised the issue and its impact on velocity, and turned into concrete action items assigned to owners with deadlines.
+**Input:** `sprintId`, `teamName`, `facilitator` | **Timeout:** 60s
 
-Without orchestration, retrospectives become ad-hoc meetings where feedback is captured in a Google Doc, never categorized, and the same issues surface sprint after sprint. Building this as a script means a failure pulling feedback from Slack silently skips categorization, and you lose the ability to track which action items were actually generated and whether they carried over from previous sprints.
-
-## The Solution
-
-**You just write the feedback collection, theme categorization, impact prioritization, and action item generation logic. Conductor handles feedback collection retries, theme analysis, and action item tracking.**
-
-Each retrospective step is a simple, independent worker. one collects raw feedback, one categorizes it into themes, one prioritizes by frequency and impact, one generates action items with owners and deadlines. Conductor takes care of executing them in sequence, retrying if a data source is temporarily unavailable, and maintaining a historical record of every retrospective so you can track improvement trends across sprints.
-
-### What You Write: Workers
-
-Feedback collection, theme identification, action item creation, and follow-up tracking workers each own one step of the team retrospective process.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CollectFeedbackWorker** | `rsp_collect_feedback` | Gathers team feedback from surveys, Slack channels, and meeting notes for the given sprint |
-| **CategorizeWorker** | `rsp_categorize` | Groups raw feedback into themes. process, tooling, communication, technical debt, team dynamics |
-| **PrioritizeWorker** | `rsp_prioritize` | Ranks categorized items by frequency, impact on velocity, and team sentiment scores |
-| **ActionItemsWorker** | `rsp_action_items` | Converts top priorities into concrete action items with owners, deadlines, and success criteria |
-
-### The Workflow
+## Pipeline
 
 ```
 rsp_collect_feedback
- │
- ▼
+    │
 rsp_categorize
- │
- ▼
+    │
 rsp_prioritize
- │
- ▼
+    │
 rsp_action_items
+```
 
+## Workers
+
+**ActionItemsWorker** (`rsp_action_items`)
+
+Reads `sprintId`. Outputs `actionItems`, `totalItems`.
+
+**CategorizeWorker** (`rsp_categorize`)
+
+Reads `sprintId`. Outputs `categories`.
+
+**CollectFeedbackWorker** (`rsp_collect_feedback`)
+
+Reads `sprintId`. Outputs `feedback`, `responseCount`.
+
+**PrioritizeWorker** (`rsp_prioritize`)
+
+Reads `sprintId`. Outputs `priorities`.
+
+## Tests
+
+**8 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

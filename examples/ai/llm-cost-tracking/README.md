@@ -1,48 +1,42 @@
-# LLM Cost Tracking in Java Using Conductor: Multi-Model Calls with Per-Provider Cost Aggregation
+# Tracking Per-Provider LLM Costs Across GPT-4, Claude, and Gemini
 
-End of month AWS bill: $12,000 in OpenAI API calls. Nobody knows which feature consumed what, or that the summarization pipeline was running GPT-4 on 10-word inputs that Gemini could have handled for pennies. Every provider bills differently. Per-token with separate input/output rates, usage metadata buried in different response fields, and without centralized tracking you're flying blind. This example builds a multi-provider cost tracking pipeline using [Conductor](https://github.com/conductor-oss/conductor) that sends the same prompt to GPT-4, Claude, and Gemini, captures per-call token usage, and aggregates a side-by-side cost breakdown so you know exactly where every dollar goes.
+Your monthly AI bill is $12,000 but you don't know which feature consumed what. This workflow sends the same prompt to three providers in parallel, captures per-call token counts, and aggregates a side-by-side cost breakdown using fixed pricing constants.
 
-## Knowing What Your LLM Calls Actually Cost
-
-When your application calls multiple LLM providers, cost tracking becomes fragmented. GPT-4 charges per token with different rates for input vs, output. Claude has its own token pricing. Gemini uses a different pricing model entirely. Without centralized tracking, you get a surprise bill at the end of the month with no breakdown of which provider, which prompt, or which feature drove the cost.
-
-This workflow makes cost visible per call: each provider returns its token usage (prompt tokens, completion tokens), and an aggregation step applies each provider's pricing to compute per-model costs and a total. Over many executions, you build a dataset showing exactly how much each provider costs for your specific workloads. Enabling data-driven decisions about which model to use for which tasks.
-
-## The Solution
-
-**You write the provider API calls and pricing aggregation logic. Conductor handles the sequencing, retries, and observability.**
-
-Each provider call is an independent worker. GPT-4, Claude, Gemini, each returning token usage alongside its response. An aggregation worker applies per-provider pricing rates to compute costs. Conductor sequences the calls, retries if any provider's API is temporarily unavailable, and tracks every execution with full token usage data. Over time, the execution history becomes your cost analytics dataset.
-
-### What You Write: Workers
-
-Four workers track costs across providers. Calling GPT-4, Claude, and Gemini sequentially with per-call token and cost tracking, then aggregating total spend, token usage, and per-model breakdowns in a final report.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CallGpt4Worker** | `ct_call_gpt4` | Calls GPT-4 with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_OPENAI_API_KEY` is set (calls OpenAI API, extracts `usage.prompt_tokens` and `usage.completion_tokens`). **Demo** otherwise (returns fixed tokens with `` prefix) |
-| **CallClaudeWorker** | `ct_call_claude` | Calls Claude with the prompt and returns token usage alongside the response text | **Live** when `CONDUCTOR_ANTHROPIC_API_KEY` is set (calls Anthropic API, extracts `usage.input_tokens` and `usage.output_tokens`). **Demo** otherwise |
-| **CallGeminiWorker** | `ct_call_gemini` | Calls Gemini with the prompt and returns token usage alongside the response text | **Live** when `GOOGLE_API_KEY` is set (calls Gemini API, extracts `usageMetadata`). **Demo** otherwise |
-| **AggregateCostsWorker** | `ct_aggregate_costs` | Aggregate Costs. Computes and returns breakdown, total cost, total tokens | Pricing-based aggregation of real or HMAC-signed JWT counts |
-
-Each worker auto-detects its API key from the environment. Set one, two, or all three keys to mix live and demo providers in the same workflow run. Without any keys, everything runs in demo mode with realistic output shapes.
-
-### The Workflow
+## Workflow
 
 ```
-ct_call_gpt4
- |
- v
-ct_call_claude
- |
- v
-ct_call_gemini
- |
- v
-ct_aggregate_costs
-
+prompt
+  │
+  ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ ct_call_gpt4    │  │ ct_call_claude  │  │ ct_call_gemini  │
+│ (OpenAI GPT-4)  │  │ (Anthropic)     │  │ (Google)        │
+└────────┬────────┘  └────────┬────────┘  └────────┬────────┘
+         │                    │                    │
+         └────────────┬───────┘────────────────────┘
+                      ▼
+            ┌──────────────────────┐
+            │ ct_aggregate_costs   │  Calculate per-model + total cost
+            └──────────────────────┘
+                      │
+                      ▼
+              breakdown, totalCost, totalTokens
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CallGpt4Worker** (`ct_call_gpt4`) -- Requires `CONDUCTOR_OPENAI_API_KEY`. Calls OpenAI Chat Completions with `gpt-4o-mini`, `max_tokens: 512`. Extracts `usage.prompt_tokens` and `usage.completion_tokens` from the response. Maps the pricing model to `"gpt-4"`. Returns `usage: {model, inputTokens, outputTokens}`.
+
+**CallClaudeWorker** (`ct_call_claude`) -- Requires `CONDUCTOR_ANTHROPIC_API_KEY`. Calls the Anthropic Messages API at `https://api.anthropic.com/v1/messages` with model `claude-sonnet-4-6`, `max_tokens: 512`, `anthropic-version: 2023-06-01`. Extracts text blocks from `content` array filtering by `type == "text"`. Reads `usage.input_tokens` and `usage.output_tokens`. Maps the model name to `"claude-3"` for pricing via `model.startsWith("claude-3")`. Distinguishes retryable (429/503) from terminal errors.
+
+**CallGeminiWorker** (`ct_call_gemini`) -- Requires `GOOGLE_API_KEY`. Calls `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`. Reads `usageMetadata.promptTokenCount` and `usageMetadata.candidatesTokenCount`.
+
+**AggregateCostsWorker** (`ct_aggregate_costs`) -- Applies fixed per-1K-token pricing: GPT-4 at `[$0.03 input, $0.06 output]`, Claude-3 at `[$0.015, $0.075]`, Gemini at `[$0.0005, $0.0015]`. Computes `(inputTokens / 1000.0) * inputPrice + (outputTokens / 1000.0) * outputPrice` for each provider. Formats costs as `String.format("$%.4f", cost)`. Sums all three into `totalCost` and `totalTokens`.
+
+## Tests
+
+15 tests cover all three provider workers and the cost aggregation math.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

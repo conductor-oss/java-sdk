@@ -1,39 +1,46 @@
-# APM Workflow in Java with Conductor : Analyze Latency, Report Metrics, Collect Traces, Detect Bottlenecks
+# Tracing a Slow Checkout Service with APM
 
-Automates Application Performance Monitoring (APM) analysis using [Conductor](https://github.com/conductor-oss/conductor). This workflow collects distributed traces for a service, analyzes latency percentiles (p50/p95/p99), detects performance bottlenecks like N+1 queries and large payload serialization, and generates an APM report with actionable recommendations.
+Your checkout service is hitting intermittent latency spikes and customers are abandoning
+carts. You need to collect distributed traces, compute latency percentiles, pinpoint
+bottleneck endpoints, and generate a report with concrete recommendations -- all without
+manually digging through dashboards.
 
-## Finding the Slow Endpoints
-
-Your checkout service handled 25,000 requests in the last hour. Most responded in 45ms, but the p99 is 520ms. Something is dragging the tail. Two endpoints are suspiciously slow: `/api/search` has an N+1 query problem, and `/api/export` is choking on large payload serialization. You need to collect the traces, crunch the latency numbers, pinpoint the bottlenecks, and produce a report the team can act on.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the trace analysis and bottleneck detection logic. Conductor handles the collect-analyze-detect-report pipeline and tracks every performance investigation.**
-
-`AnalyzeLatencyWorker` examines request latency distributions across endpoints. identifying which services and endpoints have degraded performance with p50/p95/p99 breakdowns. `ApmReportWorker` generates a performance report summarizing latency trends, error rates, throughput, and resource utilization. `CollectTracesWorker` gathers distributed traces for the slowest requests, showing the full request path across services. `DetectBottlenecksWorker` analyzes the traces to identify specific bottlenecks, slow database queries, overloaded services, or network latency. Conductor chains these four steps for automated performance investigation.
-
-### What You Write: Workers
-
-Four workers handle APM analysis. Collecting distributed traces, analyzing latency percentiles, detecting bottlenecks, and generating performance reports.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeLatency** | `apm_analyze_latency` | Analyzes latency percentiles from collected traces. |
-| **ApmReport** | `apm_report` | Generates the final APM report summarizing bottlenecks and recommendations. |
-| **CollectTraces** | `apm_collect_traces` | Collects application traces for the specified service and time range. |
-| **DetectBottlenecks** | `apm_detect_bottlenecks` | Detects performance bottlenecks based on latency analysis. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> AnalyzeLatency -> ApmReport -> CollectTraces -> DetectBottlenecks -> Output
-
+serviceName, timeRange, percentile
+              |
+              v
+   +------------------+     +-------------------+     +---------------------+     +-------------+
+   | apm_collect_     | --> | apm_analyze_      | --> | apm_detect_         | --> | apm_report  |
+   | traces           |     | latency           |     | bottlenecks         |     |             |
+   +------------------+     +-------------------+     +---------------------+     +-------------+
+     25000 traces            p50=45ms p95=180ms        /api/search: N+1 query     reportUrl
+     2500 sampled            p99=520ms mean=62ms       /api/export: payload ser.  generated=true
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CollectTraces** -- Takes `serviceName` and `timeRange` as inputs. Returns `traceCount` of
+25,000 with `sampledTraces` at 2,500 (10% sampling) and echoes the `timeRange` back.
+
+**AnalyzeLatency** -- Receives `traceCount` and `percentile` (e.g. `"p99"`). Computes
+hard-coded latency buckets: `p50Latency` = 45ms, `p95Latency` = 180ms, `p99Latency` = 520ms,
+`meanLatency` = 62ms. Identifies `slowEndpoints` as `["/api/search", "/api/export"]`.
+
+**DetectBottlenecks** -- Reads `p99Latency` and `slowEndpoints`. Returns two bottlenecks:
+`/api/search` caused by an `"N+1 query"` (impact `"high"`) and `/api/export` caused by
+`"large payload serialization"` (impact `"medium"`). Recommendations include adding a database
+index on search fields and implementing streaming for the export endpoint.
+
+**ApmReport** -- Takes `serviceName` and `bottlenecks`. Outputs `reportGenerated: true` with a
+`reportUrl` like `https://apm.example.com/report/checkout-2026-03-08`.
+
+## Tests
+
+30 unit tests cover trace collection, latency analysis, bottleneck detection, and report
+generation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

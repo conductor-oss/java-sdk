@@ -1,44 +1,45 @@
-# Webinar Registration in Java with Conductor
+# Webinar Registration
 
-## Getting Attendees Registered, Reminded, and Followed Up
+A conference platform handles webinar registrations. Each registration needs attendee validation (email format, capacity check), confirmation email dispatch, calendar invite generation, and waitlist management when the session reaches capacity.
 
-A webinar registration workflow is more than just recording a name. the attendee needs to be registered, sent a confirmation email, reminded before the event (24 hours and 1 hour out), and followed up afterward with a recording link and next steps. Missing any step means lower attendance rates and lost engagement opportunities. Each step depends on the previous one, you cannot send a confirmation until registration succeeds, and follow-up only makes sense after the event.
-
-This workflow manages a single attendee's webinar journey. The registrar records the attendee and generates a registration ID. The confirmer sends a confirmation email with event details and a calendar link. The reminder sends timed notifications before the webinar starts. The follow-up worker sends a post-event email with the recording link and related resources.
-
-## The Solution
-
-**You just write the registration, confirmation, reminder, and follow-up workers. Conductor handles the attendee lifecycle and timed notification sequencing.**
-
-Each worker handles one CRM operation. Conductor manages the customer lifecycle pipeline, assignment routing, follow-up scheduling, and activity tracking.
-
-### What You Write: Workers
-
-RegisterWorker records the attendee, ConfirmWorker sends event details with a calendar invite, RemindWorker delivers timed notifications at 24h and 1h before, and FollowupWorker sends the recording link afterward.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ConfirmWorker** | `wbr_confirm` | Sends a confirmation email with event details and a calendar invite link. |
-| **FollowupWorker** | `wbr_followup` | Sends a post-webinar email with the recording link and related resources. |
-| **RegisterWorker** | `wbr_register` | Registers the attendee for the webinar and generates a unique registration ID. |
-| **RemindWorker** | `wbr_remind` | Sends reminder notifications at 24 hours and 1 hour before the event. |
-
-### The Workflow
+## Pipeline
 
 ```
-wbr_register
- │
- ▼
-wbr_confirm
- │
- ▼
-wbr_remind
- │
- ▼
-wbr_followup
-
+[wbr_register]
+     |
+     v
+[wbr_confirm]
+     |
+     v
+[wbr_remind]
+     |
+     v
+[wbr_followup]
 ```
+
+**Workflow inputs:** `attendeeName`, `email`, `webinarId`
+
+## Workers
+
+**ConfirmWorker** (task: `wbr_confirm`)
+
+- Reads `email`. Writes `confirmed`, `calendarInvite`
+
+**FollowupWorker** (task: `wbr_followup`)
+
+- Writes `sent`, `content`
+
+**RegisterWorker** (task: `wbr_register`)
+
+- Uppercases strings, records wall-clock milliseconds
+- Reads `name`, `webinarId`. Writes `registrationId`, `joinLink`, `calendarAdded`
+
+**RemindWorker** (task: `wbr_remind`)
+
+- Writes `reminders`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**8 tests** | Workflow: `wbr_webinar_registration` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

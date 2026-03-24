@@ -1,44 +1,42 @@
-# Health Checks in Java with Conductor
+# Parallel Service Health Checks with Overall Status Report
 
-Check health of multiple services in parallel.
+You have multiple services and need a single report showing which are healthy and which are
+degraded. This workflow checks multiple services in parallel using FORK_JOIN, waits for all
+results, and generates a report with `overallStatus` (ALL HEALTHY or DEGRADED) and per-
+service details.
 
-## The Problem
-
-Monitoring the health of multiple services (API gateway, database, cache) requires hitting each service's health endpoint, collecting status and latency data, and producing a consolidated health report. These checks should run in parallel to minimize total check time, and the report must account for partial failures.
-
-Without orchestration, health checks are run sequentially in a cron job, making the check cycle slow and providing no structured report. If one health endpoint times out, it blocks all subsequent checks, and there is no historical record of health status over time.
-
-## The Solution
-
-**You just write the service-check and report-generation workers. Conductor handles parallel execution of all checks, per-service timeout isolation, and historical tracking of every health run.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Two worker types power the health pipeline: CheckServiceWorker probes individual service endpoints in parallel, then GenerateReportWorker consolidates all results into a single health report.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CheckServiceWorker** | `hc_check_service` | Checks health of an individual service. |
-| **GenerateReportWorker** | `hc_generate_report` | Generates a health report from individual service checks. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-FORK_JOIN
- ├── hc_check_service
- ├── hc_check_service
- └── hc_check_service
- │
- ▼
-JOIN (wait for all branches)
-hc_generate_report
-
+(no inputs)
+    |
+    v
+  FORK_JOIN: hc_check_service (one per service)
+    each checks serviceName at endpoint
+    returns health map per service
+    |
+    v
+  JOIN
+    |
+    v
++---------------------+
+| hc_generate_report  |   overallStatus + per-service details + checkedAt
++---------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CheckServiceWorker** -- Checks `serviceName` at `endpoint`. Returns a `health` map with
+service status details.
+
+**GenerateReportWorker** -- Aggregates results: `overallStatus` is "ALL HEALTHY" or
+"DEGRADED" depending on whether all checks passed. Returns `services` details and a
+`checkedAt` timestamp.
+
+## Tests
+
+9 unit tests cover individual service checks and report generation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

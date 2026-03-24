@@ -1,48 +1,41 @@
-# Service Discovery in Java with Conductor
+# Service Discovery with Least-Connections Selection and Failover
 
-Discover services, select instance, call with failover.
+Hard-coding service URLs breaks when instances scale up or down. This workflow discovers
+service instances from Consul, selects the best one using a least-connections strategy,
+calls it, and handles failover if the call fails.
 
-## The Problem
-
-In a dynamic microservice environment, service instances come and go. Calling a service requires discovering available instances from a registry, selecting the best one (e.g., least connections, healthiest), making the call, and handling failover if the selected instance is down.
-
-Without orchestration, service discovery is embedded in each client using libraries like Ribbon or Eureka client, with retry/failover logic duplicated across every calling service. There is no centralized view of which instance was selected, why, and what happened when it failed.
-
-## The Solution
-
-**You just write the discovery, instance-selection, service-call, and failover workers. Conductor handles discovery-to-call sequencing, per-call timeout enforcement, and a full record of instance selection decisions.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers handle dynamic service resolution: DiscoverServicesWorker queries the registry, SelectInstanceWorker picks the best candidate, CallServiceWorker makes the request, and HandleFailoverWorker retries on a different instance if needed.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CallServiceWorker** | `sd_call_service` | Calls the selected service instance. |
-| **DiscoverServicesWorker** | `sd_discover_services` | Discovers service instances from a registry. |
-| **HandleFailoverWorker** | `sd_handle_failover` | Handles failover if the service call failed. |
-| **SelectInstanceWorker** | `sd_select_instance` | Selects the best service instance based on strategy (least-connections). |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-sd_discover_services
- │
- ▼
-sd_select_instance
- │
- ▼
-sd_call_service
- │
- ▼
-sd_handle_failover
-
+serviceName, request
+         |
+         v
++--------------------------+     +-----------------------+     +--------------------+     +------------------------+
+| sd_discover_services     | --> | sd_select_instance    | --> | sd_call_service    | --> | sd_handle_failover     |
++--------------------------+     +-----------------------+     +--------------------+     +------------------------+
+  instances from Consul           selected by least              host:port called          failoverTriggered if
+  registrySource: "consul"        connections strategy           latency: 23ms             call failed
+                                                                 success: true
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DiscoverServicesWorker** -- Looks up instances for `serviceName` from Consul. Returns
+`instances` list and `registrySource: "consul"`.
+
+**SelectInstanceWorker** -- Selects the instance with the fewest `connections`. Returns
+`selectedInstance` and `strategy`.
+
+**CallServiceWorker** -- Calls the selected host:port. Returns
+`response: {orderId: "ORD-555", status: "processed"}`, `latency: 23`, `success: true`.
+
+**HandleFailoverWorker** -- If the call succeeded, returns the result. If it failed,
+triggers failover. Returns `finalResult` and `failoverTriggered` flag.
+
+## Tests
+
+32 unit tests cover service discovery, instance selection, service calls, and failover.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

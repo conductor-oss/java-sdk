@@ -1,46 +1,46 @@
-# Implementing Data Masking in Java with Conductor : Field Identification, Strategy Selection, Masking Application, and Output Validation
+# Data Masking
 
-## The Problem
+A data source needs masking for non-production use. The pipeline identifies 18 sensitive fields, selects the appropriate masking strategy (tokenization for emails, redaction for SSNs) based on the data purpose, applies the masking, and validates that no PII remains in the output while referential integrity is maintained.
 
-You need to share production-like data with development teams, analytics pipelines, or third-party vendors; but the data contains Social Security numbers, email addresses, credit card numbers, health records, and other regulated PII that cannot be exposed. Each field type requires a different masking approach: SSNs should be redacted or tokenized, emails need format-preserving pseudonymization so downstream systems still process them correctly, credit card numbers must preserve the BIN prefix for payment testing. After masking, you must verify that no PII leaked through (partial masks, edge cases, NULL handling) and that referential integrity is maintained (the same customer ID maps to the same masked ID across all tables).
-
-Without orchestration, data masking is a brittle script that somebody wrote once and nobody maintains. It hardcodes which columns to mask, uses the same blunt approach (replace everything with `***`) regardless of the field type, and has no validation step. so developers discover that the masked data breaks their tests because foreign keys no longer match. When a new table with sensitive data is added, nobody updates the script. There is no audit trail showing what was masked, when, or by whom, making it impossible to prove compliance to regulators who require evidence that non-production environments contain only masked data.
-
-## The Solution
-
-**You just write the field detection and masking transformations. Conductor handles the strict field-identification-to-validation sequence, retries when data source connections drop, and a complete audit proving exactly which fields were masked, how, and whether validation passed.**
-
-Each masking step is a simple, independent worker. one scans the data source to identify all sensitive fields, one selects the right masking strategy (tokenization for IDs, redaction for SSNs, format-preserving encryption for emails) based on the data's purpose, one applies the masks across all identified fields, one validates that the output contains no residual PII and that referential integrity is preserved across related tables. Conductor takes care of executing them in strict order so no data is released without validation, retrying if the data source connection drops mid-scan, and maintaining a complete audit trail proving exactly which fields were identified, what strategy was applied, and whether the validation passed, essential for demonstrating compliance with GDPR, CCPA, and HIPAA data minimization requirements.
-
-### What You Write: Workers
-
-The masking pipeline chains DmIdentifyFieldsWorker to discover sensitive fields, DmSelectStrategyWorker to choose the right technique (tokenization, redaction, or FPE), DmApplyMaskingWorker to transform the data, and DmValidateOutputWorker to verify no PII leaked and referential integrity is preserved.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DmIdentifyFieldsWorker** | `dm_identify_fields` | Scans the data source and identifies all sensitive fields. email columns, SSN fields, credit card numbers, phone numbers, health record identifiers, returning the field list with detected PII types |
-| **DmSelectStrategyWorker** | `dm_select_strategy` | Selects the masking strategy for each field based on the data's intended purpose. tokenization for fields that need reversibility, redaction for SSNs, format-preserving encryption for emails used in testing |
-| **DmApplyMaskingWorker** | `dm_apply_masking` | Applies the selected masking technique to every identified sensitive field. tokenizing IDs, redacting SSNs, pseudonymizing email addresses, while preserving data format and referential integrity |
-| **DmValidateOutputWorker** | `dm_validate_output` | Verifies that no PII remains in the masked output by re-scanning for sensitive patterns, checks that referential integrity is maintained across related tables, and confirms the masked data is usable for its intended purpose |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-dm_identify_fields
- │
- ▼
-dm_select_strategy
- │
- ▼
-dm_apply_masking
- │
- ▼
-dm_validate_output
-
+dm_identify_fields ──> dm_select_strategy ──> dm_apply_masking ──> dm_validate_output
 ```
 
----
+Workflow `data_masking_workflow` accepts `dataSource` and `purpose`. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**DmIdentifyFieldsWorker** (`dm_identify_fields`) -- reads `dataSource` from input (defaults to `"unknown"`). Reports detection of `"18 sensitive fields"`. Returns `identify_fieldsId` = `"IDENTIFY_FIELDS-1392"`.
+
+**DmSelectStrategyWorker** (`dm_select_strategy`) -- reads `purpose` from input (defaults to `"general"`). Reports `"Masking strategy for " + purpose + ": tokenization + redaction"`. Returns `select_strategy` = `true`.
+
+**DmApplyMaskingWorker** (`dm_apply_masking`) -- applies masking rules. Reports `"18 fields masked: emails tokenized, SSNs redacted"`. Returns `apply_masking` = `true`.
+
+**DmValidateOutputWorker** (`dm_validate_output`) -- validates the masked output. Reports `"No PII found in masked output, referential integrity maintained"`. Returns `validate_output` = `true` and `completedAt` = `"2026-01-15T10:00:00Z"`.
+
+## Workflow Output
+
+The workflow produces `fieldsIdentified`, `strategySelected`, `maskingApplied`, `validated` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `dm_identify_fields`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dm_select_strategy`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dm_apply_masking`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dm_validate_output`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `data_masking_workflow` defines 4 tasks with input parameters `dataSource`, `purpose` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify field identification, strategy selection, masking application, and output validation.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

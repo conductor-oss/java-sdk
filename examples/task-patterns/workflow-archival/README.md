@@ -1,36 +1,41 @@
-# Workflow Archival in Java with Conductor
+# Workflow Archival
 
-Archival demo workflow. single task for demonstrating cleanup policies.
+A batch processing workflow demonstrates Conductor's workflow archival feature. After execution completes, the workflow state can be archived for long-term storage, reducing the active database footprint while preserving the execution history.
 
-## The Problem
-
-You need to manage the lifecycle of completed workflow executions. Archiving old runs to keep the active database lean and queries fast. This demo shows a simple batch-processing workflow whose completed executions can be archived using Conductor's archival APIs and cleanup policies.
-
-Without archival, completed workflow data accumulates indefinitely, slowing down queries and consuming storage. Conductor's archival lets you move completed executions to long-term storage while keeping the active dataset manageable.
-
-## The Solution
-
-**You just write the batch processing worker. Conductor handles execution history storage, archival to long-term storage, and cleanup of old runs.**
-
-This example runs a simple batch-processing workflow and then demonstrates Conductor's archival APIs for managing completed execution data. ArchivalTaskWorker takes a `batch` identifier and returns `{ done: true }`. It is intentionally minimal because the focus is on what happens after execution. The example code shows how to run multiple workflow instances, then use Conductor's archival and removal APIs to move completed executions to long-term storage or purge them entirely. This keeps the active execution database lean so that status queries, search, and the Conductor UI remain fast even after millions of workflow runs.
-
-### What You Write: Workers
-
-One minimal worker demonstrates the archival lifecycle: ArchivalTaskWorker processes a batch and returns `{ done: true }`, keeping the focus on how Conductor's archival APIs manage completed execution data rather than on the processing logic itself.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ArchivalTaskWorker** | `arch_task` | Worker for the archival demo workflow. Takes a batch identifier and returns done: true. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
 arch_task
-
 ```
 
----
+Workflow `archival_demo` accepts `batch`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ArchivalTaskWorker** (`arch_task`) -- processes the specified batch.
+
+## Workflow Output
+
+The workflow produces `done` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `arch_task`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `archival_demo` defines 1 task with input parameters `batch` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Archival demo workflow — single task for demonstrating cleanup policies.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+6 tests verify batch processing, workflow completion, and archival configuration.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

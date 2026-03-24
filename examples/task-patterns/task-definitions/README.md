@@ -1,36 +1,40 @@
-# Task Definitions in Java with Conductor
+# Task Definitions
 
-Task definitions test. runs td_fast_task to verify task definition configuration.
+A minimal workflow demonstrates how task definitions configure retry, timeout, and response timeout settings independently of worker code. The single fast task has explicit definition-level configuration.
 
-## The Problem
-
-You need to configure per-task behavior: retry counts, retry strategies (FIXED vs EXPONENTIAL_BACKOFF), timeout durations, and response timeouts, independently from the workflow definition. Task definitions let you set these policies once and have them apply everywhere the task is used, across multiple workflows.
-
-Without task definitions, retry and timeout policies are either hardcoded in the workflow JSON or scattered across worker code. Changing a timeout means editing every workflow that uses the task. Task definitions centralize these policies so they are consistent and easy to update.
-
-## The Solution
-
-**You just write the task worker. Conductor handles retries, timeouts, and backoff policies based on the task definition configuration.**
-
-This example registers a task definition for `td_fast_task` with specific retry, timeout, and backoff policies, then runs a workflow that uses it. The FastTaskWorker is intentionally trivial: it just returns `{ done: true }`, because the point is the task definition, not the worker logic. The example code demonstrates creating a TaskDef with `retryCount`, `retryLogic` (FIXED or EXPONENTIAL_BACKOFF), `retryDelaySeconds`, `timeoutSeconds`, and `responseTimeoutSeconds`, registering it via the metadata API, and then running a workflow whose task inherits those policies automatically. Change the task definition once, and every workflow using that task picks up the new behavior.
-
-### What You Write: Workers
-
-One intentionally trivial worker demonstrates task definition configuration: FastTaskWorker returns `{ done: true }` so the focus stays on how retry counts, backoff strategies, and timeout policies are declared in the task definition rather than in worker code.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FastTaskWorker** | `td_fast_task` | Fast task worker for the task_def_test workflow. Simply returns { done: true } to confirm the task definition is work... |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
 td_fast_task
-
 ```
 
----
+Workflow `task_def_test` takes no inputs. Times out after `30` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**FastTaskWorker** (`td_fast_task`) -- executes quickly and returns a completion status.
+
+## Workflow Output
+
+The workflow produces `done` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `td_critical_task`: retryCount=5, retryLogic=EXPONENTIAL_BACKOFF, retryDelaySeconds=2, timeoutSeconds=300, responseTimeoutSeconds=60
+- `td_fast_task`: retryCount=1, retryLogic=FIXED, retryDelaySeconds=1, timeoutSeconds=10, responseTimeoutSeconds=5
+- `td_limited_task`: retryCount=3, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `task_def_test` defines 1 task with input parameters none and a timeout of `30` seconds.
+
+## Tests
+
+6 tests verify task definition registration, timeout configuration, retry settings, and worker execution within the defined constraints.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

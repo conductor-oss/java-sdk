@@ -1,46 +1,46 @@
-# Implementing Authentication Workflow in Java with Conductor : Credential Validation, MFA Verification, Risk Assessment, and Token Issuance
+# Authentication Workflow
 
-## The Problem
+A user logs in with a password. The system must validate credentials, verify MFA, assess risk based on device and location, and issue a JWT token with a 1-hour expiry -- all as a sequential pipeline where each step feeds context to the next.
 
-You need to authenticate users through multiple verification layers before granting access. First, the submitted credentials (password hash, biometric template, or API key) must be validated against the identity store. Then, if MFA is enabled, a second factor (TOTP, SMS code, hardware key) must be verified. Before issuing a token, a risk assessment must evaluate whether the login attempt looks suspicious. new device, unusual geolocation, impossible travel, or velocity anomalies. Only after all three checks pass should a JWT be minted with the appropriate claims, scopes, and expiration. If any step fails, the login must be denied and the failure recorded for security monitoring.
-
-Without orchestration, authentication logic is a deeply nested chain of if/else blocks. validate credentials, then check MFA, then assess risk, then issue a token. Each step calls a different backend (identity provider, MFA service, risk engine, token service), and a failure in one requires careful cleanup of the others. When the MFA provider times out, users get stuck in a half-authenticated state. When the risk engine is slow, login latency spikes. Nobody can tell from logs which step actually failed for a given login attempt, making it impossible to debug "why can't I log in?" support tickets.
-
-## The Solution
-
-**You just write the credential validation, MFA check, and token signing logic. Conductor handles strict ordering so no token is minted without MFA and risk checks, retries when the MFA provider is temporarily unavailable, and a full audit trail of every login attempt.**
-
-Each authentication concern is a simple, independent worker. one validates credentials against the identity store, one verifies the MFA challenge, one scores login risk from device and location signals, one mints the JWT with appropriate claims. Conductor takes care of executing them in strict order so no token is issued without MFA verification and risk assessment, retrying if the MFA provider is temporarily unavailable, and maintaining a complete audit trail of every login attempt with inputs, outputs, and timing for each verification step.
-
-### What You Write: Workers
-
-The authentication pipeline sequences ValidateCredentialsWorker to check passwords or biometrics, CheckMfaWorker to verify the second factor, RiskAssessmentWorker to evaluate device and location signals, and IssueTokenWorker to mint a signed JWT only after all checks pass.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ValidateCredentialsWorker** | `auth_validate_credentials` | Validates the submitted credentials (password hash, biometric template, or API key) against the identity store and returns a success/failure result with the user ID |
-| **CheckMfaWorker** | `auth_check_mfa` | Verifies the second authentication factor. TOTP code, SMS one-time password, or hardware security key challenge, and confirms MFA status |
-| **RiskAssessmentWorker** | `auth_risk_assessment` | Scores the login attempt for risk signals. device fingerprint, geolocation, impossible travel, login velocity, and returns a risk level (low/medium/high) |
-| **IssueTokenWorker** | `auth_issue_token` | Mints a signed JWT with user claims, scopes, and expiration after all verification steps have passed |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-auth_validate_credentials
- │
- ▼
-auth_check_mfa
- │
- ▼
-auth_risk_assessment
- │
- ▼
-auth_issue_token
-
+auth_validate_credentials ──> auth_check_mfa ──> auth_risk_assessment ──> auth_issue_token
 ```
 
----
+Workflow `authentication_workflow` accepts `userId` and `authMethod` as inputs. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ValidateCredentialsWorker** (`auth_validate_credentials`) -- reads `userId` from input (defaults to `"unknown"`). Validates the password and returns `validate_credentialsId` = `"VALIDATE_CREDENTIALS-1371"` and `success` = `true`.
+
+**CheckMfaWorker** (`auth_check_mfa`) -- reads `authMethod` from input (defaults to `"unknown"`). Reports `authMethod + " verification passed"`. Returns `check_mfa` = `true`.
+
+**RiskAssessmentWorker** (`auth_risk_assessment`) -- evaluates device and location context. Reports `"Known device, known location -- low risk"`. Returns `risk_assessment` = `true`.
+
+**IssueTokenWorker** (`auth_issue_token`) -- issues a JWT with 1-hour expiry after all checks pass. Returns `issue_token` = `true` and `completedAt` = `"2024-01-15T10:30:00Z"`.
+
+## Workflow Output
+
+The workflow produces `credentialsValid`, `mfaVerified`, `riskScore`, `token` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `auth_validate_credentials`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `auth_check_mfa`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `auth_risk_assessment`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `auth_issue_token`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `authentication_workflow` defines 4 tasks with input parameters `userId`, `authMethod` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify credential validation, MFA verification, risk assessment, token issuance, and the full authentication pipeline.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

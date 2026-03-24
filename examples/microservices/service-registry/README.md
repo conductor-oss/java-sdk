@@ -1,44 +1,40 @@
-# Service Registry in Java with Conductor
+# Service Registry: Register, Health Check, Discover
 
-Service registry workflow that registers a service, performs a health check, and discovers the service endpoint.
+A new service instance starts up but nobody knows it exists until it registers, passes a
+health check, and becomes discoverable by other services. Without a registry, you hard-code
+URLs and deployments break whenever instances scale. This workflow registers the service at
+its URL, runs a health check (12ms latency), and confirms the service is discoverable with
+3 instances.
 
-## The Problem
-
-When a new service instance starts up, it must register itself with a service registry so other services can discover it. After registration, a health check confirms the instance is ready to receive traffic, and then the registry can provide its endpoint to callers.
-
-Without orchestration, registration and health checks are handled by client libraries (Eureka client, Consul agent) with no centralized view of the registration lifecycle. If a health check fails after registration, the instance may still receive traffic from stale discovery cache.
-
-## The Solution
-
-**You just write the registration, health-check, and discovery workers. Conductor handles registration sequencing, health-check retries, and a durable record of every registration lifecycle.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Three workers manage the registration lifecycle: RegisterServiceWorker adds the instance to the registry, HealthCheckWorker confirms it is ready for traffic, and DiscoverServiceWorker retrieves its endpoint for callers.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DiscoverServiceWorker** | `sr_discover_service` | Discovers a service's endpoint from the registry. |
-| **HealthCheckWorker** | `sr_health_check` | Performs a health check on a registered service. |
-| **RegisterServiceWorker** | `sr_register_service` | Registers a service in the service registry. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-sr_register_service
- │
- ▼
-sr_health_check
- │
- ▼
-sr_discover_service
-
+serviceName, serviceUrl, version
+               |
+               v
++-------------------------+     +-------------------+     +------------------------+
+| sr_register_service     | --> | sr_health_check   | --> | sr_discover_service    |
++-------------------------+     +-------------------+     +------------------------+
+  registrationId generated       healthy: true              endpoint:
+  registered: true               latencyMs: 12              {serviceName}.internal:8080
+                                                            instances: 3
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**RegisterServiceWorker** -- Registers `serviceName` at `serviceUrl`. Returns a
+`registrationId`, `registered: true`.
+
+**HealthCheckWorker** -- Checks `serviceUrl`. Returns `healthy: true`, `latencyMs: 12`.
+
+**DiscoverServiceWorker** -- Discovers the service from the registry. Returns
+`endpoint: "{serviceName}.internal:8080"` with `instances: 3` available for load balancing.
+
+## Tests
+
+23 unit tests cover registration, health checking, and service discovery.
+The workflow accepts `serviceName`, `serviceUrl`, and `version` as inputs.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,37 +1,46 @@
-# Implementing OAuth Token Management in Java with Conductor : Grant Validation, Token Issuance, and Compliance Auditing
+# OAuth Token Management
 
-## The Problem
+A client application requests an OAuth token. The system must validate the grant type and client credentials, issue access and refresh tokens with the requested scope, store token metadata for revocation support, and log the issuance event for compliance.
 
-You need to handle OAuth 2.0 token requests end-to-end: validate that the client ID is registered and the grant type (authorization_code, client_credentials, etc.) is permitted, issue scoped access and refresh tokens, store token metadata so tokens can be revoked or introspected later, and write an immutable audit trail for every issuance event.
-
-Without orchestration, you'd wire all of this into a single token endpoint handler. checking credentials, generating JWTs, writing to the token store, and appending audit logs in one long method. If the token store write fails after issuance, you have an untracked token in the wild. If the audit log write throws, you either swallow the error or fail the entire request. Retry logic, failure isolation, and observability all get bolted on as afterthoughts, and the result is a brittle, hard-to-audit token service.
-
-## The Solution
-
-**You just write the grant validation and JWT signing logic. Conductor handles the validate-issue-store-audit sequence, retries a failed token store write without re-issuing, and an immutable audit trail of every token minted.**
-
-Each stage of the token lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in sequence, retrying a failed token store write without re-issuing the token, tracking every step with inputs and outputs for audit, and resuming from the exact failure point if the process crashes mid-issuance.
-
-### What You Write: Workers
-
-Four workers manage the token lifecycle: ValidateGrantWorker checks client credentials and grant type, IssueTokensWorker mints access and refresh tokens, StoreTokenWorker persists metadata for revocation, and AuditLogWorker records every issuance event for compliance.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AuditLogWorker** | `otm_audit_log` | Logs token issuance for compliance. |
-| **IssueTokensWorker** | `otm_issue_tokens` | Issues access and refresh tokens. |
-| **StoreTokenWorker** | `otm_store_token` | Stores token metadata for revocation support. |
-| **ValidateGrantWorker** | `otm_validate_grant` | Validates the OAuth grant type and client credentials. |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> AuditLogWorker -> IssueTokensWorker -> StoreTokenWorker -> ValidateGrantWorker -> Output
-
+otm_validate_grant ──> otm_issue_tokens ──> otm_store_token ──> otm_audit_log
 ```
 
----
+Workflow `oauth_token_management_workflow` accepts `clientId`, `grantType`, and `scope`. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ValidateGrantWorker** (`otm_validate_grant`) -- reads `clientId` and `grantType` from input (both default to `"unknown"`). Reports `"Client " + clientId + ": " + grantType + " grant validated"`. Returns `validate_grantId` = `"VALIDATE_GRANT-1373"`.
+
+**IssueTokensWorker** (`otm_issue_tokens`) -- reads `scope` from input (defaults to `"default"`). Reports `"Access token issued with scope: " + scope`. Returns `issue_tokens` = `true`.
+
+**StoreTokenWorker** (`otm_store_token`) -- stores token metadata for future revocation. Reports `"Token metadata stored for revocation support"`. Returns `store_token` = `true`.
+
+**AuditLogWorker** (`otm_audit_log`) -- logs the token issuance for compliance. Returns `audit_log` = `true` and `completedAt` = `"2024-01-15T10:30:00Z"`.
+
+## Workflow Output
+
+The workflow produces `grantValid`, `tokenId`, `stored`, `auditLogged` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `otm_validate_grant`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `otm_issue_tokens`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `otm_store_token`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `otm_audit_log`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `oauth_token_management_workflow` defines 4 tasks with input parameters `clientId`, `grantType`, `scope` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify grant validation, token issuance, metadata storage, audit logging, and the full OAuth pipeline.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,46 +1,41 @@
-# Performance Profiling in Java Using Conductor : Instrument, Collect Profiles, Analyze Hotspots, and Recommend
+# Performance Profiling
 
-## The Problem
+A service needs performance analysis. The pipeline instruments the service for the specified profile type, collects samples for the configured duration, analyzes hotspots in the sample data, and generates optimization recommendations.
 
-Your service is slow and you need to find out why. Performance profiling requires instrumenting the service to collect profile data (CPU sampling, memory allocation tracking), analyzing the profiles to find hotspots (methods consuming the most CPU, objects causing the most GC), and generating actionable recommendations ("this method is O(n^2). consider a hashmap").
-
-Without orchestration, profiling is a manual process. an engineer SSHs to a server, runs async-profiler, downloads the flame graph, and eyeballs it. There's no automated pipeline from instrumentation to recommendation, and profiles are lost after the session ends.
-
-## The Solution
-
-**You just write the profiler integration and hotspot analysis logic. Conductor handles the instrument-collect-analyze-recommend sequence, retries when profiler attachment fails, and a durable record of every profiling session's findings and recommendations.**
-
-Each profiling step is an independent worker. instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations.
-
-### What You Write: Workers
-
-Four workers run each profiling session: PrfInstrumentWorker attaches the profiler, CollectProfileWorker gathers CPU and memory samples, AnalyzeHotspotsWorker identifies the costliest methods, and a RecommendWorker generates specific optimization suggestions.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeHotspotsWorker** | `prf_analyze_hotspots` | Analyzes collected profile samples to identify CPU hotspots (e.g., methods consuming the most CPU) and their percentages |
-| **CollectProfileWorker** | `prf_collect_profile` | Collects CPU/memory profile data over the configured duration, returning sample count and profile size |
-| **PrfInstrumentWorker** | `prf_instrument` | Attaches a profiler to the target service for the specified profile type (CPU/memory), reporting overhead percentage |
-| **RecommendWorker** | `prf_recommend` | Generates optimization recommendations based on hotspot findings, with estimated improvement and a report URL |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-prf_instrument
- │
- ▼
-prf_collect_profile
- │
- ▼
-prf_analyze_hotspots
- │
- ▼
-prf_recommend
-
+prf_instrument ──> prf_collect_profile ──> prf_analyze_hotspots ──> prf_recommend
 ```
 
----
+Workflow `performance_profiling_430` accepts `serviceName`, `profilingDuration`, and `profileType`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**PrfInstrumentWorker** (`prf_instrument`) -- instruments the service for the specified profile type.
+
+**CollectProfileWorker** (`prf_collect_profile`) -- collects profile data for the configured duration.
+
+**AnalyzeHotspotsWorker** (`prf_analyze_hotspots`) -- analyzes the collected samples for hotspots.
+
+**RecommendWorker** (`prf_recommend`) -- generates optimization recommendations based on the hotspot count.
+
+## Workflow Output
+
+The workflow produces `sampleCount`, `hotspotCount`, `topHotspot`, `recommendationCount`, `reportUrl` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `performance_profiling_430` defines 4 tasks with input parameters `serviceName`, `profilingDuration`, `profileType` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify instrumentation, profile collection, hotspot analysis, and recommendation generation.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

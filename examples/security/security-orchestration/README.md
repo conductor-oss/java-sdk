@@ -1,46 +1,41 @@
-# Implementing Security Orchestration (SOAR) in Java with Conductor : Alert Ingestion, Enrichment, Decision, and Playbook Execution
+# Security Orchestration (SOAR)
 
-## The Problem
+A CrowdStrike alert fires. The system must ingest the alert, enrich it with threat intel, asset context, and user history, decide on an action plan (isolate host, block C2 domain, collect forensics), and execute the playbook automatically.
 
-Your SOC receives hundreds of alerts daily from multiple sources. SIEM, EDR, IDS, cloud security tools. Each alert must be ingested, enriched with context (is this a known-bad IP? what asset is affected? who owns it?), triaged (true positive vs false positive, severity level), and responded to with an automated playbook (isolate host, block IP, reset credentials). Without automation, analysts manually investigate each alert, and most of their time is spent on enrichment rather than response.
-
-Without orchestration, SOAR is a collection of scripts that run independently. Enrichment queries three different tools, the triage decision is in the analyst's head, and playbook execution is a separate runbook. There's no unified pipeline from alert to response, and no tracking of which alerts were handled and how.
-
-## The Solution
-
-**You just write the alert enrichment and response playbooks. Conductor handles the alert-to-playbook pipeline, retries when enrichment APIs are unavailable, and tracks mean time to respond for every incident from ingestion to resolution.**
-
-Each SOAR step is an independent worker. alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution, you can measure mean time to respond and audit every automated action.
-
-### What You Write: Workers
-
-The SOAR pipeline chains IngestAlertWorker to receive alerts from SIEM/EDR sources, EnrichWorker to add threat intel and asset context, DecideActionWorker to triage and select the response, and ExecutePlaybookWorker to run automated containment actions.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DecideActionWorker** | `soar_decide_action` | Determines the response actions based on enriched alert data (e.g., isolate host, block C2 domain) |
-| **EnrichWorker** | `soar_enrich` | Adds threat intelligence, asset context, and user history to the raw alert |
-| **ExecutePlaybookWorker** | `soar_execute_playbook` | Executes the decided response playbook. host isolation, domain blocking, forensic collection |
-| **IngestAlertWorker** | `soar_ingest_alert` | Ingests a security alert from an external source (e.g., CrowdStrike, Splunk) |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-soar_ingest_alert
- │
- ▼
-soar_enrich
- │
- ▼
-soar_decide_action
- │
- ▼
-soar_execute_playbook
-
+soar_ingest_alert ──> soar_enrich ──> soar_decide_action ──> soar_execute_playbook
 ```
 
----
+Workflow `security_orchestration_workflow` accepts `alertId` and `alertSource`. Times out after `300` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**IngestAlertWorker** (`soar_ingest_alert`) -- ingests the alert. Reports `"Alert ALERT-2024-commission-insurance from crowdstrike"`. Returns `ingest_alertId` = `"INGEST_ALERT-1352"`.
+
+**EnrichWorker** (`soar_enrich`) -- adds context. Reports `"Added threat intel, asset context, user history"`. Returns `enrich` = `true`.
+
+**DecideActionWorker** (`soar_decide_action`) -- determines response. Reports `"Action: isolate host, block C2 domain, collect forensics"`. Returns `decide_action` = `true`.
+
+**ExecutePlaybookWorker** (`soar_execute_playbook`) -- executes the response plan. Reports `"Host isolated, C2 domain blocked, forensic collection started"`. Returns `execute_playbook` = `true`.
+
+## Workflow Output
+
+The workflow produces `ingest_alertResult`, `execute_playbookResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `security_orchestration_workflow` defines 4 tasks with input parameters `alertId`, `alertSource` and a timeout of `300` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end SOAR pipeline from alert ingestion through playbook execution.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,46 +1,46 @@
-# Choreography Vs Orchestration in Java with Conductor
+# Order Fulfillment: Place, Reserve, Pay, Ship
 
-Service A publishes an `order.created` event. Service B picks it up and reserves inventory. Service C is supposed to process the payment; but someone on the payments team renamed the topic from `order.created` to `orders.new` three sprints ago, and nobody updated the documentation. So Service C never fires. The order sits in "reserved" limbo. There's no central view of the flow, no shared transaction ID, and debugging means correlating logs across four services to discover that the event your payment service is listening for simply doesn't exist anymore. This example replaces invisible choreography with explicit Conductor orchestration: place order, reserve inventory, process payment, ship: each step visible, traceable, and retriable from a single execution view. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
+In a choreography model, each service emits events and hopes the next one picks them up. In
+this orchestrated version, the workflow explicitly sequences order placement, inventory
+reservation (with a real `INVENTORY` map tracking stock for widget/gadget/gizmo/doohickey/
+thingamajig), payment processing (with idempotency key deduplication), and shipping.
 
-## The Problem
-
-An e-commerce order involves placing the order, reserving inventory, processing payment, and shipping. Four services that must coordinate. In a choreography approach, each service emits events and the next service reacts, but the overall flow is invisible and failures are hard to trace. Orchestration makes the flow explicit: Conductor drives each step, passes data between services, and provides a single execution view.
-
-Without orchestration (pure choreography), you lose visibility into the end-to-end order flow. If the payment service silently drops an event, the order is stuck with no alert. Debugging requires correlating logs across four services with no shared transaction ID.
-
-## The Solution
-
-**You just write the order, inventory, payment, and shipping workers. Conductor handles cross-service sequencing, compensating retries, and end-to-end order traceability.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. Your workers just make the service calls.
-
-### What You Write: Workers
-
-The order flow chains four domain workers: PlaceOrderWorker creates the order, ReserveInventoryWorker holds stock, ProcessPaymentWorker charges the customer, and ShipOrderWorker dispatches the shipment.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **PlaceOrderWorker** | `cvo_place_order` | Creates the order record with items and computes the order total. |
-| **ProcessPaymentWorker** | `cvo_process_payment` | Charges the order total to the customer's payment method. |
-| **ReserveInventoryWorker** | `cvo_reserve_inventory` | Reserves the ordered items in the warehouse and returns the warehouse ID for shipping. |
-| **ShipOrderWorker** | `cvo_ship_order` | Creates a shipment from the assigned warehouse and returns a tracking ID. |
-
-### The Workflow
+## Workflow
 
 ```
-cvo_place_order
- │
- ▼
-cvo_reserve_inventory
- │
- ▼
-cvo_process_payment
- │
- ▼
-cvo_ship_order
-
+orderId, items, customerId
+           |
+           v
++--------------------+     +--------------------------+     +------------------------+     +-------------------+
+| cvo_place_order    | --> | cvo_reserve_inventory    | --> | cvo_process_payment    | --> | cvo_ship_order    |
++--------------------+     +--------------------------+     +------------------------+     +-------------------+
+  status: "placed"          reserves from INVENTORY map      duplicate detection via       trackingId generated
+  itemCount, total          {widget:500, gadget:200,         idempotencyKey                warehouse + carrier
+  totalQuantity             gizmo:150, doohickey:75,         transactionId: TXN-...        estimatedDelivery
+                            thingamajig:300}
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**PlaceOrderWorker** -- Takes `orderId`, `items` list, and `customerId`. Computes `total`
+and `totalQuantity` from items. Returns `status: "placed"` with a timestamp.
+
+**ReserveInventoryWorker** -- Maintains a static `INVENTORY` map with 5 products. Checks
+stock for each item and reserves quantities. Returns `reserved` boolean and `reservations`
+list. Fails if any item has insufficient stock.
+
+**ProcessPaymentWorker** -- Generates an idempotency key from orderId + amount. Detects
+duplicate payments by checking a `PROCESSED_PAYMENTS` set. Returns `transactionId` like
+`"TXN-..."` and a `charged` flag.
+
+**ShipOrderWorker** -- Ships the order from a deterministic warehouse with a carrier.
+Returns `trackingId`, `shippedAt`, and `estimatedDelivery` (3 days out).
+
+## Tests
+
+18 unit tests cover order placement, inventory reservation, payment idempotency, and
+shipping.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

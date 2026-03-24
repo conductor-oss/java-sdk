@@ -1,47 +1,49 @@
-# Service Versioning in Java with Conductor
+# API Version Routing with Deprecation Tracking
 
-API version management with version routing.
+Clients send an `apiVersion` header, but you need to route v1 requests to the legacy handler
+and v2 requests to the new handler -- while logging which versions are still in use so you
+know when to sunset v1. This workflow resolves the version, routes via SWITCH, and logs
+usage.
 
-## The Problem
-
-When an API evolves, clients on different versions must be served correctly. This workflow resolves the requested API version (mapping aliases like 'latest' to 'v2'), routes to the correct versioned handler (v1 or v2), and logs the version usage for deprecation tracking.
-
-Without orchestration, version routing is embedded in API gateway config or application code with if/else branches. Tracking which clients are still using deprecated versions requires parsing access logs, and adding a v3 means modifying the routing logic.
-
-## The Solution
-
-**You just write the version-resolver, versioned API handlers, and usage-logging workers. Conductor handles version-based routing via SWITCH, per-version retries, and usage analytics for deprecation decisions.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers manage API versioning: ResolveVersionWorker maps aliases like 'latest' to a concrete version, CallV1Worker and CallV2Worker serve their respective APIs, and LogVersionUsageWorker tracks usage for deprecation planning.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CallV1Worker** | `sv_call_v1` | Handles requests using the v1 (legacy) API handler. |
-| **CallV2Worker** | `sv_call_v2` | Handles requests using the v2 (current) API handler. |
-| **LogVersionUsageWorker** | `sv_log_version_usage` | Logs which API version was requested and resolved, for deprecation tracking. |
-| **ResolveVersionWorker** | `sv_resolve_version` | Resolves the requested API version to a concrete version (e.g., 'latest' -> 'v2') and flags deprecated versions. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-sv_resolve_version
- │
- ▼
-SWITCH (route_ref)
- ├── v2: sv_call_v2
- └── default: sv_call_v1
- │
- ▼
-sv_log_version_usage
-
+apiVersion, request
+         |
+         v
++------------------------+
+| sv_resolve_version     |   resolvedVersion, deprecated: true if v1
++------------------------+
+         |
+         v
+    SWITCH on resolvedVersion
+    +--"v1"--------------+--"v2"-------------+
+    | sv_call_v1         | sv_call_v2        |
+    | response:          | response:         |
+    |   "v1-response"    |   "v2-response"   |
+    +--------------------+-------------------+
+         |
+         v
++------------------------+
+| sv_log_version_usage   |   logged: true
++------------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ResolveVersionWorker** -- Resolves `apiVersion` to a `resolvedVersion`. Marks
+`deprecated: true` if the resolved version is `"v1"`.
+
+**CallV1Worker** -- Processes with the legacy API. Returns `response: "v1-response"`.
+
+**CallV2Worker** -- Processes with the new API. Returns `response: "v2-response"`.
+
+**LogVersionUsageWorker** -- Logs the resolved version usage. Returns `logged: true`.
+
+## Tests
+
+8 unit tests cover version resolution, v1/v2 routing, and usage logging.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

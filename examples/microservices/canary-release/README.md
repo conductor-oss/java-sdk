@@ -1,51 +1,40 @@
-# Canary Release in Java with Conductor
+# Graduated Canary Release: 10% to 50% to Full Rollout
 
-Canary release with progressive traffic increase.
+Shifting 100% of traffic to a new version at once is a gamble. This workflow deploys a
+canary at 10%, monitors it (error rate 0.02%, p99 latency 48ms, 0 anomalies), increases
+traffic to 50% with 5 instances, monitors again, and then does a full rollout to 100%.
 
-## The Problem
-
-A canary release progressively increases traffic to a new version in stages (e.g., 5% -> 50% -> 100%), monitoring health at each stage before proceeding. If anomalies are detected at any stage, the release is halted and traffic stays on the stable version.
-
-Without orchestration, multi-stage rollouts require chaining CI/CD jobs with manual gates between stages, and there is no durable record of which stage was active when an issue occurred. Restarting a failed rollout from the correct stage requires manual intervention.
-
-## The Solution
-
-**You just write the canary deploy, monitor, traffic-increase, and rollout workers. Conductor handles multi-stage progression, durable pause between stages, and crash-safe recovery mid-rollout.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-This progressive release uses four workers: DeployCanaryWorker starts the canary at an initial traffic percentage, MonitorCanaryWorker watches for anomalies, IncreaseTrafficWorker bumps the percentage, and FullRolloutWorker promotes to 100%.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DeployCanaryWorker** | `cy_deploy_canary` | Deploys the new version at an initial traffic percentage (e.g., 5%). |
-| **FullRolloutWorker** | `cy_full_rollout` | Promotes the canary to 100% traffic, completing the release. |
-| **IncreaseTrafficWorker** | `cy_increase_traffic` | Increases the canary traffic percentage to the next stage (e.g., 50%) and scales up canary instances. |
-| **MonitorCanaryWorker** | `cy_monitor_canary` | Monitors error rate, p99 latency, and anomalies during a configured monitoring window. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-cy_deploy_canary
- │
- ▼
-cy_monitor_canary
- │
- ▼
-cy_increase_traffic
- │
- ▼
-cy_monitor_canary
- │
- ▼
-cy_full_rollout
-
+appName, newVersion
+       |
+       v
++--------------------+     +---------------------+     +------------------------+     +---------------------+     +--------------------+
+| cy_deploy_canary   | --> | cy_monitor_canary   | --> | cy_increase_traffic    | --> | cy_monitor_canary   | --> | cy_full_rollout    |
++--------------------+     +---------------------+     +------------------------+     +---------------------+     +--------------------+
+  1 instance at 10%          errorRate: 0.02%            traffic -> 50%                 second monitor pass     trafficPercent: 100%
+  deployedAt timestamp        p99: 48ms                  5 instances                                              complete: true
+                              anomalies: 0
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DeployCanaryWorker** -- Deploys `appName:newVersion` with `canaryInstances: 1` at
+`trafficPercent: 10`.
+
+**MonitorCanaryWorker** -- Monitors at the current traffic percentage. Returns
+`errorRate: 0.02`, `p99Latency: "48ms"`, `anomaliesDetected: 0`, `healthy: true`.
+
+**IncreaseTrafficWorker** -- Bumps traffic to 50% with `canaryInstances: 5`.
+
+**FullRolloutWorker** -- Completes the rollout: `trafficPercent: 100`, `status: "success"`,
+`complete: true`.
+
+## Tests
+
+9 unit tests cover canary deploy, monitoring, traffic increase, and full rollout.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

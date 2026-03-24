@@ -1,49 +1,40 @@
-# Switch Javascript in Java with Conductor
+# Switch with JavaScript Evaluator
 
-SWITCH with JavaScript evaluator for complex routing based on amount, customerType, and region.
+A SWITCH task uses JavaScript expressions to evaluate complex routing conditions based on `amount`, `customerType`, and `region`. VIP customers with high-value orders go to a concierge, EU orders get compliance processing, and everything else follows the standard path.
 
-## The Problem
-
-You need to route order processing based on multiple criteria simultaneously. not just a single field. VIP customers with high-value orders (amount > $1,000) get white-glove concierge service. VIP customers with standard orders get priority processing. Non-VIP orders over $5,000 require manual review for fraud screening. EU region orders need compliance processing (VAT, GDPR). Everything else goes through standard processing. A simple value-param SWITCH can only match on one field, but this routing logic depends on amount AND customerType AND region evaluated together.
-
-Without orchestration, you'd write nested if/else conditions: `if (customerType == "vip" && amount > 1000)` then concierge, `else if (customerType == "vip")` then priority, etc. Adding a new routing rule means modifying deeply nested conditionals and retesting every path. There is no record of which evaluation path was taken for a given order, making it impossible to audit why an order was or was not flagged for review.
-
-## The Solution
-
-**You just write the per-route processing and finalization workers. Conductor handles the JavaScript-based multi-criteria evaluation and branch routing.**
-
-This example demonstrates Conductor's SWITCH task with a JavaScript evaluator. multi-criteria routing logic evaluated server-side. The JavaScript expression takes amount, customerType, and region as inputs and returns a case label: `vip_high` (VIP + amount > $1,000), `vip_standard` (VIP, any amount), `needs_review` (amount > $5,000, non-VIP), `eu_processing` (EU region), or `standard` (everything else). Each case routes to a dedicated worker. VipConciergeWorker handles white-glove VIP orders, ManualReviewWorker flags high-value orders for fraud screening, EuHandlerWorker handles EU compliance, and StandardWorker processes normal orders. After the SWITCH resolves, FinalizeWorker runs regardless of branch. Conductor records the JavaScript evaluation result, so you can see exactly which routing decision was made and why.
-
-### What You Write: Workers
-
-Five workers handle the multi-criteria routing outcomes: VipConciergeWorker for high-value VIP orders, VipPriorityWorker for standard VIP orders, ManualReviewWorker for fraud screening, EuHandlerWorker for EU compliance, StandardWorker for normal processing, and FinalizeWorker for the common completion step.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **EuHandlerWorker** | `swjs_eu_handler` | Handles orders from the EU region for compliance processing. |
-| **FinalizeWorker** | `swjs_finalize` | Common finalization step that runs after the SWITCH regardless of which branch was taken. |
-| **ManualReviewWorker** | `swjs_manual_review` | Handles high-value orders that require manual review (amount > 5000, non-VIP). |
-| **StandardWorker** | `swjs_standard` | Default handler for orders that don't match any special criteria. |
-| **VipConciergeWorker** | `swjs_vip_concierge` | Handles VIP customers with high-value orders (amount > 1000). |
-| **VipStandardWorker** | `swjs_vip_standard` | Handles VIP customers with standard-value orders. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-SWITCH (route_order_ref)
- ├── vip_high: swjs_vip_concierge
- ├── vip_standard: swjs_vip_standard
- ├── needs_review: swjs_manual_review
- ├── eu_processing: swjs_eu_handler
- └── default: swjs_standard
- │
- ▼
-swjs_finalize
-
+SWITCH(javascript expression)
+  ├── "vip_concierge" ──> swjs_vip_concierge
+  ├── "vip_standard" ──> swjs_vip_standard
+  ├── "eu_handler" ──> swjs_eu_handler
+  ├── "manual_review" ──> swjs_manual_review
+  └── default ──> swjs_standard
+                     │
+               swjs_finalize
 ```
 
----
+Workflow `switch_js_demo` accepts `amount`, `customerType`, and `region`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**VipConciergeWorker** (`swjs_vip_concierge`) -- handles VIP high-value orders.
+
+**VipStandardWorker** (`swjs_vip_standard`) -- handles VIP standard orders.
+
+**EuHandlerWorker** (`swjs_eu_handler`) -- applies EU compliance processing.
+
+**ManualReviewWorker** (`swjs_manual_review`) -- flags high-value orders for review.
+
+**StandardWorker** (`swjs_standard`) -- standard order processing.
+
+**FinalizeWorker** (`swjs_finalize`) -- finalizes all orders after routing.
+
+## Tests
+
+20 tests verify JavaScript expression evaluation for each routing combination and the finalize step.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

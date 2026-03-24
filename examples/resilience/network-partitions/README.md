@@ -1,32 +1,41 @@
-# Implementing Network Partition Handling in Java with Conductor : Resilient Workers with Reconnection Tracking
+# Network Partitions
 
-## The Problem
+A distributed worker loses connectivity to the Conductor server during a cloud provider outage. When the network heals, the worker must reconnect and resume processing without duplicating work. The system needs to track how many reconnection attempts occurred so operators can correlate partition events with infrastructure incidents.
 
-In distributed systems, network partitions happen. the worker loses connectivity to the Conductor server due to infrastructure issues, DNS failures, or cloud provider outages. During a partition, the worker can't poll for tasks or report results. When connectivity resumes, the worker must reconnect and resume processing without duplicating work or losing progress.
-
-Without orchestration, network partition handling means custom reconnection logic, heartbeat monitoring, and manual state reconciliation. Each worker implements its own retry-on-disconnect behavior. Some workers crash on disconnect, some silently stop processing, and some lose in-flight work.
-
-## The Solution
-
-The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant. when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved.
-
-### What You Write: Workers
-
-NetworkPartitionWorker tracks connection attempts and processes tasks resiliently, automatically resuming work when connectivity to the Conductor server is restored after a network interruption.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **NetworkPartitionWorker** | `np_resilient_task` | Worker for np_resilient_task. Demonstrates handling network partitions. Tracks attempt count using an AtomicInteger.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
 np_resilient_task
-
 ```
 
----
+Workflow `network_partitions_demo` accepts `data` as input. The task definition for `np_resilient_task` is configured with `retryCount` = `3`, `retryLogic` = `FIXED`, `retryDelaySeconds` = `1`, `timeoutSeconds` = `60`, and `responseTimeoutSeconds` = `30`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**NetworkPartitionWorker** (`np_resilient_task`) -- maintains an `AtomicInteger` called `attemptCounter` that increments on every invocation. Reads `data` from task input (defaults to empty string if absent). Returns `result` = `"done-" + data` and `attempt` = the current counter value. Exposes `getAttemptCount()` and `reset()` methods for external monitoring and testing. The counter persists across invocations within the same JVM, so reconnection after a partition shows the accumulated attempt count.
+
+## Workflow Output
+
+The workflow produces `result`, `attempt` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `np_resilient_task`: retryCount=3, retryLogic=FIXED, retryDelaySeconds=1, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `network_partitions_demo` defines 1 task with input parameters `data` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Network partitions demo -- resilient worker that tracks attempts and handles reconnection.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+9 tests verify successful processing, attempt counter tracking across multiple invocations, reconnection behavior after simulated partitions, and that the `retryCount`/`retryDelaySeconds` task definition settings are respected.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

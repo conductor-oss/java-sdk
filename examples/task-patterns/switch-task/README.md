@@ -1,47 +1,55 @@
-# Switch Task in Java with Conductor
+# Switch Task
 
-SWITCH task demo. routes support tickets to different handlers based on priority level (LOW/MEDIUM/HIGH) with a default catch-all for unrecognized values. Uses Conductor's `value-param` evaluator for declarative conditional branching without JavaScript expressions. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
+A support ticket routing system uses a SWITCH task to route tickets by `priority`. High priority escalates to a manager, medium assigns to a team, low auto-resolves, and unknown priorities go to a default classification handler. A log task records the action taken.
 
-## The Problem
-
-You need to route support tickets to different handlers based on priority. LOW priority tickets should be auto-resolved with a canned response. MEDIUM priority tickets should be assigned to the support team for review. HIGH priority tickets should be immediately escalated to a manager. Unknown or missing priorities should be flagged for triage. After the ticket is handled: regardless of which priority path was taken, the action must be logged for audit and SLA tracking.
-
-Without orchestration, you'd write a switch statement or if/else chain, calling different handler functions based on the priority string. When a new priority level is added (e.g., CRITICAL), you modify the routing code and hope the else clause still catches edge cases. If the escalation handler fails for a HIGH ticket, there is no automatic retry, and the ticket sits unhandled. There is no record of which handler processed a given ticket without searching through application logs.
-
-## The Solution
-
-**You just write the priority-specific ticket handlers and the audit logger. Conductor handles the SWITCH routing, default-case fallback, and execution tracking.**
-
-This example demonstrates Conductor's SWITCH task with `value-param` evaluator for ticket priority routing. The SWITCH matches on the `priority` input: `LOW` routes to AutoHandleWorker (auto-resolution), `MEDIUM` routes to TeamReviewWorker (team assignment), `HIGH` routes to EscalateWorker (manager escalation), and unrecognized values fall to the default case handled by UnknownPriorityWorker (triage flagging). After the SWITCH resolves, LogActionWorker records the action taken on the ticket regardless of which branch executed. Conductor tracks which priority branch was taken for every ticket, giving you a complete audit trail of ticket routing decisions.
-
-### What You Write: Workers
-
-Five workers cover the priority-based ticket routing: AutoHandleWorker auto-resolves LOW tickets, TeamReviewWorker assigns MEDIUM tickets, EscalateWorker pages managers for HIGH tickets, UnknownPriorityWorker flags unrecognized values, and LogActionWorker records the audit trail after every branch.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AutoHandleWorker** | `sw_auto_handle` | Handles LOW priority tickets: returns handler="auto" and resolved=true, indicating the ticket was auto-resolved without human intervention. |
-| **TeamReviewWorker** | `sw_team_review` | Handles MEDIUM priority tickets: returns handler="team" and assignedTo="support-team-1", indicating the ticket was routed to a support team for manual review. |
-| **EscalateWorker** | `sw_escalate` | Handles HIGH priority tickets: returns handler="manager" and escalatedTo="manager@example.com", indicating immediate manager escalation. |
-| **UnknownPriorityWorker** | `sw_unknown_priority` | Handles unrecognized priority values (default case): returns handler="default" and needsClassification=true, flagging the ticket for triage. |
-| **LogActionWorker** | `sw_log_action` | Runs after every SWITCH branch. Logs the ticketId and priority, returns logged=true to confirm the audit trail entry was recorded. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-SWITCH (route_ref)
- ├── LOW: sw_auto_handle
- ├── MEDIUM: sw_team_review
- ├── HIGH: sw_escalate
- └── default: sw_unknown_priority
- │
- ▼
-sw_log_action
-
+SWITCH(priority)
+  ├── "high" ──> escalate to manager
+  ├── "medium" ──> assign to team
+  ├── "low" ──> auto-resolve
+  └── default ──> classify
+                    │
+             sw_log_action
 ```
 
----
+Workflow `switch_demo` accepts `ticketId`, `priority`, and `description`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**EscalateWorker** (`manager`) -- escalates to `manager@example.com`.
+
+**TeamReviewWorker** (`team`) -- assigns to `support-team-1`.
+
+**AutoHandleWorker** (`auto`) -- auto-resolves the ticket.
+
+**UnknownPriorityWorker** (`default`) -- flags for classification.
+
+**LogActionWorker** (`sw_log_action`) -- logs the action taken for the ticket.
+
+## Workflow Output
+
+The workflow produces `ticketId`, `priority`, `logged` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `sw_auto_handle`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sw_team_review`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sw_escalate`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sw_unknown_priority`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `sw_log_action`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 5 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `switch_demo` defines 2 tasks with input parameters `ticketId`, `priority`, `description` and a timeout of `60` seconds.
+
+## Tests
+
+7 tests verify routing for each priority level, default case handling, and action logging.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

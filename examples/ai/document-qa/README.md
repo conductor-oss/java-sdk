@@ -1,48 +1,57 @@
-# Document QA in Java with Conductor : Ingest, Chunk, Index, and Answer Questions About Documents
+# Answering Questions About a Q4 Earnings Report
 
-## Asking Questions Instead of Reading Entire Documents
+A user uploads a 24-page Q4 Earnings Report PDF and asks "What was the total revenue?" Instead of reading all 24 pages, the system ingests the document, splits it into 42 semantic chunks, builds a vector index, retrieves the top relevant chunks, and synthesizes a natural-language answer with a confidence score.
 
-Users should not have to read a 50-page document to find one answer. Document QA systems let users ask natural language questions and get answers with confidence scores. But building this requires a pipeline: fetch the document, split it into chunks small enough for semantic search, index those chunks, find the most relevant ones for the question, and synthesize an answer from the retrieved context.
-
-This workflow handles the full pipeline. The ingester fetches the document from the provided URL. The chunker splits the document into manageable segments. The indexer stores the chunks in a searchable index. The query worker searches the index using the user's question and retrieves the most relevant chunks. The answer worker synthesizes a natural language answer from those chunks along with a confidence score.
-
-## The Solution
-
-**You just write the document-ingestion, chunking, indexing, querying, and answer-generation workers. Conductor handles the five-step RAG pipeline.**
-
-Five workers form the QA pipeline. document ingestion, chunking, indexing, querying, and answering. The ingester downloads and parses the document. The chunker splits it into segments suitable for semantic search. The indexer creates a searchable index. The query worker finds the chunks most relevant to the question. The answer worker generates a response from those chunks with a confidence score. Conductor sequences all five steps and passes the document content, chunks, index ID, and relevant chunks between them.
-
-### What You Write: Workers
-
-IngestWorker fetches the document, ChunkWorker splits it for search, IndexWorker creates the vector index, QueryWorker retrieves relevant chunks, and AnswerWorker synthesizes a response with a confidence score.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnswerWorker** | `dqa_answer` | Synthesizes a natural-language answer from the retrieved chunks, with a confidence score. |
-| **ChunkWorker** | `dqa_chunk` | Splits the ingested document into semantically meaningful chunks for search indexing. |
-| **IndexWorker** | `dqa_index` | Creates a vector index from the document chunks using an embedding model. |
-| **IngestWorker** | `dqa_ingest` | Fetches and parses the document from the provided URL (PDF, HTML, etc.). |
-| **QueryWorker** | `dqa_query` | Searches the index with the user's question and retrieves the top relevant chunks. |
-
-### The Workflow
+## Workflow
 
 ```
-dqa_ingest
- │
- ▼
-dqa_chunk
- │
- ▼
-dqa_index
- │
- ▼
-dqa_query
- │
- ▼
-dqa_answer
-
+documentUrl, question
+       │
+       ▼
+┌──────────────┐
+│ dqa_ingest   │  Fetch and parse document
+└──────┬───────┘
+       │  document {title, pages: 24, wordCount: 8500, format: "pdf"}
+       ▼
+┌──────────────┐
+│ dqa_chunk    │  Split into 42 semantic chunks
+└──────┬───────┘
+       │  chunks[], chunkCount: 42
+       ▼
+┌──────────────┐
+│ dqa_index    │  Create vector index with embeddings
+└──────┬───────┘
+       │  indexId: "IDX-<base36-timestamp>", dimensions: 1536
+       ▼
+┌──────────────┐
+│ dqa_query    │  Retrieve top relevant chunks
+└──────┬───────┘
+       │  relevantChunks [{id: 5, text: "Total revenue Q4: $2.4B", score: 0.96}]
+       ▼
+┌──────────────┐
+│ dqa_answer   │  Synthesize answer from chunks
+└──────────────┘
+       │
+       ▼
+  chunkCount: 42, answer, confidence: 0.95
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**IngestWorker** (`dqa_ingest`) -- Logs the `documentUrl` from input and returns a document metadata map: `title: "Q4 Earnings Report"`, `pages: 24`, `wordCount: 8500`, `format: "pdf"`.
+
+**ChunkWorker** (`dqa_chunk`) -- Returns a fixed chunk list with one sample entry `{id: 0, text: "Revenue grew 15%"}`, reports `chunkCount: 42` and `strategy: "semantic"`.
+
+**IndexWorker** (`dqa_index`) -- Generates a unique index ID using `"IDX-" + Long.toString(System.currentTimeMillis(), 36).toUpperCase()`. Reports `embeddingModel: "text-embedding-3-small"` and `dimensions: 1536`.
+
+**QueryWorker** (`dqa_query`) -- Returns a list of relevant chunks, with the top result being `{id: 5, text: "Total revenue Q4: $2.4B", score: 0.96}`.
+
+**AnswerWorker** (`dqa_answer`) -- Produces the answer `"Q4 total revenue was $2.4 billion, a 15% YoY increase."` with `confidence: 0.95` and `sourceChunks: [5, 8, 12]` indicating which chunk IDs contributed.
+
+## Tests
+
+10 tests across 5 test files cover each stage of the document QA pipeline.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

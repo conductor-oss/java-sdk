@@ -1,44 +1,50 @@
-# Chatbot Orchestration in Java with Conductor : Intent Detection and Response Generation Pipeline
+# Routing a Chat Message from Intent Detection to Response Delivery
 
-## Turning a User Message into an Intelligent Response
+A customer types "I want a refund for the Pro Plan" into a webchat. Before a response can be generated, the system must capture the message with its session context, classify the intent, extract relevant entities (product name, dollar amount), generate an intent-specific reply, and deliver it back on the correct channel. All four steps must execute in strict order.
 
-A chatbot needs to do more than echo text back. Each incoming message must be received with its session context, analyzed for intent (is this a refund request? a cancellation? a general question?), used to generate a relevant response, and delivered back to the user's channel. These steps must happen in sequence. you cannot generate a response without knowing the intent, and you cannot deliver without a response.
-
-This workflow models a single conversation turn. The receive step captures the message and loads session context. The intent classifier analyzes the message text, detecting intents like `request_refund`, `cancel_subscription`, or `general_inquiry` with a confidence score, and extracts entities (product name, dollar amount). The response generator uses the detected intent and entities to craft a reply. The delivery step sends the response back to the user's session.
-
-## The Solution
-
-**You just write the message-receiving, intent-detection, response-generation, and delivery workers. Conductor handles the conversation-turn pipeline.**
-
-Four workers handle one chatbot turn. message receiving, intent understanding, response generation, and delivery. The intent worker scans for keywords like "refund" and "cancel" to classify the message and extract entities like product names and amounts. The response generator uses the classified intent and extracted entities to produce a relevant reply. Conductor sequences the four steps and tracks every conversation turn with full input/output visibility.
-
-### What You Write: Workers
-
-ReceiveWorker captures the message with session context, UnderstandIntentWorker classifies intent and extracts entities, GenerateResponseWorker crafts a reply, and DeliverWorker sends it back. One conversation turn, four independent steps.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DeliverWorker** | `cbo_deliver` | Sends the generated response back to the user's session/channel. |
-| **GenerateResponseWorker** | `cbo_generate_response` | Crafts a contextual reply based on the detected intent and extracted entities. |
-| **ReceiveWorker** | `cbo_receive` | Captures the incoming user message and loads session context. |
-| **UnderstandIntentWorker** | `cbo_understand_intent` | Classifies the message intent (refund, cancellation, inquiry) and extracts entities (product name, amount). |
-
-### The Workflow
+## Workflow
 
 ```
-cbo_receive
- │
- ▼
-cbo_understand_intent
- │
- ▼
-cbo_generate_response
- │
- ▼
-cbo_deliver
-
+userId, message, sessionId
+       │
+       ▼
+┌─────────────┐
+│ cbo_receive  │  Capture message + load session context
+└──────┬──────┘
+       │  context {previousTurns: 3, topic: "billing"}
+       ▼
+┌────────────────────────┐
+│ cbo_understand_intent  │  Classify intent + extract entities
+└──────────┬─────────────┘
+           │  intent, confidence, entities
+           ▼
+┌────────────────────────┐
+│ cbo_generate_response  │  Craft intent-specific reply
+└──────────┬─────────────┘
+           │  response, model, tokensUsed
+           ▼
+┌──────────────┐
+│ cbo_deliver  │  Send to webchat channel
+└──────────────┘
+       │
+       ▼
+  intent, response, delivered
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ReceiveWorker** (`cbo_receive`) -- Logs the incoming message with its `userId`, then returns a context map with `previousTurns: 3` and `topic: "billing"`. Stamps `receivedAt` with `Instant.now().toString()`.
+
+**UnderstandIntentWorker** (`cbo_understand_intent`) -- Lowercases the message and applies keyword matching: `msg.contains("refund")` maps to `"request_refund"`, `msg.contains("cancel")` maps to `"cancel_subscription"`, everything else falls through to `"general_inquiry"`. Always reports a confidence of `0.94`. Extracts hardcoded entities: `product: "Pro Plan"`, `amount: "$49.99"`.
+
+**GenerateResponseWorker** (`cbo_generate_response`) -- Selects from a `Map.of()` of three canned responses keyed by intent. The refund response mentions the Pro Plan and $49.99 amount. The cancellation response offers to walk through the process. The general inquiry response asks for more detail. Reports `model: "gpt-4"` and `tokensUsed: 85`.
+
+**DeliverWorker** (`cbo_deliver`) -- Marks the response as delivered (`delivered: true`) on the `"webchat"` channel with a `latencyMs` of 320.
+
+## Tests
+
+8 tests across 4 test files verify intent classification logic, response selection, and delivery confirmation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

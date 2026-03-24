@@ -1,47 +1,53 @@
-# Webhook Rate Limiting in Java Using Conductor
+# Webhook Rate Limiting
 
-Rate limit incoming webhooks per sender. Identifies the sender, checks their request rate, and uses SWITCH to allow processing or queue for throttling.
+A SaaS platform exposes a webhook endpoint that partners call to push data. Some partners send bursts of thousands of requests per second, overwhelming the processing pipeline. The rate limiter needs to track request counts per partner within a time window, reject excess requests with a 429 status, and queue accepted requests for processing.
 
-## The Problem
-
-You need to rate-limit incoming webhooks per sender to protect your system from webhook floods. Each incoming webhook must be identified by sender, checked against their rate limit, and either allowed through for processing or queued for throttled delivery. Without rate limiting, a misbehaving sender can overwhelm your processing pipeline and degrade service for all other senders.
-
-Without orchestration, you'd implement a rate limiter with token buckets or sliding windows in middleware, manually tracking per-sender request counts, handling Redis failures gracefully, and balancing between rejecting requests (losing data) and queuing them (risking memory exhaustion).
-
-## The Solution
-
-**You just write the sender-identification, rate-check, process, and throttle-queue workers. Conductor handles SWITCH-based allow/throttle routing, per-sender rate tracking, and a full audit of every rate-limit decision.**
-
-Each rate-limiting concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of identifying the sender, checking their rate, routing via a SWITCH task to process or throttle, and tracking every webhook's rate-limit decision.
-
-### What You Write: Workers
-
-Four workers enforce per-sender rate limits: IdentifySenderWorker extracts the sender identity, CheckRateWorker evaluates their request count, ProcessAllowedWorker handles permitted requests, and QueueThrottledWorker defers excess traffic.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CheckRateWorker** | `wl_check_rate` | Checks the current request rate for a sender against the rate limit. |
-| **IdentifySenderWorker** | `wl_identify_sender` | Identifies the sender of an incoming webhook request. |
-| **ProcessAllowedWorker** | `wl_process_allowed` | Processes an allowed webhook request. |
-| **QueueThrottledWorker** | `wl_queue_throttled` | Queues a throttled webhook request for later retry. |
-
-Workers implement event processing with realistic payloads so you can trace the full event flow without external message brokers. Replace the simulation with real event sources. the workflow and routing logic stay the same.
-
-### The Workflow
+## Pipeline
 
 ```
-wl_identify_sender
- │
- ▼
-wl_check_rate
- │
- ▼
-SWITCH (switch_ref)
- ├── allowed: wl_process_allowed
- ├── throttled: wl_queue_throttled
-
+[wl_identify_sender]
+     |
+     v
+[wl_check_rate]
+     |
+     v
+     <SWITCH>
+       |-- allowed -> [wl_process_allowed]
+       |-- throttled -> [wl_queue_throttled]
 ```
+
+**Workflow inputs:** `senderId`, `payload`, `rateLimit`
+
+## Workers
+
+**CheckRateWorker** (task: `wl_check_rate`)
+
+Checks the current request rate for a sender against the rate limit.
+
+- Parses strings to `int`
+- Reads `senderId`, `rateLimit`. Writes `decision`, `currentRate`, `limit`, `retryAfterMs`
+
+**IdentifySenderWorker** (task: `wl_identify_sender`)
+
+Identifies the sender of an incoming webhook request.
+
+- Reads `senderId`. Writes `senderId`, `ip`
+
+**ProcessAllowedWorker** (task: `wl_process_allowed`)
+
+Processes an allowed webhook request.
+
+- Reads `senderId`. Writes `processed`, `senderId`
+
+**QueueThrottledWorker** (task: `wl_queue_throttled`)
+
+Queues a throttled webhook request for later retry.
+
+- Parses strings to `int`
+- Reads `senderId`, `retryAfterMs`. Writes `queued`, `retryAfterMs`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**34 tests** | Workflow: `webhook_rate_limiting` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

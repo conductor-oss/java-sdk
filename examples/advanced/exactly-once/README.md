@@ -1,50 +1,63 @@
-# Exactly-Once Processing in Java Using Conductor: Lock, Dedup, Process, Commit, Unlock
+# Exactly Once
 
-The payment service processes the $49.99 debit, then crashes before acknowledging the message. The broker retries. Another instance picks it up and processes it again, customer double-charged. You add an idempotency check, but two instances grab the same message simultaneously and both pass the check before either records it. You add a distributed lock, but the lock holder crashes mid-processing and the TTL expires before cleanup. Every fix opens a new failure mode. Exactly-once delivery is impossible, but exactly-once processing is achievable with the right protocol. This example implements the full lock-check-process-commit-unlock sequence with Conductor, ensuring the business effect happens once even when messages arrive twice. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability.
+A financial transaction system must process each transfer exactly once. Duplicate processing means double-charging; missed processing means lost revenue. The pipeline needs idempotency keys, deduplication checks, transactional processing, and confirmation that exactly one output was produced per input.
 
-## Preventing Duplicate Processing in Distributed Systems
-
-A payment message arrives twice. Once from the original send, once from a retry after a timeout. Without exactly-once semantics, the customer gets charged twice. A stock trade gets executed, the acknowledgment is lost, and the retry creates a duplicate position. In any system where the same message can arrive more than once, you need a way to guarantee that the business effect happens exactly once.
-
-Exactly-once processing requires a careful protocol: acquire a distributed lock on the resource key (so no other consumer can process the same message concurrently), check the idempotency store to see if this message ID was already processed, execute the business logic only if it's new, atomically commit the result and record the message ID, then release the lock. If any step fails between lock and commit, the lock's TTL ensures eventual release, and the next retry will find the message uncommitted and reprocess it safely.
-
-## The Solution
-
-**You write the locking and deduplication logic. Conductor handles the protocol sequencing, retries, and state recovery.**
-
-`ExoLockWorker` acquires a distributed lock on the resource key with a 30-second TTL and returns a lock token. `ExoCheckStateWorker` looks up the message ID in the idempotency store to determine if it's already been processed. `ExoProcessWorker` executes the business logic only if the state check shows the message is new. `ExoCommitWorker` atomically writes the result and marks the message ID as processed, using the lock token to verify it still holds the lock. `ExoUnlockWorker` releases the lock. Conductor ensures this five-step protocol executes in strict order, and if any step fails, the workflow can be retried from the point of failure without risking double-processing.
-
-### What You Write: Workers
-
-Five workers enforce the exactly-once protocol: distributed locking, state checking, business logic execution, atomic commit, and lock release, each owning one step of the deduplication boundary.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ExoCheckStateWorker** | `exo_check_state` | Checks whether the message was already processed by looking up its current state and sequence number |
-| **ExoCommitWorker** | `exo_commit` | Atomically commits the processing result and records the state transition (pending to completed) |
-| **ExoLockWorker** | `exo_lock` | Acquires a distributed lock with a TTL to prevent concurrent processing of the same message |
-| **ExoProcessWorker** | `exo_process` | Executes the idempotent business logic (e.g., applying a debit and computing new balance) |
-| **ExoUnlockWorker** | `exo_unlock` | Releases the distributed lock after processing and commit are complete |
-
-### The Workflow
+## Pipeline
 
 ```
-exo_lock
- │
- ▼
-exo_check_state
- │
- ▼
-exo_process
- │
- ▼
-exo_commit
- │
- ▼
-exo_unlock
-
+[exo_lock]
+     |
+     v
+[exo_check_state]
+     |
+     v
+[exo_process]
+     |
+     v
+[exo_commit]
+     |
+     v
+[exo_unlock]
 ```
+
+**Workflow inputs:** `messageId`, `payload`, `resourceKey`
+
+## Workers
+
+**ExoCheckStateWorker** (task: `exo_check_state`)
+
+Checks whether a message has already been processed using an in-memory ConcurrentHashMap. Returns the current processing state and sequence number.
+
+- Reads `messageId`. Writes `currentState`, `alreadyProcessed`, `sequenceNumber`
+
+**ExoCommitWorker** (task: `exo_commit`)
+
+Commits the processing result by updating the state store to "completed". Uses the lock token to verify ownership before committing.
+
+- Captures `instant.now()` timestamps
+- Reads `messageId`, `lockToken`. Writes `committed`, `commitTimestamp`, `stateTransition`
+
+**ExoLockWorker** (task: `exo_lock`)
+
+Acquires a distributed lock for a resource key using ConcurrentHashMap. If the lock is already held, the task fails to enforce mutual exclusion.
+
+- Reads `resourceKey`, `ttlSeconds`. Writes `lockToken`, `acquired`, `ttlSeconds`
+
+**ExoProcessWorker** (task: `exo_process`)
+
+Processes a message if not already processed. The result is deterministic based on the messageId (SHA-256 hash) so re-processing yields the same output. If currentState is "completed", skips processing and returns alreadyProcessed=true.
+
+- Truncates strings to first 100 character(s), computes sha-256 hashes, formats output strings
+- Reads `messageId`, `currentState`, `payload`. Writes `processed`, `skipped`, `result`
+
+**ExoUnlockWorker** (task: `exo_unlock`)
+
+Releases the lock held on a resource key. Verifies that the lock token matches the one currently held before releasing.
+
+- Reads `resourceKey`, `lockToken`. Writes `unlocked`, `previousHolder`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**28 tests** | Workflow: `exo_exactly_once` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

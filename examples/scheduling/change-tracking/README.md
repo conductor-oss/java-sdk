@@ -1,46 +1,41 @@
-# Change Tracking in Java Using Conductor : Detect, Diff, Classify, and Record Infrastructure Changes
+# Change Tracking
 
-## The Problem
+An infrastructure resource changes. The pipeline detects the change by resource type and ID, diffs the before/after state, classifies the change by file count, line count, change type, and risk level, then records it permanently.
 
-You need to know when infrastructure changes. a security group rule was modified, an instance type was changed, a deployment rolled out a new version. For each change, you need to compute what exactly changed (diff the before/after state), classify whether it was a configuration change, scaling event, or deployment, and record everything for compliance audits and rollback capability.
-
-Without orchestration, change tracking is either absent (you discover changes after incidents) or incomplete (you detect changes but don't record the diff). Classification is manual, diffs are computed inconsistently, and there's no centralized audit trail connecting change detection to change details.
-
-## The Solution
-
-**You just write the change detection and diff computation logic. Conductor handles the detect-diff-classify-record pipeline, retries when version control APIs are temporarily down, and a centralized audit trail connecting every change to its diff and risk classification.**
-
-Each tracking concern is an independent worker. change detection, diff computation, classification, and recording. Conductor runs them in sequence: detect a change, compute the diff, classify it, then record it. Every change event is tracked with full context, you can see exactly what changed, when, and how it was classified.
-
-### What You Write: Workers
-
-Four workers track infrastructure changes: DetectChangeWorker spots version differences, DiffWorker computes lines added and removed, ClassifyChangeWorker rates the risk level, and RecordChangeWorker writes the classified change to the audit trail for rollback capability.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ClassifyChangeWorker** | `chg_classify` | Classifies changes as minor/moderate/major with a risk level based on files changed and lines modified |
-| **DetectChangeWorker** | `chg_detect_change` | Detects a change in a resource by comparing current vs, previous version identifiers |
-| **DiffWorker** | `chg_diff` | Computes the diff between resource versions, returning lines added/removed, files changed, and a summary |
-| **RecordChangeWorker** | `chg_record` | Records the classified change to the audit trail with a unique change ID for tracking and rollback |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-chg_detect_change
- │
- ▼
-chg_diff
- │
- ▼
-chg_classify
- │
- ▼
-chg_record
-
+chg_detect_change ──> chg_diff ──> chg_classify ──> chg_record
 ```
 
----
+Workflow `change_tracking_427` accepts `resourceType`, `resourceId`, and `changeSource`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**DetectChangeWorker** (`chg_detect_change`) -- detects the change in the specified resource.
+
+**DiffWorker** (`chg_diff`) -- computes the diff between before and after states.
+
+**ClassifyChangeWorker** (`chg_classify`) -- classifies by file count, line count, change type, and risk level.
+
+**RecordChangeWorker** (`chg_record`) -- records the classified change with its risk level.
+
+## Workflow Output
+
+The workflow produces `changeDetected`, `filesChanged`, `riskLevel`, `recorded` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `change_tracking_427` defines 4 tasks with input parameters `resourceType`, `resourceId`, `changeSource` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify change detection, diffing, classification, and recording.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

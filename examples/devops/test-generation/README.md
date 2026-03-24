@@ -1,42 +1,41 @@
-# Test Generation in Java with Conductor
+# Generating Unit Tests from Source Code Analysis
 
-## Writing Tests Nobody Wants to Write
+Writing tests for an existing codebase is tedious. You need to find every function, figure
+out its parameters, generate test cases with edge cases, validate the syntax, and produce a
+coverage report. This workflow analyzes a source file to extract functions, generates test
+cases for each, validates them, and produces a report.
 
-Developers know they should write tests, but doing it manually is tedious. especially for existing code with many functions and edge cases. You need to parse the source code to understand function signatures and behavior, generate meaningful test cases that cover normal and edge scenarios, validate that the generated tests actually compile, and report on coverage. Doing this by hand for every function in a codebase does not scale.
-
-This workflow automates test generation for a single source file. The code analyzer parses the file to extract function signatures and metadata. The test generator creates test cases for each discovered function. The validator checks that generated tests are syntactically correct. The reporter summarizes coverage and results. Each step feeds the next. discovered functions drive test generation, generated tests feed validation, and validation results feed the report.
-
-## The Solution
-
-**You just write the code-analysis, test-generation, validation, and reporting workers. Conductor handles the test-gen pipeline and coverage data flow.**
-
-Each worker handles one CRM operation. Conductor manages the customer lifecycle pipeline, assignment routing, follow-up scheduling, and activity tracking.
-
-### What You Write: Workers
-
-AnalyzeCodeWorker parses source files to discover function signatures and metadata, then ReportWorker summarizes coverage and pass rates, each step in the test generation pipeline operates independently.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeCodeWorker** | `tge_analyze_code` | Parses the source file to discover functions, their signatures, parameters, and return types. |
-| **ReportWorker** | `tge_report` | Generates a coverage report summarizing test counts, pass rates, and per-function results. |
-
-### The Workflow
+## Workflow
 
 ```
-tge_analyze_code
- │
- ▼
-tge_generate_tests
- │
- ▼
-tge_validate_tests
- │
- ▼
-tge_report
-
+sourceFile, language, framework
+             |
+             v
++---------------------+     +-----------------------+     +-----------------------+     +---------------+
+| tge_analyze_code    | --> | tge_generate_tests    | --> | tge_validate_tests    | --> | tge_report    |
++---------------------+     +-----------------------+     +-----------------------+     +---------------+
+  functions extracted         test cases generated         all tests validated          coverage: "87%"
+  functionCount returned      testCount computed           syntactically correct        status: "ready"
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AnalyzeCodeWorker** -- Parses the `sourceFile` and extracts functions. Returns
+`functions` list and `functionCount`.
+
+**GenerateTestsWorker** -- Creates test cases for each function. Returns `tests` list and
+`testCount` (3 cases per function).
+
+**ValidateTestsWorker** -- Validates all generated tests are syntactically correct. Returns
+`validatedTests` and `validCount`.
+
+**ReportWorker** -- Generates a report with `coverage: "87%"` and `status: "ready"` for
+the source file.
+
+## Tests
+
+8 unit tests cover code analysis, test generation, validation, and reporting.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

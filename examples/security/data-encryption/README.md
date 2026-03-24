@@ -1,46 +1,41 @@
-# Implementing Data Encryption Pipeline in Java with Conductor : Classification, Key Generation, Encryption, and Verification
+# Data Encryption
 
-## The Problem
+A customer database contains PII that must be encrypted at rest. The pipeline classifies the data source as sensitive, generates an AES-256 encryption key in KMS, encrypts 4 PII fields, and verifies that no plaintext PII remains accessible.
 
-You need to encrypt sensitive data; but not all data needs the same level of encryption. PII requires AES-256, internal data needs AES-128, and public data doesn't need encryption at all. You must classify the data first, generate the right encryption key for its classification level, encrypt with the appropriate algorithm, and verify that encryption was applied correctly (the plaintext is gone, the ciphertext is valid).
-
-Without orchestration, encryption is either applied uniformly (wasteful) or ad hoc (inconsistent). Key generation is disconnected from data classification, encryption happens without verification, and there's no audit trail of what was encrypted with which key and when.
-
-## The Solution
-
-**You just write the classification rules and KMS integration. Conductor handles the strict ordering from classification to verification, retries on KMS timeouts, and an audit record of every key generated and field encrypted.**
-
-Each encryption step is an independent worker. data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result.
-
-### What You Write: Workers
-
-The encryption pipeline uses four workers: ClassifyDataWorker determines sensitivity levels, GenerateKeyWorker creates the appropriate AES key, EncryptDataWorker applies the cipher, and VerifyEncryptionWorker confirms no plaintext remains.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ClassifyDataWorker** | `de_classify_data` | Scans data sources for PII and classifies them by sensitivity level (public, internal, sensitive) |
-| **EncryptDataWorker** | `de_encrypt_data` | Encrypts identified PII fields at rest using the generated encryption key |
-| **GenerateKeyWorker** | `de_generate_key` | Generates an AES-256 encryption key and stores it in the KMS |
-| **VerifyEncryptionWorker** | `de_verify_encryption` | Verifies that encryption was applied correctly and no plaintext PII remains accessible |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-de_classify_data
- │
- ▼
-de_generate_key
- │
- ▼
-de_encrypt_data
- │
- ▼
-de_verify_encryption
-
+de_classify_data ──> de_generate_key ──> de_encrypt_data ──> de_verify_encryption
 ```
 
----
+Workflow `data_encryption_workflow` accepts `dataSource` and `classification`. Times out after `600` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ClassifyDataWorker** (`de_classify_data`) -- reports `"customer-database: PII detected -- classified as sensitive"`. Returns `classify_dataId` = `"CLASSIFY_DATA-1355"`.
+
+**GenerateKeyWorker** (`de_generate_key`) -- generates an encryption key. Reports `"AES-256 encryption key generated and stored in KMS"`. Returns `generate_key` = `true`.
+
+**EncryptDataWorker** (`de_encrypt_data`) -- encrypts sensitive fields. Reports `"4 PII fields encrypted at rest"`. Returns `encrypt_data` = `true`.
+
+**VerifyEncryptionWorker** (`de_verify_encryption`) -- confirms encryption coverage. Reports `"Encryption verified: no plaintext PII accessible"`. Returns `verify_encryption` = `true`.
+
+## Workflow Output
+
+The workflow produces `classify_dataResult`, `verify_encryptionResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `data_encryption_workflow` defines 4 tasks with input parameters `dataSource`, `classification` and a timeout of `600` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end encryption pipeline from classification through verification.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

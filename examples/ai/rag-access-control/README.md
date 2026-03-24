@@ -1,52 +1,50 @@
-# RAG Access Control in Java Using Conductor : Authentication, Permission Filtering, and Data Redaction
+# RAG with Authentication, Permission Filtering, and PII Redaction
 
-## RAG Without Access Control Is a Data Leak
+An engineer asks a question that spans public docs and confidential HR data. Without access control, the RAG system leaks salary information to anyone who asks. This pipeline authenticates the user, checks role-based permissions, retrieves only permitted documents, redacts PII (SSNs and salary figures), then generates the answer.
 
-A standard RAG pipeline retrieves documents and generates answers without checking who's asking. In an enterprise, this means an intern can ask questions about board-level financial documents, a contractor can access employee HR records, and sensitive customer PII shows up in generated responses. The vector store doesn't know about your org chart or data classification policies.
-
-Access-controlled RAG adds four gates before generation: authenticate the user (validate their token/session), check their permissions (which document categories can they access?), filter retrieval results (remove any documents they shouldn't see), and redact sensitive fields from the remaining documents. Only then does the sanitized context reach the LLM.
-
-Each gate must execute in order. you can't filter by permissions before you know who the user is, and you can't redact before filtering. If any gate fails (invalid token, permission service unavailable), the pipeline must stop cleanly without leaking data.
-
-## The Solution
-
-**You write the authentication, permission filtering, and data redaction logic. Conductor handles the access-controlled pipeline, retries, and observability.**
-
-Each access control gate is an independent worker. authentication, permission checking, filtered retrieval, sensitive data redaction, and generation. Conductor sequences them so each gate's output feeds into the next. If the permission service times out, Conductor retries it without re-authenticating. Every query is tracked with the user identity, permissions applied, documents filtered, fields redacted, and final answer, creating a complete audit trail for compliance.
-
-### What You Write: Workers
-
-Five workers enforce access control throughout the RAG pipeline. authenticating the user, checking document-level permissions, retrieving only authorized content, redacting sensitive fields, and generating an answer from the sanitized context.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AuthenticateUserWorker** | `ac_authenticate_user` | Worker that authenticates a user by validating their auth token. Returns authenticated status, roles, and clearance l... |
-| **CheckPermissionsWorker** | `ac_check_permissions` | Worker that checks user permissions based on roles and clearance level. Determines which document collections the use... |
-| **FilteredRetrieveWorker** | `ac_filtered_retrieve` | Worker that retrieves documents filtered by the user's allowed collections. Contains a corpus of 5 documents across d... |
-| **GenerateWorker** | `ac_generate` | Worker that generates an answer from the access-controlled and redacted context. Notes when data has been redacted du... |
-| **RedactSensitiveWorker** | `ac_redact_sensitive` | Worker that redacts sensitive information from documents based on clearance level. Redacts SSN patterns and salary fi... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-ac_authenticate_user
- │
- ▼
-ac_check_permissions
- │
- ▼
-ac_filtered_retrieve
- │
- ▼
-ac_redact_sensitive
- │
- ▼
-ac_generate
-
+question, userId
+       │
+       ▼
+┌──────────────────────────┐
+│ ac_authenticate_user     │  Verify user, return roles + clearance
+└───────────┬──────────────┘
+            ▼
+┌──────────────────────────┐
+│ ac_check_permissions     │  Evaluate role-based access
+└───────────┬──────────────┘
+            ▼
+┌──────────────────────────┐
+│ ac_filtered_retrieve     │  Retrieve only accessible documents
+└───────────┬──────────────┘
+            ▼
+┌──────────────────────────┐
+│ ac_redact_sensitive      │  Strip SSNs and salary figures
+└───────────┬──────────────┘
+            ▼
+┌──────────────────────────┐
+│ ac_generate              │  Generate answer from redacted context
+└──────────────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AuthenticateUserWorker** (`ac_authenticate_user`) -- Returns `roles: ["engineer", "team-lead"]` and clearance level for the given `userId`.
+
+**CheckPermissionsWorker** (`ac_check_permissions`) -- Evaluates the user's roles and clearance against required permissions for the requested resource.
+
+**FilteredRetrieveWorker** (`ac_filtered_retrieve`) -- Maintains a document list spanning collections: `"public-docs"`, `"engineering-wiki"`, and restricted HR documents. Filters based on the user's permission level, returning only documents the user is authorized to access.
+
+**RedactSensitiveWorker** (`ac_redact_sensitive`) -- Uses two regex patterns: `SSN_PATTERN` matching `\d{3}-\d{2}-\d{4}` (replaced with `[SSN REDACTED]`) and `SALARY_PATTERN` matching `\$[\d,]+(?:\.\d{2})?` (replaced with `[SALARY REDACTED]`).
+
+**GenerateWorker** (`ac_generate`) -- Detects whether the context contains redaction markers (`[SSN REDACTED]` or `[SALARY REDACTED]`) and adjusts the generation prompt accordingly. When `CONDUCTOR_OPENAI_API_KEY` is set, calls the LLM with the sanitized context.
+
+## Tests
+
+15 tests cover authentication, permission checking, document filtering, PII redaction patterns, and redaction-aware generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

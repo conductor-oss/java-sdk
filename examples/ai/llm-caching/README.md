@@ -1,42 +1,43 @@
-# LLM Caching in Java Using Conductor : Hash Prompts, Cache Responses, Track Savings
+# Caching LLM Responses to Avoid Paying for the Same Answer Twice
 
-## Paying for the Same Answer Twice
+LLM calls cost $0.01-$0.10+ each and take 1-10 seconds. When the same support question or product description request comes in repeatedly, every duplicate prompt makes a full API round-trip. This workflow hashes the prompt into a cache key, checks a `ConcurrentHashMap`-backed cache, and tracks cost savings.
 
-LLM API calls are slow (1-10 seconds) and expensive ($0.01-$0.10+ per call). In production, many prompts are repeated. the same support question, the same product description request, the same summarization of a document that hasn't changed. Without caching, every duplicate prompt makes a full round-trip to the LLM API, burning tokens and adding latency.
-
-The caching pipeline needs three steps: hash the prompt (with the model name) to create a stable cache key, check the cache and either return the cached response or call the LLM and store the result, then report whether it was a hit or miss so you can track savings over time. If the LLM call fails, you need to retry it without re-hashing. the cache key is still valid. And you want visibility into cache hit rates and estimated cost savings across all calls.
-
-## The Solution
-
-**You write the prompt hashing, cache lookup, and LLM call logic. Conductor handles the cache-aware pipeline, retries, and observability.**
-
-Each concern is an independent worker. prompt hashing, cache-aware LLM invocation, savings reporting. Conductor chains them so the cache key feeds into the LLM call worker (which checks the cache first), and the hit/miss result feeds into the reporter. If the LLM API times out on a cache miss, Conductor retries automatically. Every call records whether it was a cache hit or miss, the response latency, and the estimated cost savings.
-
-### What You Write: Workers
-
-Three workers implement the caching layer. hashing the prompt and model into a deterministic cache key, performing a cache-aware LLM call that returns cached responses on hit, and reporting cache hit rates with estimated cost savings.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CacheHashPromptWorker** | `cache_hash_prompt` | Creates a deterministic cache key by concatenating model and prompt, normalizing whitespace, and truncating to 64 characters | Processing only |
-| **CacheLlmCallWorker** | `cache_llm_call` | Checks an in-memory cache for the key. on hit returns the cached response instantly, on miss calls OpenAI API (live) or returns a fixed response (demo), stores the result, and reports latency |
-| **CacheReportWorker** | `cache_report` | Reports whether the call was a cache hit or miss and estimates cost savings (~$0.02 per cache hit) | Processing only |
-
-**Live vs Demo mode:** When `CONDUCTOR_OPENAI_API_KEY` is set, `CacheLlmCallWorker` calls the OpenAI Chat Completions API (model: `gpt-4o-mini`) on cache miss. Without the key, it runs in demo mode with deterministic output prefixed with `[DEMO]`. Non-LLM workers (hashing, reporting) always run their real logic.
-
-### The Workflow
+## Workflow
 
 ```
-cache_hash_prompt
- │
- ▼
-cache_llm_call
- │
- ▼
-cache_report
-
+prompt, model
+     │
+     ▼
+┌────────────────────┐
+│ cache_hash_prompt  │  Build cache key from model + prompt
+└─────────┬──────────┘
+          │  cacheKey
+          ▼
+┌────────────────────┐
+│ cache_llm_call     │  Check cache, call LLM on miss
+└─────────┬──────────┘
+          │  response, cacheHit, latencyMs
+          ▼
+┌────────────────────┐
+│ cache_report       │  Report savings
+└────────────────────┘
+          │
+          ▼
+   cacheKey, response, cacheHit, latencyMs, saved
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CacheHashPromptWorker** (`cache_hash_prompt`) -- Concatenates `model + ":" + prompt`, replaces all whitespace with `"_"` via `replaceAll("\\s+", "_")`, and truncates to 64 characters. The result becomes the `cacheKey`.
+
+**CacheLlmCallWorker** (`cache_llm_call`) -- Uses a static `ConcurrentHashMap<String, String>` called `CACHE`. On cache hit, returns the stored response with `cacheHit: true` and `latencyMs: 0`. On cache miss with `CONDUCTOR_OPENAI_API_KEY` set, calls `gpt-4o-mini` Chat Completions, measures wall-clock latency via `System.currentTimeMillis()`, stores the result in `CACHE`, and returns `cacheHit: false`. In fallback mode, stores a fixed response about Conductor's durable workflow execution with `latencyMs: 850`.
+
+**CacheReportWorker** (`cache_report`) -- Checks `Boolean.TRUE.equals(cacheHitObj)`. On cache hit, reports `"Yes -- saved ~$0.02"`. On cache miss, reports `"No -- first request"`.
+
+## Tests
+
+7 tests cover prompt hashing, cache hit/miss behavior, and savings reporting.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

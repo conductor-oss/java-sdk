@@ -1,50 +1,50 @@
-# RAPTOR RAG in Java Using Conductor : Hierarchical Document Summarization Tree for Multi-Level Retrieval
+# RAPTOR RAG: Hierarchical Summarization Tree for Multi-Level Retrieval
 
-## Beyond Flat Chunk Retrieval
+Flat chunk retrieval misses the big picture. RAPTOR builds a tree: raw chunks at the bottom, leaf summaries grouping related chunks in the middle, cluster summaries at the top. The tree search retrieves context at all 3 levels, giving the LLM both granular details and high-level themes.
 
-Standard RAG retrieves individual chunks. fine-grained text fragments that match the query. But some questions need high-level understanding: "What are the main themes of this paper?" can't be answered by any single chunk. RAPTOR builds a tree of summaries: leaf nodes are chunk-level summaries, and higher nodes are summaries of summaries (clusters of related chunks). At query time, the tree is searched at all levels, retrieving both specific details and broad themes.
-
-The pipeline chunks the document, summarizes each chunk (leaf level), clusters similar summaries and creates higher-level abstractions, then searches across all tree levels for the most relevant context at the right granularity.
-
-## The Solution
-
-**You write the chunking, summarization, clustering, and tree search logic. Conductor handles the hierarchical pipeline, retries, and observability.**
-
-Each stage of the RAPTOR pipeline is an independent worker. document chunking, leaf summary generation, hierarchical clustering/summarization, tree search, and answer generation. Conductor sequences them, retries the LLM summarization if rate-limited, and tracks the full tree construction and search for debugging.
-
-### What You Write: Workers
-
-Five workers build the RAPTOR tree pipeline. chunking documents, generating leaf-level summaries, clustering into hierarchical abstractions, searching across all tree levels, and generating an answer from multi-granularity context.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ChunkDocsWorker** | `rp_chunk_docs` | Worker that chunks a document into smaller segments for RAPTOR tree construction. Takes documentText and returns 6 fi... |
-| **ClusterSummariesWorker** | `rp_cluster_summaries` | Worker that builds cluster-level summaries from leaf summaries. Produces 2 cluster summaries at level 1 and a single ... |
-| **GenerateWorker** | `rp_generate` | Worker that generates an answer using the question and multi-level context retrieved from the RAPTOR tree. Combines c... |
-| **LeafSummariesWorker** | `rp_leaf_summaries` | Worker that creates leaf-level summaries from document chunks. Groups related chunks and produces 4 leaf summaries at... |
-| **TreeSearchWorker** | `rp_tree_search` | Worker that searches the RAPTOR tree for context relevant to a question. Traverses the tree top-down (root -> cluster... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-rp_chunk_docs
- │
- ▼
-rp_leaf_summaries
- │
- ▼
-rp_cluster_summaries
- │
- ▼
-rp_tree_search
- │
- ▼
-rp_generate
-
+documentText, question
+       │
+       ▼
+┌──────────────────────┐
+│ rp_chunk_docs        │  Split into raw chunks
+└───────────┬──────────┘
+            ▼
+┌──────────────────────┐
+│ rp_leaf_summaries    │  Summarize groups of chunks
+└───────────┬──────────┘
+            ▼
+┌──────────────────────┐
+│ rp_cluster_summaries │  Summarize groups of leaves
+└───────────┬──────────┘
+            ▼
+┌──────────────────────┐
+│ rp_tree_search       │  Search all 3 tree levels
+└───────────┬──────────┘
+            ▼
+┌──────────────────────┐
+│ rp_generate          │  Generate from multi-level context
+└──────────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ChunkDocsWorker** (`rp_chunk_docs`) -- Returns raw chunks: `{id: "chunk-1", text: "..."}`, `{id: "chunk-2", text: "..."}`.
+
+**LeafSummariesWorker** (`rp_leaf_summaries`) -- Produces leaf-level summaries with `chunkIds: ["chunk-1", "chunk-2"]` linking back to source chunks.
+
+**ClusterSummariesWorker** (`rp_cluster_summaries`) -- Produces cluster summaries with `leafIds: ["leaf-1", "leaf-2"]` linking to leaves.
+
+**TreeSearchWorker** (`rp_tree_search`) -- Returns context at 3 levels: root (broadest summary), cluster (mid-level), and leaf (most specific), each with relevance scores.
+
+**GenerateWorker** (`rp_generate`) -- Generates from the multi-level context using system prompt.
+
+## Tests
+
+32 tests cover chunk creation, leaf summarization, cluster summarization, tree search, and generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

@@ -1,48 +1,43 @@
-# Service Mesh Orchestration in Java with Conductor
+# Service Mesh Setup: Sidecar, mTLS, Traffic Policy, Validation
 
-Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity.
+Adding a service to the mesh requires deploying an Envoy sidecar, configuring mutual TLS,
+setting traffic policies (retries, timeouts), and validating connectivity. Doing these steps
+out of order or skipping one leaves gaps in security or observability. This workflow
+sequences all four.
 
-## The Problem
-
-Onboarding a service into a service mesh requires deploying a sidecar proxy (e.g., Envoy), configuring mutual TLS for encrypted service-to-service communication, setting traffic policies (retries, timeouts, circuit breaking), and validating end-to-end connectivity. Each step depends on the previous one. MTLS cannot be configured until the sidecar is deployed.
-
-Without orchestration, mesh setup is a series of kubectl apply commands in a runbook. If the mTLS step fails, the traffic policy may still be applied, leaving the service in a half-configured state. There is no audit trail of which services are fully mesh-enabled.
-
-## The Solution
-
-**You just write the sidecar-deploy, mTLS-config, traffic-policy, and validation workers. Conductor handles ordered mesh setup, crash-safe resume between sidecar deploy and mTLS configuration, and a full audit of mesh enrollment.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers onboard a service into the mesh: DeploySidecarWorker injects the proxy, ConfigureMtlsWorker sets up mutual TLS, SetTrafficPolicyWorker applies retry and timeout rules, and ValidateWorker confirms end-to-end connectivity.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ConfigureMtlsWorker** | `mesh_configure_mtls` | Configures mutual TLS for a service. |
-| **DeploySidecarWorker** | `mesh_deploy_sidecar` | Deploys a sidecar proxy for a service in a given namespace. |
-| **SetTrafficPolicyWorker** | `mesh_set_traffic_policy` | Sets traffic policy for a service mesh. |
-| **ValidateWorker** | `mesh_validate` | Validates connectivity after mesh configuration. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-mesh_deploy_sidecar
- │
- ▼
-mesh_configure_mtls
- │
- ▼
-mesh_set_traffic_policy
- │
- ▼
-mesh_validate
-
+serviceName, namespace, meshType
+               |
+               v
++-----------------------+     +----------------------+     +--------------------------+     +-----------------+
+| mesh_deploy_sidecar   | --> | mesh_configure_mtls  | --> | mesh_set_traffic_policy  | --> | mesh_validate   |
++-----------------------+     +----------------------+     +--------------------------+     +-----------------+
+  sidecarId:                    enabled: true               applied: true                    valid: true
+  envoy-{hashCode}             certExpiry: 2027-01-01      retries: 3                       latencyMs: 5
+  version: "1.28"                                           timeout: "30s"
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DeploySidecarWorker** -- Deploys an Envoy proxy for `serviceName` in `namespace`. Returns
+`sidecarId: "envoy-{hashCode}"`, `version: "1.28"`.
+
+**ConfigureMtlsWorker** -- Configures mutual TLS. Returns `enabled: true`,
+`certExpiry: "2027-01-01"`.
+
+**SetTrafficPolicyWorker** -- Sets traffic policy for `meshType`. Returns `applied: true`,
+`retries: 3`, `timeout: "30s"`.
+
+**ValidateWorker** -- Validates connectivity through the mesh. Returns `valid: true`,
+`latencyMs: 5`.
+
+## Tests
+
+30 unit tests cover sidecar deployment, mTLS configuration, traffic policies, and
+connectivity validation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

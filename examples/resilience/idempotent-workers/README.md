@@ -1,38 +1,41 @@
-# Implementing Idempotent Workers in Java with Conductor : Safe Retry of Charges and Emails
+# Idempotent Workers
 
-## The Problem
+A payment system charges a customer and sends a confirmation email. If the worker completes but the network drops before Conductor receives the result, Conductor retries -- and the customer gets double-charged or receives duplicate emails. Both workers must produce identical results whether executed once or five times.
 
-Conductor may retry a worker that actually succeeded but failed to report back (network blip between worker and Conductor). If your charge worker runs twice, the customer is double-charged. If your email worker runs twice, the customer gets duplicate confirmation emails. Every worker that has side effects must be idempotent. producing the same result whether executed once or multiple times with the same input.
-
-Without orchestration awareness, idempotency is an afterthought. Developers build workers without considering retries, then discover double-charge bugs in production. Each worker implements its own deduplication logic inconsistently. some check a database flag, some use a Redis lock, some don't handle it at all.
-
-## The Solution
-
-**You just write the idempotent charge and notification logic. Conductor handles safe retries knowing each worker is idempotent, sequencing charge-then-notify, and tracking every execution so you can verify retry attempts produced identical results.**
-
-Each worker is designed to be idempotent from the start. The charge worker uses the order ID as an idempotency key. if it's already been charged, it returns the existing result. The email worker checks whether a confirmation was already sent for this order. Conductor safely retries any worker knowing the result will be the same. Every execution is tracked, so you can see retry attempts and confirm they produced identical results.
-
-### What You Write: Workers
-
-ChargeWorker uses the order ID as an idempotency key to prevent double charges on retry, and SendEmailWorker deduplicates confirmation emails so customers never receive duplicate notifications.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ChargeWorker** | `idem_charge` | Idempotent charge worker. check-before-act pattern with a Map cache. Uses orderId as the idempotency key. On the fir.. |
-| **SendEmailWorker** | `idem_send_email` | Idempotent email worker. deduplication with a Set. Uses orderId:email as the dedup key. If a notification has alread.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-idem_charge
- │
- ▼
-idem_send_email
-
+idem_charge ──> idem_send_email
 ```
 
----
+Workflow `idempotent_workers_demo` accepts `orderId`, `amount`, and `email` as inputs.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ChargeWorker** (`idem_charge`) -- uses a `ConcurrentHashMap<String, Map<String, Object>>` called `chargeCache` keyed by `orderId`. On first call, processes the charge and stores the output map (containing `charged` = `true`, `orderId`, `amount`, `duplicate` = `false`) in the cache. On subsequent calls with the same `orderId`, returns the cached result without reprocessing. The `amount` input is parsed via `((Number) amountInput).doubleValue()`.
+
+**SendEmailWorker** (`idem_send_email`) -- uses a `Set<String>` backed by `ConcurrentHashMap.newKeySet()` called `sentEmails`. The deduplication key is `orderId + ":" + email`. If the key already exists in the set, returns `sent` = `true` with `duplicate` = `true` without re-sending. Otherwise, adds the key to the set and returns `duplicate` = `false`.
+
+## Workflow Output
+
+The workflow produces `charged`, `chargeDuplicate`, `emailSent`, `emailDuplicate` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 2 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `idempotent_workers_demo` defines 2 tasks with input parameters `orderId`, `amount`, `email` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Idempotent workers demo -- charge then send email, both handling duplicates safely.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Implementation Notes
+
+All workers implement the `com.netflix.conductor.client.worker.Worker` interface. Input parameters are read from `task.getInputData()` and output is written to `result.getOutputData()`. Workers return `TaskResult.Status.COMPLETED` on success and `TaskResult.Status.FAILED` on failure. The workflow JSON definition in `src/main/resources/` declares the task graph, input wiring via `${ref.output}` expressions, and output parameters.
+
+## Tests
+
+7 tests verify first-time charge processing, duplicate charge detection, first-time email delivery, duplicate email suppression, and the full charge-then-email pipeline with idempotency across retries.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

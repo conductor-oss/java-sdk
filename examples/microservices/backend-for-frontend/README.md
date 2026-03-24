@@ -1,44 +1,47 @@
-# Backend For Frontend in Java with Conductor
+# Backend-for-Frontend with Platform-Specific Response Shaping
 
-Backend for Frontend pattern with platform-specific responses.
+Mobile and web clients need different response shapes from the same data. Mobile needs a
+compact summary; web needs the full payload. This workflow fetches user data (profile,
+orders, notifications), then uses a SWITCH on the `platform` input to route through either
+a mobile or web transformer.
 
-## The Problem
-
-Different client platforms (web, mobile, TV) need different response shapes from the same backend data. A web dashboard can display a full user profile with all fields, while a mobile app needs a compact summary to conserve bandwidth. The BFF pattern solves this by fetching shared data once and then branching into platform-specific transformers.
-
-Without orchestration, each platform ends up with its own ad-hoc endpoint that duplicates the data-fetching logic, or a single endpoint bloats with if/else branches for every client type. Adding a new platform (e.g., smart TV) means touching existing code paths and risking regressions.
-
-## The Solution
-
-**You just write the data-fetch and platform-transform workers. Conductor handles conditional platform routing, retry on data-fetch failures, and per-request tracing.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-FetchDataWorker loads shared user data once, then TransformWebWorker and TransformMobileWorker each reshape it for their target platform. Web gets the full dataset, mobile gets a compressed payload.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FetchDataWorker** | `bff_fetch_data` | Loads the user's profile, order count, and notification count from backend services. |
-| **TransformMobileWorker** | `bff_transform_mobile` | Compresses the fetched data into a compact payload optimized for small screens and low bandwidth. |
-| **TransformWebWorker** | `bff_transform_web` | Returns the full dataset with all fields for rich desktop rendering. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-bff_fetch_data
- │
- ▼
-SWITCH (switch_ref)
- ├── web: bff_transform_web
- ├── mobile: bff_transform_mobile
- └── default: bff_transform_web
-
+userId, platform
+       |
+       v
++------------------+
+| bff_fetch_data   |   profile: {name: "Alice"}, orders: 5, notifications: 3
++------------------+
+       |
+       v
+  SWITCH on platform
+  +-----------------+------------------+
+  | "mobile"        | default ("web")  |
+  | bff_transform_  | bff_transform_   |
+  | mobile          | web              |
+  | format: mobile  | format: web      |
+  | fields: compact | fields: full     |
+  | summary: true   | data: full obj   |
+  +-----------------+------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**FetchDataWorker** -- Loads data for the given `userId`. Returns `profile: {name: "Alice"}`,
+`orders: 5`, `notifications: 3`.
+
+**TransformMobileWorker** -- Produces a compact response for small screens. Returns
+`format: "mobile"`, `fields: "compact"`, `summary: true`.
+
+**TransformWebWorker** -- Produces a full desktop response with all fields. Returns
+`format: "web"`, `fields: "full"`, plus the full data object.
+
+## Tests
+
+6 unit tests cover data fetching, mobile transformation, and web transformation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

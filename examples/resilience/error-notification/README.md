@@ -1,37 +1,41 @@
-# Implementing Error Notification in Java with Conductor : Order Processing with Automated Failure Alerts
+# Error Notification
 
-## The Problem
+An order processing system needs to alert the on-call team through multiple channels -- Slack and email -- the instant a workflow fails. The alerts must fire in parallel so neither channel blocks the other.
 
-You have an order processing pipeline, and when it fails, the right people need to know immediately. the on-call engineer via PagerDuty, the ops team via Slack, and the account manager via email. The notification must happen automatically and in parallel, because a slow email send shouldn't delay the PagerDuty page.
-
-Without orchestration, failure notifications are afterthoughts. a catch block that sends one email and hopes it works. Adding Slack means another catch block. Adding PagerDuty means another. If the Slack webhook times out, the PagerDuty page never fires. Nobody knows which notifications actually sent for a given failure.
-
-## The Solution
-
-**You just write the order processor and notification channel integrations. Conductor handles failure detection, parallel notification dispatch across all channels, retries on delivery failures, and a record of which alerts were sent for every failed order.**
-
-The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked. you can see which alerts were sent, which failed, and how long each took.
-
-### What You Write: Workers
-
-ProcessOrderWorker handles the business logic, and when it fails, Conductor's failure workflow automatically fires SendSlackWorker, SendEmailWorker, and SendPagerDutyWorker in parallel so all channels are notified simultaneously.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ProcessOrderWorker** | `en_process_order` | Worker for en_process_order. Processes an order. If the input contains shouldFail=true, the task returns FAILED sta.. |
-| **SendEmailWorker** | `en_send_email` | Worker for en_send_email. Sends an email notification. Returns sent=true and the recipient address from input (defa.. |
-| **SendPagerDutyWorker** | `en_send_pagerduty` | Worker for en_send_pagerduty. Sends a PagerDuty alert. Returns sent=true. |
-| **SendSlackWorker** | `en_send_slack` | Worker for en_send_slack. Sends a Slack notification. Returns sent=true and the channel from input (defaults to "#a.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-en_process_order
+en_process_order ──(fails when shouldFail=true)──> failureWorkflow triggers:
 
+    FORK ──┬── en_send_slack ──┐
+           └── en_send_email ──┤
+                               JOIN
 ```
 
----
+The primary workflow `order_with_alerts` runs `en_process_order` and sets `failureWorkflow` to `"error_notification"`. The secondary workflow `error_notification` uses a `FORK_JOIN` to dispatch Slack and email notifications in parallel, then a `JOIN` on `en_send_slack_ref` and `en_send_email_ref`.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ProcessOrderWorker** (`en_process_order`) -- reads `shouldFail` from task input. When `shouldFail` is `true`, returns `FAILED` with `error` = `"Order processing failed"`. Otherwise returns `COMPLETED` with `result` = `"order-processed"`.
+
+**SendSlackWorker** (`en_send_slack`) -- reads `channel` from input, defaulting to `"#alerts"`. Returns `sent` = `true` and the resolved `channel` name.
+
+**SendEmailWorker** (`en_send_email`) -- reads `to` from input, defaulting to `"oncall@example.com"`. Returns `sent` = `true` and the recipient address.
+
+**SendPagerDutyWorker** (`en_send_pagerduty`) -- a standalone alert worker that returns `sent` = `true`. Available for escalation scenarios but not wired into the default notification workflow.
+
+## Workflow Output
+
+The workflow produces `result` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `order_with_alerts` defines 1 task with input parameters `shouldFail` and a timeout of `120` seconds.
+
+## Tests
+
+4 tests verify successful order processing, failure triggering, and parallel notification dispatch through both Slack and email channels.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

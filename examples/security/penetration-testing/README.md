@@ -1,36 +1,46 @@
-# Implementing Penetration Testing in Java with Conductor : Reconnaissance, Vulnerability Scanning, Exploit Validation, and Reporting
+# Penetration Testing
 
-## The Problem
+A target system needs security assessment. The pipeline performs reconnaissance (discovering 12 endpoints and 4 open ports), scans for 5 potential vulnerabilities, tests exploitability (confirming 2 of 5 are exploitable), and generates a report with remediation steps.
 
-You need to run structured pen tests against external-facing systems. Each engagement follows the same pipeline: reconnaissance to enumerate endpoints and open ports on the target, vulnerability scanning to identify known CVEs and misconfigurations, exploit testing to confirm which vulnerabilities are actually exploitable (not just theoretical), and report generation with prioritized remediation steps.
-
-Without orchestration, you'd script these phases into a single long-running process. waiting for nmap output before launching a scanner, parsing scan results to decide which exploits to attempt, and hoping the whole thing doesn't crash four hours in. If the exploit phase fails mid-run, you lose all prior scan data and start over. Adding a new scanning tool means rewriting the control flow.
-
-## The Solution
-
-**You just write the recon scripts and vulnerability scanning integrations. Conductor handles phase sequencing so recon feeds the scanner, retries failed exploit tests without re-running the four-hour recon, and a complete record of every finding discovered.**
-
-Each phase of the pen test is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so reconnaissance output feeds the vulnerability scanner, scan results drive exploit selection, and the final report captures everything. If an exploit test times out, Conductor retries it without re-running the four-hour recon phase. Every step's inputs and outputs are recorded, giving you a complete audit trail of what was tested and what was found.
-
-### What You Write: Workers
-
-Three workers execute the pen test pipeline: ReconnaissanceWorker enumerates endpoints and open ports, ScanVulnerabilitiesWorker identifies CVEs and misconfigurations, and GenerateReportWorker compiles findings with prioritized remediation steps.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **GenerateReportWorker** | `pen_generate_report` | Generates the pen test report with remediation steps. |
-| **ReconnaissanceWorker** | `pen_reconnaissance` | Performs reconnaissance on the target system. |
-| **ScanVulnerabilitiesWorker** | `pen_scan_vulnerabilities` | Scans for vulnerabilities in the target. |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> GenerateReportWorker -> ReconnaissanceWorker -> ScanVulnerabilitiesWorker -> Output
-
+pen_reconnaissance ──> pen_scan_vulnerabilities ──> pen_exploit_test ──> pen_generate_report
 ```
 
----
+Workflow `penetration_testing_workflow` accepts `target` and `scope`. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ReconnaissanceWorker** (`pen_reconnaissance`) -- reads `target` from input (defaults to `"unknown"`). Reports `target + ": 12 endpoints, 4 open ports discovered"`. Returns `reconnaissanceId` = `"RECONNAISSANCE-1382"`.
+
+**ScanVulnerabilitiesWorker** (`pen_scan_vulnerabilities`) -- scans discovered attack surface. Reports `"Found 5 potential vulnerabilities"`. Returns `scan_vulnerabilities` = `true`.
+
+**ExploitTestWorker** (`pen_exploit_test`) -- tests vulnerability exploitability. Reports `"2 of 5 vulnerabilities confirmed exploitable"`. Returns `exploit_test` = `true`.
+
+**GenerateReportWorker** (`pen_generate_report`) -- produces the assessment report. Reports `"Pen test report generated with remediation steps"`. Returns `generate_report` = `true` and `completedAt` = `"2026-01-15T10:05:00Z"`.
+
+## Workflow Output
+
+The workflow produces `reconData`, `vulnerabilitiesFound`, `exploitResults`, `report` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `pen_reconnaissance`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pen_scan_vulnerabilities`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pen_exploit_test`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pen_generate_report`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `penetration_testing_workflow` defines 4 tasks with input parameters `target`, `scope` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify reconnaissance, vulnerability scanning, exploit testing, report generation, and the full pen test pipeline.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,52 +1,57 @@
-# Incremental RAG in Java Using Conductor : Sync Only Changed Documents to Your Vector Store
+# Syncing Only Changed Documents to the Vector Store
 
-## The Cost of Full Re-Indexing
+When 50 out of 100,000 documents change, re-embedding the entire corpus wastes 99,950 API calls. This workflow detects changed documents by comparing content hashes, separates them into inserts vs updates, embeds only the delta, upserts into the vector store, and verifies the index.
 
-When documents in your knowledge base change. new articles added, existing ones updated, obsolete ones removed, the vector store needs to reflect those changes. A naive approach re-embeds every document on every sync cycle. For a corpus of 100,000 documents where 50 changed, that's 99,950 wasted embedding API calls and hours of unnecessary processing.
-
-Incremental indexing solves this by comparing document hashes to detect what actually changed, separating new documents (no existing hash) from updated ones (hash mismatch), embedding only those, and upserting the new vectors. After the upsert, a verification step confirms the index is consistent and reports query latency. If the embedding API fails mid-batch, you need to retry from the embedding step without re-running change detection. the changed document list is still valid.
-
-Without orchestration, this becomes a fragile script where an embedding timeout means re-scanning the entire source collection, there's no record of how many documents were synced per run, and a failed upsert leaves the index in an inconsistent state with no way to resume.
-
-## The Solution
-
-**You write the change detection, embedding, and upsert logic. Conductor handles the incremental sync sequencing, retries, and observability.**
-
-Each stage of the incremental sync is an independent worker. change detection, filtering, embedding, upserting, verification. Conductor sequences them and passes change sets between stages. If the embedding API times out, Conductor retries it without re-running change detection. Every sync run is tracked end-to-end, showing exactly how many documents were detected, filtered, embedded, upserted, and verified.
-
-### What You Write: Workers
-
-Five workers handle incremental index maintenance. detecting document changes, filtering to only new or modified content, embedding the new chunks, upserting vectors, and verifying index consistency.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **DetectChangesWorker** | `ir_detect_changes` | Worker that detects changed documents in the source collection since the last sync timestamp. Returns changed documen... |
-| **EmbedIncrementalWorker** | `ir_embed_incremental` | Worker that generates embeddings for documents that need to be inserted or updated. Uses deterministic vectors rather... |
-| **FilterNewDocsWorker** | `ir_filter_new_docs` | Worker that separates changed documents into new (no existing hash) and updated (has existing hash) categories, produ... |
-| **UpsertVectorsWorker** | `ir_upsert_vectors` | Worker that upserts embedding vectors into the vector store, counting inserts vs updates based on the action field. |
-| **VerifyIndexWorker** | `ir_verify_index` | Worker that verifies the vector index after upserting. Confirms all documents are indexed and reports query latency. |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-ir_detect_changes
- │
- ▼
-ir_filter_new_docs
- │
- ▼
-ir_embed_incremental
- │
- ▼
-ir_upsert_vectors
- │
- ▼
-ir_verify_index
-
+sourceCollection, lastSyncTimestamp
+       │
+       ▼
+┌─────────────────────┐
+│ ir_detect_changes   │  Find changed doc IDs + existing hashes
+└──────────┬──────────┘
+           │  changedDocIds [4], existingHashes
+           ▼
+┌─────────────────────┐
+│ ir_filter_new_docs  │  Separate inserts from updates
+└──────────┬──────────┘
+           │  docsToEmbed [{action: "insert"/"update"}]
+           ▼
+┌─────────────────────┐
+│ ir_embed_incremental│  Generate embeddings for delta
+└──────────┬──────────┘
+           │  embeddings, docIds
+           ▼
+┌─────────────────────┐
+│ ir_upsert_vectors   │  Upsert into vector store
+└──────────┬──────────┘
+           │  upsertedCount, inserted, updated
+           ▼
+┌─────────────────────┐
+│ ir_verify_index     │  Confirm index integrity
+└─────────────────────┘
+           │
+           ▼
+  totalChanged, newCount, updatedCount, verified
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**DetectChangesWorker** (`ir_detect_changes`) -- Returns 4 changed doc IDs: `["doc-101", "doc-205", "doc-307", "doc-412"]`. Provides `existingHashes` as a `HashMap` (supports null values for new docs): `doc-101` has hash `"a1b2c3"`, `doc-307` has `"d4e5f6"`, while `doc-205` and `doc-412` have null (new documents).
+
+**FilterNewDocsWorker** (`ir_filter_new_docs`) -- Iterates `changedDocIds`, checks each against `existingHashes`. Null hash means `action: "insert"` with text `"Content of " + docId`; non-null hash means `action: "update"` with `"Updated content of " + docId`. Counts inserts and updates separately.
+
+**EmbedIncrementalWorker** (`ir_embed_incremental`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls OpenAI Embeddings with `text-embedding-3-small` for each doc. In fallback mode, assigns a fixed 5-dimensional vector `[0.12, -0.34, 0.56, 0.78, -0.91]` stored as `DETERMINISTIC_VECTOR`. Preserves the `action` field ("insert"/"update") on each embedding entry. On API failure for a single doc, falls back to deterministic for that doc and continues.
+
+**UpsertVectorsWorker** (`ir_upsert_vectors`) -- Iterates embeddings, counting entries with `action: "insert"` vs `"update"`. Reports `upsertedCount`, `inserted`, `updated`, and the full `docIds` list.
+
+**VerifyIndexWorker** (`ir_verify_index`) -- Confirms all upserted vectors are indexed. Reports `verified: true`, `vectorCount` (matching `upsertedCount`), and `queryLatencyMs: 12`.
+
+## Tests
+
+17 tests cover change detection, filtering logic, embedding with API fallback, upsert counting, and index verification.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

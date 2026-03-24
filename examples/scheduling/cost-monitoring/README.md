@@ -1,42 +1,40 @@
-# Cloud Cost Monitoring in Java Using Conductor : Billing Collection, Trend Analysis, and Budget Alerts
+# Cost Monitoring
 
-## The Problem
+A cloud account needs budget tracking. The pipeline collects billing data for the specified period, analyzes spending trends, and alerts when the budget percentage crosses the threshold.
 
-You need to track cloud spending across accounts and services. Billing data must be collected from cloud providers, analyzed for trends (is spending growing faster than expected?), and alerts must fire when costs exceed budget limits or show anomalous spikes (someone left GPU instances running). By the time the monthly bill arrives, it's too late to act.
-
-Without orchestration, cost monitoring is checking the AWS/GCP billing dashboard manually. Trend analysis runs in a separate spreadsheet, alerts are set up in a different tool, and there's no automated pipeline connecting billing data to budget enforcement. Cost overruns are discovered weeks after they start.
-
-## The Solution
-
-**You just write the billing data collection and budget threshold rules. Conductor handles the billing-to-alert pipeline, retries when cloud billing APIs are rate-limited, and a historical record of every cost check and budget alert.**
-
-Each cost concern is an independent worker. billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions.
-
-### What You Write: Workers
-
-Three workers form the cost pipeline: CollectBillingWorker pulls spending data by service, AnalyzeTrendsWorker compares against budgets and flags anomalies, and CosAlertWorker fires when utilization exceeds budget thresholds.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeTrendsWorker** | `cos_analyze_trends` | Analyzes spending trends (increasing/decreasing), calculates budget utilization percentage, and flags cost anomalies by service |
-| **CollectBillingWorker** | `cos_collect_billing` | Collects billing data for an account, returning total spend and a breakdown by service (compute, storage, network) |
-| **CosAlertWorker** | `cos_alert_anomalies` | Sends a budget alert if spending exceeds 80% of budget, with critical severity above 90% |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-cos_collect_billing
- │
- ▼
-cos_analyze_trends
- │
- ▼
-cos_alert_anomalies
-
+cos_collect_billing ──> cos_analyze_trends ──> cos_alert_anomalies
 ```
 
----
+Workflow `cost_monitoring_419` accepts `accountId`, `billingPeriod`, and `budgetLimit`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CollectBillingWorker** (`cos_collect_billing`) -- collects billing data for the specified account and period.
+
+**AnalyzeTrendsWorker** (`cos_analyze_trends`) -- analyzes spending trends across the billing data.
+
+**CosAlertWorker** (`cos_alert_anomalies`) -- calculates budget utilization percentage and triggers alerts when thresholds are exceeded.
+
+## Workflow Output
+
+The workflow produces `totalSpend`, `trend`, `percentOfBudget`, `alertSent` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `cost_monitoring_419` defines 3 tasks with input parameters `accountId`, `billingPeriod`, `budgetLimit` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify billing collection, trend analysis, and budget alert generation.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

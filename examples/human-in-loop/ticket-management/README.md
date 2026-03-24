@@ -1,48 +1,66 @@
-# Ticket Management in Java with Conductor
+# Ticket Management
 
-## Managing Tickets from Creation to Closure
+Orchestrates ticket management through a multi-stage Conductor workflow.
 
-When a user reports an issue, the ticket needs to be created, categorized by type and priority, assigned to the right agent, worked on until resolved, and formally closed. Dropping any step means tickets get lost, misrouted, or left in limbo. Each step depends on the previous one. you cannot assign a ticket before classifying its priority, and you cannot close it before it is resolved.
+**Input:** `subject`, `description`, `reportedBy` | **Timeout:** 60s
 
-This workflow drives a single ticket through its full lifecycle. The creator generates a ticket ID and records the subject and reporter. The classifier determines category (bug, feature request, question) and priority (critical, high, medium, low). The assigner routes the ticket to an appropriate agent based on category and priority. The resolver records the fix and resolution details. The closer marks the ticket as done and captures final metadata.
-
-## The Solution
-
-**You just write the ticket-creation, classification, assignment, resolution, and closure workers. Conductor handles the full lifecycle sequencing.**
-
-Each worker handles one CRM operation. Conductor manages the customer lifecycle pipeline, assignment routing, follow-up scheduling, and activity tracking.
-
-### What You Write: Workers
-
-CreateTicketWorker generates a unique ID, ClassifyTicketWorker determines category and priority, AssignTicketWorker routes to an agent, ResolveTicketWorker records the fix, and CloseTicketWorker completes the lifecycle.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AssignTicketWorker** | `tkt_assign` | Routes the ticket to an appropriate agent based on category and priority. |
-| **ClassifyTicketWorker** | `tkt_classify` | Determines the ticket's category (bug, feature request, question) and priority level. |
-| **CloseTicketWorker** | `tkt_close` | Marks the ticket as closed and records final metadata. |
-| **CreateTicketWorker** | `tkt_create` | Creates a new ticket with a unique ID from the subject, description, and reporter. |
-| **ResolveTicketWorker** | `tkt_resolve` | Records the resolution details and marks the ticket as resolved. |
-
-### The Workflow
+## Pipeline
 
 ```
 tkt_create
- │
- ▼
+    │
 tkt_classify
- │
- ▼
+    │
 tkt_assign
- │
- ▼
+    │
 tkt_resolve
- │
- ▼
+    │
 tkt_close
+```
 
+## Workers
+
+**AssignTicketWorker** (`tkt_assign`)
+
+```java
+Map<String, String> teams = Map.of("authentication", "Auth Team - Kim", "performance", "Infra Team - Leo", "general", "Support - Maria");
+```
+
+Reads `category`, `priority`, `ticketId`. Outputs `assignee`, `slaHours`.
+
+**ClassifyTicketWorker** (`tkt_classify`)
+
+```java
+String category = desc.contains("login") ? "authentication" : desc.contains("slow") ? "performance" : "general";
+String priority = (desc.contains("cannot") || desc.contains("urgent")) ? "P1" : "P2";
+```
+
+Reads `description`, `ticketId`. Outputs `category`, `priority`.
+
+**CloseTicketWorker** (`tkt_close`)
+
+Reads `ticketId`. Outputs `closed`, `closedAt`.
+
+**CreateTicketWorker** (`tkt_create`)
+
+```java
+String ticketId = "TKT-" + (new Random().nextInt(90000) + 10000);
+```
+
+Reads `subject`. Outputs `ticketId`, `createdAt`.
+
+**ResolveTicketWorker** (`tkt_resolve`)
+
+Reads `assignee`, `ticketId`. Outputs `resolution`, `resolvedAt`.
+
+## Tests
+
+**13 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

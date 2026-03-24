@@ -1,46 +1,41 @@
-# Calendar Integration in Java Using Conductor : Event Sync, Schedule Comparison, Change Propagation, and Notification
+# Calendar Integration
 
-## The Problem
+An external calendar needs bi-directional synchronization. The pipeline fetches events from the calendar, compares them with the internal schedule, syncs changes in the configured direction, and notifies stakeholders of what changed.
 
-You need to keep calendars in sync. when a meeting is added to Google Calendar, it needs to appear in your internal scheduling system, and vice versa. Events must be fetched from the source, compared against the target to find additions/deletions/changes, synced with conflict resolution, and stakeholders notified of any changes. If the sync step fails, changes are lost. If notifications fail, people miss schedule updates.
-
-Without orchestration, calendar sync is a fragile cron job that overwrites one calendar with another. Conflict detection is minimal, notification is an afterthought, and a failure in the sync step leaves calendars permanently out of sync with no record of what went wrong.
-
-## The Solution
-
-**You just write the calendar API calls and conflict resolution rules. Conductor handles the fetch-compare-sync-notify sequence, retries when calendar APIs are temporarily unavailable, and a complete record of every sync operation and conflict resolved.**
-
-Each sync concern is an independent worker. event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked, you can see what changed, what was synced, and who was notified.
-
-### What You Write: Workers
-
-Four workers handle bidirectional sync: FetchEventsWorker pulls events from the source calendar, CompareSchedulesWorker diffs additions/deletions/conflicts, SyncChangesWorker applies the reconciled changes, and NotifyStakeholdersWorker alerts affected participants.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CompareSchedulesWorker** | `cal_compare_schedules` | Compares fetched external events against the internal schedule, counting additions, updates, deletions, and conflicts |
-| **FetchEventsWorker** | `cal_fetch_events` | Fetches calendar events from a specified calendar source, returning event details and total count |
-| **NotifyStakeholdersWorker** | `cal_notify_stakeholders` | Notifies stakeholders about synced schedule changes, returning the recipient count |
-| **SyncChangesWorker** | `cal_sync_changes` | Applies additions, updates, and deletions to synchronize the target calendar with the source |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-cal_fetch_events
- │
- ▼
-cal_compare_schedules
- │
- ▼
-cal_sync_changes
- │
- ▼
-cal_notify_stakeholders
-
+cal_fetch_events ──> cal_compare_schedules ──> cal_sync_changes ──> cal_notify_stakeholders
 ```
 
----
+Workflow `calendar_integration_406` accepts `calendarId`, `syncWindow`, and `direction`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**FetchEventsWorker** (`cal_fetch_events`) -- fetches events from the specified calendar.
+
+**CompareSchedulesWorker** (`cal_compare_schedules`) -- compares external events with the internal schedule.
+
+**SyncChangesWorker** (`cal_sync_changes`) -- syncs the detected changes.
+
+**NotifyStakeholdersWorker** (`cal_notify_stakeholders`) -- notifies stakeholders of synced changes.
+
+## Workflow Output
+
+The workflow produces `eventsFetched`, `changesSynced`, `notified` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `calendar_integration_406` defines 4 tasks with input parameters `calendarId`, `syncWindow`, `direction` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Calendar sync workflow that fetches events, compares schedules, syncs changes, and notifies stakeholders.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the calendar sync pipeline from event fetching through stakeholder notification.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

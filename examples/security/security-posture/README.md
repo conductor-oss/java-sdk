@@ -1,46 +1,41 @@
-# Implementing Security Posture Assessment in Java with Conductor : Infrastructure, Application, and Compliance Scoring
+# Security Posture Assessment
 
-## The Problem
+An organization needs a composite security score. The pipeline assesses infrastructure (85/100, patching gaps), applications (78/100, 2 critical vulnerabilities in production), and compliance (92/100, access review overdue for 1 department), then calculates an overall grade of B at 85/100.
 
-You need a unified view of your organization's security posture. not just infrastructure (firewalls, encryption, patching) or application security (code vulnerabilities, dependency risks) or compliance (SOC2, HIPAA controls) in isolation, but all three combined into a single score that executives can understand and track over time.
-
-Without orchestration, security posture is measured in silos. the infrastructure team has their metrics, the application security team has theirs, and compliance has a separate assessment. Nobody can answer "how secure are we overall?" because the data isn't consolidated.
-
-## The Solution
-
-**You just write the domain-specific security assessments. Conductor handles parallel assessment execution, score aggregation across domains, and trend tracking of posture scores over time.**
-
-Conductor's FORK/JOIN evaluates infrastructure, application, and compliance security in parallel. A scoring worker combines all three assessments into a unified security posture score with breakdown by domain. Every assessment is tracked with detailed findings per domain and trend data over time.
-
-### What You Write: Workers
-
-Four domain-specific assessors run in parallel: AssessInfrastructureWorker evaluates firewalls and patching, AssessApplicationWorker scores code vulnerabilities, AssessComplianceWorker checks framework adherence, and CalculateScoreWorker merges them into a unified posture grade.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AssessApplicationWorker** | `sp_assess_application` | Scores application security. counts critical vulnerabilities in production code and dependencies |
-| **AssessComplianceWorker** | `sp_assess_compliance` | Scores compliance status against frameworks (SOC2, HIPAA) and flags overdue reviews |
-| **AssessInfrastructureWorker** | `sp_assess_infrastructure` | Scores infrastructure security. evaluates firewall rules, encryption, and patching gaps |
-| **CalculateScoreWorker** | `sp_calculate_score` | Computes a unified security posture score (letter grade and numeric) from all domain assessments |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-sp_assess_infrastructure
- │
- ▼
-sp_assess_application
- │
- ▼
-sp_assess_compliance
- │
- ▼
-sp_calculate_score
-
+sp_assess_infrastructure ──> sp_assess_application ──> sp_assess_compliance ──> sp_calculate_score
 ```
 
----
+Workflow `security_posture_workflow` accepts `organization` and `assessmentScope`. Times out after `1200` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**AssessInfrastructureWorker** (`sp_assess_infrastructure`) -- reports `"acme-corp: 85/100 -- patching gaps found"`. Returns `assess_infrastructureId` = `"ASSESS_INFRASTRUCTURE-1400"`.
+
+**AssessApplicationWorker** (`sp_assess_application`) -- reports `"78/100 -- 2 critical vulnerabilities in production"`. Returns `assess_application` = `true`.
+
+**AssessComplianceWorker** (`sp_assess_compliance`) -- reports `"92/100 -- access review overdue for 1 department"`. Returns `assess_compliance` = `true`.
+
+**CalculateScoreWorker** (`sp_calculate_score`) -- computes the composite score. Reports `"Overall security posture: B, 85/100"`. Returns `calculate_score` = `true`.
+
+## Workflow Output
+
+The workflow produces `assess_infrastructureResult`, `calculate_scoreResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `security_posture_workflow` defines 4 tasks with input parameters `organization`, `assessmentScope` and a timeout of `1200` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end security posture assessment from infrastructure through final scoring.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,41 +1,41 @@
-# Maintenance Window Management in Java Using Conductor : Time-Window Checks with Execute or Defer
+# Maintenance Windows
 
-## The Problem
+A system needs maintenance but can only be serviced during approved time windows. The pipeline checks whether the current time falls within a maintenance window. If yes, it executes the maintenance. If not, it defers to the next available window.
 
-You need to perform maintenance. database migrations, certificate rotations, patch deployments; but only during approved maintenance windows. If a maintenance task is triggered outside the window, it must be deferred rather than executed. The system must check the current time against the window schedule and route accordingly: execute now or schedule for later.
-
-Without orchestration, maintenance windows are enforced by human judgment. an engineer checks the clock before running a script. Automated scripts either ignore maintenance windows entirely (running at any time) or are scheduled with cron at fixed times that don't adapt when windows change.
-
-## The Solution
-
-**You just write the window schedule checks and maintenance task logic. Conductor handles time-window evaluation with conditional routing, retries on maintenance task failures, and a record of every execution or deferral with timing details.**
-
-A window checker worker evaluates whether the current time falls within the maintenance window. Conductor's SWITCH task routes to either the execute path or the defer path. If maintenance runs, it's tracked with timing and results. If deferred, the deferral is recorded with the reason and next available window.
-
-### What You Write: Workers
-
-CheckWindowWorker determines if the current time falls within the maintenance window, then Conductor routes to either ExecuteMaintenanceWorker to run tasks like db-vacuum and index-rebuild, or DeferMaintenanceWorker to schedule for the next approved window.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CheckWindowWorker** | `mnw_check_window` | Checks whether the current time falls within the approved maintenance window for a system, returning window status and remaining minutes |
-| **DeferMaintenanceWorker** | `mnw_defer_maintenance` | Defers maintenance to the next available window, recording the reason and scheduled time |
-| **ExecuteMaintenanceWorker** | `mnw_execute_maintenance` | Runs maintenance tasks (db-vacuum, index-rebuild, cache-clear) on the target system and reports duration and completed tasks |
-
-the schedule triggers, retry behavior, and monitoring stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-mnw_check_window
- │
- ▼
-SWITCH (mnw_switch_ref)
- ├── in_window: mnw_execute_maintenance
- └── default: mnw_defer_maintenance
-
+mnw_check_window ──> SWITCH
+                       ├── in_window ──> mnw_execute_maintenance
+                       └── outside ──> mnw_defer_maintenance
 ```
 
----
+Workflow `maintenance_windows_408` accepts `system`, `maintenanceType`, and `currentTime`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CheckWindowWorker** (`mnw_check_window`) -- checks whether the current time falls within the maintenance window for the specified system.
+
+**ExecuteMaintenanceWorker** (`mnw_execute_maintenance`) -- runs the maintenance operation on the system.
+
+**DeferMaintenanceWorker** (`mnw_defer_maintenance`) -- defers maintenance to the next available window.
+
+## Workflow Output
+
+The workflow produces `windowStatus`, `windowEnd`, `action` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `maintenance_windows_408` defines 2 tasks with input parameters `system`, `maintenanceType`, `currentTime` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify window checking, maintenance execution, and deferral routing.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

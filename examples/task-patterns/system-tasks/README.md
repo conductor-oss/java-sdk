@@ -1,38 +1,41 @@
-# System Tasks in Java with Conductor
+# System Tasks
 
-Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks. no workers needed.
+A user bonus calculation pipeline uses only Conductor system tasks -- no custom workers. An `INLINE` task looks up the user, another `INLINE` task calculates the bonus, and a `JSON_JQ_TRANSFORM` formats the output.
 
-## The Problem
-
-You need to build an employee compensation summary: look up a user's profile (name, department, base salary, performance rating), calculate their bonus based on performance tiers (15% for ratings 4.5+, 10% for 4.0+, 5% for 3.0+), and format the results into a structured summary with compensation breakdown and performance classification. None of these steps require external API calls. it is all data lookup, calculation, and reshaping. Deploying three separate worker services for this logic is unnecessary overhead.
-
-Without system tasks, you'd write three worker classes, each containing a few lines of logic wrapped in boilerplate (implement Worker interface, register task definition, handle polling). The user lookup is a map access, the bonus calculation is basic arithmetic with if/else, and the output formatting is JSON restructuring. Three deployed services for what is essentially three pure functions adds operational cost with no benefit.
-
-## The Solution
-
-**You just write INLINE JavaScript and JQ expressions in the workflow definition. Conductor runs them server-side. No workers needed for pure data lookup, calculation, and reshaping.**
-
-This example uses zero workers. everything runs as Conductor system tasks on the server. The `lookup_user` step (INLINE/GraalJS) takes a userId and looks up the employee profile from an in-memory map, returning name, department, base salary, and performance rating. The `calculate_bonus` step (INLINE/GraalJS) applies tiered bonus rules: Gold tier (15% bonus) for ratings 4.5+, Silver (10%) for 4.0+, Bronze (5%) for 3.0+, computing the dollar amount and total compensation. The `format_output` step (JSON_JQ_TRANSFORM) reshapes the user and bonus data into a structured summary with nested compensation and performance sections using a JQ expression. No worker deployment, no polling, no Docker containers, just expressions evaluated server-side.
-
-### What You Write: Workers
-
-This example uses zero custom workers, all three tasks (user lookup, bonus calculation, output formatting) run as server-side INLINE and JQ system tasks with no external deployment.
-
-This example uses Conductor system tasks. no custom workers needed. All logic runs server-side via INLINE (GraalJS) and JSON_JQ_TRANSFORM tasks.
-
-### The Workflow
+## Workflow
 
 ```
-lookup_user [INLINE]
- │
- ▼
-calculate_bonus [INLINE]
- │
- ▼
-format_output [JSON_JQ_TRANSFORM]
-
+lookup_user (INLINE) ──> calculate_bonus (INLINE) ──> format_output (JSON_JQ_TRANSFORM)
 ```
 
----
+Workflow `system_tasks_demo` accepts `userId`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+No custom workers. All three tasks use Conductor system task types: two `INLINE` tasks with JavaScript and one `JSON_JQ_TRANSFORM` with jq expressions.
+
+## Workflow Output
+
+The workflow produces `summary` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 0 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `system_tasks_demo` defines 3 tasks with input parameters `userId` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks — no workers needed". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Implementation Notes
+
+All workers implement the `com.netflix.conductor.client.worker.Worker` interface. Input parameters are read from `task.getInputData()` and output is written to `result.getOutputData()`. Workers return `TaskResult.Status.COMPLETED` on success and `TaskResult.Status.FAILED` on failure. The workflow JSON definition in `src/main/resources/` declares the task graph, input wiring via `${ref.output}` expressions, and output parameters.
+
+To swap in production logic, replace the worker method bodies while keeping the same task names and input/output contracts. No workflow definition changes are needed.
+
+## Tests
+
+19 tests verify user lookup, bonus calculation logic, jq output formatting, and various userId inputs.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

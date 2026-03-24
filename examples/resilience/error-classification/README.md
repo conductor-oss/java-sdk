@@ -1,39 +1,40 @@
-# Implementing Error Classification in Java with Conductor : Retryable vs Non-Retryable Error Routing
+# Error Classification
 
-## The Problem
+An API integration receives HTTP responses that span the full error spectrum -- `400` bad requests that should never be retried, `429` rate limits and `503` outages that should. This workflow classifies errors by type and routes non-retryable failures to a dedicated handler while letting retryable errors follow their normal retry path.
 
-You call an external API that returns different error codes. 429 (rate limited), 503 (service temporarily down), security-posture (bad request data). Each error type demands a different response: retryable errors should be retried with backoff, while non-retryable errors should be routed to an error handler that logs the issue, alerts the team, and prevents wasted retry attempts on requests that will never succeed.
-
-Without orchestration, error classification is buried in nested if/else chains inside every API caller. Each service classifies errors differently, retries non-retryable errors wastefully, or fails to retry retryable ones. When a new error code appears, every caller must be updated independently.
-
-## The Solution
-
-**You just write the API call and error classification logic. Conductor handles SWITCH-based routing by error type, automatic retries for transient failures, and a full record of every classification decision showing which errors were retried and which were sent to the handler.**
-
-The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded. you can see exactly which errors were retried, which were routed to the handler, and what the outcome was.
-
-### What You Write: Workers
-
-ApiCallWorker makes the external request and classifies the response error type, then Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to ErrorHandlerWorker for logging and alerting.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ApiCallWorker** | `ec_api_call` | Worker for ec_api_call. simulates different HTTP error codes based on the simulateError input parameter. Behavior by.. |
-| **ErrorHandlerWorker** | `ec_handle_error` | Worker for ec_handle_error. logs the error type and details from the upstream API call, then completes with a handle.. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-ec_api_call
- │
- ▼
-SWITCH (error_type_switch_ref)
- ├── non_retryable: ec_handle_error
-
+ec_api_call ──> SWITCH(errorType)
+                  ├── "non_retryable" ──> ec_handle_error
+                  └── default ──> (no-op, retries handled by task config)
 ```
 
----
+Workflow `error_classification_demo` accepts `triggerError` as input. The SWITCH task `error_type_switch_ref` evaluates `${api_call_ref.output.errorType}` to route the flow.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ApiCallWorker** (`ec_api_call`) -- reads `triggerError` from task input and branches on its value. `"security-posture"` returns `COMPLETED` with `errorType` = `"non_retryable"`, `httpStatus` = `400`, and `error` = `"Bad Request: invalid input parameters"`. `"429"` returns `FAILED` with `httpStatus` = `429` and `error` = `"Too Many Requests: rate limit exceeded"`. `"503"` returns `FAILED` with `httpStatus` = `503` and `error` = `"Service Unavailable: try again later"`. Any other value returns `COMPLETED` with `errorType` = `"none"` and `result` = `"success"`.
+
+**ErrorHandlerWorker** (`ec_handle_error`) -- receives `errorType`, `error`, and `httpStatus` from the upstream task output. Logs all three fields to stdout and returns `handled` = `true` along with the original error details. This worker only executes for the `"non_retryable"` branch.
+
+## Workflow Output
+
+The workflow produces `result`, `errorType`, `handled` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 2 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `error_classification_demo` defines 2 tasks with input parameters `triggerError` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Error classification demo -- classifies API errors as retryable (429, 503) or non-retryable (400) and routes accordingly.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+4 tests cover the success path, the non-retryable `400` classification, and the retryable `429`/`503` paths.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,37 +1,46 @@
-# Implementing Privileged Access Management in Java with Conductor : Just-In-Time Access Requests, Approval, Grant, and Auto-Revocation
+# Privileged Access Management
 
-## The Problem
+An engineer needs temporary production database access for an incident. The system must validate the request with justification, route it to the security team for approval, grant just-in-time access for the specified duration (default `"1h"`), and automatically revoke it after expiry.
 
-You need to manage privileged access to sensitive resources. production databases, cloud admin consoles, SSH bastion hosts. Engineers request elevated access tied to an incident or task, someone approves it, credentials are provisioned, and access must be revoked automatically after the approved duration (e.g., 2 hours). If revocation fails or gets skipped, you have standing privileged access that violates least-privilege and creates audit findings.
-
-Without orchestration, you'd build a request queue with a background job for approvals, a separate cron for revocation, and hope they stay in sync. If the grant succeeds but the revocation timer never fires, the engineer keeps production database access indefinitely. If the process crashes between approval and grant, the request sits in limbo with no visibility into what happened.
-
-## The Solution
-
-**You just write the credential provisioning and revocation logic. Conductor handles guaranteed revocation after the access window, retries if the credential provisioning API fails, and a full compliance record of every privileged access grant and revocation.**
-
-Each stage of the PAM lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor sequences them so requests are validated before approval, access is only granted after approval completes, and revocation is guaranteed to execute after the access window. If the revocation worker fails, Conductor retries it automatically. Every request, approval decision, grant, and revocation is recorded with full inputs and outputs for compliance audits.
-
-### What You Write: Workers
-
-Four workers manage just-in-time access: PamRequestWorker validates the access request and justification, PamApproveWorker routes to the security approver, PamGrantAccessWorker provisions time-limited credentials, and PamRevokeAccessWorker automatically revokes access when the window expires.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **PamApproveWorker** | `pam_approve` | Approves the privileged access request after security review. |
-| **PamGrantAccessWorker** | `pam_grant_access` | Grants temporary privileged access to the requested resource. |
-| **PamRequestWorker** | `pam_request` | Receives a privileged access request and validates the justification. |
-| **PamRevokeAccessWorker** | `pam_revoke_access` | Automatically revokes privileged access after expiry. |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> PamApproveWorker -> PamGrantAccessWorker -> PamRequestWorker -> PamRevokeAccessWorker -> Output
-
+pam_request ──> pam_approve ──> pam_grant_access ──> pam_revoke_access
 ```
 
----
+Workflow `privileged_access_workflow` accepts `userId`, `resource`, `justification`, and `duration`. All tasks have `retryCount` = `2`. Times out after `1800` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**PamRequestWorker** (`pam_request`) -- reads `userId`, `resource`, and `justification` from input (all default to `"unknown"` or `"none"`). Reports the access request. Returns `requestId` = `"REQUEST-1391"`.
+
+**PamApproveWorker** (`pam_approve`) -- security team reviews the request. Reports `"Security team approved -- risk: low"`. Returns `approve` = `true`.
+
+**PamGrantAccessWorker** (`pam_grant_access`) -- reads `resource` (defaults to `"unknown-resource"`) and `duration` (defaults to `"1h"`). Reports `"Temporary " + resource + " access granted for " + duration`. Returns `grant_access` = `true`.
+
+**PamRevokeAccessWorker** (`pam_revoke_access`) -- automatically revokes access after expiry. Returns `revoke_access` = `true` and `completedAt` = `"2026-01-15T10:00:00Z"`.
+
+## Workflow Output
+
+The workflow produces `requestId`, `approved`, `accessGranted`, `accessRevoked` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `pam_request`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pam_approve`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pam_grant_access`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `pam_revoke_access`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `privileged_access_workflow` defines 4 tasks with input parameters `userId`, `resource`, `justification`, `duration` and a timeout of `1800` seconds.
+
+## Tests
+
+8 tests verify the request-approve-grant-revoke lifecycle and justification validation.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

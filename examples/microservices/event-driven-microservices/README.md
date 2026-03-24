@@ -1,48 +1,41 @@
-# Event Driven Microservices in Java with Conductor
+# Event-Driven Pipeline: Emit, Process, Project, Notify
 
-Event-driven microservices choreography via Conductor.
+In an event-driven architecture, an event is emitted, processed to update state, projected
+onto a read model, and fanned out to subscribers. This workflow makes that pipeline explicit:
+emit the event with a unique ID, process it (e.g. `"order_updated"`), update the read model
+projection, and notify subscribers (billing, shipping, analytics).
 
-## The Problem
-
-In an event-driven architecture, a domain event must be emitted, processed by business logic, used to update read-side projections, and fanned out to interested subscribers. Each step depends on the previous one. Subscribers cannot be notified until the event is processed, and the projection must reflect the latest state.
-
-Without orchestration, event processing is scattered across message consumers with no unified view of the event lifecycle. If the projection update fails, the event is lost unless you build your own retry and dead-letter infrastructure.
-
-## The Solution
-
-**You just write the event-emit, processing, projection-update, and subscriber-notification workers. Conductor handles event pipeline sequencing, guaranteed projection updates, and full lifecycle visibility per event.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers model the event lifecycle: EmitEventWorker publishes a domain event, ProcessEventWorker applies business logic, UpdateProjectionWorker refreshes the read-side view, and NotifySubscribersWorker fans out to downstream consumers.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **EmitEventWorker** | `edm_emit_event` | Publishes a domain event with a type, payload, and source, returning a unique event ID. |
-| **NotifySubscribersWorker** | `edm_notify_subscribers` | Sends notifications to all identified subscribers of the event. |
-| **ProcessEventWorker** | `edm_process_event` | Processes the event by applying business logic and identifying downstream subscribers (e.g., billing, shipping, analytics). |
-| **UpdateProjectionWorker** | `edm_update_projection` | Updates the read-side projection (materialized view) with the processed event data. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-edm_emit_event
- │
- ▼
-edm_process_event
- │
- ▼
-edm_update_projection
- │
- ▼
-edm_notify_subscribers
-
+eventType, payload, source
+            |
+            v
++------------------+     +---------------------+     +--------------------------+     +--------------------------+
+| edm_emit_event   | --> | edm_process_event   | --> | edm_update_projection    | --> | edm_notify_subscribers   |
++------------------+     +---------------------+     +--------------------------+     +--------------------------+
+  eventId generated        result: "order_updated"    projectionUpdated: true          count: 3
+  timestamp set            subscribers: [billing,                                      (billing, shipping,
+                           shipping, analytics]                                         analytics)
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**EmitEventWorker** -- Emits an event of `eventType` from `source`. Returns a unique
+`eventId` and a timestamp.
+
+**ProcessEventWorker** -- Processes the event. Returns `result: "order_updated"` and the
+`subscribers` list: `["billing", "shipping", "analytics"]`.
+
+**UpdateProjectionWorker** -- Updates the read model. Returns `projectionUpdated: true`.
+
+**NotifySubscribersWorker** -- Notifies all 3 subscribers. Returns `count: 3`.
+
+## Tests
+
+8 unit tests cover event emission, processing, projection updates, and subscriber
+notification.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

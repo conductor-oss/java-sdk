@@ -1,47 +1,55 @@
-# Switch Default Case in Java with Conductor
+# Switch with Default Case
 
-Fallback routing for unmatched payment methods using SWITCH with defaultCase.
+A payment routing system uses a SWITCH task to route by `paymentMethod`. Known methods go to specific handlers (`stripe` for cards, `plaid` for bank transfers, `coinbase` for crypto). Unknown methods fall through to the default case for `manual_review`. A log task runs after all branches.
 
-## The Problem
-
-You need to route payment processing based on the payment method. credit card goes to Stripe, bank transfer goes to Plaid, crypto goes to Coinbase. But customers sometimes submit unrecognized payment methods (PayPal, Apple Pay, "cash") that don't match any configured processor. Those unmatched methods need a fallback path that flags them for manual review rather than silently failing or throwing an exception. After processing (or flagging), every payment attempt must be logged regardless of which branch was taken.
-
-Without orchestration, you'd write an if/else chain or switch statement with a catch-all else clause, but there is no record of which branch executed for a given payment. If you add a new payment method (e.g., "digital_wallet"), you modify the routing code and hope the default case still works. When a customer complains that their payment failed, debugging whether it hit the crypto branch or the default case requires searching through application logs.
-
-## The Solution
-
-**You just write the per-method payment processing and logging workers. Conductor handles the routing, default-case fallback, and branch tracking.**
-
-This example demonstrates Conductor's SWITCH task with a `defaultCase` for handling unmatched values. The SWITCH routes on `paymentMethod`: `credit_card` goes to ProcessCardWorker (Stripe), `bank_transfer` goes to ProcessBankWorker (Plaid), `crypto` goes to ProcessCryptoWorker (Coinbase). Any unrecognized method falls through to the `defaultCase`, where UnknownMethodWorker flags it for manual review. After the SWITCH resolves. regardless of which branch ran. LogWorker records the payment attempt. Conductor records exactly which branch executed, so you can see that `paymentMethod=paypal` hit the default case and was flagged for review.
-
-### What You Write: Workers
-
-Five workers cover payment routing: ProcessCardWorker handles credit cards via Stripe, ProcessBankWorker handles bank transfers via Plaid, ProcessCryptoWorker handles crypto via Coinbase, UnknownMethodWorker flags unrecognized methods for review, and LogWorker records every payment attempt regardless of branch.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **LogWorker** | `dc_log` | Logs the payment processing action. Runs after the SWITCH for all cases. |
-| **ProcessBankWorker** | `dc_process_bank` | Processes bank transfer payments via Plaid. |
-| **ProcessCardWorker** | `dc_process_card` | Processes credit card payments via Stripe. |
-| **ProcessCryptoWorker** | `dc_process_crypto` | Processes crypto payments via Coinbase. |
-| **UnknownMethodWorker** | `dc_unknown_method` | Handles unrecognized payment methods (default case). Takes the method name and flags it for manual review. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-SWITCH (route_ref)
- ├── credit_card: dc_process_card
- ├── bank_transfer: dc_process_bank
- ├── crypto: dc_process_crypto
- └── default: dc_unknown_method
- │
- ▼
-dc_log
-
+SWITCH(paymentMethod)
+  ├── "card" ──> stripe handler
+  ├── "bank" ──> plaid handler
+  ├── "crypto" ──> coinbase handler
+  └── default ──> manual_review handler
+                    │
+              dc_log
 ```
 
----
+Workflow `default_case_demo` accepts `paymentMethod`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ProcessCardWorker** (`stripe`) -- handles card payments via Stripe.
+
+**ProcessBankWorker** (`plaid`) -- handles bank transfers via Plaid.
+
+**ProcessCryptoWorker** (`coinbase`) -- handles cryptocurrency via Coinbase.
+
+**UnknownMethodWorker** (`manual_review`) -- handles unrecognized methods with `needsHuman` = `true`.
+
+**LogWorker** (`dc_log`) -- logs the processing result for all payment methods.
+
+## Workflow Output
+
+The workflow produces `method`, `logged` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `dc_process_card`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dc_process_bank`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dc_process_crypto`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dc_unknown_method`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `dc_log`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 5 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `default_case_demo` defines 2 tasks with input parameters `paymentMethod` and a timeout of `60` seconds.
+
+## Tests
+
+19 tests verify routing for each known payment method, default case routing for unknown methods, and post-switch logging.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

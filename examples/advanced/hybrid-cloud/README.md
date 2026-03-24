@@ -1,38 +1,42 @@
-# Hybrid Cloud Data Routing in Java Using Conductor : Classify Sensitivity, Route to On-Prem or Cloud
+# Hybrid Cloud
 
-## Sensitive Data Can't Leave Your Data Center
+An enterprise runs sensitive workloads on-premise and burst workloads in the public cloud. The hybrid pipeline needs to classify each task by data sensitivity, route sensitive tasks to on-premise workers and burst tasks to cloud workers, and aggregate results regardless of where they executed.
 
-Regulations like GDPR, HIPAA, and PCI-DSS require that certain data. patient records, financial transactions, PII, stays within controlled environments. But running everything on-premises wastes cloud elasticity for workloads that have no compliance constraints. The challenge is automatically determining which data must stay on-prem and which can be processed in the cloud, then routing each record to the right infrastructure.
-
-Without automated classification and routing, engineers make manual decisions about where data should go, or worse, everything runs in one place. either overpaying for on-prem infrastructure for non-sensitive workloads, or risking compliance violations by sending sensitive data to the cloud.
-
-## The Solution
-
-**You write the classification and processing logic. Conductor handles the sensitivity-based routing, retries, and compliance audit trail.**
-
-`HybClassifyDataWorker` examines the data type and content to determine its sensitivity classification and target environment. `onprem` for sensitive data that must stay in the data center, `cloud` for everything else. A `SWITCH` task routes based on this classification: `HybProcessOnpremWorker` handles sensitive records within the on-premises environment, while `HybProcessCloudWorker` sends non-sensitive records to AWS for elastic processing. Conductor's conditional routing makes this classification-based split declarative, and every execution records the data ID, classification, and which path was taken, giving you an audit trail for compliance.
-
-### What You Write: Workers
-
-Three workers handle the classification-and-routing split. Sensitivity classification, on-premises processing for regulated data, and cloud processing for non-sensitive workloads.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **HybClassifyDataWorker** | `hyb_classify_data` | Classifies data by sensitivity (e.g., PII vs. general) and determines whether to route to on-prem or cloud |
-| **HybProcessCloudWorker** | `hyb_process_cloud` | Processes non-sensitive data in the cloud (e.g.
-
-### The Workflow
+## Pipeline
 
 ```
-hyb_classify_data
- │
- ▼
-SWITCH (hyb_switch_ref)
- ├── onprem: hyb_process_onprem
- ├── cloud: hyb_process_cloud
-
+[hyb_classify_data]
+     |
+     v
+     <SWITCH>
+       |-- onprem -> [hyb_process_onprem]
+       |-- cloud -> [hyb_process_cloud]
 ```
+
+**Workflow inputs:** `dataId`, `dataType`, `payload`
+
+## Workers
+
+**HybClassifyDataWorker** (task: `hyb_classify_data`)
+
+Classifies incoming data by sensitivity. Checks `dataType` against a hardcoded sensitive-type list containing `"pii"`, `"phi"`, and `"financial"`. If matched, sets `classification` = `"confidential"` and `target` = `"onprem"`. Otherwise sets `classification` = `"public"` and `target` = `"cloud"`. The `target` output drives the downstream SWITCH task.
+
+- Reads `dataType`. Writes `classification`, `target`
+
+**HybProcessOnpremWorker** (task: `hyb_process_onprem`)
+
+Processes confidential data on the organization's own infrastructure. Reports `processedAt` = `"datacenter-1"` and `encrypted` = true, keeping sensitive data within the physical security boundary.
+
+- Writes `processedAt`, `encrypted`
+
+**HybProcessCloudWorker** (task: `hyb_process_cloud`)
+
+Processes non-sensitive data in the public cloud for elastic scaling. Reports `processedAt` = `"aws-us-east-1"` and `scaledInstances` = 4, indicating horizontal scaling was applied.
+
+- Writes `processedAt`, `scaledInstances`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**12 tests** | Workflow: `hybrid_cloud_demo` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

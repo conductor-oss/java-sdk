@@ -1,48 +1,41 @@
-# Service Migration in Java with Conductor
+# Migrating Payment Service to a New Environment
 
-Orchestrates a service migration between environments using [Conductor](https://github.com/conductor-oss/conductor). This workflow assesses dependencies, replicates the service to the target environment, performs the traffic cutover, and validates that all endpoints are responding correctly.
+Moving a service between environments without assessing its dependencies first risks
+breaking downstream consumers. This workflow assesses payment-service (3 dependencies, 2
+data stores), replicates it to the target environment, cuts over traffic, and validates all
+endpoints respond correctly.
 
-## Moving Services Without Downtime
-
-Your payment-service needs to move from the legacy environment to the new Kubernetes cluster. It has 3 downstream dependencies and 2 data stores. You need to assess what will break, replicate the service, cut over traffic at the right moment, and validate every endpoint still works. A botched migration means payment failures and revenue loss.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the migration logic. Conductor handles dependency assessment, cutover sequencing, and validation gates.**
-
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
-
-### What You Write: Workers
-
-Four workers manage the migration. Assessing dependencies, replicating the service, cutting over traffic, and validating endpoints in the target environment.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AssessWorker** | `sm_assess` | Inventories the service's dependencies and data stores to build a migration plan |
-| **CutoverWorker** | `sm_cutover` | Switches live traffic from the source environment to the target environment |
-| **ReplicateWorker** | `sm_replicate` | Replicates the service, configuration, and data to the target environment |
-| **ValidateWorker** | `sm_validate` | Confirms all endpoints in the target environment are responding correctly after cutover |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-sm_assess
- │
- ▼
-sm_replicate
- │
- ▼
-sm_cutover
- │
- ▼
-sm_validate
-
+service, sourceEnv, targetEnv
+            |
+            v
++--------------+     +------------------+     +----------------+     +----------------+
+| sm_assess    | --> | sm_replicate     | --> | sm_cutover     | --> | sm_validate    |
++--------------+     +------------------+     +----------------+     +----------------+
+  ASSESS-1338         service replicated      traffic switched        all endpoints
+  3 dependencies,     to target               to new environment      responding
+  2 data stores
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AssessWorker** -- Assesses payment-service: finds 3 dependencies and 2 data stores.
+Returns `assessId: "ASSESS-1338"`.
+
+**ReplicateWorker** -- Replicates the service to the target environment. Returns
+`replicate: true`.
+
+**CutoverWorker** -- Switches traffic to the new environment. Returns `cutover: true`.
+
+**ValidateWorker** -- Confirms all endpoints are responding correctly. Returns
+`validate: true`.
+
+## Tests
+
+2 unit tests cover the service migration pipeline.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

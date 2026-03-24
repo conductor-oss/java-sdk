@@ -1,48 +1,51 @@
-# Health Check Aggregation in Java with Conductor
+# Aggregating Health from API, Database, Cache, and Queue in Parallel
 
-System-wide health check aggregation using FORK/JOIN.
+Your load balancer's `/health` endpoint returns "ok" but does not tell you that Kafka has
+a 12-message lag or Postgres is at 23/100 connections. This workflow checks all four
+infrastructure components in parallel using FORK_JOIN and aggregates them into a single
+HEALTHY or DEGRADED status.
 
-## The Problem
-
-Determining overall system health requires checking multiple infrastructure components. API gateway, database, cache, message queue, and aggregating their individual statuses into a single health verdict. These checks are independent and should run in parallel for speed, but the aggregation must wait for all of them to complete.
-
-Without orchestration, health aggregation is a polling loop that sequentially pings each component, making the overall check slow (sum of all latencies). Partial failures (e.g., cache is down but everything else is healthy) are hard to represent without a structured aggregation step.
-
-## The Solution
-
-**You just write the per-component health-check workers and the aggregation worker. Conductor handles parallel health probes, per-component timeouts, and automatic aggregation once all checks complete.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Five workers probe infrastructure in parallel: CheckApiWorker, CheckDbWorker, CheckCacheWorker, and CheckQueueWorker each report component health, then AggregateHealthWorker produces an overall system verdict.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AggregateHealthWorker** | `hc_aggregate_health` | Aggregates all component health checks into an overall system status (healthy/degraded). |
-| **CheckApiWorker** | `hc_check_api` | Checks the API gateway health and reports latency. |
-| **CheckCacheWorker** | `hc_check_cache` | Checks the Redis cache health and reports memory usage. |
-| **CheckDbWorker** | `hc_check_db` | Checks the database health and reports connection pool utilization. |
-| **CheckQueueWorker** | `hc_check_queue` | Checks the Kafka message queue health and reports consumer lag. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-FORK_JOIN
- ├── hc_check_api
- ├── hc_check_db
- ├── hc_check_cache
- └── hc_check_queue
- │
- ▼
-JOIN (wait for all branches)
-hc_aggregate_health
-
+(no inputs)
+    |
+    v
+  FORK_JOIN ---------------------------------+
+  |            |            |                |
+  v            v            v                v
++-----------+ +-----------+ +-----------+ +-----------+
+| hc_check_ | | hc_check_ | | hc_check_ | | hc_check_ |
+| api       | | db        | | cache     | | queue     |
++-----------+ +-----------+ +-----------+ +-----------+
+  api-gateway   postgres      redis         kafka
+  15ms latency  23/100 conn   45% memory    12 msg lag
+  |            |            |                |
+  +------ JOIN +------------+----------------+
+               |
+               v
+    +-----------------------+
+    | hc_aggregate_health   |   status: "healthy" or "degraded"
+    +-----------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CheckApiWorker** -- API gateway: `healthy: true`, `latencyMs: 15`, `component: "api-gateway"`.
+
+**CheckDbWorker** -- Postgres: `healthy: true`, `connections: 23`, `component: "postgres"`.
+
+**CheckCacheWorker** -- Redis: `healthy: true`, `memoryPct: 45`, `component: "redis"`.
+
+**CheckQueueWorker** -- Kafka: `healthy: true`, `lag: 12`, `component: "kafka"`.
+
+**AggregateHealthWorker** -- Combines all results. Returns `status: "healthy"` if all
+components are healthy, otherwise `"degraded"`.
+
+## Tests
+
+10 unit tests cover each component check and the aggregation logic.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

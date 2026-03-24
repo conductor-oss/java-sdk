@@ -1,48 +1,46 @@
-# Auto-Scaling in Java with Conductor : Analyze Metrics, Plan Scaling, Execute, Verify
+# Threshold-Based Auto-Scaling with Verification
 
-Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify.
+Your platform runs multiple services at varying load levels. When CPU crosses 80%, you need
+to scale up; when it drops below 30%, you should scale down to save cost. But scaling without
+verification risks silent failures -- pods crashing, load not actually decreasing. This
+workflow analyzes metrics, plans the action, executes it, and confirms the result.
 
-## Scaling Decisions Need Analysis, Not Just Thresholds
-
-CPU is at 80%. Should you scale up? Maybe, or maybe it's a transient spike from a batch job that ends in 5 minutes. Auto-scaling needs more than simple threshold crossing: analyze the metric trend (is it sustained or transient?), plan the scaling (how many instances, which instance type?), execute the scaling operation, and verify the new instances are healthy and handling traffic.
-
-Scaling too aggressively wastes money (spinning up 10 instances for a 2-minute spike). Scaling too conservatively risks outages (waiting too long while latency degrades). The analyze step should consider metric history, time of day, and business context (is this a known traffic pattern?). The verify step must confirm new instances are healthy before declaring success.
-
-## The Solution
-
-**You write the metric analysis and scaling logic. Conductor handles the analyze-plan-execute-verify sequence and records every scaling decision.**
-
-`AnalyzeWorker` examines current metrics (CPU utilization, memory pressure, request rate, queue depth) and their trends over the analysis window to determine if scaling is needed. `PlanWorker` determines the scaling action. scale up (add instances), scale down (remove instances), or maintain, with the target instance count based on the metric analysis. `ExecuteWorker` performs the scaling operation, launching new instances or terminating excess ones. `VerifyWorker` confirms the scaled service is healthy, new instances passing health checks, traffic being distributed, and metrics improving. Conductor records every scaling decision with its metric context for capacity planning analysis.
-
-### What You Write: Workers
-
-Four workers handle the scaling decision. Analyzing current metrics, planning the scaling action, executing instance changes, and verifying the result.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **Analyze** | `as_analyze` | Analyzes current service metrics (CPU, memory, request rate) to determine load. |
-| **Execute** | `as_execute` | Executes the planned scaling action (scale-up, scale-down, or no-change). |
-| **Plan** | `as_plan` | Plans the scaling action based on current load analysis. |
-| **Verify** | `as_verify` | Verifies that the scaling action achieved the desired result. |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-as_analyze
- │
- ▼
-as_plan
- │
- ▼
-as_execute
- │
- ▼
-as_verify
-
+service, metric, threshold
+         |
+         v
+  +-------------+     +-----------+     +-------------+     +-------------+
+  | as_analyze  | --> | as_plan   | --> | as_execute  | --> | as_verify   |
+  +-------------+     +-----------+     +-------------+     +-------------+
+    currentLoad         action:          newInstanceCount     verified=true
+    per service         scale-up/down    5 (up), 2 (down)    newLoad checked
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**Analyze** -- Takes `service` and `metric` (defaults to `"cpu"`). Returns deterministic
+`currentLoad` values by service name: `"api-server"` = 85%, `"web-frontend"` = 45%,
+`"batch-worker"` = 92%, `"cache-service"` = 30%, default = 60%. Also computes `avgLoad15m`
+(currentLoad - 5), `peakLoad1h` (currentLoad + 8), and `currentInstances` = 3.
+
+**Plan** -- Reads `currentLoad` as an integer. If >= 80 the action is `"scale-up"` (from 3 to
+5 instances). If <= 30 the action is `"scale-down"` (from 3 to max(1, 2)). Otherwise
+`"no-change"`. Outputs a human-readable `reason` string.
+
+**Execute** -- Receives the `action` string. For `"scale-up"`, sets `newInstanceCount` to 5.
+For `"scale-down"`, sets it to 2. For anything else, keeps 3 and marks `scaled: false`.
+Stamps an `executedAt` ISO timestamp.
+
+**Verify** -- Confirms the scaling worked. After `"scale-up"`, reports CPU dropped to 52%.
+After `"scale-down"`, reports load stable at 45%. No-change reports 50%. Always sets
+`verified: true`.
+
+## Tests
+
+37 unit tests cover metric analysis, planning thresholds, execution paths, and verification.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

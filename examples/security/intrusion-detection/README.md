@@ -1,46 +1,41 @@
-# Implementing Intrusion Detection in Java with Conductor : Event Analysis, Threat Correlation, Severity Assessment, and Response
+# Intrusion Detection
 
-## The Problem
+IP address `198.51.100.42` triggers repeated authentication failures. The system must analyze 47 suspicious events, correlate the IP against known threat intelligence feeds, assess the severity as critical (active brute-force from known malicious IP), and respond by blocking the IP and notifying the security team.
 
-You detect a suspicious event. an SSH login from an unusual IP, a port scan, an anomalous database query pattern. You need to analyze the event in context, correlate it with other events and known threat indicators (is this IP on a threat feed?), assess the severity (isolated event vs coordinated attack), and trigger the appropriate response (block IP, isolate host, alert SOC).
-
-Without orchestration, intrusion detection is either a SIEM that generates thousands of uncorrelated alerts or a manual investigation process. Security analysts manually check threat feeds, correlate events across tools, and copy-paste IOCs between systems. Response is delayed because each step depends on the previous one and they're done sequentially by a human.
-
-## The Solution
-
-**You just write the event analysis and threat correlation logic. Conductor handles sequential execution, automatic retries if a threat feed is down, and a complete forensic timeline of every detection.**
-
-Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context, event details, correlation results, severity score, and actions taken.
-
-### What You Write: Workers
-
-The detection pipeline chains four focused workers: AnalyzeEventsWorker parses security events, CorrelateThreatsWorker matches against threat feeds, AssessSeverityWorker scores the risk, and RespondWorker triggers automated containment.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AnalyzeEventsWorker** | `id_analyze_events` | Analyzes security events from a source IP, identifying suspicious patterns like repeated auth failures |
-| **AssessSeverityWorker** | `id_assess_severity` | Assesses threat severity (e.g., active brute-force from a known malicious IP) |
-| **CorrelateThreatsWorker** | `id_correlate_threats` | Correlates the event IP against threat intelligence feeds for known indicators |
-| **RespondWorker** | `id_respond` | Executes automated response actions. blocks the IP and notifies the security team |
-
-the workflow logic stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-id_analyze_events
- │
- ▼
-id_correlate_threats
- │
- ▼
-id_assess_severity
- │
- ▼
-id_respond
-
+id_analyze_events ──> id_correlate_threats ──> id_assess_severity ──> id_respond
 ```
 
----
+Workflow `intrusion_detection_workflow` accepts `sourceIp` and `eventType`. Times out after `120` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**AnalyzeEventsWorker** (`id_analyze_events`) -- reports `"198.51.100.42: repeated-auth-failure -- 47 suspicious events"`. Returns `analyze_eventsId` = `"ANALYZE_EVENTS-1359"`.
+
+**CorrelateThreatsWorker** (`id_correlate_threats`) -- matches against threat feeds. Reports `"IP matched known threat intelligence feed"`. Returns `correlate_threats` = `true`.
+
+**AssessSeverityWorker** (`id_assess_severity`) -- evaluates threat level. Reports `"Critical threat: active brute-force from known malicious IP"`. Returns `assess_severity` = `true`.
+
+**RespondWorker** (`id_respond`) -- executes the response. Reports `"Blocked IP, notified security team"`. Returns `respond` = `true`.
+
+## Workflow Output
+
+The workflow produces `analyze_eventsResult`, `respondResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `intrusion_detection_workflow` defines 4 tasks with input parameters `sourceIp`, `eventType` and a timeout of `120` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+2 tests verify the end-to-end intrusion detection pipeline from event analysis through response.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

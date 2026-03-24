@@ -1,36 +1,43 @@
-# Implementing Timeout Policies in Java with Conductor : TIME_OUT_WF, RETRY, and ALERT Behaviors
+# Timeout Policies
 
-## The Problem
+Different tasks need different timeout behaviors. A payment task should terminate the entire workflow on timeout (TIME_OUT_WF) because proceeding without payment confirmation is dangerous. An enrichment task should retry on timeout (RETRY) because it usually works on the second attempt. An analytics task can silently time out (ALERT_ONLY) because the data will be backfilled later.
 
-Different tasks need different timeout behaviors. A critical payment task should fail the entire workflow if it times out (TIME_OUT_WF). you can't proceed without payment confirmation. A flaky enrichment task should be retried on timeout (RETRY), it usually works on the second attempt. An analytics task can silently timeout (ALERT), the data will be backfilled later. One-size-fits-all timeout handling doesn't work.
-
-Without orchestration, implementing different timeout policies per task means wrapping each call in its own timeout handler with custom logic. one throws an exception, one retries, one logs and continues. The timeout behavior is buried in code rather than declared in configuration.
-
-## The Solution
-
-**You just write the task logic and declare timeout policies in the workflow definition. Conductor handles per-task timeout detection with configurable policy enforcement (TIME_OUT_WF, RETRY, ALERT_ONLY), and a record of every timeout event showing which policy was applied and what action was taken.**
-
-Each task's timeout policy is declared in the task definition. `timeoutPolicy: TIME_OUT_WF` for critical tasks, `RETRY` for flaky tasks, and `ALERT_ONLY` for non-critical tasks. The workers just do their work; Conductor handles the timeout detection and policy enforcement. Changing a task's timeout behavior is a config change, not a code change.
-
-### What You Write: Workers
-
-CriticalWorker uses TIME_OUT_WF to fail the entire workflow on timeout, RetryableWorker uses RETRY to automatically retry on timeout, and OptionalWorker uses ALERT_ONLY to continue the pipeline while flagging the timeout event.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CriticalWorker** | `tp_critical` | Worker for the tp_critical task. The task definition uses timeoutPolicy: TIME_OUT_WF. If this worker does not respond... |
-| **OptionalWorker** | `tp_optional` | Worker for the tp_optional task. The task definition uses timeoutPolicy: ALERT_ONLY. If this worker does not respond ... |
-| **RetryableWorker** | `tp_retryable` | Worker for the tp_retryable task. The task definition uses timeoutPolicy: RETRY. If this worker does not respond with... |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-tp_critical
-
+tp_critical (timeoutPolicy: TIME_OUT_WF)
 ```
 
----
+Workflow `timeout_policy_demo` accepts `mode` as input and times out after `30` seconds. Three task definitions demonstrate the three policies.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CriticalWorker** (`tp_critical`) -- returns `result` = `"critical-done"`. Task definition: `timeoutPolicy` = `TIME_OUT_WF`, `responseTimeoutSeconds` = `10`, `retryCount` = `0`. If the worker does not respond within 10 seconds, the entire workflow is terminated.
+
+**RetryableWorker** (`tp_retryable`) -- returns `result` = `"retried-done"`. Task definition: `timeoutPolicy` = `RETRY`, `responseTimeoutSeconds` = `10`, `retryCount` = `2`, `retryLogic` = `FIXED`, `retryDelaySeconds` = `1`. If the worker times out, Conductor automatically retries up to 2 times.
+
+**OptionalWorker** (`tp_optional`) -- returns `result` = `"optional-done"`. Task definition: `timeoutPolicy` = `ALERT_ONLY`, `responseTimeoutSeconds` = `10`, `retryCount` = `0`. If the worker times out, the task is marked `TIMED_OUT` but the workflow continues.
+
+## Workflow Output
+
+The workflow produces `result` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `tp_critical`: retryCount=0, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=30, responseTimeoutSeconds=10, timeoutPolicy=TIME_OUT_WF
+- `tp_optional`: retryCount=0, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=30, responseTimeoutSeconds=10, timeoutPolicy=ALERT_ONLY
+- `tp_retryable`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=1, timeoutSeconds=30, responseTimeoutSeconds=10, timeoutPolicy=RETRY
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `timeout_policy_demo` defines 1 task with input parameters `mode` and a timeout of `30` seconds.
+
+## Tests
+
+6 tests verify that each worker completes within the timeout window and that the three timeout policy configurations are correctly defined for their respective failure scenarios.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

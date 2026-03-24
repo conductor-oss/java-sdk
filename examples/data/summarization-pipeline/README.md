@@ -1,40 +1,43 @@
-# Summarization Pipeline in Java with Conductor : Extract Sections, Compress, and Generate Summaries
+# Summarization Pipeline
 
-## Turning Long Documents into Actionable Summaries
+A news aggregation service collects articles from hundreds of RSS feeds. Each article needs text extraction, key-phrase identification, and summary generation so readers get a 2-3 sentence digest instead of clicking through to every source.
 
-Long documents. reports, articles, meeting transcripts, legal filings, contain important information buried in pages of text. Reading every word is impractical when you need the key points. Effective summarization requires structure: first identify the document's logical sections (introduction, findings, recommendations), then compress each section to its essential points, and finally generate a cohesive summary that stays within a target length.
-
-This workflow processes a document through three summarization steps. The section extractor identifies logical segments in the text. The compressor reduces each section to its key points while preserving meaning. The summary generator combines the compressed sections into a final summary that respects the `maxLength` constraint. Each step builds on the previous one. you cannot compress sections that have not been identified, and you cannot generate a summary without compressed content.
-
-## The Solution
-
-**You just write the section-extraction, compression, and summary-generation workers. Conductor handles the summarization pipeline and content flow.**
-
-Three workers form the summarization pipeline. section extraction, compression, and summary generation. The extractor identifies logical document sections. The compressor reduces each section to its essential points. The generator produces a final summary within the specified length. Conductor sequences the three steps and passes sections and compressed content between them via JSONPath.
-
-### What You Write: Workers
-
-ExtractSectionsWorker identifies logical document segments, CompressWorker reduces each section to key points, and GenerateSummaryWorker combines the compressed content into a cohesive summary within the target length.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CompressWorker** | `sum_compress` | Reduces each extracted section to its key points, achieving ~80% word-count reduction while preserving meaning. |
-| **ExtractSectionsWorker** | `sum_extract_sections` | Identifies and extracts logical sections (intro, findings, recommendations, etc.) from the input document. |
-| **GenerateSummaryWorker** | `sum_generate_summary` | Combines compressed sections into a final cohesive summary within the specified maximum length. |
-
-### The Workflow
+## Pipeline
 
 ```
-sum_extract_sections
- │
- ▼
-sum_compress
- │
- ▼
-sum_generate_summary
-
+[sum_extract_sections]
+     |
+     v
+[sum_compress]
+     |
+     v
+[sum_generate_summary]
 ```
+
+**Workflow inputs:** `document`, `maxLength`
+
+## Workers
+
+**ExtractSectionsWorker** (task: `sum_extract_sections`)
+
+Splits a document into titled sections with per-section word counts. Produces four sections -- "Introduction" (450 words), "Methodology" (820 words), "Results" (600 words), and "Conclusion" (280 words) -- totaling 2,150 words. Each section carries a `key` sentence used downstream for compression.
+
+- Writes `sections`, `sectionCount`, `totalWords`
+
+**CompressWorker** (task: `sum_compress`)
+
+Compresses extracted sections by retaining only `title` and `keySentence` from each section map, discarding body text. Reports an 80% reduction (2,150 words down to 420) via `compressionRatio` = `"80%"` and `compressedWords` = 420. Uses Java streams to map each section to its compressed form.
+
+- Reads `sections`. Writes `compressed`, `compressionRatio`, `compressedWords`
+
+**GenerateSummaryWorker** (task: `sum_generate_summary`)
+
+Generates a final natural-language summary from the compressed sections. Outputs the summary text, its `wordCount`, and the model identifier `"bart-large-cnn"`. The summary captures the core finding: 95.2% accuracy on the benchmark dataset using transformer architecture with attention mechanisms.
+
+- Writes `summary`, `wordCount`, `model`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**6 tests** | Workflow: `sum_summarization_pipeline` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

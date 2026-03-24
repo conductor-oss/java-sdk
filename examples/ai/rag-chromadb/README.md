@@ -1,42 +1,38 @@
-# RAG with ChromaDB in Java Using Conductor : Embed, Query, Generate
+# RAG with ChromaDB: Embed, Query Collections, Generate
 
-## RAG with ChromaDB
+Your documents live in ChromaDB collections and you need a RAG pipeline that embeds the query, runs a similarity search against a ChromaDB collection, and generates an answer from the retrieved context.
 
-ChromaDB is a popular choice for RAG prototyping and production. it's open-source, runs locally without cloud dependencies, supports metadata filtering, and has a simple Python/REST API. A RAG pipeline against ChromaDB follows three steps: embed the question into a vector, query the ChromaDB collection for nearest neighbors, and pass the retrieved documents as context to an LLM.
-
-Each step can fail independently: the embedding model might time out, the ChromaDB connection might drop, or the LLM might be rate-limited. Without orchestration, a ChromaDB connection error means restarting from embedding, and there's no record of which documents were retrieved for which questions.
-
-## The Solution
-
-**You write the embedding and ChromaDB query logic. Conductor handles the RAG pipeline, retries, and observability.**
-
-Each stage is an independent worker. question embedding, ChromaDB collection query, and answer generation. Conductor sequences them, retries the ChromaDB query if the connection drops, and tracks every execution with the question, retrieved documents, and generated answer.
-
-### What You Write: Workers
-
-Three workers integrate ChromaDB into the RAG pipeline. embedding the query, querying the ChromaDB collection with metadata filtering, and generating an answer from the retrieved documents.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ChromaEmbedWorker** | `chroma_embed` | Worker that produces a fixed embedding vector for a given question. In production this would call ChromaDB's default ... |
-| **ChromaGenerateWorker** | `chroma_generate` | Worker that generates an answer from ChromaDB query results. In production this would send the retrieved documents as... |
-| **ChromaQueryWorker** | `chroma_query` | Worker that simulates querying a ChromaDB collection. In production this would use: ChromaClient client = new ChromaC... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-chroma_embed
- │
- ▼
-chroma_query
- │
- ▼
-chroma_generate
-
+question, collection
+       │
+       ▼
+┌──────────────────┐
+│ chroma_embed     │  Embed query via OpenAI
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ chroma_query     │  Query ChromaDB collection
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ chroma_generate  │  Generate answer from results
+└──────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**ChromaEmbedWorker** (`chroma_embed`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls `https://api.openai.com/v1/embeddings` with `text-embedding-3-small`. Otherwise returns a `FIXED_EMBEDDING` vector.
+
+**ChromaQueryWorker** (`chroma_query`) -- Simulates a ChromaDB query (in production: `ChromaClient("http://localhost:8000")`). Returns document IDs `["id-101", "id-204", "id-089"]` with corresponding documents and distances.
+
+**ChromaGenerateWorker** (`chroma_generate`) -- Calls `gpt-4o-mini` with system prompt `"You are a helpful assistant. Use the provided context to answer questions accurately."` when API key is set. Otherwise returns a deterministic answer.
+
+## Tests
+
+16 tests cover embedding, ChromaDB querying, and answer generation.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

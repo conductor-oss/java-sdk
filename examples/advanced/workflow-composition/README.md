@@ -1,40 +1,53 @@
-# Workflow Composition in Java Using Conductor : Compose Sub-Workflows into a Unified Order Pipeline
+# Workflow Composition
 
-## Complex Processes Are Made of Simpler Ones
+A complex business process is built from simpler, reusable sub-workflows. The order-processing workflow calls the payment sub-workflow, the inventory sub-workflow, and the shipping sub-workflow. Each sub-workflow is independently testable, and the parent handles coordination and error propagation.
 
-Fulfilling a customer order requires two independent processes: payment processing (validate card, charge amount) and inventory management (check stock, reserve items). Each process has its own steps, failure modes, and retry logic. Building them as a single monolithic workflow means a payment retry can block inventory reservation, and a stock check failure can prevent a valid payment from proceeding.
-
-Workflow composition lets you build each sub-process independently, test it in isolation, and then compose them into a larger workflow. The order pipeline runs payment steps (sub-workflow A: validate then charge) and inventory steps (sub-workflow B: check then reserve), then merges the results to produce the final order status.
-
-## The Solution
-
-**You write each sub-workflow's steps. Conductor handles composition, cross-workflow retries, and result merging.**
-
-`WcpSubAStep1Worker` and `WcpSubAStep2Worker` handle the first sub-workflow (e.g., payment validation and charging). `WcpSubBStep1Worker` and `WcpSubBStep2Worker` handle the second sub-workflow (e.g., inventory check and reservation). `WcpMergeWorker` combines the results from both sub-workflows into a unified order status. Conductor sequences the sub-workflows and their merge, recording the full lineage of both processes and their combined outcome.
-
-### What You Write: Workers
-
-Five workers span two sub-workflows. Order validation and processing in sub-workflow A, customer lookup and enrichment in sub-workflow B, plus a merge step that unifies both outcomes.
-
-### The Workflow
+## Pipeline
 
 ```
-wcp_sub_a_step1
- │
- ▼
-wcp_sub_a_step2
- │
- ▼
-wcp_sub_b_step1
- │
- ▼
-wcp_sub_b_step2
- │
- ▼
-wcp_merge
-
+[wcp_sub_a_step1]
+     |
+     v
+[wcp_sub_a_step2]
+     |
+     v
+[wcp_sub_b_step1]
+     |
+     v
+[wcp_sub_b_step2]
+     |
+     v
+[wcp_merge]
 ```
+
+**Workflow inputs:** `orderId`, `customerId`
+
+## Workers
+
+**WcpMergeWorker** (task: `wcp_merge`)
+
+- Writes `composedResult`, `orderProcessed`, `customerEnriched`
+
+**WcpSubAStep1Worker** (task: `wcp_sub_a_step1`)
+
+- Writes `validated`, `orderId`
+
+**WcpSubAStep2Worker** (task: `wcp_sub_a_step2`)
+
+- Sets `result` = `"order_processed"`
+- Writes `result`, `total`
+
+**WcpSubBStep1Worker** (task: `wcp_sub_b_step1`)
+
+- Writes `profile`
+
+**WcpSubBStep2Worker** (task: `wcp_sub_b_step2`)
+
+- Sets `result` = `"customer_enriched"`
+- Writes `result`, `discount`
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**20 tests** | Workflow: `workflow_composition_demo` | Timeout: 60s
+
+See [RUNNING.md](../../RUNNING.md) for setup and usage.

@@ -1,47 +1,69 @@
-# Enterprise RAG in Java Using Conductor : Caching, Rate Limiting, Token Budgets, and Audit Logging
+# Production RAG with Caching, Rate Limiting, Token Budgets, and Audit Logging
 
-## Beyond the Demo: What Production RAG Actually Requires
+A regulated enterprise needs a RAG pipeline that goes beyond "retrieve and generate." Every query must be checked against a cache, rate-limited per user, budgeted for token spend, and logged for SOC2 compliance. If the cache hits, the answer is served directly and the audit log records `source: "cache"` with zero tokens used. Otherwise, the full pipeline runs: rate check, retrieval, token budget trimming, generation, result caching, and audit logging.
 
-A basic RAG pipeline (retrieve, generate) works fine in a demo. In production, it falls apart. Without caching, identical questions hit the LLM repeatedly. burning tokens and adding latency. Without rate limiting, a single user (or a bug in a client) can exhaust your API budget in minutes. Without token budgets, a query that retrieves too much context overflows the model's context window and fails. And without audit logging, you can't answer "what did user X ask, and what did we tell them?", a compliance requirement in regulated industries.
-
-These cross-cutting concerns create branching logic: if the cache hits, skip retrieval and generation entirely but still log the query. If the rate limit is exceeded, reject the request before doing any work. If the token budget is tight, trim the retrieved context before sending it to the LLM. Each concern interacts with the others, and all of them need independent error handling.
-
-Without orchestration, you'd layer these checks into a single method with nested conditionals, manual cache lookups, and scattered logging. code that's nearly impossible to test, debug, or modify when compliance requirements change.
-
-## The Solution
-
-**You write the caching, rate-limiting, token budgeting, and audit logging logic. Conductor handles the conditional routing, retries, and observability.**
-
-Each concern is an independent worker. cache check, rate limiting, retrieval, token budget enforcement, generation, cache storage, audit logging. Conductor's `SWITCH` task skips the entire generation path on cache hits. If the rate limiter rejects a request, the pipeline stops cleanly. Every query is audit-logged regardless of which path it took, and every execution is tracked with full inputs and outputs for compliance review.
-
-### What You Write: Workers
-
-Seven workers implement enterprise guardrails around a RAG core. cache check, rate limiting, retrieval, token budget enforcement, generation, cache storage, and audit logging, with a SWITCH that skips generation entirely on cache hits.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AuditLogWorker** | `er_audit_log` | Worker that creates a audit-ready pattern audit log entry for every query. Takes userId, question, sessionId, source, answ... |
-| **CacheResultWorker** | `er_cache_result` | Worker that caches a generated answer for future lookups. Takes question, answer, and ttlSeconds. Returns cached stat... |
-| **CheckCacheWorker** | `er_check_cache` | Worker that checks a cache for a previously answered question. Takes question and userId, returns cacheStatus and cac... |
-| **GenerateWorker** | `er_generate` | Worker that generates an answer using an LLM given question, context, and token budget. Returns the answer, tokensUse... |
-| **RateLimitWorker** | `er_rate_limit` | Worker that checks rate limits for a user. Takes userId, returns allowed status and rate limit details. |
-| **RetrieveWorker** | `er_retrieve` | Worker that retrieves relevant context documents for a question. Returns 4 context documents with id, text, and token... |
-| **TokenBudgetWorker** | `er_token_budget` | Worker that manages token budgets by trimming context to stay within limits. Takes context and userId, returns trimme... |
-
-Workers implement LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode. the workflow and worker interfaces stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-er_check_cache
- │
- ▼
-SWITCH (cache_decision_ref)
- ├── hit: er_audit_log
- └── default: er_rate_limit -> er_retrieve -> er_token_budget -> er_generate -> er_cache_result -> er_audit_log
-
+question, userId
+       │
+       ▼
+┌─────────────────┐
+│ er_check_cache  │  Lookup by question hash
+└────────┬────────┘
+         │  cacheStatus ("hit" or "miss")
+         ▼
+    ┌─ SWITCH ────────────────────────────────────────┐
+    │                                                 │
+  "hit"                                         default (miss)
+    │                                                 │
+    ▼                                                 ▼
+┌──────────────┐                             ┌────────────────┐
+│ er_audit_log │                             │ er_rate_limit  │
+│ (source:cache)│                            └───────┬────────┘
+└──────────────┘                                     ▼
+                                             ┌────────────────┐
+                                             │ er_retrieve    │
+                                             └───────┬────────┘
+                                                     ▼
+                                             ┌────────────────┐
+                                             │ er_token_budget│
+                                             └───────┬────────┘
+                                                     ▼
+                                             ┌────────────────┐
+                                             │ er_generate    │
+                                             └───────┬────────┘
+                                                     ▼
+                                             ┌────────────────┐
+                                             │ er_cache_result│
+                                             └───────┬────────┘
+                                                     ▼
+                                             ┌──────────────────┐
+                                             │ er_audit_log     │
+                                             │ (source:generated)│
+                                             └──────────────────┘
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CheckCacheWorker** (`er_check_cache`) -- Always returns `cacheStatus: "miss"` and `cachedAnswer: null` (demonstrates the cache-miss path). In production, this would query Redis or Memcached.
+
+**RateLimitWorker** (`er_rate_limit`) -- Reports `allowed: true` with `current: 12`, `limit: 60`, `remaining: 48` for the given `userId`.
+
+**RetrieveWorker** (`er_retrieve`) -- Returns 4 hardcoded context documents with token counts: `doc-101` (142 tokens, RAG explanation), `doc-202` (118, vector databases), `doc-303` (95, token budgets), `doc-404` (87, caching strategies).
+
+**TokenBudgetWorker** (`er_token_budget`) -- Enforces a `dailyBudget` of 50,000 tokens with `usedToday: 12,000`. Iterates the context list, summing each document's `tokens` field (cast from `Number` to `int`). Returns `trimmedContext`, `remainingBudget: 38000`, and the total `contextTokens`.
+
+**GenerateWorker** (`er_generate`) -- When `CONDUCTOR_OPENAI_API_KEY` is set, calls `gpt-4o-mini` with `temperature: 0.3` and a max_tokens capped by `Math.min(tokenBudget, 512)`. In fallback mode, returns a 187-token answer about RAG with `model: "gpt-4o"` and `latencyMs: 820`. Estimates tokens as `answer.split("\\s+").length * 2`.
+
+**CacheResultWorker** (`er_cache_result`) -- Computes `cacheKey` as `"rag:" + question.hashCode()`. Sets a TTL of 3600 seconds (1 hour) and calculates `expiresAt` via `Instant.now().plusSeconds(ttlSeconds)`.
+
+**AuditLogWorker** (`er_audit_log`) -- Creates a SOC2-compliant audit entry with `Instant.now()` timestamp, userId, question, sessionId, source, answer, tokensUsed, and `compliance: "SOC2-logged"`. Null-safe on all fields (falls back to `"unknown"` or empty string).
+
+## Tests
+
+21 tests cover all 7 workers including cache lookup, rate limiting, token budget enforcement, and audit logging.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

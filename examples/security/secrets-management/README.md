@@ -1,46 +1,41 @@
-# Implementing Secrets Management in Java with Conductor: Create, Distribute, Verify Access, and Schedule Rotation
+# Secrets Management
 
-An engineer who left the company six weeks ago still has working API keys. You know this because one of those keys is hardcoded in an environment variable on three production servers, pasted into a `.env` file in a private repo that four people have access to, and shared in a Slack DM from last March. Nobody rotated it when she left because nobody knew where it was used. The database password for the payments service hasn't been rotated in fourteen months, and the only record of who has access is a mental model in the head of a senior dev who's on vacation. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate secrets lifecycle management: create credentials, distribute to authorized consumers only, verify access policies, and schedule automatic rotation, with a full audit trail of every secret touched.
+A service needs a new API credential. The system must generate a cryptographically secure secret using `SecureRandom`, distribute it to authorized consumers with an integrity hash for verification, verify access permissions, and schedule automatic rotation on a configurable cycle (default 90 days).
 
-## The Problem
-
-You need to manage secrets across your infrastructure. API keys, database passwords, TLS certificates. Each secret must be created securely, distributed only to authorized services, access controls must be verified (no unauthorized consumers), and rotation must be scheduled before expiry. If distribution fails, services can't start. If access verification is skipped, unauthorized services gain access. If rotation isn't scheduled, secrets expire and cause outages.
-
-Without orchestration, secrets management is a manual process. Someone creates a secret in Vault, copies it to environment variables, hopes the right services have access, and forgets to schedule rotation. Secrets are shared via Slack, stored in plaintext config files, and never rotated.
-
-## The Solution
-
-**You just write the vault integration and rotation logic. Conductor handles sequencing, retries on vault failures, and a full audit trail of every secret created and distributed.**
-
-Each secrets concern is an independent worker. Secret creation, distribution to consumers, access verification, and rotation scheduling. Conductor runs them in sequence: create the secret, distribute to authorized consumers, verify that only the right services have access, then schedule rotation. Every operation is tracked for audit compliance.
-
-### What You Write: Workers
-
-Four workers handle the secrets lifecycle: CreateSecretWorker generates credentials, DistributeWorker pushes them to authorized consumers, VerifyAccessWorker confirms access policies, and ScheduleRotationWorker sets up automatic renewal.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CreateSecretWorker** | `sm_create_secret` | Creates a new secret (API key, database credential, or certificate) and returns a secret ID |
-| **DistributeWorker** | `sm_distribute` | Distributes the secret to authorized services and confirms delivery |
-| **ScheduleRotationWorker** | `sm_schedule_rotation` | Schedules automatic rotation on a configurable interval (e.g., every 90 days) |
-| **VerifyAccessWorker** | `sm_verify_access` | Verifies that access policies are correct and only authorized services can read the secret |
-
-### The Workflow
+## Workflow
 
 ```
-sm_create_secret
- │
- ▼
-sm_distribute
- │
- ▼
-sm_verify_access
- │
- ▼
-sm_schedule_rotation
-
+sec_create_secret ──> sec_distribute ──> sec_verify_access ──> sec_schedule_rotation
 ```
 
----
+Workflow `secrets_management_workflow` accepts `secretName`, `secretType`, and `consumers`. Times out after `300` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CreateSecretWorker** (`sec_create_secret`) -- reads `secretName` (defaults to `"default-secret"`) and `length` (clamped to 16-256 range, default `32`). Generates random bytes via `SecureRandom`, encodes with `Base64.getUrlEncoder().withoutPadding()`. Generates a `secretId` with `"SEC-"` prefix from 12 random bytes. Returns `secretId`, `secretName`, `secretValue`, `lengthBytes`, and `createdAt`.
+
+**DistributeWorker** (`sec_distribute`) -- reads `secretId` and `secretValue`. Computes a SHA-256 `integrityHash` (first 16 hex characters) of the secret value using `MessageDigest` and `HexFormat`. Returns `distributed` = `true`, the `integrityHash`, and `distributedAt`.
+
+**VerifyAccessWorker** (`sec_verify_access`) -- reads `requestorId`, `secretName`, and `operation` (defaults to `"read"`). Access is granted if `requestorId` is non-null and non-empty. Returns `hasAccess` boolean and `verifiedAt`.
+
+**ScheduleRotationWorker** (`sec_schedule_rotation`) -- reads `secretId` and `rotationDays` (defaults to `90`). Computes `nextRotationAt` as `Instant.now().plus(rotationDays, ChronoUnit.DAYS)`. Returns `scheduled` = `true`, `rotationDays`, and `nextRotationAt`.
+
+## Workflow Output
+
+The workflow produces `create_secretResult`, `schedule_rotationResult` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Project Structure
+
+This example contains 4 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `secrets_management_workflow` defines 4 tasks with input parameters `secretName`, `secretType`, `consumers` and a timeout of `300` seconds.
+
+## Workflow Definition Details
+
+Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+1 test verifies the end-to-end secrets lifecycle from creation through rotation scheduling.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

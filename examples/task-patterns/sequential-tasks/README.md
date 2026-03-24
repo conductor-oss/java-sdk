@@ -1,44 +1,43 @@
-# Sequential Tasks in Java with Conductor
+# Sequential Tasks (ETL)
 
-Sequential ETL pipeline. extract, transform, load. Three workers process data in order.
+A classic Extract-Transform-Load pipeline. The extract worker pulls data from a source, the transform worker processes and reshapes it, and the load worker writes the transformed records to the destination.
 
-## The Problem
-
-You need to run an ETL pipeline where each phase strictly depends on the previous one: extract raw records from a data source, transform them by adding computed fields (grade classification, normalized scores) in a specified format, then load the transformed records into a destination system. The transform step cannot start until extraction is complete because it needs the raw data. The load step cannot start until transformation is complete because it needs the enriched records. If the load step fails after transforming 1,000 records, you need to resume from the load step. not re-extract and re-transform.
-
-Without orchestration, you'd chain method calls in a single process. `extract()` feeds into `transform()` feeds into `load()`. If `load()` throws an exception after `transform()` completed successfully, you re-run the entire pipeline because the intermediate transformed data was only in memory. Adding retry logic to each step means nested try/catch blocks, and there is no record of what each step produced.
-
-## The Solution
-
-**You just write the extract, transform, and load workers. Conductor handles the sequencing, data passing, and per-step durability.**
-
-This example demonstrates the simplest Conductor pattern. three tasks running in strict sequence. ExtractWorker takes a data source name and returns raw records. TransformWorker receives the raw data (wired via `${seq_extract_ref.output.rawData}`) and a format specification, then adds grade classifications (A/B/C) and normalized scores to each record. LoadWorker receives the transformed records (wired via `${seq_transform_ref.output.transformedData}`) and loads them into the destination, returning a count of loaded records. Conductor persists the output of each step, so if the load fails, you restart from the load step with the already-transformed data intact.
-
-### What You Write: Workers
-
-Three workers form the ETL sequence: ExtractWorker reads raw records from a data source, TransformWorker adds grade classifications and normalized scores, and LoadWorker writes the transformed records to the destination.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ExtractWorker** | `seq_extract` | Extract phase of the ETL pipeline. Takes a data source name and returns hardcoded raw records. |
-| **LoadWorker** | `seq_load` | Load phase of the ETL pipeline. Takes transformed data, prints each record, and returns load summary. |
-| **TransformWorker** | `seq_transform` | Transform phase of the ETL pipeline. Takes raw data and a format, adds grade (A/B/C) and normalized score. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-seq_extract
- │
- ▼
-seq_transform
- │
- ▼
-seq_load
-
+seq_extract ──> seq_transform ──> seq_load
 ```
 
----
+Workflow `sequential_etl` accepts `source` and `format`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ExtractWorker** (`seq_extract`) -- reads `source` from input. Extracts data from the specified source.
+
+**TransformWorker** (`seq_transform`) -- reads extracted data from the previous step. Transforms and reshapes the records.
+
+**LoadWorker** (`seq_load`) -- reads transformed data. Loads the records and reports the count.
+
+## Workflow Output
+
+The workflow produces `loaded`, `totalRecords`, `source` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `seq_extract`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `seq_transform`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `seq_load`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `sequential_etl` defines 3 tasks with input parameters `source`, `format` and a timeout of `60` seconds.
+
+## Tests
+
+7 tests verify extraction, transformation, loading, and correct data flow through the ETL pipeline.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,48 +1,43 @@
-# Service Orchestration in Java with Conductor
+# E-Commerce Checkout: Authenticate, Lookup, Cart, Checkout
 
-Orchestrate auth, catalog, cart, and checkout microservices.
+A customer wants to buy a product. The request must authenticate the user, look up the
+product in the catalog, add it to the cart, and process checkout -- four services that need
+to execute in sequence with data flowing from each to the next.
 
-## The Problem
-
-A typical e-commerce purchase flow spans four microservices: authenticate the user, look up the product in the catalog, add it to the shopping cart, and process checkout. Each step depends on the output of the previous one, the catalog lookup needs an auth token, the cart needs the product details, and checkout needs the cart total.
-
-Without orchestration, the frontend or a BFF layer chains four HTTP calls with manual error handling. If the catalog service is slow, the entire request hangs with no timeout isolation. There is no single place to see the full purchase flow or retry a failed step.
-
-## The Solution
-
-**You just write the authentication, catalog-lookup, cart, and checkout workers. Conductor handles auth-to-checkout sequencing, per-step timeout isolation, and complete purchase flow traceability.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers drive the purchase flow: AuthenticateWorker validates user credentials, CatalogLookupWorker retrieves product details, AddToCartWorker manages the shopping cart, and CheckoutWorker processes the final payment.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AddToCartWorker** | `so_add_to_cart` | Adds items to a shopping cart. |
-| **AuthenticateWorker** | `so_authenticate` | Authenticates a user and returns a JWT token. |
-| **CatalogLookupWorker** | `so_catalog_lookup` | Looks up a product in the catalog. |
-| **CheckoutWorker** | `so_checkout` | Processes checkout for a cart. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-so_authenticate
- │
- ▼
-so_catalog_lookup
- │
- ▼
-so_add_to_cart
- │
- ▼
-so_checkout
-
+userId, productId, quantity
+            |
+            v
++--------------------+     +----------------------+     +-------------------+     +------------------+
+| so_authenticate    | --> | so_catalog_lookup    | --> | so_add_to_cart    | --> | so_checkout      |
++--------------------+     +----------------------+     +-------------------+     +------------------+
+  token: jwt-token-abc      product details              cartId: CART-7891       orderId:
+  authenticated: true       (name, price, stock)         total: 79.99*qty        ORD-20240301-001
+                                                                                  status: confirmed
+                                                                                  delivery: 2024-03-05
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AuthenticateWorker** -- Authenticates `userId`. Returns `token: "jwt-token-abc123"`,
+`authenticated: true`.
+
+**CatalogLookupWorker** -- Looks up `productId` in the catalog. Returns product details
+(name, price, stock availability).
+
+**AddToCartWorker** -- Adds `quantity` items to the cart. Returns `cartId: "CART-7891"`,
+`items: 1`, `total: 79.99 * quantity`.
+
+**CheckoutWorker** -- Processes checkout for the cart. Returns
+`orderId: "ORD-20240301-001"`, `orderStatus: "confirmed"`,
+`estimatedDelivery: "2024-03-05"`.
+
+## Tests
+
+32 unit tests cover authentication, catalog lookup, cart operations, and checkout.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

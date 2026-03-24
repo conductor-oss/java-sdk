@@ -1,36 +1,41 @@
-# Graphql API in Java with Conductor
+# GraphQL API
 
-GraphQL API demo. single task workflow to demonstrate REST vs GraphQL query patterns.
+A deployment workflow queries a GraphQL endpoint for project configuration and deploys based on the response. The single worker handles the full deployment logic with project and environment context.
 
-## The Problem
-
-You need to trigger a deployment operation through a GraphQL API. sending a project name and target environment, and getting back a structured deployment result. Unlike REST endpoints where you might need multiple calls to different URLs, a GraphQL query lets the client specify exactly what data it needs in a single request. The workflow takes the project and environment as inputs, executes the deployment via a GraphQL mutation or query, and returns the result.
-
-Without orchestration, you'd call the GraphQL endpoint directly from your application code, handling authentication, query construction, error parsing, and retries inline. If the GraphQL API returns a partial error (some fields resolved, others failed), you'd need custom logic to decide whether to retry. There is no audit trail of which deployments were triggered, what inputs were sent, or what the API returned.
-
-## The Solution
-
-**You just write the GraphQL query construction and execution worker. Conductor handles retries, timeout management, and audit logging.**
-
-This example demonstrates using a Conductor worker to interact with a GraphQL API. The GraphqlTaskWorker receives a project name and target environment, constructs the appropriate GraphQL query or mutation, executes the deployment operation, and returns the structured result. Conductor wraps the GraphQL call with automatic retries (handling transient network failures or API rate limits), timeout management, and full observability. every deployment request and response is recorded with timing data. This pattern works for any GraphQL API interaction, not just deployments.
-
-### What You Write: Workers
-
-A single GraphqlTaskWorker receives a project name and target environment, constructs the GraphQL query, executes the deployment operation, and returns the structured result.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **GraphqlTaskWorker** | `gql_task` | GraphQL task worker. simulates a deployment operation. Takes a project name and environment, returns a deployment re.. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
 gql_task
-
 ```
 
----
+Workflow `graphql_demo` accepts `project` and `env`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**GraphqlTaskWorker** (`gql_task`) -- reads `project` and `env` from input. Reports deploying with the specified project and environment settings.
+
+## Workflow Output
+
+The workflow produces `project`, `result` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `gql_task`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `graphql_demo` defines 1 task with input parameters `project`, `env` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "GraphQL API demo — single task workflow to demonstrate REST vs GraphQL query patterns.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+8 tests verify GraphQL task execution, project and environment parameter handling, and deployment output.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

@@ -1,48 +1,53 @@
-# Telecom Provisioning in Java Using Conductor
+# Telecom Provisioning
 
-## Why Service Provisioning Needs Orchestration
+Orchestrates telecom provisioning through a multi-stage Conductor workflow.
 
-Provisioning a new telecom service requires a strict sequence where each step depends on the previous one. You create a service order with the customer's details and service type. You validate that the order is compatible with the selected plan. You configure the network equipment (switches, routers, HLR/HSS entries) for the service. You activate the configured service so the customer can start using it. Finally, you send a provisioning confirmation to the customer.
+**Input:** `customerId`, `serviceType`, `planId` | **Timeout:** 60s
 
-If configuration fails partway through, you need to know exactly which network elements were already configured so you can retry without creating duplicate entries. If activation succeeds but the confirmation fails, the customer has working service but no notification. Without orchestration, you'd build a monolithic provisioning script that mixes order management, network configuration, and notification logic. making it impossible to swap network vendors, test activation independently, or audit which order triggered which network changes.
-
-## The Solution
-
-**You just write the order creation, plan validation, network configuration, service activation, and customer notification logic. Conductor handles configuration retries, activation sequencing, and provisioning audit trails.**
-
-Each worker handles one telecom operation. Conductor manages the provisioning pipeline, activation sequencing, billing triggers, and service state tracking.
-
-### What You Write: Workers
-
-Order creation, validation, network configuration, activation, and confirmation workers each handle one step of turning up a new telecom service.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ActivateWorker** | `tpv_activate` | Activates the configured service on the network so the customer can start using it. |
-| **ConfigureWorker** | `tpv_configure` | Configures network resources (switches, routing, subscriber profiles) for the service type. |
-| **ConfirmWorker** | `tpv_confirm` | Sends a provisioning confirmation to the customer with service ID and activation details. |
-| **OrderWorker** | `tpv_order` | Creates a service order with customer ID and service type, returning an order ID. |
-| **ValidateWorker** | `tpv_validate` | Validates the service order against the selected plan for compatibility and eligibility. |
-
-### The Workflow
+## Pipeline
 
 ```
 tpv_order
- │
- ▼
+    │
 tpv_validate
- │
- ▼
+    │
 tpv_configure
- │
- ▼
+    │
 tpv_activate
- │
- ▼
+    │
 tpv_confirm
+```
 
+## Workers
+
+**ActivateWorker** (`tpv_activate`)
+
+Reads `configId`. Outputs `serviceId`, `activatedAt`.
+
+**ConfigureWorker** (`tpv_configure`)
+
+Reads `serviceType`. Outputs `configId`, `bandwidth`.
+
+**ConfirmWorker** (`tpv_confirm`)
+
+Reads `customerId`, `serviceId`. Outputs `provisionStatus`, `confirmed`.
+
+**OrderWorker** (`tpv_order`)
+
+Reads `customerId`. Outputs `orderId`.
+
+**ValidateWorker** (`tpv_validate`)
+
+Reads `orderId`, `planId`. Outputs `valid`, `creditCheck`.
+
+## Tests
+
+**2 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

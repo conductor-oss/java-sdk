@@ -1,36 +1,41 @@
-# Event Handlers in Java with Conductor
+# Event Handlers
 
-Workflow triggered by external events. Processes the event type and payload.
+An external system publishes events that trigger workflows. The workflow processes events based on their type and payload, demonstrating how Conductor's event handler mechanism connects external event sources to workflow execution.
 
-## The Problem
-
-You need to trigger a workflow automatically whenever an external event arrives. a webhook fires, a message lands on a queue, or a system emits a lifecycle event. The event carries a type (e.g., `order.created`, `user.signup`, `payment.failed`) and an arbitrary JSON payload. Your processing logic must dispatch based on the event type, parse the payload, execute the appropriate business action, and confirm that the event was handled successfully.
-
-Without orchestration, you'd write a message consumer or webhook handler that processes events inline, with no retry logic if processing fails, no record of which events were handled, and no way to replay a missed event. If the handler crashes mid-processing, the event is lost or redelivered with no idempotency guarantee. Debugging which events were processed, and what the handler did with each one. requires digging through application logs.
-
-## The Solution
-
-**You just write the event processing worker. Conductor handles the event-to-workflow triggering, retries, and audit trail.**
-
-This example demonstrates Conductor's event handler mechanism. external events trigger workflow executions automatically. When an event arrives with an `eventType` and `payload`, Conductor starts the `event_triggered_workflow`, which routes the event to the ProcessEventWorker. The worker parses the event type and payload, executes the appropriate processing logic, and returns a confirmation. Conductor tracks every event-triggered execution with its input event, processing result, and timing, giving you a complete audit trail of event handling. If the worker fails to process an event, Conductor retries it automatically without losing the event data.
-
-### What You Write: Workers
-
-A single ProcessEventWorker parses the event type and payload, executes the appropriate business logic, and returns a processing confirmation. Conductor triggers this worker automatically when external events arrive.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ProcessEventWorker** | `eh_process_event` | Processes an incoming event. Takes an eventType and payload, returns a result message confirming processing. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
 eh_process_event
-
 ```
 
----
+Workflow `event_triggered_workflow` accepts `eventType` and `payload`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**ProcessEventWorker** (`eh_process_event`) -- reads `eventType` and `payload` from input. Reports processing the event type with its payload.
+
+## Workflow Output
+
+The workflow produces `result`, `eventType`, `payload` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `eh_process_event`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 1 worker implementation in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `event_triggered_workflow` defines 1 task with input parameters `eventType`, `payload` and a timeout of `60` seconds.
+
+## Workflow Definition Details
+
+Workflow description: "Workflow triggered by external events. Processes the event type and payload.". Schema version `2`, workflow version `1`. Owner: `examples@orkes.io`.
+
+## Tests
+
+7 tests verify event processing for different event types, payload handling, and the event-to-workflow triggering mechanism.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

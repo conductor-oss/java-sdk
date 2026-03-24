@@ -1,48 +1,40 @@
-# DNS Management in Java with Conductor
+# Safe DNS Record Changes with Conflict Validation
 
-Orchestrates safe DNS record changes using [Conductor](https://github.com/conductor-oss/conductor). This workflow plans a DNS change, validates it against existing records for conflicts, applies it to the DNS provider, and verifies propagation.
+Changing a DNS record without checking for conflicts can silently break other services that
+depend on the same domain. This workflow plans the change, validates it against existing
+records, applies it to Route53, and confirms propagation -- so a typo in a CNAME does not
+take down production.
 
-## DNS Changes Without the Risk
-
-Updating a DNS record sounds simple until you realize a typo can take down your entire domain. The change needs to be planned, validated for conflicts (does this CNAME clash with an existing A record?), applied to the DNS provider, and then verified to have propagated globally. Doing this manually in the Route53 console at 11 PM is how outages happen.
-
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You write the DNS change logic. Conductor handles plan-validate-apply sequencing and propagation verification.**
-
-Each worker automates one operational step. Conductor manages execution sequencing, rollback on failure, timeout enforcement, and full audit logging. your workers call the infrastructure APIs.
-
-### What You Write: Workers
-
-Four workers handle safe DNS changes. Planning the record update, validating against conflicts, applying to the provider, and verifying propagation.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ApplyWorker** | `dns_apply` | Pushes the validated DNS record changes to the DNS provider (e.g., Route53) |
-| **PlanWorker** | `dns_plan` | Creates a DNS change plan based on the requested domain, record type, and target |
-| **ValidateWorker** | `dns_validate` | Checks for conflicts with existing DNS records before applying the change |
-| **VerifyWorker** | `dns_verify` | Confirms DNS propagation by querying resolvers to ensure the new records are live |
-
-the workflow and rollback logic stay the same.
-
-### The Workflow
+## Workflow
 
 ```
-dns_plan
- │
- ▼
-dns_validate
- │
- ▼
-dns_apply
- │
- ▼
-dns_verify
-
+domain, recordType, target
+           |
+           v
++--------------+     +----------------+     +--------------+     +----------------+
+| dns_plan     | --> | dns_validate   | --> | dns_apply    | --> | dns_verify     |
++--------------+     +----------------+     +--------------+     +----------------+
+  PLAN-1345            no conflicts          records updated      propagation
+  success=true         detected              in Route53           confirmed
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**PlanWorker** -- Takes `domain`, `recordType`, and `target` inputs. Plans the DNS change
+and returns `planId: "PLAN-1345"`, `success: true`.
+
+**ValidateWorker** -- Checks the plan for conflicts against existing DNS records. No
+conflicts detected. Returns `validate: true`.
+
+**ApplyWorker** -- Applies the DNS record changes to Route53. Returns `apply: true`.
+
+**VerifyWorker** -- Confirms DNS propagation is complete across all nameservers. Returns
+`verify: true`.
+
+## Tests
+
+2 unit tests cover the DNS management pipeline. The workflow timeout is 600 seconds.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

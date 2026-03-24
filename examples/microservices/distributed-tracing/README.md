@@ -1,48 +1,40 @@
-# Distributed Tracing in Java with Conductor
+# Building a Distributed Trace with Service and Database Spans
 
-Distributed tracing with end-to-end request tracking.
+A request flows through an API service and into a database, but without tracing you cannot
+see where the 57ms total latency comes from. This workflow creates a trace, adds a service
+span (45ms) and a database span (12ms) under the root, and exports all spans to Jaeger.
 
-## The Problem
-
-Tracing a request across multiple microservices requires creating a trace context, propagating span IDs through each service call, recording timing for database operations, and exporting the complete trace to a backend like Jaeger or Zipkin. Each span must reference its parent to form a proper trace tree.
-
-Without orchestration, each service must manually propagate trace headers, and if one service forgets, the trace is broken. There is no centralized way to ensure every service participates in tracing, and correlating spans across services requires manual effort.
-
-## The Solution
-
-**You just write the trace-creation, service-span, db-span, and trace-export workers. Conductor handles span sequencing, durable trace assembly, and automatic retry if the export step fails.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers build a trace: CreateTraceWorker generates the root context, ServiceSpanWorker records a service call, DbSpanWorker captures database latency, and ExportTraceWorker sends the completed trace to a backend.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CreateTraceWorker** | `dt_create_trace` | Creates a new root trace with a unique traceId and root spanId for the operation. |
-| **DbSpanWorker** | `dt_db_span` | Records a child span for a database operation, capturing query latency. |
-| **ExportTraceWorker** | `dt_export_trace` | Exports the completed trace (all spans) to a tracing backend like Jaeger. |
-| **ServiceSpanWorker** | `dt_service_span` | Records a child span for a service-to-service call, linking to the parent span. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-dt_create_trace
- │
- ▼
-dt_service_span
- │
- ▼
-dt_db_span
- │
- ▼
-dt_export_trace
-
+requestId, operation
+         |
+         v
++--------------------+     +--------------------+     +----------------+     +---------------------+
+| dt_create_trace    | --> | dt_service_span    | --> | dt_db_span     | --> | dt_export_trace     |
++--------------------+     +--------------------+     +----------------+     +---------------------+
+  traceId generated          span-svc-...               span-db-...           exported to Jaeger
+  spanId: span-root-...      durationMs: 45             durationMs: 12        destination: "jaeger"
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CreateTraceWorker** -- Creates a new trace for the `operation`. Returns a `traceId` and
+root `spanId: "span-root-{timestamp}"`.
+
+**ServiceSpanWorker** -- Adds a service span under the parent. Returns
+`spanId: "span-svc-{timestamp}"`, `durationMs: 45`.
+
+**DbSpanWorker** -- Adds a database span under the parent. Returns
+`spanId: "span-db-{timestamp}"`, `durationMs: 12`.
+
+**ExportTraceWorker** -- Exports all spans to Jaeger. Returns `exported: true`,
+`destination: "jaeger"`.
+
+## Tests
+
+8 unit tests cover trace creation, span recording, and trace export.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

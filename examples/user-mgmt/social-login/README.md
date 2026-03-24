@@ -1,44 +1,47 @@
-# Social Login in Java Using Conductor
+# Social Login
 
-## The Problem
+Orchestrates social login through a multi-stage Conductor workflow.
 
-A user clicks "Sign in with Google" on your login page. The system needs to detect which OAuth provider was selected, validate the OAuth token against the provider's API to retrieve the user's profile, link the social identity to an existing account or create a new one, and issue a session token so the user can access the application. Each step depends on the previous one's output.
+**Input:** `provider`, `email` | **Timeout:** 60s
 
-Without orchestration, you'd wire all of this together in a single monolithic class. managing execution order manually, writing try/catch blocks around every step, building retry loops with backoff, and adding logging to understand what happened when things go wrong. That code becomes brittle, hard to test, and impossible to observe at scale.
-
-## The Solution
-
-**You just write the provider-detection, token-validation, account-linking, and session-issuance workers. Conductor handles the OAuth login sequence and identity flow.**
-
-Each worker handles one user lifecycle step. Conductor manages the onboarding sequence, verification wait states, timeout escalation, and user state tracking.
-
-### What You Write: Workers
-
-DetectProviderWorker identifies Google/GitHub/Facebook, OAuthWorker validates the token and retrieves the profile, LinkAccountWorker connects the social identity, and CreateSessionWorker issues a session token.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CreateSessionWorker** | `slo_session` | Issues a session token for the authenticated user with a configurable expiration |
-| **DetectProviderWorker** | `slo_detect_provider` | Identifies the OAuth provider (Google, GitHub, Facebook) and resolves its authentication endpoint |
-| **LinkAccountWorker** | `slo_link_account` | Links the social identity to an existing user account or creates a new account, tracking linked providers |
-| **OAuthWorker** | `slo_auth` | Validates the OAuth token against the provider's API and retrieves the user's profile (name, avatar) |
-
-Replace with real identity provider and database calls and ### The Workflow
+## Pipeline
 
 ```
 slo_detect_provider
- │
- ▼
+    │
 slo_auth
- │
- ▼
+    │
 slo_link_account
- │
- ▼
+    │
 slo_session
+```
 
+## Workers
+
+**CreateSessionWorker** (`slo_session`)
+
+Reads `userId`. Outputs `sessionToken`, `expiresIn`.
+
+**DetectProviderWorker** (`slo_detect_provider`)
+
+Reads `provider`. Outputs `providerName`, `authEndpoint`, `supported`.
+
+**LinkAccountWorker** (`slo_link_account`)
+
+Reads `provider`. Outputs `userId`, `isNewUser`, `linkedProviders`.
+
+**OAuthWorker** (`slo_auth`)
+
+Reads `provider`. Outputs `providerUserId`, `profile`.
+
+## Tests
+
+**12 tests** cover valid inputs, boundary values, null handling, and error paths.
+
+```bash
+mvn test
 ```
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **Run this example:** see [RUNNING.md](../../RUNNING.md) for setup, build, and CLI instructions.

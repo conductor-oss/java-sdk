@@ -1,38 +1,42 @@
-# Workflow Versioning in Java with Conductor
+# Workflow Versioning
 
-Run multiple versions of the same workflow side by side. version 1 does calculate-then-audit, version 2 adds a bonus step between them.
+Two versions of a calculation workflow run side by side. Version 1 has two steps (calculate then audit). Version 2 adds a bonus step between them. This demonstrates running multiple workflow versions simultaneously without disrupting existing executions.
 
-## The Problem
-
-You need to evolve a workflow without breaking existing executions. Version 1 does a calculation (value * 2) then an audit. Version 2 adds a bonus step (+10) between calculation and audit. Both versions must coexist. In-flight v1 executions continue on v1, while new executions can use v2. You need to start workflows against a specific version and compare their outputs.
-
-Without versioning, changing a workflow definition affects all executions immediately. Conductor's versioning lets you deploy v2 while v1 is still running, roll back to v1 if v2 has issues, and compare outputs between versions.
-
-## The Solution
-
-**You just write the calculation, bonus, and audit workers. Conductor handles running multiple workflow versions side by side with independent execution histories.**
-
-This example registers two versions of the same workflow and runs them side by side. Version 1 runs `ver_calc` (multiplies the input value by 2) then `ver_audit` (marks the result as audited). Version 2 inserts a `ver_bonus` step between them that adds 10 to the calculated result before auditing. The example code registers both workflow definitions, starts executions against each version explicitly, and compares their outputs. V1 produces `value * 2`, v2 produces `(value * 2) + 10`. In-flight v1 executions continue running on v1 even after v2 is deployed. You can roll back to v1 at any time or run A/B comparisons between versions.
-
-### What You Write: Workers
-
-Three workers support side-by-side workflow versioning: VerCalcWorker performs a calculation, VerBonusWorker adds a bonus (used only in v2), and VerAuditWorker records the final result, the same worker pool serves both workflow versions simultaneously.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **VerAuditWorker** | `ver_audit` | Audit worker for the versioned workflow. Takes the final result, marks it as audited, and passes it through. |
-| **VerBonusWorker** | `ver_bonus` | Bonus worker for the versioned workflow. Takes a base result and adds 10. |
-| **VerCalcWorker** | `ver_calc` | Calculation worker for the versioned workflow. Takes a numeric value and returns value * 2. |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> VerAuditWorker -> VerBonusWorker -> VerCalcWorker -> Output
-
+Version 1: ver_calc ──> ver_audit
+Version 2: ver_calc ──> ver_bonus ──> ver_audit
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**VerCalcWorker** (`ver_calc`) -- reads a `value` and multiplies by 2. Returns the calculated result.
+
+**VerBonusWorker** (`ver_bonus`) -- adds 10 to the base result. Only runs in version 2.
+
+**VerAuditWorker** (`ver_audit`) -- audits the final result. Returns `audited` = `true`.
+
+## Task Configuration
+
+- `ver_calc`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `ver_bonus`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `ver_audit`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `?` defines 0 tasks with input parameters none and a timeout of `?` seconds.
+
+## Implementation Notes
+
+Workers are implemented as standard Conductor `Worker` interface implementations. Each worker reads input from `task.getInputData()`, performs its logic, and writes results to `result.getOutputData()`. All workers return `TaskResult.Status.COMPLETED` on success.
+
+## Tests
+
+5 tests verify version 1 execution, version 2 execution with the bonus step, and that both versions produce correct but different outputs for the same input.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

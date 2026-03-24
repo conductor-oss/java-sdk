@@ -1,40 +1,40 @@
-# External Payload in Java with Conductor
+# External Payload
 
-External payload storage. generate a summary and storage reference instead of returning large data, then process the summary.
+Large data payloads exceed Conductor's inline message size limit. The generate worker produces a summary for a configurable number of records, and the process worker handles it downstream. This pattern demonstrates passing large data through external storage.
 
-## The Problem
-
-You need to pass large data between workflow tasks. a report with millions of rows, a dataset for ML training, or a full database export; but Conductor's task output has a size limit. Storing megabytes of raw data directly in task output would bloat the workflow execution record, slow down the Conductor server, and eventually hit payload size limits. The downstream task only needs a summary and a pointer to the full data, not the data itself.
-
-Without orchestration, you'd write the large payload to S3 or a file share, pass the reference manually between functions, handle the case where the upload succeeds but the reference never reaches the consumer, and manage cleanup of orphaned files when processing fails. If the process crashes between writing the data and recording the reference, the data is stranded with no way to locate it.
-
-## The Solution
-
-**You just write the payload generation and summary processing workers. Conductor handles the lightweight reference passing without storing bulk data.**
-
-This example demonstrates the external payload storage pattern. keeping large data out of Conductor's task output. The GenerateWorker produces the large dataset but instead of returning it inline, it writes the data to external storage (S3, GCS, or a file system) and returns only a lightweight summary and a `storageRef` pointer. The downstream ProcessWorker receives just the summary to make routing decisions, and can fetch the full data from the storage reference when needed. Conductor tracks the summary and reference without ever storing the bulk payload, keeping workflow executions fast and the server lean.
-
-### What You Write: Workers
-
-Two workers demonstrate the external payload pattern: GenerateWorker produces a large dataset and returns only a lightweight summary with a storage reference, while ProcessWorker consumes that summary for downstream decisions.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **GenerateWorker** | `ep_generate` | Generates a summary and storage reference for a large payload. Instead of returning the full data (which could exceed... |
-| **ProcessWorker** | `ep_process` | Processes the summary from the generate step. In a real system, this worker could also fetch the full data from the s... |
-
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic. the task pattern and Conductor orchestration remain unchanged.
-
-### The Workflow
+## Workflow
 
 ```
-ep_generate
- │
- ▼
-ep_process
-
+ep_generate ──> ep_process
 ```
 
----
+Workflow `large_payload_demo` accepts `dataSize`. Times out after `60` seconds.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**GenerateWorker** (`ep_generate`) -- reads `dataSize` from input. Generates a summary for the specified number of records.
+
+**ProcessWorker** (`ep_process`) -- reads the record count from the generated output. Processes the summary data.
+
+## Workflow Output
+
+The workflow produces `summary`, `storageRef`, `result` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
+
+## Task Configuration
+
+- `ep_generate`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `ep_process`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
+
+## Project Structure
+
+This example contains 2 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `large_payload_demo` defines 2 tasks with input parameters `dataSize` and a timeout of `60` seconds.
+
+## Tests
+
+8 tests verify payload generation at various sizes, data transfer between workers, and correct processing of large payloads.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

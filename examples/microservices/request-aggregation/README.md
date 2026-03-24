@@ -1,46 +1,50 @@
-# Request Aggregation in Java with Conductor
+# Aggregating User, Order, and Recommendation Data in Parallel
 
-Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response.
+A dashboard page needs the user profile, recent orders, and personalized recommendations --
+but fetching them sequentially triples the page load time. This workflow uses FORK_JOIN to
+fetch all three in parallel, then merges the results into a single response.
 
-## The Problem
-
-A single client request (e.g., loading a user dashboard) often requires data from multiple backend services. User profiles, order history, and personalized recommendations. These fetches are independent and should run in parallel for performance, then the results must be merged into a single response.
-
-Without orchestration, the API layer manually fans out HTTP calls using CompletableFuture or RxJava, handles partial failures (one service down), and merges results in application code. Adding a new data source means modifying the fan-out logic and the merge step.
-
-## The Solution
-
-**You just write the user-fetch, orders-fetch, recommendations-fetch, and merge workers. Conductor handles parallel fan-out to all data sources, per-source timeout isolation, and automatic join before merging.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers serve the aggregation pipeline: FetchUserWorker, FetchOrdersWorker, and FetchRecommendationsWorker each retrieve data from independent services in parallel, then MergeResultsWorker combines them into a single dashboard response.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **FetchOrdersWorker** | `agg_fetch_orders` | Fetches recent orders for a user. |
-| **FetchRecommendationsWorker** | `agg_fetch_recommendations` | Generates recommendations for a user. |
-| **FetchUserWorker** | `agg_fetch_user` | Fetches user profile data. |
-| **MergeResultsWorker** | `agg_merge_results` | Merges results from multiple services into a single response. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-FORK_JOIN
- ├── agg_fetch_user
- ├── agg_fetch_orders
- └── agg_fetch_recommendations
- │
- ▼
-JOIN (wait for all branches)
-agg_merge_results
-
+userId
+  |
+  v
+  FORK_JOIN ----------------------------------+
+  |                |                          |
+  v                v                          v
++-----------------+ +------------------+ +------------------------+
+| agg_fetch_user  | | agg_fetch_orders | | agg_fetch_             |
+|                 | |                  | | recommendations        |
++-----------------+ +------------------+ +------------------------+
+  name: "Alice"      recent orders list    items: ["Widget Pro",
+  email: alice@co    from user history      "Gadget X"]
+  tier: "premium"                           count: 2
+  |                |                          |
+  +------ JOIN ---+--------------------------+
+               |
+               v
+     +---------------------+
+     | agg_merge_results   |   combined from 3 services
+     +---------------------+
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**FetchUserWorker** -- Fetches user profile: `name: "Alice"`, `email: "alice@co.com"`,
+`tier: "premium"`.
+
+**FetchOrdersWorker** -- Fetches recent orders for the user.
+
+**FetchRecommendationsWorker** -- Generates recommendations: `items: ["Widget Pro",
+"Gadget X"]`, `count: 2`.
+
+**MergeResultsWorker** -- Combines all three data sources into a single `merged` response.
+
+## Tests
+
+31 unit tests cover user fetching, order fetching, recommendations, and result merging.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.

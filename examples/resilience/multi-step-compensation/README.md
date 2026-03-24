@@ -1,39 +1,40 @@
-# Implementing Multi-Step Compensation in Java with Conductor : Account Provisioning with Reverse-Order Undo
+# Multi-Step Compensation
 
-## The Problem
+A customer onboarding pipeline creates an account, sets up billing, and provisions cloud resources. When resource provisioning fails (quota exceeded, region unavailable), billing and the account must be undone in reverse order. Each undo worker receives the specific ID from its corresponding forward step.
 
-You need to provision a new customer account. create the account record, set up billing, and provision cloud resources. If resource provisioning fails (quota exceeded, region unavailable), the billing setup must be undone and the account must be deleted, in reverse order. Each undo operation must receive the output from the original forward step (account ID, billing ID) to know what to clean up.
-
-Without orchestration, compensation logic is tangled with forward logic. Each step must know about every other step's undo operation. Partial failures leave orphaned billing records attached to deleted accounts, or provisioned resources with no associated billing. Testing the compensation path requires simulating failures at each step, which is nearly impossible in a monolithic script.
-
-## The Solution
-
-**You just write the provisioning steps and their matching undo operations. Conductor handles forward sequencing, automatic compensation in reverse order via the failure workflow, retries on each undo step, and a complete record of both the forward and compensation paths.**
-
-The forward workflow runs three workers in sequence. create account, setup billing, provision resources. A separate compensation workflow runs the undo workers in reverse order (undo provision, undo billing, undo account) using the outputs from the forward steps. Conductor's failure workflow feature links them: when the forward workflow fails, compensation runs automatically. Every step in both directions is tracked.
-
-### What You Write: Workers
-
-Three forward workers. CreateAccountWorker, SetupBillingWorker, and ProvisionResourcesWorker. Run in sequence, with matching undo workers (UndoProvisionWorker, UndoBillingWorker, UndoAccountWorker) that execute in reverse order when any step fails.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CreateAccountWorker** | `msc_create_account` | Worker for msc_create_account. creates an account and returns a deterministic accountId. |
-| **ProvisionResourcesWorker** | `msc_provision_resources` | Worker for msc_provision_resources. provisions resources. If failAt input equals "provision", the task returns FAILE.. |
-| **SetupBillingWorker** | `msc_setup_billing` | Worker for msc_setup_billing. sets up billing and returns a deterministic billingId. |
-| **UndoAccountWorker** | `msc_undo_account` | Worker for msc_undo_account. undoes account creation. |
-| **UndoBillingWorker** | `msc_undo_billing` | Worker for msc_undo_billing. undoes billing setup. |
-| **UndoProvisionWorker** | `msc_undo_provision` | Worker for msc_undo_provision. undoes resource provisioning. |
-
-Workers implement success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### The Workflow
+## Workflow
 
 ```
-Input -> CreateAccountWorker -> ProvisionResourcesWorker -> SetupBillingWorker -> UndoAccountWorker -> UndoBillingWorker -> UndoProvisionWorker -> Output
-
+Forward: msc_create_account ──> msc_setup_billing ──> msc_provision_resources
+                                                              │ (fails when failAt="provision")
+Compensation: msc_undo_provision ──> msc_undo_billing ──> msc_undo_account
 ```
 
----
+The forward workflow `msc_forward_workflow` chains three steps. The compensation workflow `msc_compensation_workflow` runs undo steps in reverse order, receiving `resourceId`, `billingId`, and `accountId` from the forward workflow's output.
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+## Workers
+
+**CreateAccountWorker** (`msc_create_account`) -- returns a deterministic `accountId` = `"ACCT-001"`. Always completes.
+
+**SetupBillingWorker** (`msc_setup_billing`) -- receives `accountId` from the previous step. Returns a deterministic `billingId` = `"BILL-001"`. Always completes.
+
+**ProvisionResourcesWorker** (`msc_provision_resources`) -- reads `failAt` from input. When `failAt` equals `"provision"`, returns `FAILED` with `error` = `"Provisioning failed"`. Otherwise returns `resourceId` = `"RES-001"`.
+
+**UndoProvisionWorker** (`msc_undo_provision`) -- receives `resourceId` from input. Returns `undone` = `true`.
+
+**UndoBillingWorker** (`msc_undo_billing`) -- receives `billingId` from input. Returns `undone` = `true`.
+
+**UndoAccountWorker** (`msc_undo_account`) -- receives `accountId` from input. Returns `undone` = `true`.
+
+## Project Structure
+
+This example contains 6 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `?` defines 0 tasks with input parameters none and a timeout of `?` seconds.
+
+## Tests
+
+14 tests verify the forward happy path, provisioning failure, compensation execution in reverse order, and that each undo worker receives the correct ID from its corresponding forward step.
+
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

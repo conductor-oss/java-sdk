@@ -1,48 +1,57 @@
-# Knowledge Base Sync in Java with Conductor : Crawl, Extract, Update, Index, and Verify
+# Crawl-Extract-Update-Index-Verify: Keeping a Knowledge Base Current
 
-## Keeping Help Content Up to Date
+A knowledge base with 156 pages of help content goes stale as product features change. This pipeline crawls the source URL, extracts articles from the crawled pages, updates the knowledge base with new and modified articles, rebuilds the search index, and verifies that the index is searchable.
 
-Knowledge bases go stale. Product features change, documentation gets updated, and new articles are published; but the knowledge base that customers and support agents search still shows last month's content. Syncing manually is tedious and error-prone. A reliable sync pipeline needs to crawl the source for changes, extract the content, update the knowledge base, rebuild the search index, and verify everything landed correctly.
-
-This workflow automates the full sync cycle. The crawler scans the source URL and identifies new or changed pages. The extractor pulls structured content (title, body, categories) from the crawled pages. The updater writes the extracted content to the knowledge base. The indexer rebuilds the search index to include the new content. The verifier checks that the updated articles are accessible and the index returns correct results. Each step depends on the previous one. you cannot extract from uncrawled pages or index unupdated content.
-
-## The Solution
-
-**You just write the crawling, extraction, updating, indexing, and verification workers. Conductor handles the five-step sync pipeline and data flow.**
-
-Five workers handle the sync lifecycle. crawling, extraction, updating, indexing, and verification. The crawler discovers changed content at the source. The extractor parses pages into structured articles. The updater writes to the knowledge base. The indexer rebuilds search. The verifier confirms the sync is correct. Conductor sequences all five steps and passes crawled pages, extracted content, and update status between them via JSONPath.
-
-### What You Write: Workers
-
-CrawlWorker discovers changed pages, ExtractWorker parses article content, UpdateWorker writes to the KB, IndexWorker rebuilds search, and VerifyWorker confirms the sync is correct.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **CrawlWorker** | `kbs_crawl` | Scans the source URL and discovers new or changed pages to process. |
-| **ExtractWorker** | `kbs_extract` | Pulls structured article content (title, body, categories) from crawled pages. |
-| **IndexWorker** | `kbs_index` | Rebuilds the search index to include newly updated articles. |
-| **UpdateWorker** | `kbs_update` | Writes extracted articles to the knowledge base, tracking new, updated, and deleted counts. |
-| **VerifyWorker** | `kbs_verify` | Confirms that all indexed articles are searchable and the sync completed correctly. |
-
-### The Workflow
+## Workflow
 
 ```
-kbs_crawl
- │
- ▼
-kbs_extract
- │
- ▼
-kbs_update
- │
- ▼
-kbs_index
- │
- ▼
-kbs_verify
-
+sourceUrl, kbId
+     │
+     ▼
+┌──────────────┐
+│ kbs_crawl    │  Crawl source, find 156 pages
+└──────┬───────┘
+       │  pages: ["faq.html", "setup.html", "api.html"], pageCount: 156
+       ▼
+┌──────────────┐
+│ kbs_extract  │  Extract 89 articles from pages
+└──────┬───────┘
+       │  articles: [{title: "Getting Started"}, ...], articleCount: 89
+       ▼
+┌──────────────┐
+│ kbs_update   │  Apply changes: 34 new, 55 updated
+└──────┬───────┘
+       │  updatedCount: 89, newArticles: 34, modifiedArticles: 55
+       ▼
+┌──────────────┐
+│ kbs_index    │  Rebuild search index
+└──────┬───────┘
+       │  indexedCount: 89, indexSizeBytes: 4521984, indexTime: "2.3s"
+       ▼
+┌──────────────┐
+│ kbs_verify   │  Verify search is ready
+└──────────────┘
+       │
+       ▼
+  pagesCrawled, articlesUpdated, searchReady
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**CrawlWorker** (`kbs_crawl`) -- Logs the `sourceUrl` and reports finding 156 pages. Returns a sample page list `["faq.html", "setup.html", "api.html"]`.
+
+**ExtractWorker** (`kbs_extract`) -- Reports extracting 89 articles from the crawled pages. Returns sample articles with titles `"Getting Started"` and `"API Reference"`.
+
+**UpdateWorker** (`kbs_update`) -- Logs the `kbId` and reports `34 new, 55 updated, 0 deleted`. Returns `updatedCount: 89`, `newArticles: 34`, `modifiedArticles: 55`.
+
+**IndexWorker** (`kbs_index`) -- Rebuilds the search index. Reports `indexedCount: 89`, `indexSizeBytes: 4521984` (~4.3MB), `indexTime: "2.3s"`.
+
+**VerifyWorker** (`kbs_verify`) -- Confirms search readiness with `searchReady: true` and runs a sample query `{query: "setup guide", results: 5}`.
+
+## Tests
+
+10 tests across 5 test files verify each pipeline stage.
+
+## Further Reading
+
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

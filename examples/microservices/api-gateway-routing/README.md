@@ -1,48 +1,41 @@
-# API Gateway Routing in Java with Conductor
+# Gateway Routing with Rate Limiting and Version-Aware Transforms
 
-API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses.
+Your API gateway needs to authenticate tokens, enforce rate limits per client, route
+requests to the right service, and format responses differently for different client
+versions. This workflow chains auth, rate checking (45/100 used, 55 remaining),
+routing to order-service, and version-aware response transformation.
 
-## The Problem
-
-An API gateway must authenticate every inbound request, enforce rate limits per client, route the call to the right backend service, and transform the response before returning it. Each of these concerns lives in a different service, and they must run in strict sequence. Routing depends on auth, and the response transform depends on the routing result.
-
-Without orchestration, you end up hard-coding the call chain inside a single gateway class, manually threading client IDs between steps, and writing retry/timeout logic around each HTTP call. Any change to the pipeline (adding a logging step, rearranging rate-check order) forces a redeploy of the whole gateway.
-
-## The Solution
-
-**You just write the auth, rate-check, routing, and response-transform workers. Conductor handles ordered execution, automatic retries on transient failures, and per-request observability.**
-
-Each worker represents a service boundary. Conductor manages cross-service orchestration, compensating transactions, timeout enforcement, and distributed tracing. your workers just make the service calls.
-
-### What You Write: Workers
-
-Four workers divide the routing pipeline: AuthenticateWorker validates tokens, RateCheckWorker enforces per-client limits, RouteRequestWorker forwards to backends, and TransformResponseWorker shapes the reply for the caller.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **AuthenticateWorker** | `gw_authenticate` | Validates authentication tokens for incoming API requests. |
-| **RateCheckWorker** | `gw_rate_check` | Checks rate limits for a client. |
-| **RouteRequestWorker** | `gw_route_request` | Routes a request to the appropriate backend service. |
-| **TransformResponseWorker** | `gw_transform_response` | Transforms a service response for the client version. |
-
-the workflow coordination stays the same.
-
-### The Workflow
+## Workflow
 
 ```
-gw_authenticate
- │
- ▼
-gw_rate_check
- │
- ▼
-gw_route_request
- │
- ▼
-gw_transform_response
-
+path, method, headers, body
+           |
+           v
++--------------------+     +------------------+     +--------------------+     +---------------------------+
+| gw_authenticate    | --> | gw_rate_check    | --> | gw_route_request   | --> | gw_transform_response     |
++--------------------+     +------------------+     +--------------------+     +---------------------------+
+  clientId: client-42       45/100 used              POST /orders ->           formatted for
+  clientVersion: v2         55 remaining              order-service             clientVersion v2
+  requestId: REQ-fixed-001  allowed: true             orderId: ORD-123
 ```
 
----
+## Workers
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+**AuthenticateWorker** -- Validates the token for the requested `path`. Returns
+`clientId: "client-42"`, `clientVersion: "v2"`, `requestId: "REQ-fixed-001"`.
+
+**RateCheckWorker** -- Checks the client's rate limit: 45 of 100 requests used, `remaining:
+55`, `allowed: true`.
+
+**RouteRequestWorker** -- Routes `method` + `path` to order-service. Returns `statusCode: 200`
+with `response: {orderId: "ORD-123", status: "confirmed"}`.
+
+**TransformResponseWorker** -- Formats the response for the `clientVersion`.
+
+## Tests
+
+31 unit tests cover authentication, rate limiting, routing, and response transformation.
+
+## Running
+
+See [../../RUNNING.md](../../RUNNING.md) for setup and execution instructions.
