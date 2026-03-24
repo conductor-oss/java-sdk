@@ -20,7 +20,9 @@ With Conductor's persistence, the workflow resumes at order 4,001 automatically.
 
 ## The Solution
 
-Conductor persists every workflow execution to durable storage. When the server restarts, all in-flight workflows are recovered automatically and resume from their last completed task. No data is lost, no steps are re-executed, and no manual intervention is needed. The example demonstrates this by running a workflow, verifying it completes, then looking up the same workflow by ID to confirm the state was persisted. ### What You Write: Workers
+Conductor persists every workflow execution to durable storage. When the server restarts, all in-flight workflows are recovered automatically and resume from their last completed task. No data is lost, no steps are re-executed, and no manual intervention is needed. The example demonstrates this by running a workflow, verifying it completes, then looking up the same workflow by ID to confirm the state was persisted.
+
+### What You Write: Workers
 
 DurableTaskWorker processes batches while Conductor persists every execution to durable storage, ensuring workflows survive server restarts and resume from their last completed step without re-executing or losing progress.
 

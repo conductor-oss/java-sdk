@@ -1,6 +1,8 @@
 # Task Input Templates in Java with Conductor
 
-Shows reusable parameter mapping patterns. ## The Problem
+Shows reusable parameter mapping patterns.
+
+## The Problem
 
 You need to wire data between tasks, a user lookup returns a profile, a context builder enriches it with permissions, and an action executor needs fields from both previous steps plus the original workflow input. Input templates let you map outputs from any previous task into the next task's input using expressions like `${task_ref.output.field}`, composing complex objects from multiple sources without writing glue code.
 

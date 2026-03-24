@@ -12,7 +12,9 @@ Without orchestration, you'd spawn threads for each notification channel, manage
 
 **You just write the event-parse, email, SMS, push, and delivery-recording workers. Conductor handles parallel multi-channel delivery, per-channel retry isolation, and unified delivery status tracking.**
 
-Each notification channel is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle. ### What You Write: Workers
+Each notification channel is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of parsing the event, sending across all three channels in parallel via FORK_JOIN, recording delivery status for each, retrying any failed channel independently, and tracking the entire notification lifecycle.
+
+### What You Write: Workers
 
 Five workers deliver multi-channel notifications: ParseEventWorker extracts recipient and content, then SendEmailWorker, SendSmsWorker, and SendPushWorker deliver in parallel via FORK_JOIN, and RecordDeliveryWorker logs the outcome per channel.
 

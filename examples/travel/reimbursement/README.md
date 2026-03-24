@@ -1,6 +1,8 @@
 # Reimbursement in Java with Conductor
 
-Reimbursement: submit, validate, approve, process, notify. ## The Problem
+Reimbursement: submit, validate, approve, process, notify.
+
+## The Problem
 
 You need to process a travel reimbursement claim from submission through payment, the employee submits a claim with receipts and amounts, the system validates receipts and checks policy compliance, a manager approves or rejects the claim, the finance team processes the approved payment, and the employee receives notification of the reimbursement status. Each step depends on the previous one's outcome.
 

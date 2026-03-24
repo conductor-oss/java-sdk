@@ -10,7 +10,9 @@ Without orchestration, maintenance windows are enforced by human judgment. an en
 
 **You just write the window schedule checks and maintenance task logic. Conductor handles time-window evaluation with conditional routing, retries on maintenance task failures, and a record of every execution or deferral with timing details.**
 
-A window checker worker evaluates whether the current time falls within the maintenance window. Conductor's SWITCH task routes to either the execute path or the defer path. If maintenance runs, it's tracked with timing and results. If deferred, the deferral is recorded with the reason and next available window. ### What You Write: Workers
+A window checker worker evaluates whether the current time falls within the maintenance window. Conductor's SWITCH task routes to either the execute path or the defer path. If maintenance runs, it's tracked with timing and results. If deferred, the deferral is recorded with the reason and next available window.
+
+### What You Write: Workers
 
 CheckWindowWorker determines if the current time falls within the maintenance window, then Conductor routes to either ExecuteMaintenanceWorker to run tasks like db-vacuum and index-rebuild, or DeferMaintenanceWorker to schedule for the next approved window.
 

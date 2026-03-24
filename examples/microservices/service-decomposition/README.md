@@ -1,6 +1,8 @@
 # Service Decomposition in Java with Conductor
 
-Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison. ## The Problem
+Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison.
+
+## The Problem
 
 Migrating from a monolith to microservices cannot happen all at once. The strangler fig pattern uses feature flags to gradually route requests from the monolith to new microservices. This workflow checks a feature flag to decide the routing target (monolith, microservice, or shadow mode), and in shadow mode runs both in parallel to compare results before committing to the new service.
 

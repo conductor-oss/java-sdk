@@ -14,7 +14,9 @@ Doing this manually per workflow is tedious and error-prone. Automating it as a 
 
 ### What You Write: Workers
 
-Four workers handle the migration pipeline: legacy system export, schema transformation, new-platform import, and output verification, each targeting one phase of the system cutover.### The Workflow
+Four workers handle the migration pipeline: legacy system export, schema transformation, new-platform import, and output verification, each targeting one phase of the system cutover.
+
+### The Workflow
 
 ```
 wm_export_old

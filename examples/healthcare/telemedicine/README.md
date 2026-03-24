@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic telehealth platform that manages
 
 **You just write the telehealth workers. Visit scheduling, video connection, clinical consultation, e-prescribing, and follow-up arrangement. Conductor handles visit stage sequencing, automatic retries when the video platform has a brief outage, and a complete visit record for billing and telehealth parity compliance.**
 
-Each stage of the telemedicine visit is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of scheduling before connecting, consulting only after the video session is established, prescribing based on the consultation findings, arranging follow-up as the final step, and maintaining a complete visit record for billing and compliance. ### What You Write: Workers
+Each stage of the telemedicine visit is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of scheduling before connecting, consulting only after the video session is established, prescribing based on the consultation findings, arranging follow-up as the final step, and maintaining a complete visit record for billing and compliance.
+
+### What You Write: Workers
 
 Five workers cover the virtual visit lifecycle: ScheduleWorker books the appointment, ConnectWorker establishes the secure video session, ConsultWorker records the clinical encounter, PrescribeWorker transmits e-prescriptions, and FollowUpWorker arranges post-visit care.
 

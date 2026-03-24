@@ -10,7 +10,9 @@ Without orchestration, WAF management is reactive. a security engineer manually 
 
 **You just write the traffic analysis and rule deployment logic. Conductor handles the rule update sequence, retries on CDN deployment failures, and a full change log of every rule modification and verification result.**
 
-Each WAF step is an independent worker. traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results. ### What You Write: Workers
+Each WAF step is an independent worker. traffic analysis, rule updates, deployment, and verification. Conductor runs them in sequence: analyze traffic for threats, update rules accordingly, deploy to the WAF, then verify protection. Every rule change is tracked with the threat that triggered it, the rule modification, and verification results.
+
+### What You Write: Workers
 
 The WAF pipeline uses AnalyzeTrafficWorker to detect attack patterns, UpdateRulesWorker to generate blocking rules, DeployRulesWorker to push changes to the CDN, and VerifyProtectionWorker to confirm attacks are blocked without affecting legitimate users.
 

@@ -1,6 +1,8 @@
 # Travel Analytics in Java with Conductor
 
-Travel analytics: collect, aggregate, analyze, report. ## The Problem
+Travel analytics: collect, aggregate, analyze, report.
+
+## The Problem
 
 You need to generate a travel analytics report for a department and time period. Collecting all booking, expense, and reimbursement data, aggregating spending across categories (flights, hotels, car rentals, meals), analyzing trends to identify cost-saving opportunities (preferred vendor compliance, advance booking rates, policy exception frequency), and producing a report for management. Each transformation depends on the previous one's output.
 

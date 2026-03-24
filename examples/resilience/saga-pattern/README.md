@@ -22,7 +22,9 @@ The saga pattern solves this by defining a compensating action for every forward
 
 **You just write the booking and compensation logic for each service. Conductor handles forward sequencing, SWITCH-based failure detection, reverse-order compensation execution, retries on each booking and cancellation step, and a full audit trail of every saga with its forward and rollback paths.**
 
-Each forward step (book flight, reserve hotel, charge payment) and its compensation (cancel flight, cancel hotel, refund payment) are independent workers. Conductor runs the forward steps in sequence and, on failure, triggers the compensation workflow that runs undo steps in reverse order. Every step in both directions is tracked with full context. ### What You Write: Workers
+Each forward step (book flight, reserve hotel, charge payment) and its compensation (cancel flight, cancel hotel, refund payment) are independent workers. Conductor runs the forward steps in sequence and, on failure, triggers the compensation workflow that runs undo steps in reverse order. Every step in both directions is tracked with full context.
+
+### What You Write: Workers
 
 Six workers form the saga: ReserveHotelWorker, BookFlightWorker, and ChargePaymentWorker handle forward booking, while CancelHotelWorker, CancelFlightWorker, and RefundPaymentWorker execute compensating rollbacks in reverse order when any step fails.
 

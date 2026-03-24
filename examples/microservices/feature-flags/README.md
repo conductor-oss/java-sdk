@@ -1,6 +1,8 @@
 # Feature Flags in Java with Conductor
 
-Route execution based on feature flag status. ## The Problem
+Route execution based on feature flag status.
+
+## The Problem
 
 Feature flags let you route users to different code paths (new feature vs legacy) without redeploying. This workflow checks a flag's status for a specific user, routes execution to either the new feature path or the legacy path based on the result, and logs the flag usage for analytics. If the flag status is unknown, a safe default path is used.
 

@@ -1,6 +1,8 @@
 # Graceful Service Shutdown in Java with Conductor
 
-Orchestrates graceful shutdown: stop accepting new work, drain in-flight tasks, checkpoint state, deregister from service registry, and terminate. ## The Problem
+Orchestrates graceful shutdown: stop accepting new work, drain in-flight tasks, checkpoint state, deregister from service registry, and terminate.
+
+## The Problem
 
 Shutting down a service instance without dropping in-flight requests requires a careful sequence: stop accepting new work, drain all in-flight tasks to completion, checkpoint any pending state so it can be resumed elsewhere, and deregister the instance from the service registry. Skipping any step leads to dropped requests or stale registry entries.
 

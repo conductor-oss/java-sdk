@@ -8,7 +8,9 @@ Without orchestration, worker health monitoring requires custom infrastructure. 
 
 ## The Solution
 
-Conductor tracks worker health automatically. poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves. ### What You Write: Workers
+Conductor tracks worker health automatically. poll timestamps, task completion rates, and queue depths are all available via Conductor's APIs. The example demonstrates querying these APIs to build health dashboards and set up alerting. Every worker's polling behavior and task execution is recorded without any health-check code in the workers themselves.
+
+### What You Write: Workers
 
 WhcWorker processes tasks while tracking health metrics (poll counts, completion rates), and Conductor's APIs provide unified visibility into worker availability, queue depths, and execution performance across the fleet.
 

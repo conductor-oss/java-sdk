@@ -10,7 +10,9 @@ Without orchestration, access reviews are quarterly spreadsheet exercises. Someo
 
 **You just write the entitlement queries and revocation calls. Conductor handles the multi-step review sequence, retries when identity providers are unavailable, and a compliance-ready record of every entitlement reviewed and decision made.**
 
-Each review step is an independent worker. entitlement collection, anomaly detection, certification requests, and enforcement. Conductor runs them in sequence with conditional routing: anomalous access gets flagged for extra scrutiny. Every review cycle is tracked with entitlements collected, anomalies found, certifications received, and revocations applied. ### What You Write: Workers
+Each review step is an independent worker. entitlement collection, anomaly detection, certification requests, and enforcement. Conductor runs them in sequence with conditional routing: anomalous access gets flagged for extra scrutiny. Every review cycle is tracked with entitlements collected, anomalies found, certifications received, and revocations applied.
+
+### What You Write: Workers
 
 The review pipeline uses CollectEntitlementsWorker to gather permissions across systems, IdentifyAnomaliesWorker to flag excessive or dormant access, RequestCertificationWorker to obtain manager approvals, and EnforceDecisionsWorker to revoke denied items.
 

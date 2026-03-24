@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic verification system that collect
 
 **You just write the consent collection, criminal check, employment verification, education verification, and eligibility reporting logic. Conductor handles verification retries, parallel check coordination, and background audit trails.**
 
-Each verification step is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of obtaining consent before any checks begin, running criminal, employment, and education checks simultaneously via FORK_JOIN, waiting for all three to complete before generating the report, retrying any individual check if its data source is temporarily unavailable (without re-running the others), and maintaining an FCRA-compliant audit trail of every verification step. ### What You Write: Workers
+Each verification step is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of obtaining consent before any checks begin, running criminal, employment, and education checks simultaneously via FORK_JOIN, waiting for all three to complete before generating the report, retrying any individual check if its data source is temporarily unavailable (without re-running the others), and maintaining an FCRA-compliant audit trail of every verification step.
+
+### What You Write: Workers
 
 Identity verification, criminal records search, employment history check, and report compilation workers each investigate one dimension of a candidate's background.
 

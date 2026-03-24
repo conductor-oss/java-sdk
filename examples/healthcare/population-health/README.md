@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic population health analytics engi
 
 **You just write the population health workers. Data aggregation, risk stratification, care gap identification, and intervention triggering. Conductor handles pipeline ordering, automatic retries when a data feed is delayed, and complete documentation for CMS quality program reporting.**
 
-Each stage of the population health pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of aggregating data before stratification, identifying gaps only after risk levels are assigned, triggering interventions only for identified gaps, and maintaining a complete audit trail for CMS quality reporting. ### What You Write: Workers
+Each stage of the population health pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of aggregating data before stratification, identifying gaps only after risk levels are assigned, triggering interventions only for identified gaps, and maintaining a complete audit trail for CMS quality reporting.
+
+### What You Write: Workers
 
 Four workers drive the population health pipeline: AggregateDataWorker pulls clinical and claims data, StratifyRiskWorker assigns risk tiers, IdentifyGapsWorker finds missed screenings and overdue interventions, and InterveneWorker triggers targeted outreach.
 

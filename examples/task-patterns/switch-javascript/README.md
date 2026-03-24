@@ -1,6 +1,8 @@
 # Switch Javascript in Java with Conductor
 
-SWITCH with JavaScript evaluator for complex routing based on amount, customerType, and region. ## The Problem
+SWITCH with JavaScript evaluator for complex routing based on amount, customerType, and region.
+
+## The Problem
 
 You need to route order processing based on multiple criteria simultaneously. not just a single field. VIP customers with high-value orders (amount > $1,000) get white-glove concierge service. VIP customers with standard orders get priority processing. Non-VIP orders over $5,000 require manual review for fraud screening. EU region orders need compliance processing (VAT, GDPR). Everything else goes through standard processing. A simple value-param SWITCH can only match on one field, but this routing logic depends on amount AND customerType AND region evaluated together.
 

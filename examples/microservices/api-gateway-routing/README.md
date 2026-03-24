@@ -1,6 +1,8 @@
 # API Gateway Routing in Java with Conductor
 
-API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses. ## The Problem
+API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses.
+
+## The Problem
 
 An API gateway must authenticate every inbound request, enforce rate limits per client, route the call to the right backend service, and transform the response before returning it. Each of these concerns lives in a different service, and they must run in strict sequence. Routing depends on auth, and the response transform depends on the routing result.
 

@@ -8,7 +8,9 @@ Without orchestration, network partition handling means custom reconnection logi
 
 ## The Solution
 
-The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant. when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved. ### What You Write: Workers
+The worker tracks connection attempts and handles reconnection state. Conductor's polling model is inherently partition-tolerant. when the network heals, the worker simply resumes polling. Tasks that timed out during the partition are retried automatically. The full history of connection attempts and task executions is preserved.
+
+### What You Write: Workers
 
 NetworkPartitionWorker tracks connection attempts and processes tasks resiliently, automatically resuming work when connectivity to the Conductor server is restored after a network interruption.
 

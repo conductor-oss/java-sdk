@@ -10,7 +10,9 @@ Without orchestration, compliance reporting is a quarterly fire drill. Someone m
 
 **You just write the evidence collection and control mapping logic. Conductor handles the evidence-to-report pipeline, retries when source systems are temporarily unavailable, and a proof chain showing when evidence was collected and how controls were mapped.**
 
-Each compliance reporting step is a simple, independent worker. one collects evidence artifacts from your systems for the specified framework and reporting period, one maps each evidence item to the control objectives it satisfies, one identifies gaps where controls lack sufficient evidence, one generates the structured compliance report for auditor review. Conductor takes care of executing them in strict order so no report is generated without a complete gap assessment, retrying if an evidence source is temporarily unavailable, and maintaining a complete audit trail that proves when evidence was collected, how controls were mapped, and what gaps were identified for every reporting cycle. ### What You Write: Workers
+Each compliance reporting step is a simple, independent worker. one collects evidence artifacts from your systems for the specified framework and reporting period, one maps each evidence item to the control objectives it satisfies, one identifies gaps where controls lack sufficient evidence, one generates the structured compliance report for auditor review. Conductor takes care of executing them in strict order so no report is generated without a complete gap assessment, retrying if an evidence source is temporarily unavailable, and maintaining a complete audit trail that proves when evidence was collected, how controls were mapped, and what gaps were identified for every reporting cycle.
+
+### What You Write: Workers
 
 The reporting pipeline uses CollectEvidenceWorker to gather artifacts from connected systems, MapControlsWorker to link evidence to control objectives, AssessGapsWorker to identify insufficient coverage, and GenerateReportWorker to produce the auditor-ready package.
 

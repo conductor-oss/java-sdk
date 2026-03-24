@@ -1,6 +1,8 @@
 # Service Orchestration in Java with Conductor
 
-Orchestrate auth, catalog, cart, and checkout microservices. ## The Problem
+Orchestrate auth, catalog, cart, and checkout microservices.
+
+## The Problem
 
 A typical e-commerce purchase flow spans four microservices: authenticate the user, look up the product in the catalog, add it to the shopping cart, and process checkout. Each step depends on the output of the previous one, the catalog lookup needs an auth token, the cart needs the product details, and checkout needs the cart total.
 

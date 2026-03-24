@@ -10,7 +10,9 @@ Without orchestration, screening is inconsistent and slow. Property managers run
 
 **You just write the application intake, background check, credit report, and screening decision logic. Conductor handles credit check retries, verification sequencing, and screening audit trails.**
 
-Each screening step is a simple, independent worker. one logs the application, one runs the background check, one pulls the credit report, one makes the approval decision. Conductor takes care of executing them in order, retrying if the credit bureau is temporarily unavailable, ensuring every applicant goes through the exact same pipeline, and maintaining an audit trail that proves consistent evaluation. ### What You Write: Workers
+Each screening step is a simple, independent worker. one logs the application, one runs the background check, one pulls the credit report, one makes the approval decision. Conductor takes care of executing them in order, retrying if the credit bureau is temporarily unavailable, ensuring every applicant goes through the exact same pipeline, and maintaining an audit trail that proves consistent evaluation.
+
+### What You Write: Workers
 
 Application intake, credit check, background verification, and decision notification workers each evaluate one dimension of tenant qualification.
 
@@ -21,7 +23,9 @@ Application intake, credit check, background verification, and decision notifica
 | **CreditCheckWorker** | `tsc_credit` | Pulls credit score and evaluates debt-to-income ratio against the monthly rent amount |
 | **DecisionWorker** | `tsc_decision` | Decisions the input and returns decision, score |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 tsc_apply

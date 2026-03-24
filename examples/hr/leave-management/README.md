@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic leave system that queries the ac
 
 **You just write the leave request, balance checking, manager approval, accrual update, and notification logic. Conductor handles approval routing, balance updates, and leave request audit trails.**
 
-Each stage of the leave request is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance. ### What You Write: Workers
+Each stage of the leave request is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking balances before approval, updating accruals only after approval, sending notifications as the final step, retrying if the payroll or HRIS system is temporarily unavailable, and maintaining a complete audit trail for labor law compliance.
+
+### What You Write: Workers
 
 Request intake, balance checking, approval routing, and calendar update workers handle leave requests through independent validation steps.
 

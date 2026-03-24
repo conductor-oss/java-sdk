@@ -1,6 +1,8 @@
 # Webhook Callback in Java Using Conductor
 
-Webhook Callback Workflow. receive an incoming webhook request, process the data, and notify the caller via callback URL. ## The Problem
+Webhook Callback Workflow. receive an incoming webhook request, process the data, and notify the caller via callback URL.
+
+## The Problem
 
 You need to process an incoming webhook request and notify the caller of the result via a callback URL. The workflow receives the webhook payload, processes the data according to your business logic, and sends the result back to the caller's callback endpoint. If the callback fails, the caller never learns the outcome; if processing fails, you must still notify the caller of the failure.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd handle the webhook in a servlet or controller, proc
 
 **You just write the request-receive, data-processing, and callback-notification workers. Conductor handles ordered request processing, callback delivery retry with backoff, and a durable record of every webhook callback attempt.**
 
-Each webhook-callback concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller, retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback. ### What You Write: Workers
+Each webhook-callback concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the request, processing the data, and calling back the caller, retrying failed callbacks with backoff, tracking every webhook's full lifecycle, and resuming if the process crashes after processing but before the callback.
+
+### What You Write: Workers
 
 Three workers handle the callback lifecycle: ReceiveRequestWorker parses the incoming webhook, ProcessDataWorker applies business logic to the payload, and NotifyCallbackWorker posts the result back to the caller's URL.
 

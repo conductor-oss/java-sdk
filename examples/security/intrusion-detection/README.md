@@ -10,7 +10,9 @@ Without orchestration, intrusion detection is either a SIEM that generates thous
 
 **You just write the event analysis and threat correlation logic. Conductor handles sequential execution, automatic retries if a threat feed is down, and a complete forensic timeline of every detection.**
 
-Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context, event details, correlation results, severity score, and actions taken. ### What You Write: Workers
+Each detection step is an independent worker. event analysis, threat correlation, severity assessment, and automated response. Conductor runs them in sequence: analyze the event, correlate with threat intelligence, assess severity, then trigger the response. Every detection is tracked with full context, event details, correlation results, severity score, and actions taken.
+
+### What You Write: Workers
 
 The detection pipeline chains four focused workers: AnalyzeEventsWorker parses security events, CorrelateThreatsWorker matches against threat feeds, AssessSeverityWorker scores the risk, and RespondWorker triggers automated containment.
 

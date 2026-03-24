@@ -1,6 +1,8 @@
 # Circuit Breaker Microservice in Java with Conductor
 
-Circuit breaker pattern for resilient service calls. ## The Problem
+Circuit breaker pattern for resilient service calls.
+
+## The Problem
 
 When a downstream service is failing, continuing to send requests wastes resources and can cascade failures to the caller. The circuit breaker pattern tracks failure counts and, when a threshold is exceeded, short-circuits requests to a fallback response until the downstream recovers. This workflow checks circuit state, routes to either a live call or a fallback, and records the result to update the circuit's failure counter.
 

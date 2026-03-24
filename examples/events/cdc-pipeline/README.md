@@ -12,7 +12,9 @@ Without orchestration, you'd build a single CDC polling service that queries the
 
 **You just write the change-detection, transform, publish, and delivery-confirmation workers. Conductor handles pipeline sequencing, automatic retry when the broker is unavailable, and a durable record of every CDC run.**
 
-Each CDC concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish. ### What You Write: Workers
+Each CDC concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (detect changes, transform, publish, confirm), retrying when the message broker is temporarily unavailable, tracking every pipeline run with full change-record details, and resuming from the last successful step if the process crashes mid-publish.
+
+### What You Write: Workers
 
 Four workers form the CDC pipeline: DetectChangesWorker polls a source table for inserts, updates, and deletes; TransformChangesWorker normalizes raw change records into structured events; PublishDownstreamWorker sends them to a topic; and ConfirmDeliveryWorker verifies all messages landed.
 

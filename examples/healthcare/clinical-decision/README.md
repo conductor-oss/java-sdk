@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic CDS engine that queries the EHR,
 
 **You just write the clinical decision support workers. Patient data gathering, guideline application, risk scoring, and treatment recommendation. Conductor handles data flow between stages, retries when the EHR data service is slow, and regulatory logging of every recommendation.**
 
-Each stage of the clinical decision support pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of gathering data before applying guidelines, feeding guideline outputs into the risk scorer, generating recommendations only after scoring is complete, and logging every step for regulatory compliance. ### What You Write: Workers
+Each stage of the clinical decision support pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of gathering data before applying guidelines, feeding guideline outputs into the risk scorer, generating recommendations only after scoring is complete, and logging every step for regulatory compliance.
+
+### What You Write: Workers
 
 Four workers form the CDS pipeline: GatherDataWorker pulls clinical history, ApplyGuidelinesWorker evaluates evidence-based criteria, ScoreRiskWorker computes risk scores, and RecommendWorker generates treatment recommendations.
 

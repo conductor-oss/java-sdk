@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic prior auth engine that receives 
 
 **You just write the prior auth workers. Request submission, criteria review, approve/deny/review routing, and provider notification. Conductor handles conditional SWITCH routing between approve, deny, and manual review paths, automatic retries, and timestamped records for regulatory compliance.**
 
-Each stage of the prior authorization process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes. ### What You Write: Workers
+Each stage of the prior authorization process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of submitting before reviewing criteria, routing to the correct decision path (approve, deny, or manual review) via SWITCH, always notifying the provider regardless of which path was taken, and maintaining a complete audit trail with regulatory timeframes.
+
+### What You Write: Workers
 
 Six workers cover the prior auth process: SubmitRequestWorker intakes the request, ReviewCriteriaWorker evaluates medical necessity, ApproveWorker and DenyWorker handle clear-cut decisions, ManualReviewWorker escalates ambiguous cases, and NotifyWorker sends the determination to the provider.
 

@@ -10,7 +10,9 @@ Without orchestration, vendor risk assessment lives in email threads. Someone se
 
 **You just write the questionnaire collection and risk scoring logic. Conductor handles the assessment sequence, retries when vendor portals are slow to respond, and a complete audit trail of every risk score, SOC2 review, and onboarding decision.**
 
-Each assessment step is an independent worker. questionnaire collection, SOC2 review, risk scoring, and decision. Conductor runs them in sequence: collect the questionnaire, review certifications, score the risk, then make the decision. Every assessment is tracked with responses, review findings, risk score, and decision rationale for audit. ### What You Write: Workers
+Each assessment step is an independent worker. questionnaire collection, SOC2 review, risk scoring, and decision. Conductor runs them in sequence: collect the questionnaire, review certifications, score the risk, then make the decision. Every assessment is tracked with responses, review findings, risk score, and decision rationale for audit.
+
+### What You Write: Workers
 
 The assessment pipeline chains CollectQuestionnaireWorker to gather vendor responses, AssessRiskWorker to calculate a risk score, ReviewSoc2Worker to verify compliance certifications, and MakeDecisionWorker to produce an approve/conditional/deny ruling.
 

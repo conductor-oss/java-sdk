@@ -1,6 +1,8 @@
 # Investment Workflow in Java with Conductor
 
-Investment lifecycle: research, analyze, decide, execute, monitor. ## The Problem
+Investment lifecycle: research, analyze, decide, execute, monitor.
+
+## The Problem
 
 You need to manage the full investment lifecycle for a security. This means researching the investment opportunity (fundamentals, market conditions), analyzing risk and return potential, making a buy/hold/pass decision, executing the trade if appropriate, and monitoring the position post-investment. Making investment decisions without research leads to uninformed bets; executing without analysis means ignoring risk-return tradeoffs.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single investment platform that pulls marke
 
 **You just write the investment workers. Opportunity research, risk-return analysis, buy/hold/pass decision, trade execution, and position monitoring. Conductor handles lifecycle ordering, automatic retries when market data APIs time out, and complete decision tracking for fiduciary compliance.**
 
-Each investment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (research, analyze, decide, execute, monitor), retrying if market data APIs time out, tracking every investment decision with full rationale, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each investment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (research, analyze, decide, execute, monitor), retrying if market data APIs time out, tracking every investment decision with full rationale, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers manage the investment lifecycle: ResearchWorker gathers fundamentals and market data, AnalyzeWorker evaluates risk-return profiles, DecideWorker makes the buy/hold/pass decision, ExecuteWorker places the trade, and MonitorWorker tracks the position.
 

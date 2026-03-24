@@ -10,7 +10,9 @@ Without orchestration, self-healing logic is scattered across monitoring scripts
 
 **You just write the health check and remediation actions. Conductor handles SWITCH-based routing between healthy and unhealthy paths, the check-diagnose-remediate-retry sequence, retries on remediation steps, and a complete record of every healing attempt showing what was detected, what fix was applied, and whether recovery succeeded.**
 
-Each self-healing step is an independent worker. health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked, you can see what was detected, what fix was applied, and whether the retry succeeded. ### What You Write: Workers
+Each self-healing step is an independent worker. health check evaluates the service, diagnose identifies the root cause, remediate applies the fix, and retry re-runs the original operation. Conductor orchestrates the flow: when the health check fails, it routes to diagnosis and remediation before retrying. Every healing attempt is tracked, you can see what was detected, what fix was applied, and whether the retry succeeded.
+
+### What You Write: Workers
 
 HealthCheckWorker evaluates service status, DiagnoseWorker identifies the root cause when unhealthy, RemediateWorker applies the appropriate fix (restart, cache clear, scale up), and RetryProcessWorker re-runs the original operation after recovery.
 

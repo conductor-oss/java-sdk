@@ -10,7 +10,9 @@ Without orchestration, you'd wire all of this into a single monolithic class. qu
 
 **You just write the property data collection, valuation, tax calculation, owner notification, and appeal processing logic. Conductor handles valuation retries, notice generation, and assessment audit trails.**
 
-Each stage of the tax assessment is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in the right order, retrying on failure, tracking every assessment from data collection through appeal window, and resuming if the process crashes mid-assessment. ### What You Write: Workers
+Each stage of the tax assessment is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in the right order, retrying on failure, tracking every assessment from data collection through appeal window, and resuming if the process crashes mid-assessment.
+
+### What You Write: Workers
 
 Property data collection, valuation, assessment calculation, and notice generation workers each handle one phase of the tax assessment cycle.
 

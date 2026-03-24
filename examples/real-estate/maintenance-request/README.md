@@ -10,7 +10,9 @@ Without orchestration, maintenance requests pile up in email inboxes. Property m
 
 **You just write the request intake, classification, technician assignment, completion tracking, and invoicing logic. Conductor handles dispatch retries, priority routing, and maintenance audit trails.**
 
-Each maintenance step is a simple, independent worker. one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks. ### What You Write: Workers
+Each maintenance step is a simple, independent worker. one logs the request, one classifies category and priority, one assigns the right technician, one records completion details, one generates the invoice. Conductor takes care of executing them in order, retrying if the technician scheduling system is temporarily down, and tracking every request from submission through invoicing so nothing falls through the cracks.
+
+### What You Write: Workers
 
 Request intake, priority assessment, vendor dispatch, and completion verification workers each manage one step of resolving property maintenance issues.
 
@@ -22,7 +24,9 @@ Request intake, priority assessment, vendor dispatch, and completion verificatio
 | **CompleteWorker** | `mtr_complete` | Records work completion. labor hours, parts used, and resolution notes from the technician |
 | **InvoiceWorker** | `mtr_invoice` | Generates an invoice for labor and materials, calculating total cost from completion data |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 mtr_submit

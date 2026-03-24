@@ -14,7 +14,9 @@ The competing consumers pattern formalizes this: publish a message to a queue, l
 
 ### What You Write: Workers
 
-Four workers handle the compete-and-process lifecycle. Publishing to a shared queue, consumer competition, task execution by the winner, and delivery acknowledgment.### The Workflow
+Four workers handle the compete-and-process lifecycle. Publishing to a shared queue, consumer competition, task execution by the winner, and delivery acknowledgment.
+
+### The Workflow
 
 ```
 ccs_publish

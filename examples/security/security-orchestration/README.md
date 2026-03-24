@@ -10,7 +10,9 @@ Without orchestration, SOAR is a collection of scripts that run independently. E
 
 **You just write the alert enrichment and response playbooks. Conductor handles the alert-to-playbook pipeline, retries when enrichment APIs are unavailable, and tracks mean time to respond for every incident from ingestion to resolution.**
 
-Each SOAR step is an independent worker. alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution, you can measure mean time to respond and audit every automated action. ### What You Write: Workers
+Each SOAR step is an independent worker. alert ingestion, enrichment, triage decision, and playbook execution. Conductor runs them in sequence: ingest the alert, enrich with context, decide on action, then execute the playbook. Every alert is tracked from ingestion to resolution, you can measure mean time to respond and audit every automated action.
+
+### What You Write: Workers
 
 The SOAR pipeline chains IngestAlertWorker to receive alerts from SIEM/EDR sources, EnrichWorker to add threat intel and asset context, DecideActionWorker to triage and select the response, and ExecutePlaybookWorker to run automated containment actions.
 

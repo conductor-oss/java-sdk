@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic ATS (applicant tracking system) 
 
 **You just write the job posting, resume screening, interview coordination, scoring, and offer extension logic. Conductor handles screening retries, candidate routing, and hiring funnel audit trails.**
 
-Each stage of the recruitment pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of screening only after the job is posted, interviewing only after screening passes, evaluating using both the screening score and interview score, extending the offer only after a positive recommendation, retrying if job boards or HRIS systems are temporarily unavailable, and maintaining a complete audit trail for EEOC and OFCCP compliance. ### What You Write: Workers
+Each stage of the recruitment pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of screening only after the job is posted, interviewing only after screening passes, evaluating using both the screening score and interview score, extending the offer only after a positive recommendation, retrying if job boards or HRIS systems are temporarily unavailable, and maintaining a complete audit trail for EEOC and OFCCP compliance.
+
+### What You Write: Workers
 
 Job posting, application screening, shortlisting, and offer extension workers handle talent acquisition as a multi-stage funnel.
 

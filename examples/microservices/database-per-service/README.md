@@ -1,6 +1,8 @@
 # Database Per Service in Java with Conductor
 
-Database per service pattern with parallel queries and view composition. ## The Problem
+Database per service pattern with parallel queries and view composition.
+
+## The Problem
 
 When each microservice owns its own database, building a unified view that spans multiple services (e.g., a user dashboard showing profile, orders, and product recommendations) requires querying each service's database independently and then composing the results. These queries are independent and should run in parallel for performance.
 

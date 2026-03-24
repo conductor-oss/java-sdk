@@ -10,7 +10,9 @@ Without orchestration, you'd build a single batch-processing script that pulls a
 
 **You just write the application intake, eligibility evaluation, competitive ranking, award decision, and student notification logic. Conductor handles financial analysis retries, award routing, and application audit trails.**
 
-Each scholarship concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each scholarship concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (apply, evaluate, rank, award, notify), retrying if the financial aid system is temporarily unavailable, maintaining a complete audit trail of every application's journey from submission to decision, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Application review, financial analysis, award determination, and disbursement workers handle scholarship decisions as a transparent pipeline.
 

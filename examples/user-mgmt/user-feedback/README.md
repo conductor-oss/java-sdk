@@ -10,7 +10,9 @@ Without orchestration, you'd chain all of this in a single service. parsing text
 
 **You just write the feedback-ingestion, classification, routing, and auto-response workers. Conductor handles the processing pipeline and team routing.**
 
-Each concern. ingestion, classification, routing, response, is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end. ### What You Write: Workers
+Each concern. ingestion, classification, routing, response, is a simple, independent worker. Conductor runs them in sequence, passes the classification output into routing and routing output into the response, retries any step that fails, and tracks every feedback submission end-to-end.
+
+### What You Write: Workers
 
 CollectFeedbackWorker ingests submissions, ClassifyFeedbackWorker categorizes by type and priority, RouteFeedbackWorker assigns to the right team, and RespondFeedbackWorker sends personalized acknowledgments.
 

@@ -1,6 +1,8 @@
 # Rolling Update in Java with Conductor : Analyze, Plan, Execute, Verify
 
-Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy. ## Zero-Downtime Updates Need Careful Orchestration
+Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy.
+
+## Zero-Downtime Updates Need Careful Orchestration
 
 Updating 20 instances of a service simultaneously causes a full outage while the new version starts up. A rolling update replaces instances in batches. update 2, verify they're healthy, update the next 2, and so on. If a batch fails health checks, the rollout stops before affecting more instances.
 

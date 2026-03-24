@@ -22,7 +22,9 @@ Five workers demonstrate three patterns in one workflow: a chain step, two paral
 | **WpLoopIterationWorker** | `wp_loop_iteration` | Loop iteration: processes one iteration in a DO_WHILE loop. |
 | **WpMergeResultsWorker** | `wp_merge_results` | Merge results from fork branches A and B. |
 | **WpSplitAWorker** | `wp_split_a` | Split branch A: parallel fork processing. |
-| **WpSplitBWorker** | `wp_split_b` | Split branch B: parallel fork processing.### The Workflow
+| **WpSplitBWorker** | `wp_split_b` | Split branch B: parallel fork processing.
+
+### The Workflow
 
 ```
 wp_chain_step

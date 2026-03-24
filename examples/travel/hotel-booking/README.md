@@ -1,6 +1,8 @@
 # Hotel Booking in Java with Conductor
 
-Hotel booking: search, filter, book, confirm, reminder. ## The Problem
+Hotel booking: search, filter, book, confirm, reminder.
+
+## The Problem
 
 You need to book a hotel for a business traveler. Searching available hotels in the destination city for the travel dates, filtering results by company travel policy (maximum nightly rate, preferred chains, required amenities), reserving the selected hotel, confirming the booking with the hotel, and scheduling a check-in reminder for the traveler. Each step depends on the previous one's output.
 

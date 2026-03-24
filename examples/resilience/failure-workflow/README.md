@@ -10,7 +10,9 @@ Without orchestration, failure handling lives in finally blocks and shutdown hoo
 
 **You just write the processing logic and error cleanup handlers. Conductor handles automatic failure detection, triggering the cleanup workflow with full error context, retries on cleanup steps, and tracking of every failure with its cleanup outcome.**
 
-The main workflow runs the processing step. Conductor's failure workflow feature automatically triggers a separate error handler workflow when the main one fails. running cleanup and notification workers without any manual intervention. The failure workflow receives the original workflow's context (what failed, why, at which step), so cleanup workers have full information. ### What You Write: Workers
+The main workflow runs the processing step. Conductor's failure workflow feature automatically triggers a separate error handler workflow when the main one fails. running cleanup and notification workers without any manual intervention. The failure workflow receives the original workflow's context (what failed, why, at which step), so cleanup workers have full information.
+
+### What You Write: Workers
 
 ProcessWorker executes the main business logic, and when it fails, Conductor's failure workflow automatically triggers CleanupWorker to release resources and NotifyFailureWorker to alert the team, all with the original failure context.
 

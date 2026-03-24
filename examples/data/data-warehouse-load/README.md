@@ -10,7 +10,9 @@ Without orchestration, you'd write a stored procedure or script that does stagin
 
 **You just write the staging, pre-load checks, upsert, post-load validation, and metadata update workers. Conductor handles strict stage-check-upsert-verify-update ordering, retries when the warehouse is temporarily unavailable, and precise record count tracking across every loading phase.**
 
-Each stage of the warehouse load is a simple, independent worker. The stager writes records to a temporary staging table. The pre-load checker validates staged records against the target schema. The upserter performs INSERT ... ON CONFLICT UPDATE against the target table. The post-load validator confirms the target table has the expected record count. The metadata updater records the load timestamp, row count, and validation status. Conductor executes them in strict sequence, ensures the upsert only runs after pre-load checks pass, retries if the warehouse is temporarily unavailable, and tracks exactly how many records were staged, validated, upserted, and confirmed. ### What You Write: Workers
+Each stage of the warehouse load is a simple, independent worker. The stager writes records to a temporary staging table. The pre-load checker validates staged records against the target schema. The upserter performs INSERT ... ON CONFLICT UPDATE against the target table. The post-load validator confirms the target table has the expected record count. The metadata updater records the load timestamp, row count, and validation status. Conductor executes them in strict sequence, ensures the upsert only runs after pre-load checks pass, retries if the warehouse is temporarily unavailable, and tracks exactly how many records were staged, validated, upserted, and confirmed.
+
+### What You Write: Workers
 
 Five workers handle the warehouse loading pipeline: staging records to a temporary table, running pre-load quality checks, upserting validated records into the target, verifying post-load record counts, and updating warehouse metadata with load statistics.
 

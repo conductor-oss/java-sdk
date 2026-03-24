@@ -14,7 +14,9 @@ Intelligent task routing means analyzing each task's requirements (GPU type, mem
 
 ### What You Write: Workers
 
-Four workers manage intelligent dispatch: requirements analysis, pool selection based on capacity and locality, task dispatch, and execution verification, each decoupled from the infrastructure it targets.### The Workflow
+Four workers manage intelligent dispatch: requirements analysis, pool selection based on capacity and locality, task dispatch, and execution verification, each decoupled from the infrastructure it targets.
+
+### The Workflow
 
 ```
 trt_analyze_requirements

@@ -1,6 +1,8 @@
 # Event Batching in Java Using Conductor
 
-Event Batching. collects events, creates batches, then processes each batch in a DO_WHILE loop. ## The Problem
+Event Batching. collects events, creates batches, then processes each batch in a DO_WHILE loop.
+
+## The Problem
 
 You need to batch high-volume events into manageable chunks before processing. When events arrive continuously, processing them one by one is inefficient. database inserts, API calls, and network round trips are much cheaper in batches. The workflow must collect incoming events, split them into fixed-size batches, and process each batch in a loop until all events are handled.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a buffering service with manual batch-size ma
 
 **You just write the event-collection, batch-creation, and batch-processing workers. Conductor handles DO_WHILE batch iteration, per-batch retry on failure, and durable progress tracking across all batches.**
 
-Each batching concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events, creating batches, processing each batch in a DO_WHILE loop, retrying failed batches without blocking subsequent ones, and tracking every batch's processing status. ### What You Write: Workers
+Each batching concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events, creating batches, processing each batch in a DO_WHILE loop, retrying failed batches without blocking subsequent ones, and tracking every batch's processing status.
+
+### What You Write: Workers
 
 Three workers handle batch processing: CollectEventsWorker gathers incoming events, CreateBatchesWorker splits them into fixed-size chunks, and ProcessBatchWorker processes each chunk in a DO_WHILE loop.
 

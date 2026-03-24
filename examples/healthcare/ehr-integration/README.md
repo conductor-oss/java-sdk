@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic ETL service that queries each so
 
 **You just write the EHR integration workers. Patient record query, cross-system merge, validation, and master record update. Conductor handles pipeline ordering, automatic retries when an EHR endpoint is temporarily down, and a healthcare-pattern audit trail of every data exchange.**
 
-Each stage of the integration pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a healthcare-pattern audit trail of every data exchange. ### What You Write: Workers
+Each stage of the integration pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of querying before merging, validating before updating, retrying if an EHR endpoint is temporarily unavailable, and maintaining a healthcare-pattern audit trail of every data exchange.
+
+### What You Write: Workers
 
 Four workers handle the integration pipeline: QueryPatientWorker pulls records from the source EHR, MergeRecordsWorker reconciles data from multiple systems, ValidateRecordWorker checks completeness and consistency, and UpdateRecordWorker writes to the master patient index.
 

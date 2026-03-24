@@ -1,6 +1,8 @@
 # Config Management in Java with Conductor
 
-Load, validate, deploy, and verify configuration. ## The Problem
+Load, validate, deploy, and verify configuration.
+
+## The Problem
 
 Deploying a configuration change across a distributed system requires loading the new config from a source (file, remote store), validating it against a schema, deploying it to all nodes, and verifying consistency. A bad config value pushed without validation can cause service outages across the fleet.
 

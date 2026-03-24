@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic behavioral health EHR module tha
 
 **You just write the behavioral health workers. Patient intake, clinical assessment scoring, treatment planning, and progress tracking. Conductor handles clinical step ordering, automatic retries when the assessment scoring service is unavailable, and a 42 CFR Part 2-compliant audit trail.**
 
-Each stage of the mental health workflow is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of completing intake before assessment, building the treatment plan only after assessment scores are available, activating progress tracking after the plan is in place, and maintaining a 42 CFR Part 2-compliant audit trail of every clinical interaction. ### What You Write: Workers
+Each stage of the mental health workflow is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of completing intake before assessment, building the treatment plan only after assessment scores are available, activating progress tracking after the plan is in place, and maintaining a 42 CFR Part 2-compliant audit trail of every clinical interaction.
+
+### What You Write: Workers
 
 Four workers manage the behavioral health pathway: IntakeWorker collects demographics and safety screening, AssessWorker scores standardized instruments (PHQ-9, GAD-7), TreatmentPlanWorker builds an individualized plan, and TrackProgressWorker monitors therapeutic outcomes.
 

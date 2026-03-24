@@ -22,7 +22,9 @@ Five workers form the debug cycle: instrumentation, traced execution, trace coll
 | `WfdExecuteWorker` | `wfd_execute` | Runs the instrumented workflow and returns an execution ID, total duration in milliseconds, and the number of tasks executed |
 | `WfdCollectTraceWorker` | `wfd_collect_trace` | Gathers trace data from the execution by reading each trace point. captures timestamps and recorded values (timing measurements, branch selections) for every instrumented location |
 | `WfdAnalyzeWorker` | `wfd_analyze` | Examines collected trace data for anomalies (e.g., tasks exceeding duration thresholds), identifies performance bottlenecks, and produces a summary of findings |
-| `WfdReportWorker` | `wfd_report` | Generates a final debug report containing the workflow name, timestamp, anomaly count, and actionable recommendations (e.g.### The Workflow
+| `WfdReportWorker` | `wfd_report` | Generates a final debug report containing the workflow name, timestamp, anomaly count, and actionable recommendations (e.g.
+
+### The Workflow
 
 ```
 wfd_instrument

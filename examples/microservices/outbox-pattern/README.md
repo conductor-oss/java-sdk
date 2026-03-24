@@ -1,6 +1,8 @@
 # Outbox Pattern in Java with Conductor
 
-Transactional outbox pattern for reliable event publishing. ## The Problem
+Transactional outbox pattern for reliable event publishing.
+
+## The Problem
 
 When a service writes to its database and needs to publish an event, doing both atomically is impossible across different systems (database + message broker). The transactional outbox pattern writes the event to an outbox table in the same database transaction as the entity change, then a separate process polls the outbox, publishes events to the message broker, and marks them as published.
 

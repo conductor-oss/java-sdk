@@ -10,7 +10,9 @@ Without orchestration, you'd coordinate all of this through emails, tickets, and
 
 **You just write the profile creation, system provisioning, mentor assignment, and training plan generation logic. Conductor handles provisioning retries, onboarding step sequencing, and new-hire audit trails.**
 
-Each stage of onboarding is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status. ### What You Write: Workers
+Each stage of onboarding is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of creating the profile before provisioning, provisioning before mentor assignment, building the training plan with all prior context, retrying if any system (Active Directory, Slack API) is temporarily unavailable, and giving HR complete visibility into every onboarding's status.
+
+### What You Write: Workers
 
 Profile creation, system provisioning, mentor assignment, and training plan workers each automate one phase of bringing a new employee into the organization.
 

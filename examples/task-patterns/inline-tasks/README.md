@@ -1,6 +1,8 @@
 # Inline Tasks in Java with Conductor
 
-Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. ## The Problem
+Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers.
+
+## The Problem
 
 You need to perform lightweight data transformations between workflow steps. computing a sum and average from a list of numbers, converting text to uppercase and generating a URL slug, classifying a score into tiers (gold/silver/bronze), and assembling a final response object. These operations are simple enough that deploying a dedicated worker service for each one is overkill. You just need a few lines of logic to run without the overhead of a separate Java process, Docker container, or network round-trip.
 

@@ -1,6 +1,8 @@
 # Switch Default Case in Java with Conductor
 
-Fallback routing for unmatched payment methods using SWITCH with defaultCase. ## The Problem
+Fallback routing for unmatched payment methods using SWITCH with defaultCase.
+
+## The Problem
 
 You need to route payment processing based on the payment method. credit card goes to Stripe, bank transfer goes to Plaid, crypto goes to Coinbase. But customers sometimes submit unrecognized payment methods (PayPal, Apple Pay, "cash") that don't match any configured processor. Those unmatched methods need a fallback path that flags them for manual review rather than silently failing or throwing an exception. After processing (or flagging), every payment attempt must be logged regardless of which branch was taken.
 

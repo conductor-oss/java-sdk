@@ -10,7 +10,9 @@ Without orchestration, API key rotation is either avoided entirely (keys never r
 
 **You just write the key generation and consumer migration logic. Conductor handles strict ordering so revocation never happens before migration, retries if a consumer update fails, and tracking of which consumers are still on the old key.**
 
-Each rotation step is an independent worker. key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status, you can see exactly which consumers are still on the old key. ### What You Write: Workers
+Each rotation step is an independent worker. key generation, dual-active activation, consumer migration, and old key revocation. Conductor runs them in strict sequence: generate the new key, activate dual-active mode, migrate consumers, then revoke the old key. Every rotation is tracked with consumer migration status, you can see exactly which consumers are still on the old key.
+
+### What You Write: Workers
 
 Four workers execute zero-downtime rotation: GenerateNewWorker creates a fresh API key, DualActiveWorker keeps both old and new keys valid simultaneously, MigrateConsumersWorker switches each consumer to the new key, and RevokeOldWorker retires the old key once all consumers have migrated.
 

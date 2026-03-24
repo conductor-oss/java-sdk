@@ -12,7 +12,9 @@ Without orchestration, you'd wrap your event processor in try/catch blocks, manu
 
 **You just write the event-receive, processing-attempt, DLQ-routing, and alert workers. Conductor handles failure-path SWITCH routing, guaranteed DLQ delivery via retries, and a full audit of every event's fate.**
 
-Each dead-letter concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, attempting processing, routing failures via a SWITCH task to the DLQ path with alerting or routing successes to finalization, retrying transient failures automatically, and tracking every event's fate. ### What You Write: Workers
+Each dead-letter concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, attempting processing, routing failures via a SWITCH task to the DLQ path with alerting or routing successes to finalization, retrying transient failures automatically, and tracking every event's fate.
+
+### What You Write: Workers
 
 Five workers manage failed-event routing: DlReceiveEventWorker ingests the event, DlAttemptProcessWorker tries to handle it, DlRouteToDlqWorker moves failures to the dead-letter queue, DlSendAlertWorker notifies engineers, and DlFinalizeSuccessWorker stamps successful completions.
 

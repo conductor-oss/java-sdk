@@ -14,7 +14,9 @@ Workflow templating means defining the ETL structure once (extract-transform-loa
 
 ### What You Write: Workers
 
-Four workers implement the reusable ETL template: source extraction, rule-based transformation, destination loading, and row-count verification, each swappable for different source/destination combinations.### The Workflow
+Four workers implement the reusable ETL template: source extraction, rule-based transformation, destination loading, and row-count verification, each swappable for different source/destination combinations.
+
+### The Workflow
 
 ```
 wtm_extract

@@ -25,7 +25,9 @@ With the dead letter pattern, the failed message and its full context (original 
 
 **You just write the message processor and dead letter handler. Conductor handles retry exhaustion detection, automatic routing of poison messages to the dead-letter handler workflow, and a complete record of every failed message with its error context and retry history.**
 
-The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried. ### What You Write: Workers
+The processing worker handles the business logic, and when it fails with retries exhausted, Conductor's failure workflow mechanism captures the failed task with its full context. Original inputs, error details, retry history. A separate handler workflow receives the dead letter items and can log them, alert operators, or persist them for manual review. Every failed item is tracked with complete execution history, so you always know what failed, why, and how many times it was retried.
+
+### What You Write: Workers
 
 ProcessWorker handles message processing and reports success or failure, while HandleFailureWorker captures permanently failed messages with full context: original inputs, error details, and retry history, for investigation and manual review.
 

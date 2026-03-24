@@ -1,6 +1,8 @@
 # CQRS Pattern in Java with Conductor
 
-CQRS pattern - Command side with validation, persistence, and read model update. ## The Problem
+CQRS pattern - Command side with validation, persistence, and read model update.
+
+## The Problem
 
 CQRS (Command Query Responsibility Segregation) separates write operations from read operations. A command must be validated, its resulting event persisted to an event store, and the read model updated to reflect the new state. These steps must happen in order, the read model update depends on the persisted event.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic claims engine that receives the 
 
 **You just write the claims workers. Submission intake, eligibility verification, adjudication, payment, and EOB closure. Conductor handles strict step ordering, automatic retries when the eligibility system is temporarily unavailable, and a complete regulatory audit trail from submission to closure.**
 
-Each stage of claims processing is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure. ### What You Write: Workers
+Each stage of claims processing is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of verifying before adjudicating, paying only after adjudication approves the claim, retrying if the eligibility system is temporarily unavailable, and maintaining a complete regulatory audit trail from submission to closure.
+
+### What You Write: Workers
 
 Five workers manage the claims lifecycle: SubmitClaimWorker intakes the claim, VerifyClaimWorker checks eligibility, AdjudicateClaimWorker applies benefit rules, PayClaimWorker issues provider payment, and CloseClaimWorker generates the EOB.
 

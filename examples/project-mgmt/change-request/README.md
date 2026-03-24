@@ -10,7 +10,9 @@ Without orchestration, change management devolves into email threads and spreads
 
 **You just write the change submission, impact assessment, approval gating, implementation, and verification logic. Conductor handles impact analysis retries, approval routing, and change control audit trails.**
 
-Each step in the change request lifecycle is a simple, independent worker. one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail. ### What You Write: Workers
+Each step in the change request lifecycle is a simple, independent worker. one submits and logs the request, one assesses impact, one handles the approval gate, one implements the change, one verifies the outcome. Conductor takes care of executing them in strict sequence, ensuring no step is skipped, retrying if an external system is temporarily down, and maintaining a complete execution history that serves as your audit trail.
+
+### What You Write: Workers
 
 Request intake, impact analysis, approval routing, and implementation tracking workers each manage one stage of the change control process.
 

@@ -1,6 +1,8 @@
 # Tournament Bracket in Java Using Conductor
 
-Runs a competitive tournament from registration to finals: accepting registrations, seeding by skill, generating brackets, managing match rounds, and finalizing results with prize distribution. ## The Problem
+Runs a competitive tournament from registration to finals: accepting registrations, seeding by skill, generating brackets, managing match rounds, and finalizing results with prize distribution.
+
+## The Problem
 
 You need to run a competitive tournament from registration to finals. The workflow accepts player registrations, seeds participants based on skill rating, generates the tournament bracket (single elimination, double elimination, or round robin), manages each round of matches, and finalizes results with prize distribution. Unseeded brackets produce lopsided first-round matchups; mismanaged rounds can deadlock the tournament.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a tournament platform that manages registrati
 
 **You just write the registration, skill seeding, bracket generation, match round management, and prize distribution logic. Conductor handles bracket generation retries, match scheduling, and tournament progression tracking.**
 
-Each tournament concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each tournament concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (register, seed, create bracket, manage rounds, finalize), tracking every tournament's complete state, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Registration, seeding, bracket generation, and match scheduling workers each own one structural aspect of tournament organization.
 

@@ -10,7 +10,9 @@ Without orchestration, capacity monitoring is a dashboard that shows current sta
 
 **You just write the resource measurement and capacity forecasting logic. Conductor handles the measure-forecast-alert pipeline, retries when cluster metric endpoints are slow, and historical tracking of capacity trends over time.**
 
-Each capacity concern is an independent worker. resource measurement, growth forecasting, and alerting. Conductor runs them in sequence: measure current state, forecast future needs, then alert if thresholds are breached. Every monitoring run is tracked with measurements, forecasts, and alert decisions. ### What You Write: Workers
+Each capacity concern is an independent worker. resource measurement, growth forecasting, and alerting. Conductor runs them in sequence: measure current state, forecast future needs, then alert if thresholds are breached. Every monitoring run is tracked with measurements, forecasts, and alert decisions.
+
+### What You Write: Workers
 
 Three workers monitor infrastructure capacity: MeasureResourcesWorker samples CPU, memory, and disk utilization, ForecastWorker predicts days until exhaustion based on growth trends, and CapAlertWorker fires when capacity thresholds are breached or exhaustion is imminent.
 

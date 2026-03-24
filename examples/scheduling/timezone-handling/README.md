@@ -10,7 +10,9 @@ Without orchestration, timezone handling is scattered across the codebase. one m
 
 **You just write the timezone detection and UTC conversion logic. Conductor handles the detect-convert-schedule-execute sequence, retries when timezone lookups or scheduling APIs are unavailable, and a record of every conversion showing original time, detected zone, and UTC result.**
 
-Each timezone concern is an independent worker. zone detection, time conversion, and job scheduling. Conductor runs them in sequence: detect the user's timezone, convert the requested time to UTC, then schedule the job. Every timezone conversion is tracked with the original time, detected zone, and UTC result. ### What You Write: Workers
+Each timezone concern is an independent worker. zone detection, time conversion, and job scheduling. Conductor runs them in sequence: detect the user's timezone, convert the requested time to UTC, then schedule the job. Every timezone conversion is tracked with the original time, detected zone, and UTC result.
+
+### What You Write: Workers
 
 DetectZoneWorker identifies the user's IANA timezone, ConvertTimeWorker translates the requested time to UTC, ScheduleJobWorker queues the job at the correct UTC instant, and ExecuteJobWorker runs it when the moment arrives.
 

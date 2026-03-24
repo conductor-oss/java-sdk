@@ -10,7 +10,9 @@ Without orchestration, property valuations are manual and inconsistent. Appraise
 
 **You just write the comparable sales collection, market analysis, appraisal estimation, and report generation logic. Conductor handles comparable search retries, adjustment calculations, and appraisal audit trails.**
 
-Each valuation step is a simple, independent worker. one collects comparable sales, one performs market analysis with adjustments, one produces the appraisal estimate, one generates the formal report. Conductor takes care of executing them in order, retrying if the MLS data feed times out, and tracking every valuation from comps collection through report delivery. ### What You Write: Workers
+Each valuation step is a simple, independent worker. one collects comparable sales, one performs market analysis with adjustments, one produces the appraisal estimate, one generates the formal report. Conductor takes care of executing them in order, retrying if the MLS data feed times out, and tracking every valuation from comps collection through report delivery.
+
+### What You Write: Workers
 
 Data collection, comparable analysis, adjustment calculation, and appraisal report workers each contribute one layer to determining property value.
 
@@ -21,7 +23,9 @@ Data collection, comparable analysis, adjustment calculation, and appraisal repo
 | **AppraiseWorker** | `pvl_appraise` | Produces the appraisal estimate based on the adjusted comp analysis |
 | **ReportWorker** | `pvl_report` | Generates the formal valuation report with comps, adjustments, and final estimated value |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 pvl_collect_comps

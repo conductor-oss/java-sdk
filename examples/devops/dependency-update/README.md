@@ -12,7 +12,9 @@ Without orchestration, you'd run `mvn versions:display-dependency-updates`, manu
 
 **You write the scanning and update logic. Conductor handles the scan-test-PR pipeline and ensures PRs only open after tests pass.**
 
-Each stage of the dependency update pipeline is a simple, independent worker. The scanner checks the repository for outdated dependencies and identifies available updates based on the configured update type (patch-only for safety, minor for features, major for everything). The updater modifies the dependency manifest files to the target versions. The test runner executes the full test suite against the updated dependencies to catch regressions before anything gets merged. The PR creator opens a pull request with the dependency changes, a summary of what was updated and from/to versions, and the test results. Conductor executes them in strict sequence, ensures the PR is only created if tests pass, retries if the package registry is temporarily unavailable, and tracks how many dependencies were scanned, updated, and verified. ### What You Write: Workers
+Each stage of the dependency update pipeline is a simple, independent worker. The scanner checks the repository for outdated dependencies and identifies available updates based on the configured update type (patch-only for safety, minor for features, major for everything). The updater modifies the dependency manifest files to the target versions. The test runner executes the full test suite against the updated dependencies to catch regressions before anything gets merged. The PR creator opens a pull request with the dependency changes, a summary of what was updated and from/to versions, and the test results. Conductor executes them in strict sequence, ensures the PR is only created if tests pass, retries if the package registry is temporarily unavailable, and tracks how many dependencies were scanned, updated, and verified.
+
+### What You Write: Workers
 
 Three workers automate the dependency update cycle. Scanning for outdated packages, bumping versions, and creating pull requests after tests pass.
 

@@ -8,7 +8,9 @@ Without orchestration, implementing jitter means adding Random.nextInt() to Thre
 
 ## The Solution
 
-The worker makes the API call with a jitter delay built into its logic to spread concurrent retries. Conductor tracks each execution with timing, so you can verify that retries are spread across time rather than clustered. The thundering herd is avoided without complex coordination between workers. ### What You Write: Workers
+The worker makes the API call with a jitter delay built into its logic to spread concurrent retries. Conductor tracks each execution with timing, so you can verify that retries are spread across time rather than clustered. The thundering herd is avoided without complex coordination between workers.
+
+### What You Write: Workers
 
 JitterApiCallWorker adds a randomized delay before each API call to spread concurrent retries over time, preventing the thundering herd problem where multiple workers slam a recovering service simultaneously.
 

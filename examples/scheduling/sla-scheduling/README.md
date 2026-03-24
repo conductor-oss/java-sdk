@@ -10,7 +10,9 @@ Without orchestration, SLA prioritization is a manual sort in a ticketing system
 
 **You just write the SLA prioritization rules and compliance calculations. Conductor handles the prioritize-execute-track sequence, retries on ticket system failures, and SLA compliance metrics with per-ticket timing for every scheduling cycle.**
 
-Each SLA concern is an independent worker. prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics. ### What You Write: Workers
+Each SLA concern is an independent worker. prioritization by SLA urgency, task execution in priority order, and compliance tracking. Conductor runs them in sequence: prioritize the queue, execute in order, then track compliance. Every scheduling run is tracked with priority assignments, execution timing, and SLA compliance metrics.
+
+### What You Write: Workers
 
 Three workers enforce SLA discipline: PrioritizeWorker sorts tickets by SLA urgency so the closest-to-breach items come first, ExecuteTasksWorker processes them in priority order, and TrackComplianceWorker calculates on-time completion rates and flags breaches.
 

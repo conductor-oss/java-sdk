@@ -1,6 +1,8 @@
 # Debate Agents in Java Using Conductor : Pro and Con Arguments in Iterative Rounds with Moderation
 
-Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes. ## Exploring Both Sides of an Issue Systematically
+Debate Agents. PRO and CON agents argue over a topic for multiple rounds, then a moderator summarizes.
+
+## Exploring Both Sides of an Issue Systematically
 
 Asking an LLM for pros and cons in a single call produces a superficial list. A structured debate produces deeper analysis: the pro agent makes a strong argument, the con agent directly counters it, and the pro agent responds to the counter. each round sharpening the analysis. After three rounds, the moderator has six substantive arguments to synthesize into a balanced summary.
 

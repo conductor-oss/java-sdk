@@ -1,6 +1,8 @@
 # Loyalty Rewards in Java with Conductor
 
-Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account. ## The Problem
+Processes restaurant loyalty rewards: calculating points earned, evaluating tier status, applying redemptions, and updating the customer's loyalty account.
+
+## The Problem
 
 You need to process loyalty rewards for a restaurant customer. The workflow calculates points earned from the current order, checks the customer's loyalty tier (bronze, silver, gold, platinum), processes any point redemptions the customer wants to apply, and updates their loyalty account. Earning points without checking the tier means missing tier-specific bonuses; redeeming without validating the balance allows overdrafts.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd embed loyalty logic in the checkout flow. manually 
 
 **You just write the points calculation, tier evaluation, redemption processing, and account update logic. Conductor handles points calculation retries, tier evaluation, and reward redemption audit trails.**
 
-Each loyalty concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (earn points, check tier, redeem, track), retrying if the loyalty database is unavailable, tracking every loyalty transaction, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each loyalty concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (earn points, check tier, redeem, track), retrying if the loyalty database is unavailable, tracking every loyalty transaction, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Purchase tracking, points calculation, tier evaluation, and reward redemption workers each manage one dimension of the restaurant loyalty program.
 

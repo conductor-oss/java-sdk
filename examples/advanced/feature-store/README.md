@@ -14,7 +14,9 @@ Without a pipeline, feature computation lives in ad-hoc scripts, validation is s
 
 ### What You Write: Workers
 
-Four workers manage the feature lifecycle: computation from raw data, quality validation, registry registration, and online serving enablement, ensuring features are never served before validation passes.### The Workflow
+Four workers manage the feature lifecycle: computation from raw data, quality validation, registry registration, and online serving enablement, ensuring features are never served before validation passes.
+
+### The Workflow
 
 ```
 fst_compute_features

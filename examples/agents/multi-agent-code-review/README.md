@@ -1,6 +1,8 @@
 # Multi-Agent Code Review in Java Using Conductor : Security, Performance, and Style Review in Parallel
 
-Multi-Agent Code Review. parses code, runs security/performance/style reviews in parallel, then compiles a final review report. ## Code Review Needs Multiple Specialized Perspectives
+Multi-Agent Code Review. parses code, runs security/performance/style reviews in parallel, then compiles a final review report.
+
+## Code Review Needs Multiple Specialized Perspectives
 
 A single code reviewer might catch a SQL injection vulnerability but miss an N+1 query performance issue. Or they might fix the N+1 query but overlook inconsistent naming conventions. Each review dimension. security (injection, XSS, auth bypass), performance (algorithmic complexity, database query patterns, memory allocation), and style (naming conventions, code organization, documentation), requires different expertise and different analytical approaches.
 

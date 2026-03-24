@@ -10,7 +10,9 @@ Without orchestration, mortgage processing is a manual pipeline prone to bottlen
 
 **You just write the application intake, credit check, underwriting analysis, approval decision, and loan closing logic. Conductor handles credit check retries, underwriting sequencing, and application audit trails.**
 
-Each mortgage processing step is a simple, independent worker. one logs the application, one pulls the credit score, one performs underwriting analysis, one issues the approval, one handles closing. Conductor takes care of executing them in strict order, retrying if the credit bureau API is temporarily unavailable, and maintaining a complete audit trail of every decision point for regulatory compliance. ### What You Write: Workers
+Each mortgage processing step is a simple, independent worker. one logs the application, one pulls the credit score, one performs underwriting analysis, one issues the approval, one handles closing. Conductor takes care of executing them in strict order, retrying if the credit bureau API is temporarily unavailable, and maintaining a complete audit trail of every decision point for regulatory compliance.
+
+### What You Write: Workers
 
 Application intake, credit evaluation, underwriting, and closing workers each handle one stage of the mortgage approval process.
 
@@ -22,7 +24,9 @@ Application intake, credit evaluation, underwriting, and closing workers each ha
 | **ApproveWorker** | `mtg_approve` | Issues the approval or denial decision based on underwriting results, assigns a loan ID |
 | **CloseWorker** | `mtg_close` | Finalizes the loan. generates closing documents, records the mortgage, and disburses funds |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 mtg_apply

@@ -1,6 +1,8 @@
 # Shared Nothing Architecture in Java with Conductor
 
-Shared nothing architecture with fully independent services. ## The Problem
+Shared nothing architecture with fully independent services.
+
+## The Problem
 
 In a shared-nothing architecture, each service owns its data and shares nothing with other services. No shared database, no shared file system, no shared memory. Services communicate only through explicit message passing. This workflow chains three independent services where each receives only the output of the previous one, and a final aggregation step combines all results.
 

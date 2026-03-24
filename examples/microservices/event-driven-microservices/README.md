@@ -1,6 +1,8 @@
 # Event Driven Microservices in Java with Conductor
 
-Event-driven microservices choreography via Conductor. ## The Problem
+Event-driven microservices choreography via Conductor.
+
+## The Problem
 
 In an event-driven architecture, a domain event must be emitted, processed by business logic, used to update read-side projections, and fanned out to interested subscribers. Each step depends on the previous one. Subscribers cannot be notified until the event is processed, and the projection must reflect the latest state.
 

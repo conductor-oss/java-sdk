@@ -10,7 +10,9 @@ Without orchestration, you'd build a single end-of-semester batch job that queri
 
 **You just write the grade collection, GPA analysis, progress report generation, and student notification logic. Conductor handles data collection retries, alert routing, and progress tracking across terms.**
 
-Each progress-tracking concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect grades, analyze, generate report, notify), retrying if the gradebook service is temporarily unavailable, maintaining an audit trail of every progress evaluation, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each progress-tracking concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect grades, analyze, generate report, notify), retrying if the gradebook service is temporarily unavailable, maintaining an audit trail of every progress evaluation, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Data collection, performance analysis, alert generation, and report distribution workers monitor student outcomes through independent checkpoints.
 

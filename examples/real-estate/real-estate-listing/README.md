@@ -10,7 +10,9 @@ Without orchestration, listing creation is a manual process across multiple syst
 
 **You just write the listing creation, data verification, photo enrichment, MLS publishing, and portal syndication logic. Conductor handles photo processing retries, MLS publication, and listing audit trails.**
 
-Each listing step is a simple, independent worker. one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution. ### What You Write: Workers
+Each listing step is a simple, independent worker. one creates the listing record, one verifies accuracy, one enriches with supplementary data, one publishes to the MLS, one distributes to syndication channels. Conductor takes care of executing them in order, retrying if a portal API is temporarily unavailable, and tracking the listing lifecycle from creation through full distribution.
+
+### What You Write: Workers
 
 Property intake, photo processing, listing composition, and MLS publication workers each handle one step of bringing a property to market.
 
@@ -22,7 +24,9 @@ Property intake, photo processing, listing composition, and MLS publication work
 | **PublishListingWorker** | `rel_publish` | Publishes the enriched listing to the MLS and assigns a listing ID |
 | **DistributeListingWorker** | `rel_distribute` | Syndicates the listing to consumer portals (Zillow, Realtor.com, Redfin, Trulia) |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 rel_create

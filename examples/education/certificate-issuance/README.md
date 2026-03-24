@@ -10,7 +10,9 @@ Without orchestration, you'd embed completion checks, PDF generation, digital si
 
 **You just write the completion verification, certificate generation, digital signing, delivery, and record-keeping logic. Conductor handles signing retries, delivery tracking, and credential issuance audit trails.**
 
-Each credential concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery. ### What You Write: Workers
+Each credential concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (verify, generate, sign, issue, record), retrying if the signing service or email delivery times out, maintaining a complete audit trail of every certificate's lifecycle, and resuming from the last step if the process crashes after signing but before delivery.
+
+### What You Write: Workers
 
 Eligibility verification, certificate generation, digital signing, and delivery workers each handle one step of credential issuance.
 

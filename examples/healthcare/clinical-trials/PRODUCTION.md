@@ -18,7 +18,7 @@
 
 - **Screening criteria**: Eligible conditions and exclusion criteria are defined as static sets. In production, externalize to a protocol-specific configuration file that can be updated per trial without code changes.
 - **Age validation**: Participants must be 18-65. Ages outside 0-150 are rejected as terminal errors. The age range should be configurable per protocol.
-- **Monitoring data**: The monitor worker generates simulated data. In production, integrate with EDC (Electronic Data Capture) systems like Medidata Rave or Oracle Clinical.
+- **Monitoring data**: The monitor worker generates deterministic biomarker/compliance data from participant IDs. For production, integrate with EDC (Electronic Data Capture) systems like Medidata Rave or Oracle Clinical to pull real visit data.
 - **Statistical analysis**: The p-value calculation uses an effect-size approximation. In production, use validated statistical software (SAS, R validated packages) for regulatory submissions.
 - **Workflow definition**: Register `workflow.json` before starting workflows. Each trial protocol should have its own workflow version.
 

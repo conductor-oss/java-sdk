@@ -14,7 +14,9 @@ When the smoke test fails. maybe the model expects a different feature schema th
 
 ### What You Write: Workers
 
-Four workers manage the serving rollout: model loading, validation against test inputs, staged deployment, and production promotion, each gating the next step to prevent serving bad predictions.### The Workflow
+Four workers manage the serving rollout: model loading, validation against test inputs, staged deployment, and production promotion, each gating the next step to prevent serving bad predictions.
+
+### The Workflow
 
 ```
 msv_load_model

@@ -14,7 +14,9 @@ Manually coordinating replication means writing polling loops to check sync stat
 
 ### What You Write: Workers
 
-Three workers own the replication lifecycle: data copying between regions, checksum synchronization, and consistency verification, each targeting one phase of cross-region durability.### The Workflow
+Three workers own the replication lifecycle: data copying between regions, checksum synchronization, and consistency verification, each targeting one phase of cross-region durability.
+
+### The Workflow
 
 ```
 xr_replicate

@@ -1,6 +1,8 @@
 # Terminate Task in Java with Conductor
 
-Early exit with TERMINATE based on validation. ## The Problem
+Early exit with TERMINATE based on validation.
+
+## The Problem
 
 You need to validate an order before processing it. If the amount is invalid, the currency is unsupported, or the order exceeds limits, the workflow should stop immediately with a FAILED status and a clear error message. The TERMINATE task provides a clean early exit: the validation worker checks constraints, a SWITCH routes invalid orders to TERMINATE (which ends the workflow), and valid orders continue to the processing worker.
 

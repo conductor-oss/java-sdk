@@ -14,7 +14,9 @@ Each stage of the aggregation pipeline is a simple, independent worker. `AgpColl
 
 ### What You Write: Workers
 
-Four workers form the collect-and-combine pipeline: collection, completeness check, aggregation, and forwarding, each handling one stage of the message lifecycle.### The Workflow
+Four workers form the collect-and-combine pipeline: collection, completeness check, aggregation, and forwarding, each handling one stage of the message lifecycle.
+
+### The Workflow
 
 ```
 agp_collect

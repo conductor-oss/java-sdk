@@ -1,6 +1,8 @@
 # Tool Use Validation in Java Using Conductor : Generate Call, Validate Input, Execute, Validate Output, Deliver
 
-Tool Use Validation. generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline. ## Tool Calls Need Guardrails on Both Sides
+Tool Use Validation. generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline.
+
+## Tool Calls Need Guardrails on Both Sides
 
 An LLM generates a tool call: `search(query="DROP TABLE users")`. Without input validation, that malicious query goes straight to the search API. Or it generates `calculate(expression="1/0")`. Without output validation, the division-by-zero error crashes the pipeline.
 

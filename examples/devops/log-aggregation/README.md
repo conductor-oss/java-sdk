@@ -1,6 +1,8 @@
 # Log Aggregation in Java with Conductor : Collect, Parse, Enrich, Store
 
-Aggregate logs: collect raw logs, parse them into structured format, enrich with metadata, and store in the log store. Pattern: collect -> parse -> enrich -> store. ## Raw Logs Are Useless Without Processing
+Aggregate logs: collect raw logs, parse them into structured format, enrich with metadata, and store in the log store. Pattern: collect -> parse -> enrich -> store.
+
+## Raw Logs Are Useless Without Processing
 
 A production system generates gigabytes of logs daily across dozens of services. Raw log lines like `2025-01-15T14:32:01Z INFO [payment-svc] Payment processed for order ORD-12345` are useless in raw form. they need to be collected from all sources (files, stdout, syslog), parsed into structured fields (timestamp, level, service, message, order ID), enriched with context (deployment version, environment, geo-IP of the request), and stored in a searchable system (Elasticsearch, Loki, CloudWatch).
 

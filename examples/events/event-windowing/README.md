@@ -1,6 +1,8 @@
 # Event Windowing in Java Using Conductor
 
-Event Windowing. collect events into a time window, compute aggregate statistics, and emit the windowed result. ## The Problem
+Event Windowing. collect events into a time window, compute aggregate statistics, and emit the windowed result.
+
+## The Problem
 
 You need to group events into time-based windows and compute aggregate statistics per window. Events arrive continuously, but analysis requires bounded windows. computing event count, sum, average, min, max, and standard deviation across all events within a configurable time window (e.g., 5 seconds, 1 minute). Without windowing, you either process events one at a time (losing temporal context) or accumulate unbounded state.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage window boundaries with timers, buffer events
 
 **You just write the window-collection, stats-computation, and result-emission workers. Conductor handles window lifecycle management, retry on emission failure, and a durable record of every windowed computation.**
 
-Each windowing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result, retrying if aggregation fails, tracking every window computation, and resuming if the process crashes. ### What You Write: Workers
+Each windowing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting events into the window, computing aggregates, and emitting the windowed result, retrying if aggregation fails, tracking every window computation, and resuming if the process crashes.
+
+### What You Write: Workers
 
 Three workers implement time-based windowing: CollectWindowWorker gathers events within a configurable window, ComputeStatsWorker calculates aggregate statistics (count, sum, average, min, max), and EmitResultWorker publishes the windowed output.
 

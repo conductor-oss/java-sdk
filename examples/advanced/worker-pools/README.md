@@ -14,7 +14,9 @@ Worker pool management means categorizing each task to determine what kind of wo
 
 ### What You Write: Workers
 
-Four workers handle pool-based dispatch. Task categorization, pool assignment by resource profile, execution on the assigned worker, and pool return for reuse.### The Workflow
+Four workers handle pool-based dispatch. Task categorization, pool assignment by resource profile, execution on the assigned worker, and pool return for reuse.
+
+### The Workflow
 
 ```
 wpl_categorize_task

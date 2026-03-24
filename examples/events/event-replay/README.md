@@ -1,6 +1,8 @@
 # Event Replay in Java Using Conductor
 
-Event Replay Workflow. load event history, filter by criteria, replay failed events, and generate a summary report. ## The Problem
+Event Replay Workflow. load event history, filter by criteria, replay failed events, and generate a summary report.
+
+## The Problem
 
 You need to replay failed or historical events from an event stream. The workflow loads event history from a source stream for a given time range, filters events by criteria (e.g., only failed events, specific event types), replays the filtered events through your processing pipeline, and generates a summary report of replay outcomes. Without replay capability, failed events are lost forever and historical reprocessing requires manual intervention.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd write a one-off script to query your event store, f
 
 **You just write the history-load, event-filter, replay, and report-generation workers. Conductor handles replay sequencing, per-event retry during reprocessing, and a durable report of every replay operation.**
 
-Each replay concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of loading history, filtering, replaying, and reporting, retrying individual event replays that fail, tracking the entire replay operation, and providing a complete audit trail. ### What You Write: Workers
+Each replay concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of loading history, filtering, replaying, and reporting, retrying individual event replays that fail, tracking the entire replay operation, and providing a complete audit trail.
+
+### What You Write: Workers
 
 Four workers manage event replay: LoadHistoryWorker reads from the event store, FilterEventsWorker selects events by criteria, ReplayEventsWorker reprocesses the filtered set, and GenerateReportWorker summarizes replay outcomes.
 

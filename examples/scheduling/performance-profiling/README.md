@@ -10,7 +10,9 @@ Without orchestration, profiling is a manual process. an engineer SSHs to a serv
 
 **You just write the profiler integration and hotspot analysis logic. Conductor handles the instrument-collect-analyze-recommend sequence, retries when profiler attachment fails, and a durable record of every profiling session's findings and recommendations.**
 
-Each profiling step is an independent worker. instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations. ### What You Write: Workers
+Each profiling step is an independent worker. instrumentation, profile collection, hotspot analysis, and recommendation generation. Conductor runs them in sequence: instrument the target, collect the profile, analyze hotspots, then generate recommendations. Every profiling session is tracked with the exact profile data, findings, and recommendations.
+
+### What You Write: Workers
 
 Four workers run each profiling session: PrfInstrumentWorker attaches the profiler, CollectProfileWorker gathers CPU and memory samples, AnalyzeHotspotsWorker identifies the costliest methods, and a RecommendWorker generates specific optimization suggestions.
 

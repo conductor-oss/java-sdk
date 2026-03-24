@@ -1,6 +1,8 @@
 # Workflow Metadata in Java with Conductor
 
-Demonstrates workflow metadata and search. ## The Problem
+Demonstrates workflow metadata and search.
+
+## The Problem
 
 You need to tag workflow executions with searchable metadata: category, priority, team ownership, so you can query and filter them later. Conductor lets you attach custom metadata (tags, labels, description) to workflow definitions and individual executions, making it possible to search for all "billing" workflows or all "high-priority" executions across your system.
 

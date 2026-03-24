@@ -1,6 +1,8 @@
 # Nested Switch in Java with Conductor
 
-Multi-level decision tree using nested SWITCH tasks with value-param. ## The Problem
+Multi-level decision tree using nested SWITCH tasks with value-param.
+
+## The Problem
 
 You need to route a request through a multi-level decision tree based on region and subscription tier. A US premium customer gets different processing than an EU standard customer or a customer from an unlisted region. The first level routes by region (US, EU, or other), and within each region, a second level routes by tier (premium or standard/default). Each combination. US/premium, US/standard, EU/premium, EU/standard, other/any. runs completely different processing logic. After the region-and-tier-specific processing completes, a final completion step runs regardless of which branch was taken.
 

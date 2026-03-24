@@ -1,6 +1,8 @@
 # Product Catalog Management in Java Using Conductor : Add, Validate, Enrich, Publish, Index
 
-Product catalog management: add, validate, enrich, publish, and index products. ## Product Listings Need Validation, Enrichment, and Indexing
+Product catalog management: add, validate, enrich, publish, and index products.
+
+## Product Listings Need Validation, Enrichment, and Indexing
 
 A merchant adds a product: "Blue Widget, $24.99, Gadgets category." Before this listing goes live, it needs validation (price within category range, required images present, description meets minimum length), enrichment (generate SEO-optimized title and meta description, suggest related products, extract keywords for search), publication (make available on the storefront with correct routing and category placement), and search indexing (update the search engine so customers can find it).
 

@@ -1,6 +1,8 @@
 # Event Schema Validation in Java Using Conductor
 
-Event Schema Validation. validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task. ## The Problem
+Event Schema Validation. validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task.
+
+## The Problem
 
 You need to validate incoming events against a schema before processing them. Malformed events (missing required fields, wrong data types, extra fields) must be caught early and routed to a dead-letter queue rather than corrupting downstream systems. Valid events proceed to normal processing. Without schema validation, one malformed event can crash a consumer, corrupt a database, or produce silently incorrect results.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd embed validation logic in every consumer, duplicate
 
 **You just write the schema-validation, valid-event processing, and dead-letter workers. Conductor handles valid/invalid SWITCH routing, guaranteed DLQ delivery for bad events, and schema compliance tracking for every event.**
 
-Each validation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result. ### What You Write: Workers
+Each validation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of validating the event against the named schema, routing via a SWITCH task to processing (valid) or dead-letter (invalid), retrying if the schema registry is unavailable, and tracking every event's validation result.
+
+### What You Write: Workers
 
 Three workers enforce schema compliance: ValidateSchemaWorker checks the event against a named schema, ProcessValidWorker handles conforming events, and DeadLetterWorker routes malformed events to the DLQ with validation errors attached.
 

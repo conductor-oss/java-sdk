@@ -10,7 +10,9 @@ Without orchestration, uptime monitoring is a simple ping script that checks URL
 
 **You just write the availability checks and SLA compliance calculations. Conductor handles the check-log-calculate-report pipeline, retries when endpoints are unreachable or metric stores are slow, and a full history of every monitoring cycle with response times and SLA standings.**
 
-Each monitoring concern is an independent worker. endpoint checking, result logging, SLA calculation, and report generation. Conductor runs them in sequence: check the endpoint, log the result, calculate SLA compliance, then generate the report. Every monitoring run is tracked with the check result, response time, and SLA standing. ### What You Write: Workers
+Each monitoring concern is an independent worker. endpoint checking, result logging, SLA calculation, and report generation. Conductor runs them in sequence: check the endpoint, log the result, calculate SLA compliance, then generate the report. Every monitoring run is tracked with the check result, response time, and SLA standing.
+
+### What You Write: Workers
 
 CheckEndpointWorker probes each endpoint for availability and response time, LogResultWorker records the outcome for trending, CalculateSlaWorker computes uptime percentages against your SLA target, and UmReportWorker generates the stakeholder-facing report.
 

@@ -1,6 +1,8 @@
 # Service Mesh Orchestration in Java with Conductor
 
-Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity. ## The Problem
+Orchestrates service mesh configuration: deploy sidecar proxies, configure mTLS, set traffic policies, and validate connectivity.
+
+## The Problem
 
 Onboarding a service into a service mesh requires deploying a sidecar proxy (e.g., Envoy), configuring mutual TLS for encrypted service-to-service communication, setting traffic policies (retries, timeouts, circuit breaking), and validating end-to-end connectivity. Each step depends on the previous one. MTLS cannot be configured until the sidecar is deployed.
 

@@ -12,7 +12,9 @@ Without orchestration, you'd build a monolithic claims handler that validates po
 
 **You just write the claims workers. Submission intake, policy verification, damage assessment, settlement calculation, and claim closure. Conductor handles sequential step execution, automatic retries when the policy system is unavailable, and full claims lifecycle tracking for regulatory compliance.**
 
-Each claims concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (submit, verify, assess, settle, close), retrying if the policy system is unavailable, tracking every claim's full lifecycle for regulatory compliance, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each claims concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (submit, verify, assess, settle, close), retrying if the policy system is unavailable, tracking every claim's full lifecycle for regulatory compliance, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers handle the claims lifecycle: SubmitClaimWorker intakes the claim, VerifyDetailsWorker checks policy coverage, AssessDamageWorker determines actual loss, SettleAmountWorker calculates the payout, and CloseClaimWorker finalizes the record.
 

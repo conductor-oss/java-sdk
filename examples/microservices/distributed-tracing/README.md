@@ -1,6 +1,8 @@
 # Distributed Tracing in Java with Conductor
 
-Distributed tracing with end-to-end request tracking. ## The Problem
+Distributed tracing with end-to-end request tracking.
+
+## The Problem
 
 Tracing a request across multiple microservices requires creating a trace context, propagating span IDs through each service call, recording timing for database operations, and exporting the complete trace to a backend like Jaeger or Zipkin. Each span must reference its parent to form a proper trace tree.
 

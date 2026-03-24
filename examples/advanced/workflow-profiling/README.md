@@ -22,7 +22,9 @@ Five workers form the profiling pipeline: instrumentation, multi-iteration execu
 | **WfpExecuteWorker** | `wfp_execute` | Runs the instrumented workflow and collects per-iteration execution times |
 | **WfpInstrumentWorker** | `wfp_instrument` | Adds profiling hooks (CPU time, wall time, memory usage) to the target workflow |
 | **WfpMeasureTimesWorker** | `wfp_measure_times` | Measures average execution times for each task and computes total workflow duration |
-| **WfpOptimizeWorker** | `wfp_optimize` | Produces optimization suggestions (e.g.### The Workflow
+| **WfpOptimizeWorker** | `wfp_optimize` | Produces optimization suggestions (e.g.
+
+### The Workflow
 
 ```
 wfp_instrument

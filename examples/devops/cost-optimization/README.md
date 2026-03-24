@@ -12,7 +12,9 @@ Without orchestration, you'd write a cost analysis script that pulls billing dat
 
 **You write the billing analysis and optimization logic. Conductor handles the collection-to-savings pipeline and tracks every dollar saved.**
 
-Each stage of the cost optimization pipeline is a simple, independent worker. The billing collector pulls spend data for the specified account and period from the cloud provider's cost API. The usage analyzer cross-references billing with utilization metrics to identify waste: instances running below 10% CPU, databases with unused storage, orphaned load balancers with no targets. The recommender generates prioritized savings opportunities with estimated monthly dollar impact for each. The savings applier executes safe optimizations automatically, deleting orphaned snapshots, rightsizing instances, purchasing reserved capacity, and reports what was applied and the projected savings. Conductor executes them in strict sequence, retries if the billing API is rate-limited, and tracks spend amounts and savings amounts at every stage. ### What You Write: Workers
+Each stage of the cost optimization pipeline is a simple, independent worker. The billing collector pulls spend data for the specified account and period from the cloud provider's cost API. The usage analyzer cross-references billing with utilization metrics to identify waste: instances running below 10% CPU, databases with unused storage, orphaned load balancers with no targets. The recommender generates prioritized savings opportunities with estimated monthly dollar impact for each. The savings applier executes safe optimizations automatically, deleting orphaned snapshots, rightsizing instances, purchasing reserved capacity, and reports what was applied and the projected savings. Conductor executes them in strict sequence, retries if the billing API is rate-limited, and tracks spend amounts and savings amounts at every stage.
+
+### What You Write: Workers
 
 Four workers run the cost optimization cycle. Collecting billing data, analyzing resource utilization, generating savings recommendations, and auto-applying safe optimizations.
 

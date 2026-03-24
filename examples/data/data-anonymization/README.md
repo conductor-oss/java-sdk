@@ -10,7 +10,9 @@ Without orchestration, you'd write a single anonymization script that scans fiel
 
 **You just write the PII detection, generalization, suppression, and verification workers. Conductor handles strict sequencing from PII detection through verification, audit-grade tracking of every transformation decision, and retries when external classification services are unavailable.**
 
-Each stage of the anonymization pipeline is a simple, independent worker. The PII identifier scans the dataset and classifies fields as direct identifiers, quasi-identifiers, or safe. The generalizer applies range-based transformations to quasi-identifiers (ages become ranges, zip codes become prefixes). The suppressor replaces direct identifiers with `[REDACTED]` at the configured anonymization level. The verifier checks that no PII leaks through and computes the k-anonymity score of the output dataset. Conductor executes them in sequence, passes the evolving dataset between steps, retries if a scan fails, and tracks every transformation decision with full audit visibility. ### What You Write: Workers
+Each stage of the anonymization pipeline is a simple, independent worker. The PII identifier scans the dataset and classifies fields as direct identifiers, quasi-identifiers, or safe. The generalizer applies range-based transformations to quasi-identifiers (ages become ranges, zip codes become prefixes). The suppressor replaces direct identifiers with `[REDACTED]` at the configured anonymization level. The verifier checks that no PII leaks through and computes the k-anonymity score of the output dataset. Conductor executes them in sequence, passes the evolving dataset between steps, retries if a scan fails, and tracks every transformation decision with full audit visibility.
+
+### What You Write: Workers
 
 Four workers implement the anonymization pipeline: scanning for PII fields, generalizing quasi-identifiers like age and zip code, suppressing direct identifiers with redaction, and verifying k-anonymity compliance.
 

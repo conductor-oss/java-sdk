@@ -12,7 +12,9 @@ Without orchestration, anomaly detection is either a monolithic ML pipeline that
 
 **You just write the baseline computation and deviation detection logic. Conductor handles the collect-baseline-detect-classify-alert sequence, retries when metric sources are temporarily unavailable, and tracking of every baseline computed and anomaly detected.**
 
-Each anomaly detection step is an independent worker: data collection, baseline computation, deviation detection, classification, and alerting. Conductor runs them in sequence, passing the baseline to the detector and the anomaly details to the classifier. Every detection run is tracked, you can see the baseline used, deviations found, and whether alerts fired. ### What You Write: Workers
+Each anomaly detection step is an independent worker: data collection, baseline computation, deviation detection, classification, and alerting. Conductor runs them in sequence, passing the baseline to the detector and the anomaly details to the classifier. Every detection run is tracked, you can see the baseline used, deviations found, and whether alerts fired.
+
+### What You Write: Workers
 
 Five workers form the detection pipeline: CollectDataWorker gathers historical metrics, ComputeBaselineWorker calculates statistical baselines, DetectWorker computes z-scores against the baseline, ClassifyWorker categorizes anomaly severity, and AlertWorker notifies the appropriate channel.
 

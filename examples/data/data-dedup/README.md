@@ -10,7 +10,9 @@ Without orchestration, you'd write a single method that loads records, builds a 
 
 **You just write the record loading, key computation, duplicate detection, group merging, and emission workers. Conductor handles the load-key-detect-merge-emit pipeline, per-step retries, and full tracking of how many duplicates were found and removed at each stage.**
 
-Each stage of the deduplication pipeline is a simple, independent worker. The loader reads records from the data source. The key computer generates a dedup key for each record by normalizing and concatenating the configured match fields. The duplicate finder groups records by key and identifies groups with more than one member. The merger selects a canonical record from each duplicate group. The emitter outputs the deduplicated dataset with a summary of original count, duplicates found, and final count. Conductor executes them in sequence, passes keyed records between steps, retries if a step fails, and tracks exactly how many duplicates were found and merged. ### What You Write: Workers
+Each stage of the deduplication pipeline is a simple, independent worker. The loader reads records from the data source. The key computer generates a dedup key for each record by normalizing and concatenating the configured match fields. The duplicate finder groups records by key and identifies groups with more than one member. The merger selects a canonical record from each duplicate group. The emitter outputs the deduplicated dataset with a summary of original count, duplicates found, and final count. Conductor executes them in sequence, passes keyed records between steps, retries if a step fails, and tracks exactly how many duplicates were found and merged.
+
+### What You Write: Workers
 
 Five workers form the deduplication pipeline: loading records, computing normalized dedup keys from configurable match fields, detecting duplicate groups, merging groups into canonical records, and emitting the clean dataset.
 

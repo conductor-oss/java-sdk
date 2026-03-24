@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic timesheet system that collects e
 
 **You just write the timesheet submission, overtime validation, manager approval, and payroll processing logic. Conductor handles clock-in retries, overtime calculations, and timesheet audit trails.**
 
-Each stage of timesheet processing is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of validating entries before they reach the manager, processing payroll only after manager approval, retrying if the payroll or ERP system is temporarily unavailable, and maintaining a complete audit trail from submission through payment for FLSA and labor law compliance. ### What You Write: Workers
+Each stage of timesheet processing is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of validating entries before they reach the manager, processing payroll only after manager approval, retrying if the payroll or ERP system is temporarily unavailable, and maintaining a complete audit trail from submission through payment for FLSA and labor law compliance.
+
+### What You Write: Workers
 
 Clock-in recording, break management, overtime calculation, and payroll export workers each handle one aspect of workforce time management.
 

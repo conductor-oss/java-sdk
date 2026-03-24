@@ -10,7 +10,9 @@ Without orchestration, parallel booking means managing threads or async calls, c
 
 **You just write the booking and cancellation logic per service. Conductor handles FORK/JOIN parallel execution across all booking services, result collection, confirm-or-compensate routing, retries per booking, and independent tracking of each parallel branch with timing and outcomes.**
 
-Conductor's FORK/JOIN runs hotel, flight, and car booking workers in parallel. A check-results worker examines all outcomes. If all succeeded, a confirm-all worker finalizes the bookings. If any failed, the workflow routes to cancellation. Every parallel branch is tracked independently. you can see exactly which booking succeeded, which failed, and how long each took. ### What You Write: Workers
+Conductor's FORK/JOIN runs hotel, flight, and car booking workers in parallel. A check-results worker examines all outcomes. If all succeeded, a confirm-all worker finalizes the bookings. If any failed, the workflow routes to cancellation. Every parallel branch is tracked independently. you can see exactly which booking succeeded, which failed, and how long each took.
+
+### What You Write: Workers
 
 BookHotelWorker, BookFlightWorker, and BookCarWorker run simultaneously via FORK/JOIN for maximum speed, CheckResultsWorker verifies all bookings succeeded, and ConfirmAllWorker finalizes the trip or triggers cancellation.
 

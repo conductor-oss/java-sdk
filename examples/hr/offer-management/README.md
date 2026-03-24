@@ -10,7 +10,9 @@ Without orchestration, you'd manage offers through email threads and spreadsheet
 
 **You just write the offer generation, compensation approval, candidate delivery, and accept/decline routing logic. Conductor handles approval routing, offer generation retries, and compensation audit trails.**
 
-Each stage of offer management is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of generating the offer before seeking approval, sending only after approval is granted, routing the candidate's response via SWITCH to the correct accept or decline path, retrying if the HRIS or e-signature platform is temporarily unavailable, and maintaining a complete audit trail of every offer's lifecycle. ### What You Write: Workers
+Each stage of offer management is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of generating the offer before seeking approval, sending only after approval is granted, routing the candidate's response via SWITCH to the correct accept or decline path, retrying if the HRIS or e-signature platform is temporarily unavailable, and maintaining a complete audit trail of every offer's lifecycle.
+
+### What You Write: Workers
 
 Compensation calculation, offer letter generation, approval routing, and candidate notification workers each handle one step of extending a job offer.
 

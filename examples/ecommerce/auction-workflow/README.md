@@ -1,6 +1,8 @@
 # Auction Workflow in Java Using Conductor : Open Bidding, Collect Bids, Close, Determine Winner, Settle
 
-Auction workflow: open bidding, collect bids, close, determine winner, settle. ## Auctions Have Strict Lifecycle Rules
+Auction workflow: open bidding, collect bids, close, determine winner, settle.
+
+## Auctions Have Strict Lifecycle Rules
 
 An auction for a vintage watch starts at $500. Bids arrive over the next 24 hours. The auction must close at exactly the scheduled time. not a second early or late. The highest valid bid wins, but only if it meets the reserve price. The winner's payment must be processed, the seller must be notified with the final price, and the item must be marked as sold.
 

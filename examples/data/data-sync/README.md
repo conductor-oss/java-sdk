@@ -10,7 +10,9 @@ Without orchestration, you'd write a sync script that queries both systems, diff
 
 **You just write the change detection, conflict resolution, update application, and consistency verification workers. Conductor handles strict detect-resolve-apply-verify ordering, retries when either system is temporarily unavailable, and a full audit trail of changes detected, conflicts resolved, and updates applied.**
 
-Each stage of the sync pipeline is a simple, independent worker. The change detector queries both systems and identifies inserts, updates, and deletes since last sync, flagging records modified in both as conflicts. The conflict resolver applies the configured strategy (latest_wins, system_a_priority, merge) to produce a unified set of updates. The applier writes the resolved changes to both systems. The consistency verifier confirms both systems match after sync. Conductor executes them in strict sequence, ensures updates only apply after conflict resolution, retries if a system is temporarily unavailable, and provides a complete audit trail of changes detected, conflicts resolved, and updates applied. ### What You Write: Workers
+Each stage of the sync pipeline is a simple, independent worker. The change detector queries both systems and identifies inserts, updates, and deletes since last sync, flagging records modified in both as conflicts. The conflict resolver applies the configured strategy (latest_wins, system_a_priority, merge) to produce a unified set of updates. The applier writes the resolved changes to both systems. The consistency verifier confirms both systems match after sync. Conductor executes them in strict sequence, ensures updates only apply after conflict resolution, retries if a system is temporarily unavailable, and provides a complete audit trail of changes detected, conflicts resolved, and updates applied.
+
+### What You Write: Workers
 
 Four workers manage bidirectional sync: detecting changes in both systems since the last sync, resolving conflicts using a configurable strategy like latest-wins, applying the merged updates to both systems, and verifying post-sync consistency.
 

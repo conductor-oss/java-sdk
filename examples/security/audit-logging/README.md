@@ -10,7 +10,9 @@ Without orchestration, audit logs are application-level log.info() calls that ca
 
 **You just write the event capture and immutable storage logic. Conductor handles ordered execution, durable delivery to the immutable store, and a meta-audit trail of every logging operation itself.**
 
-Each audit concern is an independent worker. event capture, context enrichment, immutable storage, and integrity verification. Conductor runs them in sequence: capture the event, enrich with full context, store immutably, then verify integrity. Every audit operation is itself tracked by Conductor, creating a meta-audit trail. ### What You Write: Workers
+Each audit concern is an independent worker. event capture, context enrichment, immutable storage, and integrity verification. Conductor runs them in sequence: capture the event, enrich with full context, store immutably, then verify integrity. Every audit operation is itself tracked by Conductor, creating a meta-audit trail.
+
+### What You Write: Workers
 
 Four workers form the audit chain: CaptureEventWorker records security-relevant actions, EnrichContextWorker adds who/what/where context, StoreImmutableWorker writes to a tamper-proof log, and VerifyIntegrityWorker validates the hash chain.
 

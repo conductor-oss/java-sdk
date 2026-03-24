@@ -12,7 +12,9 @@ Without orchestration, GDPR requests are tracked in a spreadsheet. Someone manua
 
 **You just write the data location queries and erasure operations. Conductor handles the mandated sequence from identity verification through completion, retries when data systems are unavailable, and a regulators-ready audit trail proving every step of the request was fulfilled.**
 
-Each GDPR step is an independent worker: identity verification, data location, request processing, and completion confirmation. Conductor runs them in sequence: verify identity, locate all personal data, process the request, then confirm. Every request is tracked with full audit trail, when it was received, what data was found, what action was taken, and when it was completed, proving compliance to regulators. ### What You Write: Workers
+Each GDPR step is an independent worker: identity verification, data location, request processing, and completion confirmation. Conductor runs them in sequence: verify identity, locate all personal data, process the request, then confirm. Every request is tracked with full audit trail, when it was received, what data was found, what action was taken, and when it was completed, proving compliance to regulators.
+
+### What You Write: Workers
 
 Four workers handle GDPR requests end-to-end: VerifyIdentityWorker confirms the requester is who they claim, LocateDataWorker finds their personal data across all systems, ProcessRequestWorker executes the erasure or export, and ConfirmCompletionWorker notifies the subject within the 30-day deadline.
 

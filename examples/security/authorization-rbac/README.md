@@ -10,7 +10,9 @@ Without orchestration, authorization logic is scattered across middleware, decor
 
 **You just write the role resolution and permission evaluation logic. Conductor handles the ordered policy evaluation chain, retries when identity providers are unreachable, and a structured audit record of every access decision with the contributing roles and context signals.**
 
-Each authorization concern is a simple, independent worker. one resolves the user's roles from the identity store, one evaluates permissions against the role-permission matrix, one checks contextual constraints like time and network, one enforces the decision and writes the audit record. Conductor takes care of executing them in strict order so no access is granted without a complete policy evaluation, retrying if the identity store is temporarily unavailable, and maintaining a complete audit trail that shows exactly which roles were resolved, which permissions were evaluated, which context was checked, and what decision was reached for every access request. ### What You Write: Workers
+Each authorization concern is a simple, independent worker. one resolves the user's roles from the identity store, one evaluates permissions against the role-permission matrix, one checks contextual constraints like time and network, one enforces the decision and writes the audit record. Conductor takes care of executing them in strict order so no access is granted without a complete policy evaluation, retrying if the identity store is temporarily unavailable, and maintaining a complete audit trail that shows exactly which roles were resolved, which permissions were evaluated, which context was checked, and what decision was reached for every access request.
+
+### What You Write: Workers
 
 Four workers evaluate access requests: ResolveRolesWorker looks up user roles from the identity store, EvaluatePermissionsWorker checks the role-permission matrix, CheckContextWorker applies time/location/device constraints, and EnforceDecisionWorker logs the allow or deny decision for compliance.
 

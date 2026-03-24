@@ -1,6 +1,8 @@
 # Chaining HTTP Tasks in Java with Conductor
 
-Chain HTTP system tasks for API orchestration. ## The Problem
+Chain HTTP system tasks for API orchestration.
+
+## The Problem
 
 You need to call multiple external APIs in sequence, where each call depends on the previous one's response. A prepare step builds the request parameters, an HTTP system task calls the first API, the response feeds into the next HTTP call, and finally a worker processes the combined results. If any API call fails or returns an error, the chain must handle the failure without leaving data in an inconsistent state.
 

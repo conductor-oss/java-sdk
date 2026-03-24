@@ -8,7 +8,9 @@ Without orchestration, total execution time limits require starting a timer at t
 
 ## The Solution
 
-The workflow definition includes `timeoutSeconds: 30`. if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code. ### What You Write: Workers
+The workflow definition includes `timeoutSeconds: 30`. if the entire workflow hasn't completed within that window, Conductor marks it as timed out. This catches scenarios that per-task timeouts miss: long queues between tasks, stuck decision logic, or unexpected loops. The timeout is configured in the workflow definition, not in code.
+
+### What You Write: Workers
 
 FastWorker completes its processing quickly, while the workflow-level timeoutSeconds setting ensures the entire workflow execution is bounded. Catching scenarios that per-task timeouts miss, such as stuck logic or long queue delays between tasks.
 

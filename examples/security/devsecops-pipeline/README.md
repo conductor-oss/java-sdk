@@ -10,7 +10,9 @@ Without orchestration, security scans are bolted onto CI/CD as optional stages t
 
 **You just write the scanner integrations and gate policy. Conductor handles parallel scan execution, consolidated finding aggregation for the security gate, and a full record of every scan result and gate decision per commit.**
 
-Each security scan is an independent worker. SAST, SCA, and container scanning. Conductor runs them in parallel (they're independent) and feeds all results to a security gate worker that makes the go/no-go decision. Every pipeline run is tracked with findings per scanner, gate decisions, and exception approvals. ### What You Write: Workers
+Each security scan is an independent worker. SAST, SCA, and container scanning. Conductor runs them in parallel (they're independent) and feeds all results to a security gate worker that makes the go/no-go decision. Every pipeline run is tracked with findings per scanner, gate decisions, and exception approvals.
+
+### What You Write: Workers
 
 Three security scanners and a gate worker form the pipeline: SastScanWorker finds code vulnerabilities, ScaScanWorker detects dependency CVEs, ContainerScanWorker checks container images, and SecurityGateWorker evaluates combined results to pass or block the deployment.
 

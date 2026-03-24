@@ -12,7 +12,9 @@ Without orchestration, secrets management is a manual process. Someone creates a
 
 **You just write the vault integration and rotation logic. Conductor handles sequencing, retries on vault failures, and a full audit trail of every secret created and distributed.**
 
-Each secrets concern is an independent worker. Secret creation, distribution to consumers, access verification, and rotation scheduling. Conductor runs them in sequence: create the secret, distribute to authorized consumers, verify that only the right services have access, then schedule rotation. Every operation is tracked for audit compliance. ### What You Write: Workers
+Each secrets concern is an independent worker. Secret creation, distribution to consumers, access verification, and rotation scheduling. Conductor runs them in sequence: create the secret, distribute to authorized consumers, verify that only the right services have access, then schedule rotation. Every operation is tracked for audit compliance.
+
+### What You Write: Workers
 
 Four workers handle the secrets lifecycle: CreateSecretWorker generates credentials, DistributeWorker pushes them to authorized consumers, VerifyAccessWorker confirms access policies, and ScheduleRotationWorker sets up automatic renewal.
 

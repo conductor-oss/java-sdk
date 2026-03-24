@@ -10,7 +10,9 @@ Without orchestration, calendar sync is a fragile cron job that overwrites one c
 
 **You just write the calendar API calls and conflict resolution rules. Conductor handles the fetch-compare-sync-notify sequence, retries when calendar APIs are temporarily unavailable, and a complete record of every sync operation and conflict resolved.**
 
-Each sync concern is an independent worker. event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked, you can see what changed, what was synced, and who was notified. ### What You Write: Workers
+Each sync concern is an independent worker. event fetching, schedule comparison, change sync, and notification. Conductor runs them in sequence with retry logic, ensuring a temporary API failure doesn't cause permanent sync drift. Every sync operation is tracked, you can see what changed, what was synced, and who was notified.
+
+### What You Write: Workers
 
 Four workers handle bidirectional sync: FetchEventsWorker pulls events from the source calendar, CompareSchedulesWorker diffs additions/deletions/conflicts, SyncChangesWorker applies the reconciled changes, and NotifyStakeholdersWorker alerts affected participants.
 

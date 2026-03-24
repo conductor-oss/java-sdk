@@ -14,7 +14,9 @@ A model registry formalizes the lifecycle: register the artifact with its traini
 
 ### What You Write: Workers
 
-Five workers manage the model lifecycle: artifact registration, version assignment, quality-gate validation, approval routing, and production deployment, each gating the next stage.### The Workflow
+Five workers manage the model lifecycle: artifact registration, version assignment, quality-gate validation, approval routing, and production deployment, each gating the next stage.
+
+### The Workflow
 
 ```
 mrg_register

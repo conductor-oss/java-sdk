@@ -14,7 +14,9 @@ Auto-scaling means monitoring the queue to measure current depth and processing 
 
 ### What You Write: Workers
 
-Four workers form the auto-scaling loop. Queue monitoring, capacity calculation based on target latency, fleet scaling, and verification that the scaling action reduced queue depth.### The Workflow
+Four workers form the auto-scaling loop. Queue monitoring, capacity calculation based on target latency, fleet scaling, and verification that the scaling action reduced queue depth.
+
+### The Workflow
 
 ```
 wks_monitor_queue

@@ -1,6 +1,8 @@
 # Flash Sale in Java Using Conductor : Prepare Inventory, Open Sale, Process Orders, Close, Report
 
-Flash sale: prepare inventory, open sale, process orders, close, report. ## Flash Sales Need Precise Timing and Inventory Control
+Flash sale: prepare inventory, open sale, process orders, close, report.
+
+## Flash Sales Need Precise Timing and Inventory Control
 
 A 2-hour flash sale on 500 units at 60% off generates a traffic spike. The system must prepare inventory (reserve 500 units from general stock), open the sale at exactly the scheduled time (not a second early), process orders atomically (decrement inventory, no overselling), close when time expires or inventory hits zero, and produce a report showing units sold, revenue, peak order rate, and customer distribution.
 

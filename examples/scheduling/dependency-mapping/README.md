@@ -10,7 +10,9 @@ Without orchestration, dependency mapping is either a manual Confluence diagram 
 
 **You just write the service discovery and call tracing logic. Conductor handles the discover-trace-build sequence, retries when service mesh endpoints are unavailable, and versioned tracking of dependency graph changes over time.**
 
-Each mapping concern is an independent worker. service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time. ### What You Write: Workers
+Each mapping concern is an independent worker. service discovery, call tracing, graph building, and visualization. Conductor runs them in sequence: discover services, trace their interactions, build the graph, then render it. Every mapping run is versioned and tracked, so you can compare dependency changes over time.
+
+### What You Write: Workers
 
 The mapping pipeline chains DiscoverServicesWorker to enumerate active services, TraceCallsWorker to capture inter-service communication, BuildGraphWorker to construct the dependency graph, and a visualization step to render the architecture map.
 

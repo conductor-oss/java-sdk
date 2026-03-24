@@ -1,6 +1,8 @@
 # Idempotent Start in Java with Conductor
 
-Idempotent start demo. demonstrates correlationId-based dedup and search-based idempotency. ## The Problem
+Idempotent start demo. demonstrates correlationId-based dedup and search-based idempotency.
+
+## The Problem
 
 You need to ensure that processing the same order twice does not charge the customer twice. When a webhook fires or a message is redelivered, the same orderId and amount can arrive multiple times. Starting a new workflow for each duplicate request means the order gets processed repeatedly. double charges, duplicate shipments, or inconsistent state. You need a way to guarantee that the second (and third, and fourth) request for the same order is recognized as a duplicate and returns the existing result instead of processing again.
 

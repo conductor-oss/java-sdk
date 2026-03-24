@@ -10,7 +10,9 @@ Without orchestration, threat intelligence is consumed manually. a security anal
 
 **You just write the feed parsers and IOC correlation queries. Conductor handles feed polling, retries when threat APIs are rate-limited, and tracking of every IOC ingested, correlated, and distributed.**
 
-Each intelligence step is an independent worker. feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status. ### What You Write: Workers
+Each intelligence step is an independent worker. feed ingestion, enrichment, correlation, and distribution. Conductor runs them in sequence: ingest IOCs from feeds, enrich with context, correlate against your logs, then distribute to security tools. Every intelligence cycle is tracked with IOC counts, correlation hits, and distribution status.
+
+### What You Write: Workers
 
 Four workers process threat data: IngestFeedsWorker pulls IOCs from external feeds, CorrelateIocsWorker matches them against your infrastructure, EnrichContextWorker adds MITRE ATT&CK attribution, and DistributeIntelWorker pushes actionable intel to firewalls and SIEMs.
 

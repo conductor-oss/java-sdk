@@ -12,7 +12,9 @@ Without orchestration, you'd write a single method that reads data, does the gro
 
 **You just write the data loading, grouping, aggregation, formatting, and emission workers. Conductor handles the load-group-aggregate-format-emit sequence, retries on data source failures, and detailed observability into record counts at every stage.**
 
-Each stage of the aggregation pipeline is a simple, independent worker. The loader reads records from the data source. The grouper partitions records by the specified dimension field. The aggregator computes count, sum, average, min, and max for each group on the specified numeric field. The formatter turns raw aggregates into human-readable report lines. The emitter delivers the final output. Conductor executes them in sequence, passes grouped data between steps, retries if a data source query fails, and resumes from exactly where it left off if the process crashes. ### What You Write: Workers
+Each stage of the aggregation pipeline is a simple, independent worker. The loader reads records from the data source. The grouper partitions records by the specified dimension field. The aggregator computes count, sum, average, min, and max for each group on the specified numeric field. The formatter turns raw aggregates into human-readable report lines. The emitter delivers the final output. Conductor executes them in sequence, passes grouped data between steps, retries if a data source query fails, and resumes from exactly where it left off if the process crashes.
+
+### What You Write: Workers
 
 Five workers cover the full aggregation lifecycle: loading records, grouping by a configurable dimension, computing statistical aggregates (count, sum, average, min, max), formatting results, and emitting the final report.
 

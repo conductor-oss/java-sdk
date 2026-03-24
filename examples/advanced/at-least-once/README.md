@@ -14,7 +14,9 @@ Each stage of the delivery pipeline is a separate worker. `AloReceiveWorker` ing
 
 ### What You Write: Workers
 
-Four workers own the delivery lifecycle: receive, process, acknowledge, and verify, each responsible for one step of the at-least-once guarantee.### The Workflow
+Four workers own the delivery lifecycle: receive, process, acknowledge, and verify, each responsible for one step of the at-least-once guarantee.
+
+### The Workflow
 
 ```
 alo_receive

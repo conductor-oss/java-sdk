@@ -18,7 +18,9 @@ Five workers implement the split-process-merge pattern: data chunking, three par
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PprChunk1Worker** | `ppr_chunk_1` | Processes the first data chunk in parallel (e.g.### The Workflow
+| **PprChunk1Worker** | `ppr_chunk_1` | Processes the first data chunk in parallel (e.g.
+
+### The Workflow
 
 ```
 ppr_split_work

@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic dispatch system that calls each 
 
 **You just write the incident detection, severity classification, unit dispatch, response coordination, and post-incident debrief logic. Conductor handles dispatch retries, coordination sequencing, and incident response audit trails.**
 
-Each stage of the emergency response is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running them in sequence, passing the incident ID and severity classification downstream to dispatch and coordination, retrying if the dispatch system is temporarily unavailable, and maintaining a complete timeline of every action for the post-incident debrief. ### What You Write: Workers
+Each stage of the emergency response is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running them in sequence, passing the incident ID and severity classification downstream to dispatch and coordination, retrying if the dispatch system is temporarily unavailable, and maintaining a complete timeline of every action for the post-incident debrief.
+
+### What You Write: Workers
 
 Incident detection, resource dispatch, field coordination, and situation reporting workers each handle one phase of the emergency response chain.
 

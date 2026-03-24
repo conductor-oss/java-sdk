@@ -1,6 +1,8 @@
 # Load Balancer Configuration in Java with Conductor : Discover Backends, Configure Rules, Apply, Health Check
 
-Load balancer configuration workflow: discover backends, configure rules, apply config, and health check. ## Load Balancer Changes Need Discovery, Rules, and Verification
+Load balancer configuration workflow: discover backends, configure rules, apply config, and health check.
+
+## Load Balancer Changes Need Discovery, Rules, and Verification
 
 A new version of the API service is deployed to 3 instances. The load balancer needs to know about these instances (their IPs and ports), have the routing rules updated (path-based routing for /api/v2, header-based routing for canary traffic, weighted distribution across versions), apply the new configuration without dropping existing connections, and verify that health checks pass for all backends.
 

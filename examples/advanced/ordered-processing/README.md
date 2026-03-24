@@ -14,7 +14,9 @@ Without guaranteed ordering, you'd build a resequencing buffer that holds messag
 
 ### What You Write: Workers
 
-Four workers enforce sequential processing: message reception, sequence-number sorting, in-order execution, and order verification, ensuring events like placements and fills are never processed out of sequence.### The Workflow
+Four workers enforce sequential processing: message reception, sequence-number sorting, in-order execution, and order verification, ensuring events like placements and fills are never processed out of sequence.
+
+### The Workflow
 
 ```
 opr_receive

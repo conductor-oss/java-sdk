@@ -1,6 +1,8 @@
 # Self-Correction Agent in Java Using Conductor : Generate Code, Test, Diagnose, Fix
 
-Self-Correction. generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering. ## AI-Generated Code Needs Testing and Self-Repair
+Self-Correction. generates code, runs tests, and if tests fail diagnoses and fixes the code before delivering.
+
+## AI-Generated Code Needs Testing and Self-Repair
 
 LLM-generated code works on the first try about 60-70% of the time. The remaining 30-40% has bugs. off-by-one errors, missing edge cases, incorrect API usage. A self-correcting agent doesn't just generate code; it tests the code, and if tests fail, it diagnoses what went wrong and fixes it.
 

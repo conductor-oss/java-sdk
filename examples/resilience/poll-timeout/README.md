@@ -8,7 +8,9 @@ Without orchestration, detecting absent workers requires custom health check inf
 
 ## The Solution
 
-The task definition includes `pollTimeoutSeconds`. if no worker picks up the task within that window, Conductor automatically marks it as timed out. This triggers retry logic or failure handling as configured. Every poll timeout event is recorded, so you can see exactly when and why a task was not picked up. ### What You Write: Workers
+The task definition includes `pollTimeoutSeconds`. if no worker picks up the task within that window, Conductor automatically marks it as timed out. This triggers retry logic or failure handling as configured. Every poll timeout event is recorded, so you can see exactly when and why a task was not picked up.
+
+### What You Write: Workers
 
 PollNormalTaskWorker processes tasks normally, while Conductor's pollTimeoutSeconds setting automatically detects when no worker picks up a task within the configured window. Indicating crashed or missing workers.
 

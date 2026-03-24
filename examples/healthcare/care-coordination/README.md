@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic care management application that
 
 **You just write the care coordination workers. Needs assessment, care plan creation, team assembly, and patient monitoring activation. Conductor handles sequencing, automatic retries when an EHR endpoint is slow, and timestamped records for CMS quality reporting.**
 
-Each stage of care coordination is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of assessing needs before building the plan, assembling the team only after the plan defines what specialties are needed, activating monitoring with the assigned team members, and maintaining a complete audit trail for quality reporting. ### What You Write: Workers
+Each stage of care coordination is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of assessing needs before building the plan, assembling the team only after the plan defines what specialties are needed, activating monitoring with the assigned team members, and maintaining a complete audit trail for quality reporting.
+
+### What You Write: Workers
 
 Four workers handle the coordination lifecycle: AssessNeedsWorker evaluates clinical needs, CreatePlanWorker builds the care plan, AssignTeamWorker assembles the multidisciplinary team, and MonitorWorker activates ongoing tracking.
 

@@ -1,6 +1,8 @@
 # Event Replay Testing in Java Using Conductor
 
-Event Replay Testing. loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report. ## The Problem
+Event Replay Testing. loads recorded events, sets up a sandbox environment, replays each event in a DO_WHILE loop comparing results, then generates a test report.
+
+## The Problem
 
 You need to test your event processing logic by replaying recorded production events in a sandbox environment. The workflow loads a set of recorded events, sets up an isolated test environment, replays each event through the processing pipeline while comparing actual results to expected results, and generates a test report summarizing pass/fail outcomes. Without replay testing, you only discover processing bugs when they corrupt production data.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a custom test harness that loads event fixtur
 
 **You just write the event-load, sandbox-setup, replay, and result-comparison workers. Conductor handles DO_WHILE test iteration, sandbox lifecycle management, and a durable record of every replay test run.**
 
-Each replay-testing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of loading events, setting up the sandbox, replaying each event in a DO_WHILE loop with result comparison, and generating the test report, retrying flaky tests and tracking every replay run. ### What You Write: Workers
+Each replay-testing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of loading events, setting up the sandbox, replaying each event in a DO_WHILE loop with result comparison, and generating the test report, retrying flaky tests and tracking every replay run.
+
+### What You Write: Workers
 
 Four workers drive replay testing: LoadEventsWorker reads recorded production events, SetupSandboxWorker provisions an isolated test environment, ReplayEventWorker processes each event in a DO_WHILE loop, and CompareResultWorker diffs actual vs expected output.
 

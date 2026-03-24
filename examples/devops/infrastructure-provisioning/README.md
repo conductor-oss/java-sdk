@@ -1,6 +1,8 @@
 # Infrastructure Provisioning in Java with Conductor : Plan, Validate, Provision, Configure, Verify
 
-Orchestrates infrastructure provisioning: plan, validate, provision, configure, and verify across cloud providers. ## Infrastructure Provisioning Needs Guard Rails
+Orchestrates infrastructure provisioning: plan, validate, provision, configure, and verify across cloud providers.
+
+## Infrastructure Provisioning Needs Guard Rails
 
 An engineer requests 3 EC2 instances in us-east-1. Before spinning them up, the request needs validation: Does the account have sufficient quota? Does the instance type comply with organization policies (no m5.24xlarge without VP approval)? Is the VPC and subnet configuration correct? Will this push the monthly bill over budget?
 

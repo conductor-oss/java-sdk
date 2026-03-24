@@ -1,6 +1,8 @@
 # Workflow Variables in Java with Conductor
 
-Shows how variables and expressions work across tasks. ## The Problem
+Shows how variables and expressions work across tasks.
+
+## The Problem
 
 You need to accumulate state across multiple tasks in an order pricing pipeline. Calculate the subtotal from items, apply a tier-based discount, compute shipping costs, and build a final summary. Each task depends on results from earlier tasks and the original workflow input. Workflow variables and expressions let you reference any task's output from any subsequent task using `${task_ref.output.field}` syntax.
 

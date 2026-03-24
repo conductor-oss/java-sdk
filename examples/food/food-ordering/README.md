@@ -1,6 +1,8 @@
 # Food Ordering in Java with Conductor
 
-Processes a food order from menu browsing through payment, kitchen preparation, and delivery. ## The Problem
+Processes a food order from menu browsing through payment, kitchen preparation, and delivery.
+
+## The Problem
 
 You need to process a food order from browsing to delivery. The customer browses the restaurant's menu, places an order with selected items, pays for the order, the kitchen prepares the food, and it is delivered (or picked up). Each step depends on the previous. you cannot prepare food without a confirmed, paid order; you cannot deliver without prepared food.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a monolithic ordering app that handles menu d
 
 **You just write the menu selection, payment processing, kitchen preparation, and delivery dispatch logic. Conductor handles payment retries, kitchen dispatch sequencing, and order lifecycle tracking.**
 
-Each ordering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each ordering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (browse, order, pay, prepare, deliver), retrying if the payment gateway is temporarily unavailable, tracking every order from menu to doorstep, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Menu browsing, cart assembly, payment, and kitchen dispatch workers handle the ordering flow as independent, loosely coupled services.
 

@@ -8,7 +8,9 @@ Without orchestration, linear backoff means calculating delay * attemptNumber in
 
 ## The Solution
 
-The worker makes the call and returns success or failure. Conductor handles the linear backoff calculation automatically via the LINEAR_BACKOFF retry logic setting. Every retry attempt is recorded with the exact delay applied. Switching between linear, fixed, or exponential backoff is a config change. ### What You Write: Workers
+The worker makes the call and returns success or failure. Conductor handles the linear backoff calculation automatically via the LINEAR_BACKOFF retry logic setting. Every retry attempt is recorded with the exact delay applied. Switching between linear, fixed, or exponential backoff is a config change.
+
+### What You Write: Workers
 
 RetryLinearWorker makes the service call and returns success or failure, while Conductor applies linearly increasing delays (2s, 4s, 6s, 8s) between retries, a middle ground between fixed and exponential backoff.
 

@@ -1,6 +1,8 @@
 # Backend For Frontend in Java with Conductor
 
-Backend for Frontend pattern with platform-specific responses. ## The Problem
+Backend for Frontend pattern with platform-specific responses.
+
+## The Problem
 
 Different client platforms (web, mobile, TV) need different response shapes from the same backend data. A web dashboard can display a full user profile with all fields, while a mobile app needs a compact summary to conserve bandwidth. The BFF pattern solves this by fetching shared data once and then branching into platform-specific transformers.
 

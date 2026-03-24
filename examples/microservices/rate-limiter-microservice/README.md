@@ -1,6 +1,8 @@
 # Rate Limiter Microservice in Java with Conductor
 
-Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client. ## The Problem
+Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client.
+
+## The Problem
 
 API rate limiting protects backend services from being overwhelmed. Each incoming request must have its client quota checked, and based on the result, the request is either processed (with the counter incremented) or rejected with a retry-after hint. The check and update must be consistent to avoid exceeding the limit.
 

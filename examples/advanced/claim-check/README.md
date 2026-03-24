@@ -21,7 +21,9 @@ Four workers manage the store-reference-retrieve lifecycle: payload storage, ref
 | **PassReferenceWorker** | `clc_pass_reference` | Passes the lightweight claim check reference through the pipeline. |
 | **ProcessWorker** | `clc_process` | Processes the retrieved payload and computes metric averages. |
 | **RetrieveWorker** | `clc_retrieve` | Retrieves the full payload from storage using the claim check reference. |
-| **StorePayloadWorker** | `clc_store_payload` | Stores a large payload in external storage and returns a lightweight claim check reference.### The Workflow
+| **StorePayloadWorker** | `clc_store_payload` | Stores a large payload in external storage and returns a lightweight claim check reference.
+
+### The Workflow
 
 ```
 clc_store_payload

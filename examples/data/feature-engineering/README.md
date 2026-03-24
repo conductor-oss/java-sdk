@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic feature pipeline that extracts, 
 
 **You just write the feature extraction, transformation, normalization, and validation workers. Conductor handles the sequential feature pipeline, per-step retries, and tracking of feature counts and statistics at every stage for experiment reproducibility.**
 
-Each stage of the feature pipeline is a simple, independent worker. The extractor computes raw features from source data. The transformer adds derived features (log, polynomial, ratio). The normalizer scales all features to [0,1] using min-max normalization. The validator checks for null values and confirms all features are within the expected range. Conductor executes them in sequence, passes the evolving feature matrix between steps, retries if a step fails, and tracks feature counts and statistics at every stage. ### What You Write: Workers
+Each stage of the feature pipeline is a simple, independent worker. The extractor computes raw features from source data. The transformer adds derived features (log, polynomial, ratio). The normalizer scales all features to [0,1] using min-max normalization. The validator checks for null values and confirms all features are within the expected range. Conductor executes them in sequence, passes the evolving feature matrix between steps, retries if a step fails, and tracks feature counts and statistics at every stage.
+
+### What You Write: Workers
 
 Four workers handle the ML feature pipeline: extracting raw features from source data, applying log/polynomial/ratio transformations, normalizing values to [0,1] via min-max scaling, and validating the final feature set for nulls and range compliance.
 

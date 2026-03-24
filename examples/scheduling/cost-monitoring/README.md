@@ -10,7 +10,9 @@ Without orchestration, cost monitoring is checking the AWS/GCP billing dashboard
 
 **You just write the billing data collection and budget threshold rules. Conductor handles the billing-to-alert pipeline, retries when cloud billing APIs are rate-limited, and a historical record of every cost check and budget alert.**
 
-Each cost concern is an independent worker. billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions. ### What You Write: Workers
+Each cost concern is an independent worker. billing collection, trend analysis, and budget alerting. Conductor runs them in sequence: collect current costs, analyze trends, then alert if thresholds are breached. Every cost check is tracked with billing data, trend analysis, and alert decisions.
+
+### What You Write: Workers
 
 Three workers form the cost pipeline: CollectBillingWorker pulls spending data by service, AnalyzeTrendsWorker compares against budgets and flags anomalies, and CosAlertWorker fires when utilization exceeds budget thresholds.
 

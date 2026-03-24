@@ -1,6 +1,8 @@
 # Event Ordering in Java Using Conductor
 
-Event Ordering. buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop. ## The Problem
+Event Ordering. buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop.
+
+## The Problem
 
 You need to process events in strict sequence order, even when they arrive out of order. In distributed systems, events with sequence numbers 1, 3, 2, 5, 4 may arrive in any order due to network jitter or parallel producers. The workflow must buffer incoming events, sort them by sequence number, and process each one in order using a loop. Processing out-of-order events corrupts state in systems that depend on causal ordering (e.g., bank transactions, state machines).
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a reordering buffer with a priority queue, ma
 
 **You just write the event-buffering, sorting, and sequential-processing workers. Conductor handles DO_WHILE sequential processing, durable buffer state, and per-event retry within the ordered loop.**
 
-Each ordering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of buffering events, sorting them by sequence number, processing each in order via a DO_WHILE loop, retrying any failed processing step, and tracking the entire ordering operation. ### What You Write: Workers
+Each ordering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of buffering events, sorting them by sequence number, processing each in order via a DO_WHILE loop, retrying any failed processing step, and tracking the entire ordering operation.
+
+### What You Write: Workers
 
 Three workers enforce causal ordering: BufferEventsWorker collects incoming events, SortEventsWorker arranges them by sequence number, and ProcessNextWorker handles each one sequentially in a DO_WHILE loop.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd build a custom escalation system, the analyst recei
 
 **You just write the request submission and escalation finalization workers. Conductor handles the durable hold through the analyst-manager-VP chain.**
 
-The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow, each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable. ### What You Write: Workers
+The WAIT task is the key pattern here. After submitting the request, the workflow pauses at a single WAIT task. The external escalation logic (analyst -> manager -> VP) occurs outside the workflow, each person in the chain either completes the WAIT task with their decision or hands it to the next level. When someone finally decides, they complete the WAIT task with the decision and the level (respondedAt) at which it was made. The finalize worker then processes the outcome. Conductor takes care of holding the request durably through the entire escalation chain, accepting the final decision with the responder's level, tracking the complete timeline from submission through resolution, and retrying finalization if downstream systems are temporarily unavailable.
+
+### What You Write: Workers
 
 EscSubmitWorker prepares the request for the analyst-manager-VP chain, and EscFinalizeWorker records which level made the final decision, the escalation logic between them lives outside the workers.
 

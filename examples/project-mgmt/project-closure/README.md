@@ -10,7 +10,9 @@ Without orchestration, closure becomes a checklist someone tracks in a spreadshe
 
 **You just write the deliverable review, sign-off collection, artifact archival, and lessons learned capture logic. Conductor handles deliverable retries, archival sequencing, and closure audit trails.**
 
-Each closure step is a simple, independent worker. one reviews deliverables against acceptance criteria, one processes formal sign-off, one archives all project artifacts, one captures lessons learned. Conductor takes care of executing them in strict sequence so nothing gets skipped, retrying if the document management system is temporarily unavailable, and maintaining a permanent record of exactly when each closure step completed. ### What You Write: Workers
+Each closure step is a simple, independent worker. one reviews deliverables against acceptance criteria, one processes formal sign-off, one archives all project artifacts, one captures lessons learned. Conductor takes care of executing them in strict sequence so nothing gets skipped, retrying if the document management system is temporarily unavailable, and maintaining a permanent record of exactly when each closure step completed.
+
+### What You Write: Workers
 
 Deliverable verification, documentation archival, lessons-learned capture, and stakeholder sign-off workers each handle one closure activity.
 

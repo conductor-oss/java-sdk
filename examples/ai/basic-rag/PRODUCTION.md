@@ -9,7 +9,9 @@
 | `OPENAI_EMBED_MODEL` | No | Embedding model override (default: `text-embedding-3-small`) |
 | `OPENAI_CHAT_MODEL` | No | Chat model override (default: `gpt-4o-mini`) |
 
-All required variables must be set before starting workers. Missing keys cause `IllegalStateException` at startup or execution time — no fallback behavior exists.
+All required variables must be set before starting workers. Missing keys cause `IllegalStateException` at startup or execution time.
+
+**Vector search:** `SearchVectorsWorker` uses a bundled TF-IDF knowledge base (8 Conductor-related documents). This is real computation against local data, not a stub. For production with large document collections, replace with an external vector store (`rag-pinecone`, `rag-chromadb`, or `rag-pgvector` examples).
 
 ## LLM Provider Setup
 

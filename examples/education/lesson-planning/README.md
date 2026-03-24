@@ -10,7 +10,9 @@ Without orchestration, you'd build a single lesson-builder tool that mixes objec
 
 **You just write the learning objectives definition, content creation, pedagogical review, and course publishing logic. Conductor handles content selection retries, plan assembly sequencing, and lesson version tracking.**
 
-Each lesson planning concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (define objectives, create content, review, publish), retrying if the LMS publishing API times out, tracking every lesson plan from initial objectives to published materials, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each lesson planning concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (define objectives, create content, review, publish), retrying if the LMS publishing API times out, tracking every lesson plan from initial objectives to published materials, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Objective setting, content selection, activity design, and plan assembly workers let educators build lesson plans through composable steps.
 

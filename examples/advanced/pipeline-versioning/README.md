@@ -18,7 +18,9 @@ Three workers manage the version lifecycle: configuration snapshotting, version 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **PvrPromoteWorker** | `pvr_promote` | Promotes the pipeline version to the target environment (e.g.### The Workflow
+| **PvrPromoteWorker** | `pvr_promote` | Promotes the pipeline version to the target environment (e.g.
+
+### The Workflow
 
 ```
 pvr_snapshot_config

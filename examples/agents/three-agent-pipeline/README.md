@@ -1,6 +1,8 @@
 # Three-Agent Pipeline in Java Using Conductor : Researcher, Writer, Reviewer
 
-Three-Agent Pipeline. Researcher + Writer + Reviewer with final output assembly. ## Quality Content Needs Research, Writing, and Review
+Three-Agent Pipeline. Researcher + Writer + Reviewer with final output assembly.
+
+## Quality Content Needs Research, Writing, and Review
 
 A single LLM call to "write an article about quantum computing" produces unreferenced, unreviewed content. The three-agent pipeline mirrors a real editorial process: the researcher finds authoritative sources and extracts key facts, the writer uses those facts to craft a narrative for the target audience, and the reviewer evaluates accuracy, clarity, and completeness. flagging issues before publication.
 

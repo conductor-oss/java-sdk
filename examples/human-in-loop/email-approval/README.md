@@ -10,7 +10,9 @@ Without orchestration, you'd send the email, embed callback URLs pointing to a c
 
 **You just write the request-preparation, email-sending, and decision-processing workers. Conductor handles the durable wait for the approver's one-click response.**
 
-The WAIT task is the key pattern here. After preparing the request and sending the email with embedded approve/reject URLs, the workflow pauses at the WAIT task. When the approver clicks a link, the URL triggers a Conductor API call that completes the WAIT task with the decision. The process-decision worker then handles the result. Conductor takes care of holding the workflow durably while the approver reads their email, accepting the one-click decision via the API, retrying email delivery if the email provider is temporarily unavailable (without re-preparing), and providing a complete timeline from email sent to link clicked to decision processed. ### What You Write: Workers
+The WAIT task is the key pattern here. After preparing the request and sending the email with embedded approve/reject URLs, the workflow pauses at the WAIT task. When the approver clicks a link, the URL triggers a Conductor API call that completes the WAIT task with the decision. The process-decision worker then handles the result. Conductor takes care of holding the workflow durably while the approver reads their email, accepting the one-click decision via the API, retrying email delivery if the email provider is temporarily unavailable (without re-preparing), and providing a complete timeline from email sent to link clicked to decision processed.
+
+### What You Write: Workers
 
 PrepareWorker validates the request, SendEmailWorker delivers approve/reject links, and ProcessDecisionWorker handles the outcome. None of them manage the durable wait for the email click.
 

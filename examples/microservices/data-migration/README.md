@@ -1,6 +1,8 @@
 # Data Migration in Java with Conductor
 
-Data migration with backup, transform, migrate, validate, and cutover. ## The Problem
+Data migration with backup, transform, migrate, validate, and cutover.
+
+## The Problem
 
 Migrating data between databases requires a strict sequence: back up the source, transform the data to match the target schema, load the transformed data, validate that source and target match, and then cut over. Each step is long-running and must not be repeated on a restart.
 

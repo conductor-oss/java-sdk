@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic service that tracks case state i
 
 **You just write the case intake, investigation, findings evaluation, decision rendering, and case closure logic. Conductor handles assignment retries, investigation sequencing, and case lifecycle audit trails.**
 
-Each stage of the case lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close. ### What You Write: Workers
+Each stage of the case lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running them in sequence, passing investigation findings to the evaluator, feeding the evaluation into the decision step, retrying if any service is temporarily unavailable, and maintaining a complete audit trail of every case from open to close.
+
+### What You Write: Workers
 
 Case creation, assignment, investigation, and resolution workers track government cases through a structured lifecycle.
 

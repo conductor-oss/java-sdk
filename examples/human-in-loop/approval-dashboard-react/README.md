@@ -10,7 +10,9 @@ Without orchestration, you'd build a React frontend backed by a custom API serve
 
 **You just write the task-processing worker. Conductor handles the priority-based approval queue and the searchable task API.**
 
-The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state with the title, priority, and assignee metadata until the React dashboard completes the task via the API. Conductor takes care of holding pending approvals durably, providing a searchable task API that the React dashboard queries by assignee and status, accepting the approval decision when the assignee acts, and tracking the complete timeline from request to approval. ### What You Write: Workers
+The WAIT task is the key pattern here. After processing the request, the workflow pauses at the WAIT task. Conductor holds the state with the title, priority, and assignee metadata until the React dashboard completes the task via the API. Conductor takes care of holding pending approvals durably, providing a searchable task API that the React dashboard queries by assignee and status, accepting the approval decision when the assignee acts, and tracking the complete timeline from request to approval.
+
+### What You Write: Workers
 
 DashTaskWorker processes requests with title, priority, and assignee metadata. It has no knowledge of the React dashboard or how pending approvals are queried and filtered.
 

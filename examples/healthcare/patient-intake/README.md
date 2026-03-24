@@ -12,7 +12,9 @@ Without orchestration, you'd build a monolithic intake application that writes t
 
 **You just write the intake workers. Patient registration, insurance verification, clinical triage, and provider assignment. Conductor handles step dependencies, automatic retries when the insurance eligibility API is down, and a complete intake timeline for EMTALA compliance.**
 
-Each step of the intake process is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of registering before verifying insurance, triaging after registration, assigning providers based on triage acuity, retrying if the insurance eligibility system is temporarily unavailable, and maintaining a complete intake timeline for EMTALA and regulatory compliance. ### What You Write: Workers
+Each step of the intake process is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of registering before verifying insurance, triaging after registration, assigning providers based on triage acuity, retrying if the insurance eligibility system is temporarily unavailable, and maintaining a complete intake timeline for EMTALA and regulatory compliance.
+
+### What You Write: Workers
 
 Four workers handle the intake process: RegisterWorker captures demographics and vitals, VerifyInsuranceWorker confirms coverage, TriageWorker assigns acuity level, and AssignWorker routes the patient to the right provider.
 

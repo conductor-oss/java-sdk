@@ -14,7 +14,9 @@ Workflow composition lets you build each sub-process independently, test it in i
 
 ### What You Write: Workers
 
-Five workers span two sub-workflows. Order validation and processing in sub-workflow A, customer lookup and enrichment in sub-workflow B, plus a merge step that unifies both outcomes.### The Workflow
+Five workers span two sub-workflows. Order validation and processing in sub-workflow A, customer lookup and enrichment in sub-workflow B, plus a merge step that unifies both outcomes.
+
+### The Workflow
 
 ```
 wcp_sub_a_step1

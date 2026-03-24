@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic billing service that queries the
 
 **You just write the billing workers. CPT/ICD coding, coverage verification, claim submission, and payment tracking. Conductor handles task ordering, automatic retries when the payer system is temporarily down, and a complete audit trail from encounter to payment.**
 
-Each stage of the billing cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running coding before coverage verification, submitting claims only after coverage is confirmed, retrying if the payer's system is temporarily unavailable, and maintaining a complete audit trail from encounter to payment. ### What You Write: Workers
+Each stage of the billing cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running coding before coverage verification, submitting claims only after coverage is confirmed, retrying if the payer's system is temporarily unavailable, and maintaining a complete audit trail from encounter to payment.
+
+### What You Write: Workers
 
 Four workers cover the billing cycle: CodeProceduresWorker assigns CPT and ICD codes, VerifyCoverageWorker checks insurance eligibility, SubmitClaimWorker sends the 837 to the clearinghouse, and TrackPaymentWorker monitors adjudication.
 

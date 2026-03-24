@@ -8,7 +8,9 @@ Without orchestration, detecting stuck workers requires external watchdogs. proc
 
 ## The Solution
 
-The task definition includes `responseTimeoutSeconds`. if a worker doesn't complete within that window after picking up the task, Conductor marks it as timed out and retries or fails it as configured. Stuck workers are detected automatically without any timeout logic in the worker code. Every timeout event is recorded with timing details. ### What You Write: Workers
+The task definition includes `responseTimeoutSeconds`. if a worker doesn't complete within that window after picking up the task, Conductor marks it as timed out and retries or fails it as configured. Stuck workers are detected automatically without any timeout logic in the worker code. Every timeout event is recorded with timing details.
+
+### What You Write: Workers
 
 RespTimeoutWorker processes tasks within the configured time limit, while Conductor's responseTimeoutSeconds setting automatically detects workers that pick up a task but never return a result due to deadlocks, infinite loops, or blocked network calls.
 

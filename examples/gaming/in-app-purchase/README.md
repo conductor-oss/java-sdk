@@ -1,6 +1,8 @@
 # In App Purchase in Java Using Conductor
 
-Processes an in-app purchase: selecting an item from the game catalog, verifying eligibility, charging payment, delivering the virtual item to the player's inventory, and generating a receipt. ## The Problem
+Processes an in-app purchase: selecting an item from the game catalog, verifying eligibility, charging payment, delivering the virtual item to the player's inventory, and generating a receipt.
+
+## The Problem
 
 You need to process an in-app purchase in a game. The player selects an item to buy, the purchase is verified with the platform's payment system (ensuring the transaction is legitimate), payment is charged, the virtual item is delivered to the player's inventory, and a receipt is generated. Delivering items without payment verification enables fraud; failing to deliver after payment creates support tickets and chargebacks.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd handle the purchase flow in a single service that v
 
 **You just write the item selection, eligibility check, payment processing, item delivery, and receipt generation logic. Conductor handles payment retries, entitlement delivery, and purchase audit trails for every transaction.**
 
-Each purchase concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (select, verify, charge, deliver, receipt), retrying if the payment platform is temporarily unavailable, tracking every purchase with full audit trail, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each purchase concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (select, verify, charge, deliver, receipt), retrying if the payment platform is temporarily unavailable, tracking every purchase with full audit trail, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Product validation, payment processing, entitlement delivery, and receipt generation workers isolate each phase of a microtransaction.
 

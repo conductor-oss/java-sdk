@@ -12,7 +12,9 @@ Without orchestration, you'd manage releases via a checklist in a Confluence pag
 
 **You write the release preparation and deployment logic. Conductor handles approval gating, deploy-before-announce sequencing, and the full release audit trail.**
 
-Each stage of the release pipeline is a simple, independent worker. The preparer tags the version, builds release artifacts, and compiles the changelog. The approver gates the release: checking that all tests pass, the change log is complete, and the release manager has signed off. The deployer pushes the approved artifacts to production infrastructure. The announcer notifies stakeholders, posting release notes to Slack, updating the status page, and sending customer-facing changelogs. Conductor executes them in strict sequence, ensures deployment only happens after approval passes, retries if the deployment target is temporarily unavailable, and provides a complete audit trail of every release. ### What You Write: Workers
+Each stage of the release pipeline is a simple, independent worker. The preparer tags the version, builds release artifacts, and compiles the changelog. The approver gates the release: checking that all tests pass, the change log is complete, and the release manager has signed off. The deployer pushes the approved artifacts to production infrastructure. The announcer notifies stakeholders, posting release notes to Slack, updating the status page, and sending customer-facing changelogs. Conductor executes them in strict sequence, ensures deployment only happens after approval passes, retries if the deployment target is temporarily unavailable, and provides a complete audit trail of every release.
+
+### What You Write: Workers
 
 Four workers manage the release lifecycle. Preparing the version, gating through approval, deploying to production, and announcing to stakeholders.
 

@@ -10,7 +10,9 @@ Without orchestration, escrow management is tracked manually with phone calls, e
 
 **You just write the escrow opening, deposit handling, contingency verification, fund release, and closing logic. Conductor handles deposit retries, condition tracking, and escrow audit trails.**
 
-Each escrow step is a simple, independent worker. one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance. ### What You Write: Workers
+Each escrow step is a simple, independent worker. one opens the account, one accepts the deposit, one verifies contingencies, one releases funds, one closes the escrow. Conductor ensures strict sequential execution so funds are never released before verification, retries if the banking API is temporarily down, and maintains a tamper-proof record of every step for regulatory compliance.
+
+### What You Write: Workers
 
 Deposit collection, document verification, condition tracking, and fund disbursement workers each manage one phase of the escrow process.
 
@@ -22,7 +24,9 @@ Deposit collection, document verification, condition tracking, and fund disburse
 | **ReleaseWorker** | `esc_release` | Releases escrowed funds to the seller after verification is complete |
 | **CloseEscrowWorker** | `esc_close` | Formally closes the escrow account and generates the closing statement |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 esc_open

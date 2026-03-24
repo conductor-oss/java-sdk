@@ -10,7 +10,9 @@ Without orchestration, commission calculations live in a spreadsheet or a monoli
 
 **You just write the base commission, tier adjustment, deduction, and payout logic. Conductor handles tier calculation retries, deduction sequencing, and payout audit trails.**
 
-Each step in the commission pipeline is a simple, independent worker. one computes the base commission, one applies tier adjustments, one subtracts deductions, one finalizes the payout. Conductor takes care of executing them in sequence, retrying if the payment system is temporarily unavailable, and maintaining a complete audit trail showing exactly how each commission was calculated. ### What You Write: Workers
+Each step in the commission pipeline is a simple, independent worker. one computes the base commission, one applies tier adjustments, one subtracts deductions, one finalizes the payout. Conductor takes care of executing them in sequence, retrying if the payment system is temporarily unavailable, and maintaining a complete audit trail showing exactly how each commission was calculated.
+
+### What You Write: Workers
 
 Base rate calculation, tiered adjustment, deduction application, and payout finalization workers each handle one layer of the commission computation.
 
@@ -21,7 +23,9 @@ Base rate calculation, tiered adjustment, deduction application, and payout fina
 | **DeductionsWorker** | `cmc_deductions` | Subtracts brokerage fees, desk fees, marketing costs, and referral fees from the tiered amount |
 | **FinalizeWorker** | `cmc_finalize` | Records the net commission and initiates payment to the agent, returning a payment confirmation ID |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 cmc_base

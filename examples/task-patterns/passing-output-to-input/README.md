@@ -1,6 +1,8 @@
 # Passing Output To Input in Java with Conductor
 
-Shows all the ways to pass data between tasks. ## The Problem
+Shows all the ways to pass data between tasks.
+
+## The Problem
 
 You need to build a regional sales report in three stages: generate raw metrics and top products for a region and time period, enrich the report with computed growth rates and health insights, then summarize by combining the original metrics with the enriched data. The second step needs access to the first step's output (metrics object, individual revenue field, top products list). The third step needs data from both previous steps. the original metrics from step 1 and the enriched insights and growth rate from step 2. Each step consumes data wired from different upstream tasks.
 

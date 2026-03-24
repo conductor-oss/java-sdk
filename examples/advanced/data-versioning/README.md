@@ -22,7 +22,9 @@ Five workers manage the version lifecycle: snapshot capture, tag assignment, met
 | **DvrRollbackWorker** | `dvr_rollback` | Rolls back the dataset to the previous version if the diff flagged issues |
 | **DvrSnapshotWorker** | `dvr_snapshot` | Creates a point-in-time snapshot of the dataset with row count and checksum |
 | **DvrStoreWorker** | `dvr_store` | Persists the tagged version to versioned storage (e.g., S3) under the dataset/tag path |
-| **DvrTagWorker** | `dvr_tag` | Applies a version tag (e.g.### The Workflow
+| **DvrTagWorker** | `dvr_tag` | Applies a version tag (e.g.
+
+### The Workflow
 
 ```
 dvr_snapshot

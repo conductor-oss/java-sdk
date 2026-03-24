@@ -1,6 +1,8 @@
 # Marketplace Seller Onboarding in Java Using Conductor : Onboard, Verify, List Products, Manage Orders
 
-Marketplace seller onboarding: register, verify, list products, manage orders. ## Marketplace Seller Onboarding Has Compliance Requirements
+Marketplace seller onboarding: register, verify, list products, manage orders.
+
+## Marketplace Seller Onboarding Has Compliance Requirements
 
 A new seller wants to sell on your marketplace. Before their products go live, you need to verify their identity (government ID, business registration), validate their business (tax ID verification, bank account confirmation), list their products with proper categorization and pricing, and enable order management (so they receive orders, manage fulfillment, and handle returns).
 

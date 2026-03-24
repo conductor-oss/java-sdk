@@ -1,6 +1,8 @@
 # Centralized Config Management in Java with Conductor
 
-Centralized config management with staged rollout. ## The Problem
+Centralized config management with staged rollout.
+
+## The Problem
 
 Changing a configuration value across a fleet of microservices is error-prone. Each service may read config from a different source, and applying an invalid value can cause cascading failures. Centralized config management validates changes, plans a staged rollout (canary -> 25% -> 100%), applies the config, and verifies all services are running with the updated value.
 

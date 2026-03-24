@@ -10,7 +10,9 @@ Without orchestration, you'd build a single grading script that ingests submissi
 
 **You just write the submission intake, rubric scoring, grade review, gradebook recording, and student notification logic. Conductor handles scoring retries, grade routing, and complete assessment audit trails.**
 
-Each grading concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, grade, review, record, notify), retrying if the gradebook service is temporarily unavailable, maintaining a complete audit trail of every grade from submission to notification, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each grading concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, grade, review, record, notify), retrying if the gradebook service is temporarily unavailable, maintaining a complete audit trail of every grade from submission to notification, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Submission collection, grading, review, and grade posting workers each handle one phase of the assessment evaluation cycle.
 

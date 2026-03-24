@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic service that queries the applica
 
 **You just write the application intake, eligibility verification, benefit calculation, and approval or denial notification logic. Conductor handles eligibility retries, benefit routing, and determination audit trails.**
 
-Each stage of the benefit determination is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination. ### What You Write: Workers
+Each stage of the benefit determination is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in the right order, routing eligible and ineligible applicants to different notification paths via SWITCH, retrying on failure, and providing a complete audit trail of every determination.
+
+### What You Write: Workers
 
 Application intake, eligibility verification, benefit calculation, and enrollment workers process government benefits through transparent, rule-based stages.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic enrollment portal that queries p
 
 **You just write the plan presentation, selection capture, eligibility validation, carrier enrollment, and confirmation logic. Conductor handles enrollment retries, plan selection routing, and benefits audit trails.**
 
-Each stage of the enrollment process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance. ### What You Write: Workers
+Each stage of the enrollment process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of presenting options before selection, validating before enrollment, enrolling with carriers only after validation passes, confirming only after all carriers acknowledge, retrying if a carrier API is temporarily unavailable during peak enrollment periods, and maintaining a complete audit trail for ERISA compliance.
+
+### What You Write: Workers
 
 Eligibility check, plan comparison, enrollment processing, and confirmation workers guide employees through benefits selection as independent steps.
 

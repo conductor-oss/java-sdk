@@ -12,7 +12,9 @@ Without orchestration, you'd build a routing table with a switch statement or ma
 
 **You just write the event-receive, type-extraction, and domain-specific processor workers. Conductor handles domain-based SWITCH routing, per-processor retries, and full traceability of every routing decision.**
 
-Each domain processor is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, extracting its domain, routing via a SWITCH task to the correct processor (user, order, system), retrying if the processor fails, and tracking every event's routing and outcome. ### What You Write: Workers
+Each domain processor is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of receiving the event, extracting its domain, routing via a SWITCH task to the correct processor (user, order, system), retrying if the processor fails, and tracking every event's routing and outcome.
+
+### What You Write: Workers
 
 Five workers implement domain-based routing: ReceiveEventWorker ingests the event, ExtractTypeWorker parses the domain and sub-type, then UserProcessorWorker, OrderProcessorWorker, or SystemProcessorWorker handles it based on the extracted domain.
 

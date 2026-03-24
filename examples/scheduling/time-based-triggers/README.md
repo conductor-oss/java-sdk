@@ -10,7 +10,9 @@ Without orchestration, time-based routing is hardcoded in cron schedules or manu
 
 **You just write the time-window detection and per-window job logic. Conductor handles SWITCH-based time-window routing, retries when individual jobs fail, and a full history of every trigger showing which window was detected and which job executed.**
 
-A time checker worker determines the current time window (morning, afternoon, evening). Conductor's SWITCH task routes to the appropriate job. Each job is an independent worker that does its time-window-specific work. Every trigger is tracked with the detected time window and which job ran. ### What You Write: Workers
+A time checker worker determines the current time window (morning, afternoon, evening). Conductor's SWITCH task routes to the appropriate job. Each job is an independent worker that does its time-window-specific work. Every trigger is tracked with the detected time window and which job ran.
+
+### What You Write: Workers
 
 CheckTimeWorker determines the current time window (morning, afternoon, or evening), then Conductor routes to the appropriate handler: MorningJobWorker for data ingestion, AfternoonJobWorker for report generation, or EveningJobWorker for maintenance and cleanup.
 

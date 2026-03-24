@@ -8,7 +8,9 @@ Without orchestration, partial failure recovery requires building custom checkpo
 
 ## The Solution
 
-Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step. step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were. ### What You Write: Workers
+Each step is an independent worker. When step 2 fails, Conductor records which steps completed and which didn't. Calling Conductor's retry endpoint (`POST /workflow/{id}/retry`) resumes from exactly the failed step. step 1 is skipped because it already succeeded. No checkpointing code needed. Every execution shows exactly which steps ran, which were skipped on retry, and what their results were.
+
+### What You Write: Workers
 
 Step1Worker validates input, Step2Worker performs the main processing (which may fail transiently), and Step3Worker finalizes the result, with Conductor's retry endpoint resuming from the exact point of failure without re-executing completed steps.
 

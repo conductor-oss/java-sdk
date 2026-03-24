@@ -1,6 +1,8 @@
 # Exclusive Join in Java with Conductor
 
-EXCLUSIVE_JOIN demo. query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time. ## The Problem
+EXCLUSIVE_JOIN demo. query three vendors in parallel, wait for all responses, then select the best offer by lowest price and fastest response time.
+
+## The Problem
 
 You need to get price quotes from multiple vendors simultaneously and pick the best offer. A product query goes out to Vendor A, Vendor B, and Vendor C at the same time. Each vendor responds with a price and response time. After all three respond, you need to compare their offers and select the winner. lowest price wins, with fastest response time as the tiebreaker. The entire comparison must happen only after every vendor has replied, not as responses trickle in.
 

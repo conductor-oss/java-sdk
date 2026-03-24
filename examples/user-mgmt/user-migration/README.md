@@ -10,7 +10,9 @@ Without orchestration, you'd write a long procedural script that couples extract
 
 **You just write the extract, transform, load, verify, and notify workers. Conductor handles the ETL pipeline sequencing and batch data flow.**
 
-Each ETL phase. extract, transform, load, verify, notify, is a simple, independent worker. Conductor runs them in sequence, threads the extracted user list into the transform step, passes the transformed data to the loader, feeds the loaded/expected counts into verification, and delivers the final result to the notification step. If any step fails (a database timeout, a schema error), Conductor retries automatically and resumes from exactly where it left off. ### What You Write: Workers
+Each ETL phase. extract, transform, load, verify, notify, is a simple, independent worker. Conductor runs them in sequence, threads the extracted user list into the transform step, passes the transformed data to the loader, feeds the loaded/expected counts into verification, and delivers the final result to the notification step. If any step fails (a database timeout, a schema error), Conductor retries automatically and resumes from exactly where it left off.
+
+### What You Write: Workers
 
 ExtractWorker reads users from the source database, TransformWorker converts schemas, LoadWorker batch-inserts into the target, VerifyMigrationWorker confirms record counts, and NotifyMigrationWorker reports the result.
 

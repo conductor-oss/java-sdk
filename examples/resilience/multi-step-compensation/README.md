@@ -10,7 +10,9 @@ Without orchestration, compensation logic is tangled with forward logic. Each st
 
 **You just write the provisioning steps and their matching undo operations. Conductor handles forward sequencing, automatic compensation in reverse order via the failure workflow, retries on each undo step, and a complete record of both the forward and compensation paths.**
 
-The forward workflow runs three workers in sequence. create account, setup billing, provision resources. A separate compensation workflow runs the undo workers in reverse order (undo provision, undo billing, undo account) using the outputs from the forward steps. Conductor's failure workflow feature links them: when the forward workflow fails, compensation runs automatically. Every step in both directions is tracked. ### What You Write: Workers
+The forward workflow runs three workers in sequence. create account, setup billing, provision resources. A separate compensation workflow runs the undo workers in reverse order (undo provision, undo billing, undo account) using the outputs from the forward steps. Conductor's failure workflow feature links them: when the forward workflow fails, compensation runs automatically. Every step in both directions is tracked.
+
+### What You Write: Workers
 
 Three forward workers. CreateAccountWorker, SetupBillingWorker, and ProvisionResourcesWorker. Run in sequence, with matching undo workers (UndoProvisionWorker, UndoBillingWorker, UndoAccountWorker) that execute in reverse order when any step fails.
 

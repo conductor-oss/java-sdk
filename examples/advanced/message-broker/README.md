@@ -14,7 +14,9 @@ Building this manually means writing routing tables, implementing delivery retri
 
 ### What You Write: Workers
 
-Five workers manage the brokering lifecycle: message reception, topic-based routing, payload delivery, acknowledgment, and audit logging, each owning one phase of reliable message transit.### The Workflow
+Five workers manage the brokering lifecycle: message reception, topic-based routing, payload delivery, acknowledgment, and audit logging, each owning one phase of reliable message transit.
+
+### The Workflow
 
 ```
 mbr_receive

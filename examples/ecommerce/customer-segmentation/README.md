@@ -1,6 +1,8 @@
 # Customer Segmentation in Java Using Conductor : Collect Data, Cluster, Label Segments, Target
 
-Customer segmentation: collect data, cluster, label segments, target. ## One-Size-Fits-All Marketing Wastes Budget
+Customer segmentation: collect data, cluster, label segments, target.
+
+## One-Size-Fits-All Marketing Wastes Budget
 
 Sending the same promotion to all customers means high-value VIPs get the same generic email as price-sensitive bargain hunters. Customer segmentation groups customers by behavior. frequency of purchase, average order value, product preferences, engagement level, so each group gets tailored messaging.
 

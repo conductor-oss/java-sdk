@@ -12,7 +12,9 @@ Without orchestration, you'd implement the saga with nested try/catch blocks, ma
 
 **You just write the order-creation, payment, shipping, and compensation workers. Conductor handles SWITCH-based compensation routing, guaranteed saga completion, and a full audit trail of every saga step and rollback.**
 
-Each saga step is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing the happy path (order, payment, shipping), routing via a SWITCH task to compensation on payment failure, retrying transient failures before triggering compensation, and tracking the entire saga with full audit trail. ### What You Write: Workers
+Each saga step is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing the happy path (order, payment, shipping), routing via a SWITCH task to compensation on payment failure, retrying transient failures before triggering compensation, and tracking the entire saga with full audit trail.
+
+### What You Write: Workers
 
 Five workers implement the saga: CreateOrderWorker starts the order, ProcessPaymentWorker charges the customer, ShipOrderWorker dispatches the shipment, while CancelOrderWorker and CompensatePaymentWorker handle rollback when payment fails.
 

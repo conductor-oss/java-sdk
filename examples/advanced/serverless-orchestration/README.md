@@ -21,7 +21,9 @@ Four workers chain serverless invocations: event parsing, external enrichment, s
 | **SvlAggregateWorker** | `svl_aggregate` | Aggregates results from the serverless function chain. |
 | **SvlInvokeEnrichWorker** | `svl_invoke_enrich` | Invokes the enrich serverless function to add user context. |
 | **SvlInvokeParseWorker** | `svl_invoke_parse` | Invokes the parse serverless function for an incoming event. |
-| **SvlInvokeScoreWorker** | `svl_invoke_score` | Invokes the score serverless function to compute engagement score.### The Workflow
+| **SvlInvokeScoreWorker** | `svl_invoke_score` | Invokes the score serverless function to compute engagement score.
+
+### The Workflow
 
 ```
 svl_invoke_parse

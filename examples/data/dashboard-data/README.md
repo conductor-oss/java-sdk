@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic dashboard backend that queries a
 
 **You just write the metric aggregation, KPI computation, widget assembly, and cache workers. Conductor handles the metric-to-cache pipeline sequencing, retries when database queries time out, and per-step observability for diagnosing slow dashboard refreshes.**
 
-Each stage of dashboard preparation is a simple, independent worker. The aggregation worker queries data sources and rolls up raw metrics for the requested time range and dashboard ID. The KPI worker computes derived values. Conversion rates, period-over-period growth, averages. The widget builder maps KPIs and metrics to chart configurations (type, labels, data series). The cache worker stores the assembled dashboard in a cache layer with a configurable TTL. Conductor executes them in sequence, passes metric data between steps, retries if a database query times out, and resumes from exactly where it left off if the process crashes. ### What You Write: Workers
+Each stage of dashboard preparation is a simple, independent worker. The aggregation worker queries data sources and rolls up raw metrics for the requested time range and dashboard ID. The KPI worker computes derived values. Conversion rates, period-over-period growth, averages. The widget builder maps KPIs and metrics to chart configurations (type, labels, data series). The cache worker stores the assembled dashboard in a cache layer with a configurable TTL. Conductor executes them in sequence, passes metric data between steps, retries if a database query times out, and resumes from exactly where it left off if the process crashes.
+
+### What You Write: Workers
 
 Four workers power the dashboard pipeline: aggregating raw metrics from data sources, computing KPIs like conversion rates and growth, assembling chart widget configurations, and caching the result for fast frontend loads.
 

@@ -1,6 +1,8 @@
 # Travel Policy in Java with Conductor
 
-Travel policy with SWITCH for compliant/exception. ## The Problem
+Travel policy with SWITCH for compliant/exception.
+
+## The Problem
 
 You need to enforce travel policy on booking requests. Checking whether a booking (flight class, hotel rate, rental vehicle class) complies with company policy, routing compliant bookings for automatic approval, routing non-compliant bookings through an exception approval process, and then processing the booking once approved. The routing decision depends on the policy check result.
 

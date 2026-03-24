@@ -1,6 +1,8 @@
 # Idempotent Operations in Java with Conductor
 
-Idempotent operations with duplicate detection. ## The Problem
+Idempotent operations with duplicate detection.
+
+## The Problem
 
 In a distributed system, duplicate requests are inevitable (network retries, user double-clicks). Each operation must be idempotent. Executing it twice must produce the same result. This workflow generates a deterministic idempotency key, checks whether the operation was already executed, and either skips execution (duplicate) or executes and records the completion.
 

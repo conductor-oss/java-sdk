@@ -12,7 +12,9 @@ Without orchestration, batch scheduling is a cron-triggered script that runs eve
 
 **You just write the job prioritization and resource allocation logic. Conductor handles the prioritize-allocate-execute sequence, retries if a resource allocation fails, and visibility into which jobs ran, their ordering, and execution outcomes.**
 
-Each scheduling concern is an independent worker. Job prioritization, resource allocation, and batch execution. Conductor runs them in sequence: prioritize the queue, allocate resources, then execute. Every batch run is tracked with job ordering, resource assignments, and execution results. ### What You Write: Workers
+Each scheduling concern is an independent worker. Job prioritization, resource allocation, and batch execution. Conductor runs them in sequence: prioritize the queue, allocate resources, then execute. Every batch run is tracked with job ordering, resource assignments, and execution results.
+
+### What You Write: Workers
 
 Three workers manage each batch run: PrioritizeJobsWorker orders the queue by urgency and resource needs, AllocateResourcesWorker assigns compute slots based on capacity, and ExecuteBatchWorker runs the prioritized jobs within concurrency limits.
 

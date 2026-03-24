@@ -10,7 +10,9 @@ Without orchestration, exponential backoff means writing retry loops with Thread
 
 **You just write the API call and dead letter capture logic. Conductor handles exponential backoff retries with configurable delay and max attempts, automatic dead-letter routing when retries are exhausted, and a complete log of every retry attempt with timing and error details.**
 
-The unreliable API worker makes the call and reports success or failure. Conductor handles exponential backoff retries automatically. configured per task with retry count, delay, and backoff rate. When retries are exhausted, the failure workflow routes to the dead letter handler. Every retry attempt is tracked with timing and error details. ### What You Write: Workers
+The unreliable API worker makes the call and reports success or failure. Conductor handles exponential backoff retries automatically. configured per task with retry count, delay, and backoff rate. When retries are exhausted, the failure workflow routes to the dead letter handler. Every retry attempt is tracked with timing and error details.
+
+### What You Write: Workers
 
 UnreliableApiWorker makes the external call and reports success or failure, while DeadLetterLogWorker captures permanently failed requests after all retry attempts are exhausted.
 

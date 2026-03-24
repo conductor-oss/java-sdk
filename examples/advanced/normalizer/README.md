@@ -14,7 +14,9 @@ The normalizer pattern detects the incoming format, routes to the correct conver
 
 ### What You Write: Workers
 
-Five workers cover the normalization pipeline: format detection, and three format-specific converters (JSON, XML, CSV) plus canonical output delivery, each producing the same output structure regardless of source format.### The Workflow
+Five workers cover the normalization pipeline: format detection, and three format-specific converters (JSON, XML, CSV) plus canonical output delivery, each producing the same output structure regardless of source format.
+
+### The Workflow
 
 ```
 nrm_detect_format

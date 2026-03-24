@@ -12,7 +12,9 @@ Without orchestration, you'd SSH into a load testing box, run a k6 or JMeter scr
 
 **You write the load generation and analysis logic. Conductor handles environment-to-report sequencing, SLO comparison, and test result tracking.**
 
-Each stage of the performance testing pipeline is a simple, independent worker. The environment preparer provisions or configures the test environment. Spinning up isolated infrastructure, warming caches, and seeding test data. The load tester generates traffic at the target RPS for the specified duration, recording response times and error counts. The results analyzer computes percentile latencies (P50, P95, P99), throughput, error rates, and compares them against SLO thresholds. The report generator produces a structured performance report with pass/fail verdicts and trend comparisons against previous runs. Conductor executes them in strict sequence, ensures the load test only runs after the environment is ready, retries if environment provisioning fails, and tracks all test parameters and results. ### What You Write: Workers
+Each stage of the performance testing pipeline is a simple, independent worker. The environment preparer provisions or configures the test environment. Spinning up isolated infrastructure, warming caches, and seeding test data. The load tester generates traffic at the target RPS for the specified duration, recording response times and error counts. The results analyzer computes percentile latencies (P50, P95, P99), throughput, error rates, and compares them against SLO thresholds. The report generator produces a structured performance report with pass/fail verdicts and trend comparisons against previous runs. Conductor executes them in strict sequence, ensures the load test only runs after the environment is ready, retries if environment provisioning fails, and tracks all test parameters and results.
+
+### What You Write: Workers
 
 Three workers execute the performance test. Preparing the environment, running the load test at target RPS, and analyzing results against SLO thresholds.
 

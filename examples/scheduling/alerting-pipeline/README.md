@@ -10,7 +10,9 @@ Without orchestration, alerting logic is scattered. threshold checks in one scri
 
 **You just write the threshold evaluation and notification dispatch logic. Conductor handles sequential evaluation with conditional routing, retries on notification delivery failures, and a full record of every alert evaluated, suppressed, or dispatched.**
 
-Each alerting concern is an independent worker. rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context, you can see which metrics triggered, which were suppressed, and which actually fired. ### What You Write: Workers
+Each alerting concern is an independent worker. rule evaluation, anomaly detection, suppression checking, and alert dispatch. Conductor runs them in sequence, ensuring suppression is checked before any alert is sent. Every alert evaluation is tracked with full context, you can see which metrics triggered, which were suppressed, and which actually fired.
+
+### What You Write: Workers
 
 The alerting pipeline chains DetectAnomalyWorker to flag metric deviations, EvaluateRulesWorker to apply severity-based firing criteria, and then routes to either SendAlertWorker for dispatch or SuppressAlertWorker for duplicate suppression.
 

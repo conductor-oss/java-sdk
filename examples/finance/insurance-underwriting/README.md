@@ -1,6 +1,8 @@
 # Insurance Underwriting in Java with Conductor
 
-Insurance underwriting with SWITCH decision routing for accept/decline/refer. ## The Problem
+Insurance underwriting with SWITCH decision routing for accept/decline/refer.
+
+## The Problem
 
 You need to underwrite an insurance application. The workflow collects applicant information and coverage requirements, assesses the risk based on applicant profile and coverage type, makes an underwriting decision (accept at standard rates, accept with modified terms, decline, or refer for manual review), and communicates the decision. Accepting high-risk applicants at standard rates leads to adverse selection; declining without proper assessment loses good business.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single underwriting engine that collects da
 
 **You just write the underwriting workers. Application collection, risk assessment, accept/decline/refer routing, quote generation, and policy binding. Conductor handles conditional SWITCH routing for accept, decline, and refer decisions, automatic retries when the risk model is unavailable, and full application tracking for insurance commissioner audits.**
 
-Each underwriting concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting information, assessing risk, routing via a SWITCH task to the correct decision (accept, decline, refer), and communicating the outcome, retrying if the risk model service is unavailable, tracking every application's underwriting journey, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each underwriting concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting information, assessing risk, routing via a SWITCH task to the correct decision (accept, decline, refer), and communicating the outcome, retrying if the risk model service is unavailable, tracking every application's underwriting journey, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Seven workers manage the underwriting process: CollectAppWorker gathers applicant data, AssessRiskWorker evaluates the risk profile, SWITCH routes to AcceptWorker, DeclineWorker, or ReferWorker based on the assessment, QuoteWorker calculates the premium, and BindWorker issues the policy.
 

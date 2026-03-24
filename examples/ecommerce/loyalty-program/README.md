@@ -1,6 +1,8 @@
 # Loyalty Program in Java Using Conductor : Earn Points, Check Tier, Upgrade, Reward
 
-Loyalty program: earn points, check tier, upgrade, deliver rewards. ## Loyalty Programs Drive Repeat Purchases When They Work Right
+Loyalty program: earn points, check tier, upgrade, deliver rewards.
+
+## Loyalty Programs Drive Repeat Purchases When They Work Right
 
 A customer spends $85 and should earn 85 points (1 point per dollar). Their total reaches 950 points, putting them past the 900-point Gold tier threshold. They should be upgraded to Gold and receive the Gold welcome reward (10% off next purchase + free shipping for 30 days). Getting any of these steps wrong. miscounted points, missed upgrade, wrong reward, erodes trust in the program.
 

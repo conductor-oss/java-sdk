@@ -10,7 +10,9 @@ Without orchestration, you'd write a monolithic Spark job or script that does sc
 
 **You just write the schema validation, date partitioning, format conversion, lake writing, and catalog update workers. Conductor handles strict ordering so the catalog is updated only after successful writes, retries when lake storage is unavailable, and tracking of record counts across validate-partition-convert-write stages.**
 
-Each stage of the ingestion pipeline is a simple, independent worker. The schema validator checks incoming records and filters out malformed rows. The partitioner organizes valid records into date-based partition keys. The format converter transforms each partition into the target columnar format. The lake writer places the converted files at the correct paths with proper naming. The catalog updater registers the new partitions so query engines can access the data. Conductor executes them in strict sequence, ensures the catalog is only updated after a successful write, retries if the lake storage is temporarily unavailable, and tracks exactly how many records were validated, partitioned, and written. ### What You Write: Workers
+Each stage of the ingestion pipeline is a simple, independent worker. The schema validator checks incoming records and filters out malformed rows. The partitioner organizes valid records into date-based partition keys. The format converter transforms each partition into the target columnar format. The lake writer places the converted files at the correct paths with proper naming. The catalog updater registers the new partitions so query engines can access the data. Conductor executes them in strict sequence, ensures the catalog is only updated after a successful write, retries if the lake storage is temporarily unavailable, and tracks exactly how many records were validated, partitioned, and written.
+
+### What You Write: Workers
 
 Five workers manage the data lake ingestion pipeline: validating records against a schema, partitioning by date, converting to columnar formats like Parquet, writing to the lake path, and registering partitions in the data catalog.
 

@@ -10,7 +10,9 @@ Without orchestration, this becomes a manual, error-prone process. Someone write
 
 **You just write the update collection, data aggregation, report formatting, and stakeholder distribution logic. Conductor handles data aggregation retries, report formatting, and distribution audit trails.**
 
-Each step in the reporting pipeline is a simple, independent worker. one collects raw updates, one aggregates them into a summary, one formats the report, one distributes it. Conductor takes care of executing them in sequence, retrying if a data source is temporarily unavailable, tracking every report generation with full audit history, and resuming if the process crashes mid-generation. ### What You Write: Workers
+Each step in the reporting pipeline is a simple, independent worker. one collects raw updates, one aggregates them into a summary, one formats the report, one distributes it. Conductor takes care of executing them in sequence, retrying if a data source is temporarily unavailable, tracking every report generation with full audit history, and resuming if the process crashes mid-generation.
+
+### What You Write: Workers
 
 Data aggregation, insight generation, report formatting, and distribution workers each handle one phase of keeping stakeholders informed.
 

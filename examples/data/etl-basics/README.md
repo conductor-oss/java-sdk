@@ -12,7 +12,9 @@ Without orchestration, you'd write a single ETL method that connects to the sour
 
 **You just write the extract, transform, validate, load, and confirm workers. Conductor handles the extract-transform-validate-load-confirm sequence, retries when the destination is unavailable, and per-stage record count tracking.**
 
-Each stage of the ETL pipeline is a simple, independent worker. The extractor reads records from the source. The transformer cleans and normalizes fields (trimming, lowercasing, type conversion). The validator filters out incomplete or invalid records. The loader writes clean records to the destination. The confirmer verifies the load completed successfully. Conductor executes them in sequence, passes records between stages, retries if the destination is unavailable, and tracks exactly how many records survived each stage. ### What You Write: Workers
+Each stage of the ETL pipeline is a simple, independent worker. The extractor reads records from the source. The transformer cleans and normalizes fields (trimming, lowercasing, type conversion). The validator filters out incomplete or invalid records. The loader writes clean records to the destination. The confirmer verifies the load completed successfully. Conductor executes them in sequence, passes records between stages, retries if the destination is unavailable, and tracks exactly how many records survived each stage.
+
+### What You Write: Workers
 
 Five workers form the classic ETL pipeline: extracting records from a source, transforming them (trimming names, lowercasing emails, parsing amounts), validating output quality, loading into the destination, and confirming successful completion.
 

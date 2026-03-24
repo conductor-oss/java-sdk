@@ -10,7 +10,9 @@ Without orchestration, error classification is buried in nested if/else chains i
 
 **You just write the API call and error classification logic. Conductor handles SWITCH-based routing by error type, automatic retries for transient failures, and a full record of every classification decision showing which errors were retried and which were sent to the handler.**
 
-The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded. you can see exactly which errors were retried, which were routed to the handler, and what the outcome was. ### What You Write: Workers
+The API call worker makes the request and classifies errors. Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to a dedicated error handler. Every error classification decision is recorded. you can see exactly which errors were retried, which were routed to the handler, and what the outcome was.
+
+### What You Write: Workers
 
 ApiCallWorker makes the external request and classifies the response error type, then Conductor's SWITCH task routes retryable errors back through retry logic and non-retryable errors to ErrorHandlerWorker for logging and alerting.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd write a single validation method with nested if/els
 
 **You just write the required-field, type-checking, range-validation, and reporting workers. Conductor handles sequential validation layer execution, per-layer retry on failure, and precise tracking of how many records were rejected at each stage.**
 
-Each validation layer is a simple, independent worker. The required fields checker filters out records missing mandatory fields. The type checker verifies data types on the surviving records. The range validator checks value constraints. The report generator tallies errors per layer and counts the records that passed all checks. Conductor executes them in sequence, passes only valid records from one layer to the next, retries if a check fails, and tracks exactly how many records were rejected at each stage. ### What You Write: Workers
+Each validation layer is a simple, independent worker. The required fields checker filters out records missing mandatory fields. The type checker verifies data types on the surviving records. The range validator checks value constraints. The report generator tallies errors per layer and counts the records that passed all checks. Conductor executes them in sequence, passes only valid records from one layer to the next, retries if a check fails, and tracks exactly how many records were rejected at each stage.
+
+### What You Write: Workers
 
 Five workers implement layered validation: loading records, checking required fields are present, verifying data types (name is String, age is Number), validating value ranges (age 0-150, email contains @), and generating an error report by category.
 

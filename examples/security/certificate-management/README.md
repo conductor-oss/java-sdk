@@ -10,7 +10,9 @@ Without orchestration, certificate management is a calendar reminder that someon
 
 **You just write the CA renewal and cert deployment logic. Conductor handles the renewal sequence, retries when CAs are temporarily unreachable, and a complete record of every certificate inventoried, renewed, and deployed.**
 
-Each certificate step is an independent worker. inventory, expiry assessment, renewal, and distribution. Conductor runs them in sequence: inventory all certs, assess which need renewal, renew them, then distribute. Every certificate operation is tracked with cert details, expiry dates, renewal status, and deployment targets. ### What You Write: Workers
+Each certificate step is an independent worker. inventory, expiry assessment, renewal, and distribution. Conductor runs them in sequence: inventory all certs, assess which need renewal, renew them, then distribute. Every certificate operation is tracked with cert details, expiry dates, renewal status, and deployment targets.
+
+### What You Write: Workers
 
 Four workers cover the certificate lifecycle: InventoryWorker discovers all TLS certs, AssessExpiryWorker identifies those nearing expiration, RenewWorker obtains fresh certificates, and DistributeWorker deploys them to every server that needs them.
 

@@ -1,6 +1,8 @@
 # Two-Agent Pipeline in Java Using Conductor : Writer Agent to Editor Agent
 
-Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final output assembles the result. ## Two Agents Are Better Than One
+Sequential writer-editor pipeline: writer agent drafts content, editor agent refines it, final output assembles the result.
+
+## Two Agents Are Better Than One
 
 A single LLM call to "write a product description" produces serviceable but unpolished output. Adding a second pass. where a different agent reviews and improves the first agent's output, consistently produces better results. The writer focuses on content and structure. The editor focuses on clarity, conciseness, and polish. Two specialized agents with a single handoff.
 

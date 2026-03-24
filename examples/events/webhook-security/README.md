@@ -1,6 +1,8 @@
 # Webhook Security in Java Using Conductor
 
-Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task. ## The Problem
+Webhook security workflow that computes an HMAC signature, verifies it against the provided signature, and routes to process or reject the webhook via a SWITCH task.
+
+## The Problem
 
 You need to verify the authenticity of incoming webhooks using HMAC signatures. The workflow computes an HMAC hash of the payload using the shared secret, compares it to the signature provided by the sender, and routes to processing (if valid) or rejection (if forged). Without signature verification, an attacker can send forged webhooks that trigger unauthorized actions in your system.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd embed HMAC verification in middleware, manually com
 
 **You just write the HMAC-compute, signature-verify, process, and reject workers. Conductor handles SWITCH-based accept/reject routing, guaranteed verification before processing, and a security audit trail for every webhook.**
 
-Each security concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit. ### What You Write: Workers
+Each security concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the HMAC, verifying the signature, routing via a SWITCH task to process (valid) or reject (invalid), and tracking every webhook's verification result for security audit.
+
+### What You Write: Workers
 
 Four workers verify webhook authenticity: ComputeHmacWorker generates the expected signature, VerifySignatureWorker compares it to the sender's value, ProcessWebhookWorker handles verified payloads, and RejectWebhookWorker blocks forged requests.
 

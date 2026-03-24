@@ -14,7 +14,9 @@ Workflow inheritance lets you define the common structure once (init-validate-pr
 
 ### What You Write: Workers
 
-Five workers implement the template method pattern: shared init, validation, and finalization steps plus two tier-specific processors (standard and premium), specializing only the processing stage per customer tier.### The Workflow
+Five workers implement the template method pattern: shared init, validation, and finalization steps plus two tier-specific processors (standard and premium), specializing only the processing stage per customer tier.
+
+### The Workflow
 
 ```
 wi_init

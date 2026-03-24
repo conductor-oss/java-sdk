@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic discharge application that check
 
 **You just write the discharge workers. Readiness assessment, care plan creation, service coordination, patient education, and follow-up scheduling. Conductor handles step dependencies, automatic retries when a service referral API is down, and complete discharge documentation for HRRP compliance.**
 
-Each stage of the discharge process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of assessing readiness before creating the plan, coordinating services based on the plan's requirements, delivering education before the patient leaves, scheduling follow-up as the final step, and maintaining a complete record of every discharge for quality reporting. ### What You Write: Workers
+Each stage of the discharge process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of assessing readiness before creating the plan, coordinating services based on the plan's requirements, delivering education before the patient leaves, scheduling follow-up as the final step, and maintaining a complete record of every discharge for quality reporting.
+
+### What You Write: Workers
 
 Five workers manage the discharge process: AssessReadinessWorker checks clinical criteria, CreateDischargePlanWorker builds the care plan, CoordinateWorker arranges post-acute services, EducateWorker delivers patient instructions, and ScheduleFollowupWorker books follow-up visits.
 

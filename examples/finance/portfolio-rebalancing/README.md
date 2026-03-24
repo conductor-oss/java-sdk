@@ -1,6 +1,8 @@
 # Portfolio Rebalancing in Java with Conductor
 
-Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports. ## The Problem
+Portfolio rebalancing workflow that analyzes drift, determines trades, executes, verifies, and reports.
+
+## The Problem
 
 You need to rebalance an investment portfolio back to its target allocation. The workflow analyzes how far the current holdings have drifted from the target allocation, determines the trades needed to bring allocations back in line, executes those trades, verifies the resulting positions, and generates a rebalancing report. Without periodic rebalancing, a portfolio's risk profile drifts away from the investor's strategy as different asset classes outperform or underperform.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a rebalancing script that calculates drift, g
 
 **You just write the rebalancing workers. Drift analysis, trade determination, execution, position verification, and reporting. Conductor handles step sequencing, automatic retries on failed trade executions, and a complete rebalancing audit trail for investment policy compliance.**
 
-Each rebalancing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (analyze drift, determine trades, execute, verify, report), retrying failed trade executions, tracking the entire rebalancing operation with audit trail, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each rebalancing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (analyze drift, determine trades, execute, verify, report), retrying failed trade executions, tracking the entire rebalancing operation with audit trail, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers manage the rebalancing process: AnalyzeDriftWorker measures allocation drift, DetermineTradesWorker calculates required trades, ExecuteTradesWorker submits orders, VerifyWorker confirms resulting positions, and ReportWorker generates the rebalancing summary.
 

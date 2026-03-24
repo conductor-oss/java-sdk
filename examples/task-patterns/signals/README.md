@@ -1,6 +1,8 @@
 # Signals in Java with Conductor
 
-Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data. ## The Problem
+Signals demo. send data to running workflows via WAIT task completion. Two WAIT tasks pause the workflow until external signals arrive with shipping and delivery data.
+
+## The Problem
 
 You need an order fulfillment workflow that pauses and waits for external events at two points: first, it waits for a shipping confirmation (tracking number and carrier) from the warehouse or shipping partner, and second, it waits for a delivery confirmation (delivery timestamp and recipient signature) from the carrier. The workflow cannot continue past each wait point until the external system sends the signal with the required data. Between signals, the order sits in a known state. prepared, shipped, or delivered, potentially for hours or days.
 

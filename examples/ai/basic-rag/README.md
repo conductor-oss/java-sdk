@@ -20,11 +20,11 @@ Three workers cover the full RAG pipeline: embedding the query, searching the ve
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`OPENAI_EMBED_MODEL`, default `text-embedding-3-small`), returning the embedding array, model name, and dimensions | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; demo (fixed 8-dim vector) otherwise |
-| **SearchVectorsWorker** | `brag_search_vectors` | Queries a vector database with the embedding to retrieve the top-k most relevant document chunks, each with id, text, and similarity score (0.85-0.94) | **Always demo**.; no real vector DB. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples |
-| **GenerateAnswerWorker** | `brag_generate_answer` | Sends the original question plus retrieved context to OpenAI (`OPENAI_CHAT_MODEL`, default `gpt-4o-mini`), producing a grounded answer; returns the answer text and token count | **Real** when `CONDUCTOR_OPENAI_API_KEY` is set; demo (fixed answer) otherwise |
+| **EmbedQueryWorker** | `brag_embed_query` | Converts the user's question into a vector embedding using OpenAI (`text-embedding-3-small`). Requires `CONDUCTOR_OPENAI_API_KEY`. Fails with `IllegalStateException` if key is missing |
+| **SearchVectorsWorker** | `brag_search_vectors` | Searches a bundled knowledge base using TF-IDF scoring to retrieve the top-k most relevant document chunks with similarity scores. Self-contained (no external vector DB required). For external vector store integration, see `rag-pinecone`, `rag-chromadb`, `rag-pgvector` |
+| **GenerateAnswerWorker** | `brag_generate_answer` | Sends the question plus retrieved context to OpenAI (`gpt-4o-mini`) to generate a grounded answer. Returns answer text and token count. Requires `CONDUCTOR_OPENAI_API_KEY` |
 
-**Important:** Vector search is demo-only in this example, even in live mode. `CONDUCTOR_OPENAI_API_KEY` only turns on real embedding and generation calls. For real vector search, see the `rag-pinecone`, `rag-chromadb`, and `rag-pgvector` examples. Without the key, all three workers produce deterministic demo output so the workflow runs end-to-end without any external dependencies.
+**Note:** Vector search in this example uses a bundled TF-IDF knowledge base with 8 Conductor-related documents. This is real computation (not a stub), but operates on local data rather than an external vector store. For external vector DB integration, see `rag-pinecone`, `rag-chromadb`, and `rag-pgvector`. When `CONDUCTOR_OPENAI_API_KEY` is set, embedding and generation use real OpenAI API calls. Without the key, workers fail with `IllegalStateException`.
 
 ### The Workflow
 

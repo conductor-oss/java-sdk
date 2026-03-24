@@ -10,7 +10,9 @@ Without orchestration, health dashboards either poll each component from the bro
 
 **You just write the health check endpoints and dashboard rendering. Conductor handles parallel health checks so one slow component does not block the others, retries on transient check failures, and per-component timing for every dashboard refresh.**
 
-Conductor's FORK/JOIN runs API, database, and cache health checks in parallel. A render worker aggregates all results into a unified dashboard. If one check is slow, the others still complete quickly. Every dashboard refresh is tracked with per-component timing and status. ### What You Write: Workers
+Conductor's FORK/JOIN runs API, database, and cache health checks in parallel. A render worker aggregates all results into a unified dashboard. If one check is slow, the others still complete quickly. Every dashboard refresh is tracked with per-component timing and status.
+
+### What You Write: Workers
 
 Three health checkers run in parallel via FORK/JOIN. CheckApiWorker probes API servers, CheckDbWorker tests database connectivity, CheckCacheWorker verifies Redis/Memcached, then a RenderDashboardWorker aggregates results into a green/yellow/red status view.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd write a cron job that queries for old records, copi
 
 **You just write the stale-record detection, snapshot, cold-storage transfer, verification, and purge workers. Conductor handles strict ordering so purges never run before verification, retries when cold storage transfers time out, and a full audit trail of every archival step.**
 
-Each stage of the archival pipeline is a simple, independent worker. The stale record identifier queries for records older than the configured retention period. The snapshot worker creates a consistent point-in-time copy of those records. The transfer worker moves the snapshot to the configured cold storage path with checksumming. The verifier confirms the archive is intact by comparing record counts and checksums. The purge worker deletes stale records from hot storage; but only if verification passed. Conductor executes them in strict sequence, ensures the purge never runs before verification, retries if a cold storage transfer times out, and resumes from the exact step where it left off if the process crashes. ### What You Write: Workers
+Each stage of the archival pipeline is a simple, independent worker. The stale record identifier queries for records older than the configured retention period. The snapshot worker creates a consistent point-in-time copy of those records. The transfer worker moves the snapshot to the configured cold storage path with checksumming. The verifier confirms the archive is intact by comparing record counts and checksums. The purge worker deletes stale records from hot storage; but only if verification passed. Conductor executes them in strict sequence, ensures the purge never runs before verification, retries if a cold storage transfer times out, and resumes from the exact step where it left off if the process crashes.
+
+### What You Write: Workers
 
 Five workers implement the archival safety chain: identifying stale records, creating snapshots, transferring to cold storage, verifying archive integrity via checksums, and purging originals only after verification passes.
 

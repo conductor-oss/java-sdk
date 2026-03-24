@@ -14,7 +14,9 @@ Reacting means measuring queue depth, classifying the pressure level (ok, high, 
 
 ### What You Write: Workers
 
-The backpressure response splits across four workers: queue monitoring, normal-flow handling, rate throttling, and load shedding, each owning one pressure tier.### The Workflow
+The backpressure response splits across four workers: queue monitoring, normal-flow handling, rate throttling, and load shedding, each owning one pressure tier.
+
+### The Workflow
 
 ```
 bkp_monitor_queue

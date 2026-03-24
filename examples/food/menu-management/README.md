@@ -1,6 +1,8 @@
 # Menu Management in Java with Conductor
 
-Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates. ## The Problem
+Manages a restaurant menu lifecycle: creating items with descriptions, setting prices, categorizing into sections, publishing to ordering platforms, and syncing updates.
+
+## The Problem
 
 You need to manage a restaurant's menu lifecycle. creating menu items with descriptions and photos, setting prices based on food costs and margins, organizing items into categories (appetizers, entrees, desserts), publishing the menu to ordering platforms, and updating items as ingredients or prices change. Publishing a menu with incorrect prices erodes margins; outdated items lead to orders the kitchen cannot fulfill.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage menus through a combination of spreadsheets,
 
 **You just write the item creation, pricing, categorization, platform publishing, and update syncing logic. Conductor handles pricing retries, publication sequencing, and menu change audit trails.**
 
-Each menu concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each menu concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (create items, price, categorize, publish, update), retrying if a platform API is unavailable, tracking every menu change, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Item creation, pricing, categorization, and publication workers handle menu updates through discrete, auditable operations.
 

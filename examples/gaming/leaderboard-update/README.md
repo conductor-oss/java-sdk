@@ -1,6 +1,8 @@
 # Leaderboard Update in Java Using Conductor
 
-Updates a game's leaderboard for a season: collecting match scores, validating for integrity, ranking players, updating the public leaderboard, and broadcasting results to connected players. ## The Problem
+Updates a game's leaderboard for a season: collecting match scores, validating for integrity, ranking players, updating the public leaderboard, and broadcasting results to connected players.
+
+## The Problem
 
 You need to update a game's leaderboard for a season. The workflow collects scores from all completed matches, validates them for integrity (checking for cheating flags, impossible scores, or data corruption), ranks players by their validated scores, updates the public leaderboard, and broadcasts the updated rankings to all connected players. Posting invalid scores to the leaderboard undermines competitive integrity; stale leaderboards reduce player engagement.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a batch leaderboard job that queries match re
 
 **You just write the score collection, integrity validation, ranking, leaderboard update, and broadcast logic. Conductor handles score validation retries, ranking recalculation, and leaderboard audit trails.**
 
-Each leaderboard concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, validate, rank, update, broadcast), retrying if the leaderboard service is slow, tracking every leaderboard update cycle, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each leaderboard concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (collect, validate, rank, update, broadcast), retrying if the leaderboard service is slow, tracking every leaderboard update cycle, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Score validation, ranking calculation, leaderboard update, and notification workers each handle one aspect of competitive standings.
 

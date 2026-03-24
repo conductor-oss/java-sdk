@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic surveillance application that qu
 
 **You just write the disease monitoring, outbreak detection, alert routing, and public health response coordination logic. Conductor handles surveillance retries, intervention routing, and public health audit trails.**
 
-Each stage of the surveillance pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle. ### What You Write: Workers
+Each stage of the surveillance pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running surveillance before detection, routing to alert or monitoring via SWITCH based on the detection outcome, always executing the response step regardless of which branch was taken, and maintaining a full audit trail of every surveillance cycle.
+
+### What You Write: Workers
 
 Surveillance data collection, outbreak analysis, intervention planning, and public notification workers each address one public health response function.
 

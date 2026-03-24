@@ -10,7 +10,9 @@ Without orchestration, you'd write a monolithic crawler that connects to every d
 
 **You just write the asset discovery, classification, metadata tagging, and catalog indexing workers. Conductor handles the discovery-to-index pipeline sequencing, retries when data source connections time out, and tracking of how many assets were discovered, classified, and indexed.**
 
-Each stage of catalog building is a simple, independent worker. The discovery worker crawls the configured data source at the requested scan depth and returns a list of assets (tables, columns, datasets). The classifier applies rules to determine each asset's category and PII sensitivity level. The tagger generates metadata labels based on classification results (data domain, owner, sensitivity tier). The indexer writes the fully tagged assets into a searchable catalog index. Conductor executes them in sequence, passes the evolving asset list between steps, retries if a data source connection times out, and tracks exactly how many assets were discovered, classified, tagged, and indexed. ### What You Write: Workers
+Each stage of catalog building is a simple, independent worker. The discovery worker crawls the configured data source at the requested scan depth and returns a list of assets (tables, columns, datasets). The classifier applies rules to determine each asset's category and PII sensitivity level. The tagger generates metadata labels based on classification results (data domain, owner, sensitivity tier). The indexer writes the fully tagged assets into a searchable catalog index. Conductor executes them in sequence, passes the evolving asset list between steps, retries if a data source connection times out, and tracks exactly how many assets were discovered, classified, tagged, and indexed.
+
+### What You Write: Workers
 
 Four workers build the catalog end-to-end: discovering data assets across schemas, classifying them by PII sensitivity and content type, tagging with metadata labels, and indexing into a searchable catalog.
 

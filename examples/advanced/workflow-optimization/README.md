@@ -19,7 +19,9 @@ Four workers drive the optimization cycle: execution analysis, waste identificat
 | Worker | Task | What It Does |
 |---|---|---|
 | **WfoAnalyzeExecutionWorker** | `wfo_analyze_execution` | Builds a dependency graph of workflow tasks and measures per-task timings |
-| **WfoBenchmarkWorker** | `wfo_benchmark` | Compares original vs.### The Workflow
+| **WfoBenchmarkWorker** | `wfo_benchmark` | Compares original vs.
+
+### The Workflow
 
 ```
 wfo_analyze_execution

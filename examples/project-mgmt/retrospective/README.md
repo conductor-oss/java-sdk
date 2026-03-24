@@ -10,7 +10,9 @@ Without orchestration, retrospectives become ad-hoc meetings where feedback is c
 
 **You just write the feedback collection, theme categorization, impact prioritization, and action item generation logic. Conductor handles feedback collection retries, theme analysis, and action item tracking.**
 
-Each retrospective step is a simple, independent worker. one collects raw feedback, one categorizes it into themes, one prioritizes by frequency and impact, one generates action items with owners and deadlines. Conductor takes care of executing them in sequence, retrying if a data source is temporarily unavailable, and maintaining a historical record of every retrospective so you can track improvement trends across sprints. ### What You Write: Workers
+Each retrospective step is a simple, independent worker. one collects raw feedback, one categorizes it into themes, one prioritizes by frequency and impact, one generates action items with owners and deadlines. Conductor takes care of executing them in sequence, retrying if a data source is temporarily unavailable, and maintaining a historical record of every retrospective so you can track improvement trends across sprints.
+
+### What You Write: Workers
 
 Feedback collection, theme identification, action item creation, and follow-up tracking workers each own one step of the team retrospective process.
 

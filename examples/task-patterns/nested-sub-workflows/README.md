@@ -1,6 +1,8 @@
 # Nested Sub Workflows in Java with Conductor
 
-Three-level nested order processing. order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3). ## The Problem
+Three-level nested order processing. order fulfillment (Level 1) delegates to a payment sub-workflow (Level 2), which delegates fraud checking to its own sub-workflow (Level 3).
+
+## The Problem
 
 You need to process an order through a three-level hierarchy: the order workflow (Level 1) calls a payment sub-workflow (Level 2), which itself calls a fraud check sub-workflow (Level 3). The order workflow takes orderId, amount, email, and items. It delegates payment processing to a separate reusable workflow that handles charging and fraud detection. The payment workflow in turn delegates fraud screening to its own sub-workflow that computes a risk score. After payment completes (with fraud check nested inside), the order workflow fulfills the order. Each level is a self-contained, independently testable, and reusable workflow.
 

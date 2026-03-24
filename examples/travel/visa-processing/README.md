@@ -1,6 +1,8 @@
 # Visa Processing in Java with Conductor
 
-Visa processing: collect docs, validate, submit, track, receive. ## The Problem
+Visa processing: collect docs, validate, submit, track, receive.
+
+## The Problem
 
 You need to process a visa application for an employee traveling internationally. collecting required documents (passport, photos, invitation letter, financial statements), validating that all documents meet the destination country's requirements, submitting the application to the consulate or visa service, tracking the application's progress through processing phases, and receiving the approved visa and returning the passport to the employee. Each step depends on the previous one's completion.
 

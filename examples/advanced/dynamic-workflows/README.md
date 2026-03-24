@@ -21,7 +21,9 @@ Four config-driven workers form the data pipeline: validation, transformation, e
 | **DwEnrichWorker** | `dw_enrich` | Enrich step in a dynamic pipeline. |
 | **DwPublishWorker** | `dw_publish` | Publish step in a dynamic pipeline. |
 | **DwTransformWorker** | `dw_transform` | Transform step in a dynamic pipeline. |
-| **DwValidateWorker** | `dw_validate` | Validate step in a dynamic pipeline.### The Workflow
+| **DwValidateWorker** | `dw_validate` | Validate step in a dynamic pipeline.
+
+### The Workflow
 
 ```
 dw_validate

@@ -10,7 +10,9 @@ Without orchestration, you'd build a scheduling tool that queries each interview
 
 **You just write the availability checking, slot selection, candidate invitation, confirmation, and reminder logic. Conductor handles calendar booking retries, availability matching, and scheduling audit trails.**
 
-Each stage of interview scheduling is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status. ### What You Write: Workers
+Each stage of interview scheduling is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking availability before scheduling, scheduling before inviting, confirming all participants after the invite is sent, sending reminders only after confirmation, retrying if a calendar API is temporarily unavailable, and giving recruiters complete visibility into every interview's scheduling status.
+
+### What You Write: Workers
 
 Availability collection, slot matching, calendar booking, and reminder workers coordinate interviews without coupling to the hiring decision logic.
 

@@ -1,6 +1,8 @@
 # Distributed Locking in Java with Conductor
 
-Distributed locking for concurrency control. ## The Problem
+Distributed locking for concurrency control.
+
+## The Problem
 
 When multiple service instances process the same resource concurrently, you need a distributed lock to prevent race conditions. The workflow acquires a lock with a TTL on a named resource, executes the critical-section operation while holding the lock, and then releases it. If the process crashes, the TTL ensures the lock is eventually released.
 

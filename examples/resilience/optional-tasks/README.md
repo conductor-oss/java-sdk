@@ -10,7 +10,9 @@ Without orchestration, optional tasks are implemented with try/catch blocks that
 
 **You just write the core processing and optional enrichment logic. Conductor handles marking tasks as optional, continuing the pipeline when optional tasks fail, and clear tracking of whether enrichment succeeded or was skipped for every execution.**
 
-The required worker runs first. The optional enrichment worker is configured to continue on failure. Conductor marks it as optional. The summarize worker checks whether enrichment data is present and adapts its output accordingly. Every execution shows clearly whether enrichment succeeded or was skipped, and why. ### What You Write: Workers
+The required worker runs first. The optional enrichment worker is configured to continue on failure. Conductor marks it as optional. The summarize worker checks whether enrichment data is present and adapts its output accordingly. Every execution shows clearly whether enrichment succeeded or was skipped, and why.
+
+### What You Write: Workers
 
 RequiredWorker handles the core processing that must succeed, OptionalEnrichWorker adds supplementary data that can fail without blocking, and SummarizeWorker produces the final output while gracefully handling missing enrichment.
 

@@ -1,6 +1,8 @@
 # Simple Plus System in Java with Conductor
 
-Combines SIMPLE workers with INLINE system tasks. ## The Problem
+Combines SIMPLE workers with INLINE system tasks.
+
+## The Problem
 
 You need to build a store sales report: fetch orders from a database, calculate statistics (total revenue, average order value, max order), generate a visual chart, and format a summary email. Some of these steps require external services (database queries, chart generation APIs) and need dedicated workers. Others are simple calculations or string formatting that can run as lightweight JavaScript on the server. Building a worker for every step. including trivial math and string formatting, adds unnecessary operational overhead.
 

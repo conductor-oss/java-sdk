@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic scheduling service that queries 
 
 **You just write the scheduling workers. Availability checks, slot booking, patient confirmation, and reminder setup. Conductor handles step sequencing, automatic retries when the EHR is briefly unavailable, and a complete scheduling audit trail.**
 
-Each step of the scheduling process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking availability before booking, sending confirmations only after a successful booking, retrying if the EHR calendar API is temporarily unavailable, and maintaining a complete record of every scheduling attempt. ### What You Write: Workers
+Each step of the scheduling process is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of checking availability before booking, sending confirmations only after a successful booking, retrying if the EHR calendar API is temporarily unavailable, and maintaining a complete record of every scheduling attempt.
+
+### What You Write: Workers
 
 Four workers divide the scheduling lifecycle: CheckAvailabilityWorker queries provider calendars, BookWorker reserves the slot, ConfirmWorker notifies the patient, and RemindWorker sets up pre-visit reminders.
 

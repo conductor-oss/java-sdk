@@ -1,6 +1,8 @@
 # Service Registry in Java with Conductor
 
-Service registry workflow that registers a service, performs a health check, and discovers the service endpoint. ## The Problem
+Service registry workflow that registers a service, performs a health check, and discovers the service endpoint.
+
+## The Problem
 
 When a new service instance starts up, it must register itself with a service registry so other services can discover it. After registration, a health check confirms the instance is ready to receive traffic, and then the registry can provide its endpoint to callers.
 

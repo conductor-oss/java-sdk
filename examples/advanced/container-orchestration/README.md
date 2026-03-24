@@ -21,7 +21,9 @@ Four workers span the deployment pipeline: image building, container deployment,
 | **CtrBuildWorker** | `ctr_build` | Builds a container image for the given service and tag. |
 | **CtrDeployWorker** | `ctr_deploy` | Deploys a container image with the specified replica count. |
 | **CtrMonitorWorker** | `ctr_monitor` | Enables monitoring for a deployment. |
-| **CtrScaleWorker** | `ctr_scale` | Configures auto-scaling for a deployment.### The Workflow
+| **CtrScaleWorker** | `ctr_scale` | Configures auto-scaling for a deployment.
+
+### The Workflow
 
 ```
 ctr_build

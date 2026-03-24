@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic RIS/PACS integration that polls 
 
 **You just write the imaging workers. DICOM acquisition, image processing, AI-assisted analysis, radiology reporting, and PACS archival. Conductor handles stage sequencing, automatic retries when the AI analysis service is temporarily unavailable, and a complete audit trail for ACR accreditation and HIPAA.**
 
-Each stage of the imaging pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of processing only after acquisition, analyzing only after processing, generating the report only after analysis, archiving to PACS as the final step, and maintaining a complete audit trail for ACR accreditation and HIPAA compliance. ### What You Write: Workers
+Each stage of the imaging pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of processing only after acquisition, analyzing only after processing, generating the report only after analysis, archiving to PACS as the final step, and maintaining a complete audit trail for ACR accreditation and HIPAA compliance.
+
+### What You Write: Workers
 
 Five workers form the imaging pipeline: AcquireWorker receives DICOM images from modalities, ProcessImageWorker applies windowing and reconstruction, AnalyzeImageWorker runs AI-assisted detection, ReportWorker generates the radiology report, and StoreWorker archives to PACS.
 

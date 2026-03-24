@@ -1,6 +1,8 @@
 # Automated Testing Pipeline in Java with Conductor : Setup Environment, Parallel Test Suites, Aggregate Results
 
-Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results. ## Parallel Testing Cuts Pipeline Time by 3x
+Orchestrates a test suite: setup environment, run unit/integration/e2e tests in parallel, aggregate results.
+
+## Parallel Testing Cuts Pipeline Time by 3x
 
 A test suite takes 30 minutes to run sequentially: 10 minutes for unit tests, 15 minutes for integration tests, 5 minutes for performance tests. Running all three in parallel brings it down to 15 minutes (the slowest suite). But parallel execution requires a shared environment setup, independent test runners, and a final aggregation step that merges results from all three suites.
 

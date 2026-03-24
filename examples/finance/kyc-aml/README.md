@@ -1,6 +1,8 @@
 # KYC AML in Java with Conductor
 
-KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and makes a compliance decision. ## The Problem
+KYC/AML workflow that verifies customer identity, screens against watchlists, assesses risk, and makes a compliance decision.
+
+## The Problem
 
 You need to verify a customer's identity and screen them against anti-money-laundering watchlists before onboarding. The workflow verifies the customer's identity documents, screens their name against sanctions lists (OFAC, EU, UN), PEP lists, and adverse media, assesses the overall risk level, and makes a compliance decision (approve, enhanced due diligence, or reject). Onboarding a sanctioned individual exposes the institution to massive fines and criminal liability.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single compliance service that calls identi
 
 **You just write the compliance workers. Identity verification, watchlist screening, risk assessment, and approval/rejection decision. Conductor handles step sequencing, automatic retries when a watchlist provider is unavailable, and a tamper-evident compliance audit trail.**
 
-Each KYC/AML concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (verify identity, screen watchlists, assess risk, make decision), retrying if a watchlist provider is unavailable, maintaining a complete compliance audit trail, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each KYC/AML concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (verify identity, screen watchlists, assess risk, make decision), retrying if a watchlist provider is unavailable, maintaining a complete compliance audit trail, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Four workers form the compliance pipeline: VerifyIdentityWorker checks identity documents, ScreenWatchlistsWorker queries OFAC, PEP, and adverse media lists, AssessRiskWorker computes the overall risk level, and DecideWorker makes the approve, EDD, or reject determination.
 

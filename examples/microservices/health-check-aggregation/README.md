@@ -1,6 +1,8 @@
 # Health Check Aggregation in Java with Conductor
 
-System-wide health check aggregation using FORK/JOIN. ## The Problem
+System-wide health check aggregation using FORK/JOIN.
+
+## The Problem
 
 Determining overall system health requires checking multiple infrastructure components. API gateway, database, cache, message queue, and aggregating their individual statuses into a single health verdict. These checks are independent and should run in parallel for speed, but the aggregation must wait for all of them to complete.
 

@@ -1,6 +1,8 @@
 # Distributed Transactions in Java with Conductor
 
-Distributed transactions with prepare-commit saga pattern. ## The Problem
+Distributed transactions with prepare-commit saga pattern.
+
+## The Problem
 
 An e-commerce order touches three services: order, payment, and inventory, each with its own database. All three must succeed or none should commit, but there is no single database transaction that spans them. This workflow uses a prepare-commit saga: all services prepare (reserve resources) in parallel, and only after all succeed does a commit step finalize them.
 

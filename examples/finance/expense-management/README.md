@@ -1,6 +1,8 @@
 # Expense Management in Java with Conductor
 
-Expense management: submit, validate receipts, categorize, approve, reimburse. ## The Problem
+Expense management: submit, validate receipts, categorize, approve, reimburse.
+
+## The Problem
 
 You need to process employee expense reports from submission to reimbursement. An employee submits an expense with receipt, the receipt is validated for authenticity and policy compliance (amount limits, eligible categories), the expense is categorized for accounting, a manager approves it, and the employee is reimbursed. Processing expenses without receipt validation invites fraud; reimbursing without approval violates spending controls.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single expense service that uploads receipt
 
 **You just write the expense workers. Report submission, receipt validation, GL categorization, manager approval, and reimbursement. Conductor handles sequential processing, automatic retries when the receipt validation service times out, and complete expense tracking from submission to reimbursement.**
 
-Each expense concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, validate, categorize, approve, reimburse), retrying if the receipt validation service times out, tracking every expense from submission to reimbursement, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each expense concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, validate, categorize, approve, reimburse), retrying if the receipt validation service times out, tracking every expense from submission to reimbursement, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers manage the expense lifecycle: SubmitExpenseWorker captures the report, ValidateReceiptsWorker checks receipt authenticity, CategorizeWorker assigns GL codes, ApproveExpenseWorker routes for manager sign-off, and ReimburseWorker triggers payment.
 

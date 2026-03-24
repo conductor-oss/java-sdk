@@ -10,7 +10,9 @@ Without orchestration, you'd chain all of this in a single monolithic class. Cal
 
 **You just write the audio processing workers. preprocessing, transcription, timestamping, keyword extraction. Conductor handles sequential execution, crash recovery mid-transcription, and automatic retries when speech APIs time out.**
 
-Each stage of the transcription pipeline is a simple, independent worker, a plain Java class that does one thing. The preprocessing worker normalizes audio. The transcription worker converts speech to text. The timestamp worker aligns words to time codes. The keyword worker extracts topics. Conductor executes them in sequence, passes each worker's output to the next, retries if a speech API call fails, and resumes from exactly where it left off if the process crashes mid-transcription. ### What You Write: Workers
+Each stage of the transcription pipeline is a simple, independent worker, a plain Java class that does one thing. The preprocessing worker normalizes audio. The transcription worker converts speech to text. The timestamp worker aligns words to time codes. The keyword worker extracts topics. Conductor executes them in sequence, passes each worker's output to the next, retries if a speech API call fails, and resumes from exactly where it left off if the process crashes mid-transcription.
+
+### What You Write: Workers
 
 This pipeline breaks audio processing into four focused workers. from raw audio cleanup through speech-to-text to keyword tagging, each handling one stage of the transcription chain.
 

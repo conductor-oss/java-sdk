@@ -10,7 +10,9 @@ Without orchestration, lease management is a tangle of manual steps. Property ma
 
 **You just write the lease creation, signature collection, activation, and renewal or termination logic. Conductor handles notification retries, payment scheduling, and lease lifecycle audit trails.**
 
-Each lease lifecycle step is a simple, independent worker. one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action. ### What You Write: Workers
+Each lease lifecycle step is a simple, independent worker. one creates the lease, one handles signing, one activates it, and then a SWITCH task routes to either renewal or termination based on the requested action. Conductor takes care of executing them in order, ensuring no lease is activated without a signature, routing to the correct end-of-lease path, and maintaining a complete history of every lease action.
+
+### What You Write: Workers
 
 Lease drafting, tenant notification, payment scheduling, and renewal tracking workers each handle one aspect of the lease lifecycle.
 
@@ -22,7 +24,9 @@ Lease drafting, tenant notification, payment scheduling, and renewal tracking wo
 | **RenewLeaseWorker** | `lse_renew` | Processes lease renewal with updated terms and rent escalation (renew path) |
 | **TerminateLeaseWorker** | `lse_terminate` | Handles lease termination. schedules move-out inspection, initiates deposit return (terminate path) |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 lse_create

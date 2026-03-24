@@ -12,7 +12,9 @@ Without orchestration, you'd build a single class that reads the CSV, runs valid
 
 **You just write the CSV parsing, row validation, field transformation, and output generation workers. Conductor handles row-level tracking across parse-validate-transform stages, automatic retries, and visibility into accept/reject counts at each step.**
 
-Each stage of the CSV pipeline is a simple, independent worker. The parser splits raw CSV text into structured rows using the configured delimiter and header mode. The validator checks each row for required fields and format constraints (non-empty name, valid email). The transformer normalizes field values. Title-casing names, lowercasing emails, uppercasing departments, parsing salary strings into doubles. The output generator assembles the clean records and computes summary statistics. Conductor executes them in sequence, passes rows between steps, retries if a step fails, and tracks exactly how many rows were parsed, validated, and transformed. ### What You Write: Workers
+Each stage of the CSV pipeline is a simple, independent worker. The parser splits raw CSV text into structured rows using the configured delimiter and header mode. The validator checks each row for required fields and format constraints (non-empty name, valid email). The transformer normalizes field values. Title-casing names, lowercasing emails, uppercasing departments, parsing salary strings into doubles. The output generator assembles the clean records and computes summary statistics. Conductor executes them in sequence, passes rows between steps, retries if a step fails, and tracks exactly how many rows were parsed, validated, and transformed.
+
+### What You Write: Workers
 
 Four workers handle the CSV lifecycle: parsing raw text into rows, validating names and emails, normalizing field casing and types, and producing clean output with summary statistics.
 

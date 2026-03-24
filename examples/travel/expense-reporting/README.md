@@ -1,6 +1,8 @@
 # Expense Reporting in Java with Conductor
 
-Expense reporting: collect, categorize, submit, approve, reimburse. ## The Problem
+Expense reporting: collect, categorize, submit, approve, reimburse.
+
+## The Problem
 
 You need to process a travel expense report from receipt collection through reimbursement. An employee returns from a trip with receipts for flights, hotels, meals, and transportation. You collect all receipts and line items. You categorize each expense (airfare, lodging, meals, ground transport, miscellaneous). You submit the categorized report for approval. The manager reviews and approves or rejects it. Finally, approved expenses are reimbursed to the employee's payroll or bank account.
 

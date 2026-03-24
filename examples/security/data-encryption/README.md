@@ -10,7 +10,9 @@ Without orchestration, encryption is either applied uniformly (wasteful) or ad h
 
 **You just write the classification rules and KMS integration. Conductor handles the strict ordering from classification to verification, retries on KMS timeouts, and an audit record of every key generated and field encrypted.**
 
-Each encryption step is an independent worker. data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result. ### What You Write: Workers
+Each encryption step is an independent worker. data classification, key generation, encryption, and verification. Conductor runs them in sequence: classify the data, generate the appropriate key, encrypt, then verify. Every encryption operation is tracked with classification level, key ID, algorithm used, and verification result.
+
+### What You Write: Workers
 
 The encryption pipeline uses four workers: ClassifyDataWorker determines sensitivity levels, GenerateKeyWorker creates the appropriate AES key, EncryptDataWorker applies the cipher, and VerifyEncryptionWorker confirms no plaintext remains.
 

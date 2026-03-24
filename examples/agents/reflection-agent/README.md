@@ -1,6 +1,8 @@
 # Reflection Agent in Java Using Conductor : Generate, Reflect, Improve in Iterative Refinement Loop
 
-Reflection Agent. generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output. ## First Drafts Are Never Good Enough
+Reflection Agent. generates content on a topic, iteratively reflects and improves through a DO_WHILE loop, then produces final polished output.
+
+## First Drafts Are Never Good Enough
 
 An LLM's first response to "Write an essay about climate change solutions" is serviceable but rarely excellent. It might lack specific examples, have a weak conclusion, or miss an important perspective. A reflection agent catches these weaknesses: after generating the initial draft, a separate reflection step identifies specific issues ("Paragraph 3 lacks a concrete example", "The economic analysis is superficial"), and an improvement step addresses each issue.
 

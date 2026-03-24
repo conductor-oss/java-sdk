@@ -1,6 +1,8 @@
 # Catering Management in Java with Conductor
 
-Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing. ## The Problem
+Orchestrates a catering order from client inquiry through menu planning, event execution, and invoicing.
+
+## The Problem
 
 You need to manage a catering order from initial inquiry to final invoice. A client reaches out with event details (date, guest count), a customized quote is prepared, the menu is planned based on dietary requirements and budget, the catering event is executed, and the final invoice is sent. Providing a quote without understanding guest count leads to cost overruns; executing without a planned menu results in food shortages or waste.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage catering through spreadsheets and email. man
 
 **You just write the client inquiry, menu planning, event execution, and invoicing logic. Conductor handles quote retries, event coordination sequencing, and catering engagement audit trails.**
 
-Each catering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each catering concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inquiry, quote, plan menu, execute, invoice), retrying if an external service fails, tracking every catering order's lifecycle, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Inquiry intake, menu planning, quoting, execution, and invoicing workers each manage one phase of a catering engagement.
 

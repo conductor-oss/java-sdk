@@ -1,6 +1,8 @@
 # Inter Service Communication in Java with Conductor
 
-Orchestrates request-response communication between microservices. ## The Problem
+Orchestrates request-response communication between microservices.
+
+## The Problem
 
 Fulfilling a customer order requires coordinating four microservices in sequence: the order service validates the order, the inventory service reserves stock, the shipping service creates a shipment, and the notification service sends the customer a tracking email. Each service depends on the output of the previous one.
 

@@ -1,6 +1,8 @@
 # Metrics Collection in Java with Conductor : Parallel Source Collection via FORK_JOIN, Aggregate
 
-Collect metrics from multiple sources in parallel using FORK/JOIN, then aggregate the results. Pattern: FORK(collect_app, collect_infra, collect_business) -> JOIN -> aggregate. ## Metrics From Multiple Sources Need Unified Collection
+Collect metrics from multiple sources in parallel using FORK/JOIN, then aggregate the results. Pattern: FORK(collect_app, collect_infra, collect_business) -> JOIN -> aggregate.
+
+## Metrics From Multiple Sources Need Unified Collection
 
 A complete system health picture requires metrics from multiple sources: application metrics (request rate, error rate, latency from Prometheus), infrastructure metrics (CPU, memory, disk from CloudWatch), and business metrics (orders per minute, revenue from the application database). Collecting them sequentially triples the collection time. Collecting them in parallel gives you all metrics in the time of the slowest source.
 

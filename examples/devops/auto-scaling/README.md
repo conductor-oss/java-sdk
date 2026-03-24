@@ -1,6 +1,8 @@
 # Auto-Scaling in Java with Conductor : Analyze Metrics, Plan Scaling, Execute, Verify
 
-Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify. ## Scaling Decisions Need Analysis, Not Just Thresholds
+Analyzes service metrics, plans scaling action, executes scaling, and verifies the result. Pattern: analyze -> plan -> execute -> verify.
+
+## Scaling Decisions Need Analysis, Not Just Thresholds
 
 CPU is at 80%. Should you scale up? Maybe, or maybe it's a transient spike from a batch job that ends in 5 minutes. Auto-scaling needs more than simple threshold crossing: analyze the metric trend (is it sustained or transient?), plan the scaling (how many instances, which instance type?), execute the scaling operation, and verify the new instances are healthy and handling traffic.
 

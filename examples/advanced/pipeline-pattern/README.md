@@ -14,7 +14,9 @@ Building a pipeline as a monolithic function tangles parsing, conversion, calibr
 
 ### What You Write: Workers
 
-Four stage workers form a sequential transformation chain: validation, format transformation, metadata enrichment, and final output, each receiving the exact output of the previous stage.### The Workflow
+Four stage workers form a sequential transformation chain: validation, format transformation, metadata enrichment, and final output, each receiving the exact output of the previous stage.
+
+### The Workflow
 
 ```
 pip_stage_1

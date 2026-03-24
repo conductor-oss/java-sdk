@@ -14,7 +14,9 @@ Building request-reply manually means storing pending requests in a database, im
 
 ### What You Write: Workers
 
-Four workers manage the request-response lifecycle: sending with a correlation ID, waiting with a timeout, response matching, and result delivery, each handling one phase of asynchronous communication.### The Workflow
+Four workers manage the request-response lifecycle: sending with a correlation ID, waiting with a timeout, response matching, and result delivery, each handling one phase of asynchronous communication.
+
+### The Workflow
 
 ```
 rqr_send_request

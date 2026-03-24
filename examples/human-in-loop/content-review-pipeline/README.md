@@ -10,7 +10,9 @@ Without orchestration, you'd call the AI API, store the draft in a database, ema
 
 **You just write the AI draft-generation and publishing workers. Conductor handles the durable pause for editorial review and the content lifecycle tracking.**
 
-The WAIT task is the key pattern here. After the AI generates the draft, the workflow pauses at the WAIT task. Conductor holds the draft content, word count, and model metadata until a human editor completes the review with an approved/rejected decision and optionally edited content. The publish worker only fires after the review is complete. Conductor takes care of holding the draft durably while the editor reviews (minutes, hours, or days), passing the editor's approved flag and edited content to the publish worker, tracking the complete content lifecycle from AI generation through review to publication, and providing metrics on review turnaround time and approval rates. ### What You Write: Workers
+The WAIT task is the key pattern here. After the AI generates the draft, the workflow pauses at the WAIT task. Conductor holds the draft content, word count, and model metadata until a human editor completes the review with an approved/rejected decision and optionally edited content. The publish worker only fires after the review is complete. Conductor takes care of holding the draft durably while the editor reviews (minutes, hours, or days), passing the editor's approved flag and edited content to the publish worker, tracking the complete content lifecycle from AI generation through review to publication, and providing metrics on review turnaround time and approval rates.
+
+### What You Write: Workers
 
 CrpAiDraftWorker generates content for a topic and audience, and CrpPublishWorker posts approved copy to the CMS, the editorial review pause between them is handled entirely by Conductor.
 

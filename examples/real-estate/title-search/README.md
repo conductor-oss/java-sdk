@@ -10,7 +10,9 @@ Without orchestration, title searches are manual and error-prone. A paralegal se
 
 **You just write the record search, ownership verification, lien check, and title certification logic. Conductor handles lien search retries, ownership verification, and title audit trails.**
 
-Each title search step is a simple, independent worker. one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on. ### What You Write: Workers
+Each title search step is a simple, independent worker. one searches county records, one verifies current ownership, one checks for liens, one issues the certification. Conductor takes care of executing them in strict order so no certification is issued without a lien check, retrying if the county records system is temporarily unavailable, and maintaining a complete audit trail that title insurance underwriters can rely on.
+
+### What You Write: Workers
 
 Ownership history research, lien search, encumbrance analysis, and title report workers each investigate one aspect of property title status.
 
@@ -21,7 +23,9 @@ Ownership history research, lien search, encumbrance analysis, and title report 
 | **CheckLiensWorker** | `tts_check_liens` | Searches for outstanding liens. tax, mechanic's, HOA, judgment, and federal liens |
 | **CertifyTitleWorker** | `tts_certify` | Issues the title certification if ownership is verified and all liens are cleared |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 tts_search

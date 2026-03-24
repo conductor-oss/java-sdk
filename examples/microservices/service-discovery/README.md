@@ -1,6 +1,8 @@
 # Service Discovery in Java with Conductor
 
-Discover services, select instance, call with failover. ## The Problem
+Discover services, select instance, call with failover.
+
+## The Problem
 
 In a dynamic microservice environment, service instances come and go. Calling a service requires discovering available instances from a registry, selecting the best one (e.g., least connections, healthiest), making the call, and handling failover if the selected instance is down.
 

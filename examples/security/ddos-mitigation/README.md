@@ -10,7 +10,9 @@ Without orchestration, DDoS response is a runbook executed by an on-call enginee
 
 **You just write the traffic detection and mitigation rules. Conductor handles rapid sequential execution under attack conditions, retries on CDN API failures, and a timestamped record of every mitigation action and service availability check.**
 
-Each mitigation step is an independent worker. traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status. ### What You Write: Workers
+Each mitigation step is an independent worker. traffic detection, attack classification, mitigation application, and service verification. Conductor runs them in sequence: detect the anomaly, classify the attack, apply mitigation, then verify the service. Every mitigation action is tracked with traffic metrics, attack classification, and service availability status.
+
+### What You Write: Workers
 
 The mitigation chain runs DetectWorker to spot traffic anomalies, ClassifyWorker to identify the attack vector (SYN flood, HTTP flood, DNS amplification), MitigateWorker to activate rate limiting and scrubbing, and VerifyServiceWorker to confirm legitimate traffic is flowing again.
 

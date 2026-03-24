@@ -1,6 +1,8 @@
 # Fork In Do While in Java with Conductor
 
-FORK inside DO_WHILE demo. iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop. ## The Problem
+FORK inside DO_WHILE demo. iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop.
+
+## The Problem
 
 You need to process multiple batches iteratively, where each batch contains tasks that can run in parallel. For example, processing 5 batches of data imports where each batch involves parallel validation, transformation, and loading steps. The loop runs until all batches are complete (iteration >= totalBatches), and within each iteration, the parallel tasks must all finish before the next iteration begins. After all batches complete, a summary step aggregates the results across every iteration.
 

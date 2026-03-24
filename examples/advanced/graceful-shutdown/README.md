@@ -14,7 +14,9 @@ Graceful shutdown means stopping new task pickup first (signal), giving the queu
 
 ### What You Write: Workers
 
-Five workers enforce the shutdown protocol: signal broadcast, queue draining, in-flight completion, state checkpointing, and final stop, ensuring zero work is lost during deploys.### The Workflow
+Five workers enforce the shutdown protocol: signal broadcast, queue draining, in-flight completion, state checkpointing, and final stop, ensuring zero work is lost during deploys.
+
+### The Workflow
 
 ```
 gsh_signal

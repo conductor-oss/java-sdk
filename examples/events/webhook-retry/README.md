@@ -1,6 +1,8 @@
 # Webhook Retry in Java Using Conductor
 
-Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 times, checks each result, and records the final outcome. ## The Problem
+Webhook delivery workflow with DO_WHILE retry loop. Prepares the webhook, attempts delivery up to 3 times, checks each result, and records the final outcome.
+
+## The Problem
 
 You need to deliver webhook payloads to external URLs with automatic retry on failure. The workflow prepares the webhook payload, attempts delivery to the target URL, and retries up to a configurable number of times with backoff if delivery fails (network error, timeout, non-2xx response). After all attempts, the final outcome is recorded. Without retry, transient network issues cause permanent webhook delivery failures.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a retry loop with exponential backoff, manual
 
 **You just write the payload-prepare, delivery-attempt, result-check, and outcome-recording workers. Conductor handles DO_WHILE retry loops, durable delivery state across attempts, and a complete record of every delivery attempt and final outcome.**
 
-Each delivery concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome, with durable state that survives crashes and full visibility into every delivery attempt. ### What You Write: Workers
+Each delivery concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of preparing the payload, attempting delivery in a DO_WHILE retry loop, checking each result, and recording the final outcome, with durable state that survives crashes and full visibility into every delivery attempt.
+
+### What You Write: Workers
 
 Four workers manage retry-based delivery: PrepareWebhookWorker packages the payload, AttemptDeliveryWorker makes the HTTP call, CheckResultWorker evaluates the response, and RecordOutcomeWorker logs the final delivery status.
 

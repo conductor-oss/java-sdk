@@ -1,6 +1,8 @@
 # Complex Event Processing in Java Using Conductor
 
-Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity. ## The Problem
+Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity.
+
+## The Problem
 
 You need to analyze streams of events for patterns that signal anomalies. This means ingesting a batch of events, checking whether expected sequences occurred (e.g., login before purchase), detecting the absence of required events (e.g., missing confirmation), and identifying timing violations where gaps between events exceed acceptable thresholds. When any pattern is anomalous, the system must trigger an alert; otherwise, it logs normal activity. Each detection pass depends on the ingested events, and the final routing depends on the combined results.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a monolithic event processor that reads from 
 
 **You just write the event-ingestion, sequence-detection, absence-detection, timing-detection, and alert workers. Conductor handles multi-detector sequencing, SWITCH-based alert routing, and a complete record of every analysis run.**
 
-Each detection concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (ingest, detect sequence, detect absence, detect timing), then routing via a SWITCH task to either trigger an alert or log normal activity, retrying if a detector fails, tracking every analysis run, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each detection concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (ingest, detect sequence, detect absence, detect timing), then routing via a SWITCH task to either trigger an alert or log normal activity, retrying if a detector fails, tracking every analysis run, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Six workers analyze event streams: IngestEventsWorker accepts a batch, DetectSequenceWorker checks for expected ordering, DetectAbsenceWorker flags missing events, DetectTimingWorker catches gap violations, and TriggerAlertWorker or LogNormalWorker handles the outcome.
 

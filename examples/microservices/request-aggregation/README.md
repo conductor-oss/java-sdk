@@ -1,6 +1,8 @@
 # Request Aggregation in Java with Conductor
 
-Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response. ## The Problem
+Aggregates data from multiple microservices in parallel using FORK_JOIN, then merges results into a single response.
+
+## The Problem
 
 A single client request (e.g., loading a user dashboard) often requires data from multiple backend services. User profiles, order history, and personalized recommendations. These fetches are independent and should run in parallel for performance, then the results must be merged into a single response.
 

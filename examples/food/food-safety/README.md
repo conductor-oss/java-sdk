@@ -1,6 +1,8 @@
 # Food Safety in Java with Conductor
 
-Conducts a food safety inspection: visiting the facility, checking temperatures, verifying hygiene, issuing certification, and recording results. ## The Problem
+Conducts a food safety inspection: visiting the facility, checking temperatures, verifying hygiene, issuing certification, and recording results.
+
+## The Problem
 
 You need to conduct a food safety inspection at a restaurant. An inspector visits the facility, checks temperature logs for food storage and cooking equipment, verifies hygiene practices (handwashing, cross-contamination prevention, pest control), issues a safety certification if standards are met, and records the inspection results. Certifying without thorough temperature and hygiene checks puts public health at risk.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage inspections with paper checklists and spread
 
 **You just write the facility inspection, temperature checks, hygiene verification, and certification issuance logic. Conductor handles inspection scheduling retries, compliance routing, and safety audit trails.**
 
-Each food safety concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each food safety concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (inspect, check temps, verify hygiene, certify, record), tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Inspection scheduling, temperature logging, compliance checking, and reporting workers each enforce one layer of food safety protocols.
 

@@ -1,6 +1,8 @@
 # Public Records in Java with Conductor
 
-Fulfills a public records request (FOIA): receiving the request, searching government databases, verifying document authenticity, redacting sensitive information, and releasing records to the requester. ## The Problem
+Fulfills a public records request (FOIA): receiving the request, searching government databases, verifying document authenticity, redacting sensitive information, and releasing records to the requester.
+
+## The Problem
 
 You need to fulfill a public records request (FOIA, state open records law). A requester submits a request for specific records, the records are searched across government databases and archives, found records are verified for authenticity, sensitive information is redacted (SSNs, law enforcement details, attorney-client privilege), and the redacted records are released to the requester. Releasing un-redacted records exposes private information and violates privacy laws; denying without proper search violates open records laws.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage records requests through email and shared dr
 
 **You just write the request intake, database search, document verification, redaction, and record release logic. Conductor handles search retries, redaction sequencing, and records request audit trails.**
 
-Each records request concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each records request concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, search, verify, redact, release), tracking every request with timestamps for statutory deadline compliance, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Request validation, records search, redaction, and delivery workers handle FOIA and public records requests through auditable stages.
 

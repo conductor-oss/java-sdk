@@ -10,7 +10,9 @@ Without orchestration, failure notifications are afterthoughts. a catch block th
 
 **You just write the order processor and notification channel integrations. Conductor handles failure detection, parallel notification dispatch across all channels, retries on delivery failures, and a record of which alerts were sent for every failed order.**
 
-The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked. you can see which alerts were sent, which failed, and how long each took. ### What You Write: Workers
+The order processing worker handles business logic. When it fails, Conductor's failure workflow automatically triggers, running Slack, email, and PagerDuty notifications in parallel. Even if one notification channel is down, the others still fire. Every notification attempt is tracked. you can see which alerts were sent, which failed, and how long each took.
+
+### What You Write: Workers
 
 ProcessOrderWorker handles the business logic, and when it fails, Conductor's failure workflow automatically fires SendSlackWorker, SendEmailWorker, and SendPagerDutyWorker in parallel so all channels are notified simultaneously.
 

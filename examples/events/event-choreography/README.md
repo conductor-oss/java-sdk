@@ -1,6 +1,8 @@
 # Event Choreography in Java Using Conductor
 
-Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service. ## The Problem
+Choreography pattern: services communicate through events with no central orchestrator. Each service emits an event that triggers the next service.
+
+## The Problem
 
 You need to coordinate an order fulfillment flow where each service communicates through events. The order service creates an order and emits an event, the payment service processes payment and emits a confirmation event, the inventory service reserves stock and emits a shipment event, and the notification service sends a confirmation to the customer. Each service reacts to the previous service's event rather than being called directly.
 

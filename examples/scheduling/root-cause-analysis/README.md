@@ -10,7 +10,9 @@ Without orchestration, root cause analysis is manual. an engineer opens 5 dashbo
 
 **You just write the evidence collection queries and correlation analysis logic. Conductor handles the detect-collect-analyze-identify sequence, retries when log or metric sources are temporarily unavailable, and a complete record of every RCA session's evidence and conclusions.**
 
-Each RCA step is an independent worker. issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked, you can see what evidence was collected, what correlations were found, and what root cause was identified. ### What You Write: Workers
+Each RCA step is an independent worker. issue detection, evidence collection, correlation analysis, and root cause identification. Conductor runs them in sequence: detect the issue, collect evidence, analyze correlations, then identify the root cause. Every RCA run is tracked, you can see what evidence was collected, what correlations were found, and what root cause was identified.
+
+### What You Write: Workers
 
 Four workers automate RCA: DetectIssueWorker identifies the incident scope, CollectEvidenceWorker gathers logs/metrics/deployment data, an AnalyzeCorrelationsWorker finds patterns, and IdentifyRootCauseWorker pinpoints the most likely cause with a remediation recommendation.
 

@@ -1,6 +1,8 @@
 # Abandoned Cart Recovery in Java Using Conductor : Detect, Wait, Remind, Discount, Convert
 
-Abandoned cart recovery: detect, wait, remind, offer discount, convert. ## 70% of Shopping Carts Are Abandoned
+Abandoned cart recovery: detect, wait, remind, offer discount, convert.
+
+## 70% of Shopping Carts Are Abandoned
 
 A customer adds $150 worth of items to their cart and leaves. Without intervention, that revenue is lost. Abandoned cart recovery sends a reminder email after a delay (typically 1-4 hours), and if the customer still hasn't returned, offers a discount to incentivize completion. This sequence recovers 5-15% of abandoned carts on average.
 

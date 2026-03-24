@@ -10,7 +10,9 @@ Without orchestration, you'd build a single enrollment service that receives app
 
 **You just write the application intake, academic review, admission decision, registration, and orientation scheduling logic. Conductor handles eligibility retries, seat assignment sequencing, and enrollment audit trails.**
 
-Each enrollment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (apply, review, admit, enroll, orient), retrying if the student information system times out, tracking every application's full journey from submission to orientation, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each enrollment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (apply, review, admit, enroll, orient), retrying if the student information system times out, tracking every application's full journey from submission to orientation, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Application intake, eligibility check, seat assignment, and confirmation workers process enrollments as a sequence of independent validations.
 

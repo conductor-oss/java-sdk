@@ -1,6 +1,8 @@
 # Service Versioning in Java with Conductor
 
-API version management with version routing. ## The Problem
+API version management with version routing.
+
+## The Problem
 
 When an API evolves, clients on different versions must be served correctly. This workflow resolves the requested API version (mapping aliases like 'latest' to 'v2'), routes to the correct versioned handler (v1 or v2), and logs the version usage for deprecation tracking.
 

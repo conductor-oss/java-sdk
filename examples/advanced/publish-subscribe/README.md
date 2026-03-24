@@ -14,7 +14,9 @@ Building pub-sub fan-out manually means spawning threads for each subscriber, im
 
 ### What You Write: Workers
 
-Five workers implement the pub-sub fan-out: event publishing, three parallel subscriber handlers (analytics, notification, audit), and delivery confirmation, each subscriber processing the event independently.### The Workflow
+Five workers implement the pub-sub fan-out: event publishing, three parallel subscriber handlers (analytics, notification, audit), and delivery confirmation, each subscriber processing the event independently.
+
+### The Workflow
 
 ```
 pbs_publish

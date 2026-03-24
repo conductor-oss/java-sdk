@@ -10,7 +10,9 @@ Without orchestration, network segmentation is configured manually in firewall c
 
 **You just write the firewall rules and zone definitions. Conductor handles ordered deployment of zones and rules, retries on firewall API failures, and a full record of every rule applied and isolation test result.**
 
-Each segmentation step is an independent worker. zone definition, rule configuration, policy application, and isolation verification. Conductor runs them in sequence: define zones, configure rules between them, apply the policies, then verify isolation. Every segmentation operation is tracked with zone configurations, rules applied, and verification results. ### What You Write: Workers
+Each segmentation step is an independent worker. zone definition, rule configuration, policy application, and isolation verification. Conductor runs them in sequence: define zones, configure rules between them, apply the policies, then verify isolation. Every segmentation operation is tracked with zone configurations, rules applied, and verification results.
+
+### What You Write: Workers
 
 Four workers manage segmentation end-to-end: DefineZonesWorker establishes network boundaries, ConfigureRulesWorker sets inter-zone firewall policies, ApplyPoliciesWorker deploys security groups, and VerifyIsolationWorker confirms no unauthorized cross-zone traffic.
 

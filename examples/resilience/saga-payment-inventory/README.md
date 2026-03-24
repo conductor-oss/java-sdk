@@ -10,7 +10,9 @@ Without orchestration, order processing is a monolithic transaction attempt. A s
 
 **You just write the order processing and compensation logic. Conductor handles the reserve-charge-ship sequence, SWITCH-based failure detection, reverse-order compensation (refund then release), retries on each step, and a complete audit trail of every order showing which steps completed and which compensations ran.**
 
-Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation. refund payment, then release inventory, in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran. ### What You Write: Workers
+Each forward step (reserve inventory, charge payment, ship order) and its compensation (release inventory, refund payment) are independent workers. Conductor runs the forward steps in sequence. When shipping fails, the failure workflow triggers compensation. refund payment, then release inventory, in the correct reverse order. Every step is tracked, so you can see exactly where the order failed and which compensations ran.
+
+### What You Write: Workers
 
 ReserveInventoryWorker locks stock, ChargePaymentWorker processes the charge, and ShipOrderWorker dispatches the package, with ReleaseInventoryWorker and RefundPaymentWorker as compensating transactions that execute in reverse order when shipping fails.
 

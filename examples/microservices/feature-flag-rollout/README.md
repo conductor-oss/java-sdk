@@ -1,6 +1,8 @@
 # Feature Flag Rollout in Java with Conductor
 
-Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback. ## The Problem
+Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback.
+
+## The Problem
 
 Rolling out a feature flag involves creating the flag, enabling it for a target user segment at a specified percentage, monitoring its impact on key metrics (conversion rate, error rate), and then deciding whether to fully activate or roll back. Each step depends on the previous one. You cannot monitor impact until the flag is enabled for a segment.
 

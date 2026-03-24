@@ -10,7 +10,9 @@ Without orchestration, you'd hardcode a single compression algorithm, skip the a
 
 **You just write the data analysis, algorithm selection, compression, integrity verification, and savings reporting workers. Conductor handles the analyze-select-compress-verify-report sequence, retries when compression fails on large datasets, and crash recovery that resumes from the exact step that failed.**
 
-Each stage of the compression pipeline is a simple, independent worker. The analyzer profiles the input data to measure size, record count, and data characteristics. The algorithm selector chooses the best compression method based on the analysis results and the target format. The compressor applies the selected algorithm and computes a checksum. The verifier confirms the compressed output's integrity by validating the checksum and record count. The reporter calculates the compression ratio and storage savings. Conductor executes them in sequence, passes analysis results to the algorithm selector and compression output to the verifier, retries if compression fails on a large dataset, and resumes from the exact step where it left off. ### What You Write: Workers
+Each stage of the compression pipeline is a simple, independent worker. The analyzer profiles the input data to measure size, record count, and data characteristics. The algorithm selector chooses the best compression method based on the analysis results and the target format. The compressor applies the selected algorithm and computes a checksum. The verifier confirms the compressed output's integrity by validating the checksum and record count. The reporter calculates the compression ratio and storage savings. Conductor executes them in sequence, passes analysis results to the algorithm selector and compression output to the verifier, retries if compression fails on a large dataset, and resumes from the exact step where it left off.
+
+### What You Write: Workers
 
 Five workers cover the intelligent compression pipeline: profiling data characteristics, selecting the optimal algorithm, compressing the data, verifying integrity via checksums, and reporting the compression ratio and savings.
 

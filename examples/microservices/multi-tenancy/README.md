@@ -1,6 +1,8 @@
 # Multi Tenancy in Java with Conductor
 
-Tenant-isolated workflows with per-tenant routing. ## The Problem
+Tenant-isolated workflows with per-tenant routing.
+
+## The Problem
 
 In a multi-tenant system, each request must be routed to the correct tenant context, processed according to the tenant's tier (which determines rate limits, features, and resource allocation), and logged for per-tenant billing. The tenant's tier affects which resources and SLAs apply.
 

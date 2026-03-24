@@ -10,7 +10,9 @@ Without orchestration, trace collection relies entirely on sidecar agents and ba
 
 **You just write the span collection and trace assembly logic. Conductor handles the instrument-collect-assemble-store pipeline, retries when span collectors or trace backends are temporarily unavailable, and a complete record of every collection run with span counts and trace completeness.**
 
-Each trace collection step is an independent worker. instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation. ### What You Write: Workers
+Each trace collection step is an independent worker. instrumentation, span collection, trace assembly, and storage. Conductor runs them in sequence: configure instrumentation, collect spans, assemble into traces, then store. Every collection run is tracked with span counts, trace completeness, and storage confirmation.
+
+### What You Write: Workers
 
 InstrumentWorker configures tracing on target services, CollectSpansWorker gathers individual spans, AssembleTraceWorker stitches them into complete request traces, and StoreTraceWorker persists the assembled traces to Jaeger or your preferred backend.
 

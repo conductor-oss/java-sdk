@@ -10,7 +10,9 @@ Without orchestration, log correlation is a manual process using grep across mul
 
 **You just write the log collection queries and trace correlation logic. Conductor handles parallel log collection across services, retries when individual log stores are slow, and timing data showing how long each service's collection took.**
 
-Conductor's FORK/JOIN collects logs from all three services in parallel. if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing, you can see which services responded and how long each took. ### What You Write: Workers
+Conductor's FORK/JOIN collects logs from all three services in parallel. if one service's log store is slow, the others don't wait. A correlation worker then stitches the logs together by trace ID into a unified timeline. Every collection and correlation run is tracked with timing, you can see which services responded and how long each took.
+
+### What You Write: Workers
 
 Three per-service collectors (CollectSvc1Worker, CollectSvc2Worker, CollectSvc3Worker) run in parallel via FORK/JOIN to gather logs from each microservice, then a CorrelateWorker stitches them into a unified timeline by trace ID.
 

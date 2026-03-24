@@ -1,6 +1,8 @@
 # Anti Cheat in Java Using Conductor
 
-Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task. ## The Problem
+Detects and acts on cheating in an online game: monitoring player behavior, running anomaly detection, and routing to clean/suspect/cheat outcomes via a SWITCH task.
+
+## The Problem
 
 You need to detect and act on cheating in an online game. The workflow monitors a player's in-game behavior during a match, runs anomaly detection algorithms on metrics like aim accuracy, movement speed, and reaction time, and routes to one of three outcomes: clean (no action), suspect (flag for manual review), or confirmed cheat (ban or penalty). Failing to detect cheats ruins the experience for honest players; false positives unfairly punish legitimate players.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single anti-cheat service that collects tel
 
 **You just write the behavior monitoring, anomaly detection, and clean/suspect/cheat response logic. Conductor handles detection retries, verdict routing, and enforcement audit trails for every flagged session.**
 
-Each anti-cheat concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence. ### What You Write: Workers
+Each anti-cheat concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of monitoring behavior, running anomaly detection, routing via a SWITCH task to the correct outcome (clean, suspect, cheat), applying the action, and tracking every detection decision with full evidence.
+
+### What You Write: Workers
 
 Telemetry collection, anomaly detection, cheat confirmation, and enforcement workers form an anti-cheat pipeline where each stage applies independent analysis.
 

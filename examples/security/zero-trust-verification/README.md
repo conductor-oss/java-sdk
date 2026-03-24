@@ -10,7 +10,9 @@ Without orchestration, zero trust checks are scattered across different systems.
 
 **You just write the identity checks and device posture assessments. Conductor handles the strict verification sequence so no access is granted without all trust signals evaluated, retries when identity providers are slow, and a complete audit of every access decision with all contributing signals.**
 
-Each trust signal is evaluated by an independent worker. identity verification, device assessment, context evaluation, and policy enforcement. Conductor runs them in sequence: verify identity, assess device, evaluate context, then enforce the combined policy. Every access decision is tracked with all trust signals, you can audit exactly why access was granted or denied. ### What You Write: Workers
+Each trust signal is evaluated by an independent worker. identity verification, device assessment, context evaluation, and policy enforcement. Conductor runs them in sequence: verify identity, assess device, evaluate context, then enforce the combined policy. Every access decision is tracked with all trust signals, you can audit exactly why access was granted or denied.
+
+### What You Write: Workers
 
 Four trust-signal evaluators work in sequence: VerifyIdentityWorker checks MFA and certificates, AssessDeviceWorker validates patch level and encryption, EvaluateContextWorker analyzes location and behavior, and EnforcePolicyWorker computes a composite trust score to grant or deny access.
 

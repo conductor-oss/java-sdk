@@ -10,7 +10,9 @@ Without orchestration, recurring billing is a cron job that queries subscribers,
 
 **You just write the invoice generation and payment gateway integration. Conductor handles the generate-charge-notify sequence, automatic retries on payment gateway failures, and a complete audit trail linking every invoice to its payment attempt and customer notification.**
 
-Each billing concern is an independent worker. invoice generation, payment processing, and notification. Conductor runs them in sequence: generate the invoice, charge the payment method, then notify the customer. Failed payments are retried automatically with Conductor's retry logic. Every billing cycle is tracked with invoice details, payment status, and notification delivery. ### What You Write: Workers
+Each billing concern is an independent worker. invoice generation, payment processing, and notification. Conductor runs them in sequence: generate the invoice, charge the payment method, then notify the customer. Failed payments are retried automatically with Conductor's retry logic. Every billing cycle is tracked with invoice details, payment status, and notification delivery.
+
+### What You Write: Workers
 
 This workflow uses Conductor system tasks to generate invoices, process payments against saved methods, and send customer notifications, each billing step handled by built-in task types.
 

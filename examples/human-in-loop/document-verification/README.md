@@ -10,7 +10,9 @@ Without orchestration, you'd call the OCR API, store the raw extraction in a dat
 
 **You just write the AI/OCR extraction and verified-data storage workers. Conductor handles the pause for human verification and the confidence-tracking pipeline.**
 
-The WAIT task is the key pattern here. After the AI extracts data with confidence scores, the workflow pauses at the WAIT task. Conductor presents the extracted fields and confidence to the human verifier, who corrects any errors and submits the verified data via the API. The store worker then persists the human-verified data as the authoritative record. Conductor takes care of holding the extracted data while a reviewer verifies it, passing the reviewer's corrected data to storage, tracking extraction confidence versus human corrections (useful for retraining the AI model), and maintaining a complete audit trail from raw document through AI extraction to human-verified output. ### What You Write: Workers
+The WAIT task is the key pattern here. After the AI extracts data with confidence scores, the workflow pauses at the WAIT task. Conductor presents the extracted fields and confidence to the human verifier, who corrects any errors and submits the verified data via the API. The store worker then persists the human-verified data as the authoritative record. Conductor takes care of holding the extracted data while a reviewer verifies it, passing the reviewer's corrected data to storage, tracking extraction confidence versus human corrections (useful for retraining the AI model), and maintaining a complete audit trail from raw document through AI extraction to human-verified output.
+
+### What You Write: Workers
 
 AiExtractWorker runs OCR to pull structured fields with confidence scores, and StoreVerifiedWorker persists the human-corrected data, the verification step between them pauses durably for the reviewer.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd build a single matching service that queries the tu
 
 **You just write the request intake, tutor matching, session scheduling, and booking confirmation logic. Conductor handles availability retries, match scoring, and session scheduling audit trails.**
 
-Each tutoring-match concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each tutoring-match concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (request, match, schedule, confirm), retrying if the calendar service is temporarily unavailable, tracking every tutoring request from intake to confirmed session, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Student profiling, tutor availability checking, compatibility scoring, and session scheduling workers each contribute to finding the right tutor match.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic analytics pipeline that reads fr
 
 **You just write the event ingestion, sessionization, journey analysis, and report generation workers. Conductor handles the sequential data flow, retries on analytics query failures, and full observability across ingestion-to-report stages.**
 
-Each stage of the analytics pipeline is a simple, independent worker. The ingestion worker parses and normalizes raw click events. The sessionization worker groups events by user ID and applies a configurable session timeout to split activity into distinct sessions. The journey analyzer traces page-to-page navigation paths and computes conversion rates. The report generator assembles session metrics, top journeys, and conversion data into a structured report. Conductor executes them in sequence, passes session data between steps, retries if an analytics query fails, and resumes from where it left off if the pipeline crashes mid-computation. ### What You Write: Workers
+Each stage of the analytics pipeline is a simple, independent worker. The ingestion worker parses and normalizes raw click events. The sessionization worker groups events by user ID and applies a configurable session timeout to split activity into distinct sessions. The journey analyzer traces page-to-page navigation paths and computes conversion rates. The report generator assembles session metrics, top journeys, and conversion data into a structured report. Conductor executes them in sequence, passes session data between steps, retries if an analytics query fails, and resumes from where it left off if the pipeline crashes mid-computation.
+
+### What You Write: Workers
 
 Four workers form the clickstream analytics pipeline: ingesting raw click events, grouping them into sessions, tracing user journeys for conversion analysis, and assembling the final analytics report.
 

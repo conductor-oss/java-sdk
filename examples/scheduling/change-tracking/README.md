@@ -10,7 +10,9 @@ Without orchestration, change tracking is either absent (you discover changes af
 
 **You just write the change detection and diff computation logic. Conductor handles the detect-diff-classify-record pipeline, retries when version control APIs are temporarily down, and a centralized audit trail connecting every change to its diff and risk classification.**
 
-Each tracking concern is an independent worker. change detection, diff computation, classification, and recording. Conductor runs them in sequence: detect a change, compute the diff, classify it, then record it. Every change event is tracked with full context, you can see exactly what changed, when, and how it was classified. ### What You Write: Workers
+Each tracking concern is an independent worker. change detection, diff computation, classification, and recording. Conductor runs them in sequence: detect a change, compute the diff, classify it, then record it. Every change event is tracked with full context, you can see exactly what changed, when, and how it was classified.
+
+### What You Write: Workers
 
 Four workers track infrastructure changes: DetectChangeWorker spots version differences, DiffWorker computes lines added and removed, ClassifyChangeWorker rates the risk level, and RecordChangeWorker writes the classified change to the audit trail for rollback capability.
 

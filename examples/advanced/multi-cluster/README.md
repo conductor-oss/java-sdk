@@ -14,7 +14,9 @@ Coordinating multi-cluster processing means partitioning the data correctly, dis
 
 ### What You Write: Workers
 
-Four workers handle the multi-cluster pipeline. Data partitioning, parallel per-region processing on us-east-1 and us-west-2, and cross-cluster result aggregation.### The Workflow
+Four workers handle the multi-cluster pipeline. Data partitioning, parallel per-region processing on us-east-1 and us-west-2, and cross-cluster result aggregation.
+
+### The Workflow
 
 ```
 mcl_prepare

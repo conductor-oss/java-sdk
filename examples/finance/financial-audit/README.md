@@ -1,6 +1,8 @@
 # Financial Audit in Java with Conductor
 
-Financial audit: define scope, collect evidence, test controls, generate report, remediate. ## The Problem
+Financial audit: define scope, collect evidence, test controls, generate report, remediate.
+
+## The Problem
 
 You need to conduct a financial audit for a business entity. This involves defining the audit scope and objectives, collecting evidence (financial statements, transaction records, supporting documents), testing internal controls for effectiveness, generating the audit report with findings, and tracking remediation of any deficiencies. An audit without proper evidence collection is incomplete; findings without remediation tracking are toothless.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage the audit process through spreadsheets and e
 
 **You just write the audit workers. Scope definition, evidence collection, control testing, report generation, and remediation tracking. Conductor handles stage sequencing, automatic retries when a data source is unavailable, and timestamped evidence collection for SOX and regulatory compliance.**
 
-Each audit concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each audit concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (scope, collect, test, report, remediate), retrying if a data source is unavailable, tracking the entire audit lifecycle with timestamps and evidence, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Four workers cover the audit lifecycle: DefineScopeWorker sets objectives, CollectEvidenceWorker gathers financial records, GenerateReportWorker produces findings and recommendations, and RemediateWorker tracks deficiency resolution.
 

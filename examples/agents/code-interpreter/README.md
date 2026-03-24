@@ -1,6 +1,8 @@
 # Code Interpreter Agent in Java Using Conductor : Analyze, Generate, Execute, Interpret
 
-Code Interpreter Agent. analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline. ## Answering Data Questions Requires Running Code, Not Just Generating It
+Code Interpreter Agent. analyzes a data question, generates Python code, executes in a sandbox, and interprets the results through a sequential pipeline.
+
+## Answering Data Questions Requires Running Code, Not Just Generating It
 
 "What's the correlation between marketing spend and revenue in Q3?" can't be answered by an LLM alone. it requires loading the dataset, computing a Pearson correlation coefficient, and possibly generating a scatter plot. The LLM can generate the code, but someone needs to run it, capture the output (including any charts), and explain what the results mean.
 

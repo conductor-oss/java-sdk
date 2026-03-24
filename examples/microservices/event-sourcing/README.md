@@ -1,6 +1,8 @@
 # Event Sourcing in Java with Conductor
 
-Event sourcing with append-only event log and state rebuild. ## The Problem
+Event sourcing with append-only event log and state rebuild.
+
+## The Problem
 
 Event sourcing persists every state change as an immutable event rather than overwriting the current state. When a new event arrives, it must be validated against business rules, appended to the event log, the current state rebuilt by replaying all events, and the event published to downstream consumers.
 

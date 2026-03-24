@@ -10,7 +10,9 @@ Without orchestration, security posture is measured in silos. the infrastructure
 
 **You just write the domain-specific security assessments. Conductor handles parallel assessment execution, score aggregation across domains, and trend tracking of posture scores over time.**
 
-Conductor's FORK/JOIN evaluates infrastructure, application, and compliance security in parallel. A scoring worker combines all three assessments into a unified security posture score with breakdown by domain. Every assessment is tracked with detailed findings per domain and trend data over time. ### What You Write: Workers
+Conductor's FORK/JOIN evaluates infrastructure, application, and compliance security in parallel. A scoring worker combines all three assessments into a unified security posture score with breakdown by domain. Every assessment is tracked with detailed findings per domain and trend data over time.
+
+### What You Write: Workers
 
 Four domain-specific assessors run in parallel: AssessInfrastructureWorker evaluates firewalls and patching, AssessApplicationWorker scores code vulnerabilities, AssessComplianceWorker checks framework adherence, and CalculateScoreWorker merges them into a unified posture grade.
 

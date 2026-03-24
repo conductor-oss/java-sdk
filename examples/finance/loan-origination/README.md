@@ -1,6 +1,8 @@
 # Loan Origination in Java with Conductor
 
-Loan origination: application intake, credit check, underwriting, approval, and funding. ## The Problem
+Loan origination: application intake, credit check, underwriting, approval, and funding.
+
+## The Problem
 
 You need to originate a loan from application to funding. An applicant submits a loan application, a credit check evaluates their creditworthiness, underwriting assesses the loan's risk and terms, an approval decision is made, and funds are disbursed. Each step depends on the previous. you cannot underwrite without a credit report, and you cannot fund without approval. Funding a loan without proper credit assessment creates bad debt exposure.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a monolithic loan pipeline that collects appl
 
 **You just write the loan workers. Application intake, credit check, underwriting, approval, and fund disbursement. Conductor handles pipeline ordering, automatic retries when the credit bureau API times out, and full application lifecycle tracking for TILA/RESPA compliance.**
 
-Each origination concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (intake, credit check, underwriting, approval, funding), retrying if the credit bureau API times out, tracking every application's full journey for regulatory compliance, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each origination concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (intake, credit check, underwriting, approval, funding), retrying if the credit bureau API times out, tracking every application's full journey for regulatory compliance, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers cover the origination pipeline: ApplicationWorker intakes the application, CreditCheckWorker pulls the credit report, UnderwriteWorker assesses risk and terms, ApproveWorker records the decision, and FundWorker disburses the loan.
 

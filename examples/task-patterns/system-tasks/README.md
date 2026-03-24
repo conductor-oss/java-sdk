@@ -1,6 +1,8 @@
 # System Tasks in Java with Conductor
 
-Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks. no workers needed. ## The Problem
+Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks. no workers needed.
+
+## The Problem
 
 You need to build an employee compensation summary: look up a user's profile (name, department, base salary, performance rating), calculate their bonus based on performance tiers (15% for ratings 4.5+, 10% for 4.0+, 5% for 3.0+), and format the results into a structured summary with compensation breakdown and performance classification. None of these steps require external API calls. it is all data lookup, calculation, and reshaping. Deploying three separate worker services for this logic is unnecessary overhead.
 

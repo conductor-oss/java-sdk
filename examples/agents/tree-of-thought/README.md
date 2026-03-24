@@ -1,6 +1,8 @@
 # Tree of Thought in Java Using Conductor : Explore Three Solution Paths in Parallel, Evaluate, Select Best
 
-Tree of Thought. define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution. ## Some Problems Have Multiple Solution Approaches
+Tree of Thought. define a problem, explore three parallel reasoning paths (analytical, creative, empirical), evaluate all paths, and select the best solution.
+
+## Some Problems Have Multiple Solution Approaches
 
 "How should we reduce cloud infrastructure costs by 30%?" has at least three valid approaches: right-sizing instances (analyze usage, downsize over-provisioned resources), reserved capacity (commit to 1-3 year reservations for predictable workloads), or architectural changes (move to serverless, consolidate services). Each approach has different risk profiles, implementation timelines, and savings potential.
 

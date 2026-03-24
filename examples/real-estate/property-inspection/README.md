@@ -10,7 +10,9 @@ Without orchestration, inspection coordination happens over phone calls and emai
 
 **You just write the scheduling, on-site inspection, documentation, and report generation logic. Conductor handles scheduling retries, assessment sequencing, and inspection audit trails.**
 
-Each inspection step is a simple, independent worker. one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery. ### What You Write: Workers
+Each inspection step is a simple, independent worker. one schedules the inspector, one records the inspection findings, one organizes documentation (photos, notes, checklists), one generates the final report. Conductor takes care of executing them in order, retrying if the scheduling API is unavailable, and maintaining a permanent record of every inspection from scheduling through report delivery.
+
+### What You Write: Workers
 
 Scheduling, on-site assessment, deficiency documentation, and report generation workers each own one phase of property condition evaluation.
 
@@ -21,7 +23,9 @@ Scheduling, on-site assessment, deficiency documentation, and report generation 
 | **DocumentWorker** | `pin_document` | Organizes inspection findings into structured documentation with photos, severity ratings, and notes |
 | **ReportWorker** | `pin_report` | Generates the formal inspection report with overall condition assessment and recommended repairs |
 
-Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs. ### The Workflow
+Workers implement property transaction steps. listing, inspection, escrow, closing, with realistic outputs.
+
+### The Workflow
 
 ```
 pin_schedule

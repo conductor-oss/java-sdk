@@ -10,7 +10,9 @@ Without orchestration, you'd chain bioinformatics tools (BWA, GATK, VEP) togethe
 
 **You just write the genomics workers. Sequencing, read alignment, variant calling, clinical annotation, and diagnostic reporting. Conductor handles stage dependencies, automatic retries when a bioinformatics service fails mid-run, and a CAP/CLIA-compliant chain of custody from sample to report.**
 
-Each stage of the genomics pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running sequencing before alignment, calling variants only after alignment completes, annotating only after variants are called, retrying if any bioinformatics service is temporarily unavailable, and maintaining a CAP/CLIA-compliant audit trail from sample to report. ### What You Write: Workers
+Each stage of the genomics pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running sequencing before alignment, calling variants only after alignment completes, annotating only after variants are called, retrying if any bioinformatics service is temporarily unavailable, and maintaining a CAP/CLIA-compliant audit trail from sample to report.
+
+### What You Write: Workers
 
 Five workers cover the genomics pipeline: SequenceWorker produces raw reads, AlignWorker maps to the reference genome, CallVariantsWorker identifies genetic variants, AnnotateWorker adds clinical significance, and GenomicsReportWorker generates the diagnostic report.
 

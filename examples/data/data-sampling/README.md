@@ -10,7 +10,9 @@ Without orchestration, you'd write a single script that samples, checks, and dec
 
 **You just write the dataset loading, sample drawing, quality checking, approval, and review workers. Conductor handles conditional routing via SWITCH based on quality scores, retries on transient check failures, and a complete audit trail of every dataset's sample score and routing decision.**
 
-Each stage is a simple, independent worker. The loader reads the incoming dataset. The sampler draws a deterministic subset at the configured sample rate. The quality checker scores the sample against completeness and validity rules. Conductor's `SWITCH` task then routes based on the result: datasets meeting the quality threshold go to the approval worker, while those falling short go to the review flagger with a list of specific issues. Conductor tracks the quality score, sample size, and routing decision for every dataset, retries if a check fails transiently, and provides a complete audit trail. ### What You Write: Workers
+Each stage is a simple, independent worker. The loader reads the incoming dataset. The sampler draws a deterministic subset at the configured sample rate. The quality checker scores the sample against completeness and validity rules. Conductor's `SWITCH` task then routes based on the result: datasets meeting the quality threshold go to the approval worker, while those falling short go to the review flagger with a list of specific issues. Conductor tracks the quality score, sample size, and routing decision for every dataset, retries if a check fails transiently, and provides a complete audit trail.
+
+### What You Write: Workers
 
 Five workers implement sample-based quality gating: loading the dataset, drawing a representative sample at a configurable rate, running quality checks, and then routing to either approval or manual review based on the quality score via a SWITCH.
 

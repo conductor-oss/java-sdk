@@ -18,7 +18,9 @@ Five workers manage the GPU resource lifecycle: availability check, allocation, 
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **GpuAllocateWorker** | `gpu_allocate` | Reserves a specific GPU (e.g.### The Workflow
+| **GpuAllocateWorker** | `gpu_allocate` | Reserves a specific GPU (e.g.
+
+### The Workflow
 
 ```
 gpu_check_availability

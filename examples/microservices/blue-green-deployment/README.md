@@ -1,6 +1,8 @@
 # Blue Green Deployment in Java with Conductor
 
-Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor. ## The Problem
+Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor.
+
+## The Problem
 
 A zero-downtime deployment requires deploying the new version to a standby environment, validating it with health checks, switching traffic, and monitoring the new version under real load. Each step depends on the previous one, and a failure at any stage must be caught before live traffic is affected.
 

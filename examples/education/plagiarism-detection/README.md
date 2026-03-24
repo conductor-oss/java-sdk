@@ -10,7 +10,9 @@ Without orchestration, you'd chain document ingestion, text analysis, corpus com
 
 **You just write the document scanning, corpus comparison, clean/flagged verdict routing, and originality reporting logic. Conductor handles source comparison retries, similarity scoring, and detection audit trails.**
 
-Each plagiarism-check concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report, retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each plagiarism-check concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (submit, scan, compare), then routing via a SWITCH task to the correct outcome (clean or flagged), and finally generating the report, retrying if the similarity engine times out, maintaining an audit trail for every submission, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Document ingestion, source comparison, similarity scoring, and report generation workers each tackle one stage of academic integrity checking.
 

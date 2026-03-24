@@ -1,6 +1,8 @@
 # Event Handlers in Java with Conductor
 
-Workflow triggered by external events. Processes the event type and payload. ## The Problem
+Workflow triggered by external events. Processes the event type and payload.
+
+## The Problem
 
 You need to trigger a workflow automatically whenever an external event arrives. a webhook fires, a message lands on a queue, or a system emits a lifecycle event. The event carries a type (e.g., `order.created`, `user.signup`, `payment.failed`) and an arbitrary JSON payload. Your processing logic must dispatch based on the event type, parse the payload, execute the appropriate business action, and confirm that the event was handled successfully.
 

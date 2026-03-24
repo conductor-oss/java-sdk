@@ -12,7 +12,9 @@ Without orchestration, deadline tracking lives in spreadsheets or dashboards tha
 
 **You just write the deadline evaluation and escalation rules. Conductor handles urgency-based routing via SWITCH tasks, retries on escalation service failures, and a full record of every deadline evaluation and routing decision.**
 
-A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler: normal, urgent, or overdue, based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when. ### What You Write: Workers
+A deadline checker worker evaluates the task's due date against current time. Conductor's SWITCH task routes to the appropriate handler: normal, urgent, or overdue, based on the urgency classification. Each handler takes the right action for its urgency level. Every deadline evaluation is tracked, so you can audit which items were escalated and when.
+
+### What You Write: Workers
 
 Workers handle each urgency level: CheckDeadlinesWorker evaluates how close a task is to its due date, then Conductor routes to HandleNormalWorker for on-track items, HandleUrgentWorker for approaching deadlines, or HandleOverdueWorker for past-due escalation.
 

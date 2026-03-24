@@ -1,6 +1,8 @@
 # Risk Assessment in Java with Conductor
 
-Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN. ## The Problem
+Risk assessment workflow with parallel market, credit, and operational risk analysis via FORK_JOIN.
+
+## The Problem
 
 You need to assess the total risk exposure of a portfolio across multiple risk dimensions simultaneously. Market risk (price volatility, interest rate sensitivity), credit risk (counterparty default probability), and operational risk (process failures, fraud) must all be analyzed in parallel since they are independent calculations. The combined results provide a holistic view of the portfolio's risk profile. Running these assessments sequentially wastes time when each can take minutes to compute.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd spawn threads for each risk model, synchronize comp
 
 **You just write the risk analysis workers. Factor collection and parallel market, credit, and operational risk scoring, plus aggregation. Conductor handles parallel FORK_JOIN execution of market, credit, and operational risk analyses, automatic retries on any failed dimension, and complete assessment tracking.**
 
-Each risk dimension is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment. ### What You Write: Workers
+Each risk dimension is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of running market, credit, and operational risk analyses in parallel via FORK_JOIN, waiting for all to complete, aggregating the combined risk profile, retrying any failed analysis independently, and tracking every assessment.
+
+### What You Write: Workers
 
 Five workers span the risk assessment: CollectFactorsWorker gathers portfolio risk factors, then MarketRiskWorker, CreditRiskWorker, and OperationalRiskWorker run in parallel via FORK_JOIN, and AggregateWorker combines the results into a holistic risk profile.
 

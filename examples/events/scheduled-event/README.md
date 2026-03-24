@@ -1,6 +1,8 @@
 # Scheduled Event in Java Using Conductor
 
-Sequential scheduled-event workflow: queue_event -> check_schedule -> wait_until_ready -> execute_event -> confirm. ## The Problem
+Sequential scheduled-event workflow: queue_event -> check_schedule -> wait_until_ready -> execute_event -> confirm.
+
+## The Problem
 
 You need to process events at a scheduled future time. An event is queued with a target execution time, the system checks whether it is time to execute, waits until the scheduled moment, executes the event's action, and confirms completion. Use cases include scheduled notifications, time-delayed order cancellations, and appointment reminders. Executing before the scheduled time violates business requirements; losing the event during the wait period means it never fires.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd store scheduled events in a database, poll for due 
 
 **You just write the event-queue, schedule-check, wait, execute, and confirmation workers. Conductor handles durable scheduling that survives restarts, ordered post-wait execution, and a complete record of every scheduled event lifecycle.**
 
-Each scheduling concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of queuing the event, checking the schedule, waiting durably until the execution time (surviving restarts), executing the event action, and confirming completion. ### What You Write: Workers
+Each scheduling concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of queuing the event, checking the schedule, waiting durably until the execution time (surviving restarts), executing the event action, and confirming completion.
+
+### What You Write: Workers
 
 Five workers manage scheduled execution: QueueEventWorker registers the event, CheckScheduleWorker calculates the delay, WaitUntilReadyWorker holds until the target time, ExecuteEventWorker runs the action, and ConfirmWorker stamps completion.
 

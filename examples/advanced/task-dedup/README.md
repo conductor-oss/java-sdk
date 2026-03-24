@@ -21,7 +21,9 @@ Four workers implement the cache-or-compute pattern: input hashing, cache lookup
 | **CheckSeenWorker** | `tdd_check_seen` | Checks if a hash has been seen before to determine duplicate status. |
 | **ExecuteNewWorker** | `tdd_execute_new` | Processes a new (non-duplicate) task and caches the result for future dedup. |
 | **HashInputWorker** | `tdd_hash_input` | Hashes the input payload to produce a deterministic deduplication key. |
-| **ReturnCachedWorker** | `tdd_return_cached` | Returns a previously cached result for a duplicate task.### The Workflow
+| **ReturnCachedWorker** | `tdd_return_cached` | Returns a previously cached result for a duplicate task.
+
+### The Workflow
 
 ```
 tdd_hash_input

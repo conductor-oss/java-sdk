@@ -1,6 +1,8 @@
 # Kafka Consumer in Java Using Conductor
 
-Kafka consumer pipeline: receives a message, deserializes it, processes the payload, and commits the offset. ## The Problem
+Kafka consumer pipeline: receives a message, deserializes it, processes the payload, and commits the offset.
+
+## The Problem
 
 You need to process messages from a Kafka topic reliably. Each message must be received from a specific topic/partition/offset, deserialized from its wire format, processed according to your business logic, and have its offset committed only after successful processing. Committing the offset before processing is complete means you lose the message on failure; not committing means you reprocess it on restart.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd write a Kafka consumer loop with manual offset mana
 
 **You just write the message-receive, deserialize, process, and offset-commit workers. Conductor handles receive-to-commit sequencing, guaranteed offset commit only after processing, and per-message lifecycle tracking.**
 
-Each Kafka consumption concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the message, deserializing it, processing the payload, and committing the offset, retrying on transient failures, tracking every message's processing lifecycle, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each Kafka consumption concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the message, deserializing it, processing the payload, and committing the offset, retrying on transient failures, tracking every message's processing lifecycle, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Four workers form the Kafka consumption pipeline: ReceiveMessage extracts the raw message, Deserialize converts it to structured data, ProcessPayload applies business logic, and CommitOffset marks the message as consumed only after successful processing.
 

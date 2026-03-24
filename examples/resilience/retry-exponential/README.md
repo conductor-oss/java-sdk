@@ -8,7 +8,9 @@ Without orchestration, exponential backoff means Thread.sleep() calls with manua
 
 ## The Solution
 
-The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically. configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change. ### What You Write: Workers
+The worker makes the API call and returns success or failure. Conductor handles the exponential backoff automatically. configured via retryDelaySeconds and backoffRate in the task definition. Every retry attempt is recorded with the exact delay applied, so you can see the backoff progression. Changing the backoff rate or max retries is a config change, not a code change.
+
+### What You Write: Workers
 
 RetryExpoTaskWorker makes the API call and reports success or failure, while Conductor automatically applies doubling delays (1s, 2s, 4s, 8s) between retries to give the rate-limited service time to recover.
 

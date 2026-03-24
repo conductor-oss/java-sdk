@@ -10,7 +10,9 @@ Without orchestration awareness, idempotency is an afterthought. Developers buil
 
 **You just write the idempotent charge and notification logic. Conductor handles safe retries knowing each worker is idempotent, sequencing charge-then-notify, and tracking every execution so you can verify retry attempts produced identical results.**
 
-Each worker is designed to be idempotent from the start. The charge worker uses the order ID as an idempotency key. if it's already been charged, it returns the existing result. The email worker checks whether a confirmation was already sent for this order. Conductor safely retries any worker knowing the result will be the same. Every execution is tracked, so you can see retry attempts and confirm they produced identical results. ### What You Write: Workers
+Each worker is designed to be idempotent from the start. The charge worker uses the order ID as an idempotency key. if it's already been charged, it returns the existing result. The email worker checks whether a confirmation was already sent for this order. Conductor safely retries any worker knowing the result will be the same. Every execution is tracked, so you can see retry attempts and confirm they produced identical results.
+
+### What You Write: Workers
 
 ChargeWorker uses the order ID as an idempotency key to prevent double charges on retry, and SendEmailWorker deduplicates confirmation emails so customers never receive duplicate notifications.
 

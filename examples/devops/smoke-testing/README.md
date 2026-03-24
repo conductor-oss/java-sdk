@@ -12,7 +12,9 @@ Without orchestration, you'd run a bash script with curl commands and grep for "
 
 **You write the health checks and integration tests. Conductor handles layered test sequencing, warm-up retries, and structured pass/fail reporting.**
 
-Each layer of the smoke test is a simple, independent worker. The endpoint checker hits critical URLs (health, readiness, key API routes) and verifies HTTP status codes and response shapes. The data verifier connects to the database to confirm migrations ran, seed data exists, and key tables are queryable. The integration tester exercises connections to external services. Payment gateway, email provider, search index, cache layer. The status reporter aggregates all check results into a pass/fail verdict with details per check. Conductor executes them in strict sequence, retries endpoint checks when services need warm-up time after deploy, and provides a clear record of every smoke test run. ### What You Write: Workers
+Each layer of the smoke test is a simple, independent worker. The endpoint checker hits critical URLs (health, readiness, key API routes) and verifies HTTP status codes and response shapes. The data verifier connects to the database to confirm migrations ran, seed data exists, and key tables are queryable. The integration tester exercises connections to external services. Payment gateway, email provider, search index, cache layer. The status reporter aggregates all check results into a pass/fail verdict with details per check. Conductor executes them in strict sequence, retries endpoint checks when services need warm-up time after deploy, and provides a clear record of every smoke test run.
+
+### What You Write: Workers
 
 Three workers run layered smoke tests. Checking endpoint health, verifying database state, and reporting overall deployment status.
 

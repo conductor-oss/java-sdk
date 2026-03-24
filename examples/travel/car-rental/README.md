@@ -1,6 +1,8 @@
 # Car Rental in Java with Conductor
 
-Car rental: search, select, book, pickup, return. ## The Problem
+Car rental: search, select, book, pickup, return.
+
+## The Problem
 
 You need to manage a car rental for a business traveler. Searching available vehicles at the pickup location, selecting the right vehicle class (compact, midsize, SUV) based on traveler needs and company policy, booking the reservation, processing the vehicle pickup with documentation, and handling the vehicle return with final charges. Each step depends on the previous one's output.
 

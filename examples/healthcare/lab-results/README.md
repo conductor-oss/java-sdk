@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic LIS (Laboratory Information Syst
 
 **You just write the lab pipeline workers. Sample accessioning, specimen processing, test analysis, report generation, and physician notification. Conductor handles pipeline sequencing, automatic retries when an analyzer interface is temporarily offline, and a complete chain of custody for CAP/CLIA compliance.**
 
-Each stage of the lab pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of processing only after collection, analyzing only after processing, generating the report only after analysis completes, notifying the physician after the report is finalized, and maintaining a complete chain of custody for CAP/CLIA compliance. ### What You Write: Workers
+Each stage of the lab pipeline is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of processing only after collection, analyzing only after processing, generating the report only after analysis completes, notifying the physician after the report is finalized, and maintaining a complete chain of custody for CAP/CLIA compliance.
+
+### What You Write: Workers
 
 Five workers cover the lab pipeline: CollectSampleWorker accessions specimens, ProcessSampleWorker prepares them for analysis, AnalyzeSampleWorker runs the ordered tests, LabReportWorker generates results with reference ranges, and LabNotifyWorker alerts the ordering physician.
 

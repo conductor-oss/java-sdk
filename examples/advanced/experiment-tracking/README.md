@@ -18,7 +18,9 @@ Five workers cover the experiment lifecycle: definition, training execution, met
 
 | Worker | Task | What It Does |
 |---|---|---|
-| **ExtCompareWorker** | `ext_compare` | Computes improvement percentage vs.### The Workflow
+| **ExtCompareWorker** | `ext_compare` | Computes improvement percentage vs.
+
+### The Workflow
 
 ```
 ext_define_experiment

@@ -1,6 +1,8 @@
 # Agent Memory in Java Using Conductor : Load, Think, Update, and Respond with Persistent Context
 
-Agent with Memory. loads conversation history, thinks with context, updates memory, and responds. ## Stateless Agents Forget Everything Between Messages
+Agent with Memory. loads conversation history, thinks with context, updates memory, and responds.
+
+## Stateless Agents Forget Everything Between Messages
 
 Without memory, every agent interaction starts from zero. A user says "I'm interested in transformers" and gets a great explanation. Next message: "How do they compare to RNNs?", and the agent has no idea what "they" refers to because the previous context is gone. The user has to repeat themselves every time.
 

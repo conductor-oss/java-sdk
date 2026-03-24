@@ -12,7 +12,9 @@ Without orchestration, you'd SSH into a server, run a stress-ng command, watch G
 
 **You write the fault injection and observation logic. Conductor handles experiment sequencing, guaranteed recovery, and complete experiment audit trails.**
 
-Each stage of the chaos experiment is a simple, independent worker. The experiment definer creates a structured experiment plan. Specifying the target service, fault type (CPU stress, network latency, pod kill), blast radius, and success criteria. The fault injector applies the specified failure to the target service in a controlled way. The observer monitors the system during the fault, recording error rates, latency spikes, and whether circuit breakers engaged. The recoverer removes the injected fault, restoring the system to its pre-experiment state. Conductor executes them in strict sequence, ensures recovery always runs even if observation reveals problems, and provides a complete audit trail of every chaos experiment. ### What You Write: Workers
+Each stage of the chaos experiment is a simple, independent worker. The experiment definer creates a structured experiment plan. Specifying the target service, fault type (CPU stress, network latency, pod kill), blast radius, and success criteria. The fault injector applies the specified failure to the target service in a controlled way. The observer monitors the system during the fault, recording error rates, latency spikes, and whether circuit breakers engaged. The recoverer removes the injected fault, restoring the system to its pre-experiment state. Conductor executes them in strict sequence, ensures recovery always runs even if observation reveals problems, and provides a complete audit trail of every chaos experiment.
+
+### What You Write: Workers
 
 Four workers run the chaos experiment. Defining the fault parameters, injecting the failure, observing system behavior, and recovering to steady state.
 

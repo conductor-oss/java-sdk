@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic pharmacy system that validates t
 
 **You just write the prescription workers. Rx verification, interaction checking, filling, dispensing, and adherence tracking. Conductor handles strict safety sequencing, automatic retries when the interaction database is unavailable, and complete dispensing records for pharmacy board and DEA compliance.**
 
-Each stage of the prescription lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of verifying before checking interactions, filling only after safety checks pass, dispensing only after filling is complete, activating adherence tracking as the final step, and maintaining a complete dispensing record for pharmacy board and DEA compliance. ### What You Write: Workers
+Each stage of the prescription lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of verifying before checking interactions, filling only after safety checks pass, dispensing only after filling is complete, activating adherence tracking as the final step, and maintaining a complete dispensing record for pharmacy board and DEA compliance.
+
+### What You Write: Workers
 
 Five workers manage the prescription lifecycle: VerifyWorker validates prescriber credentials and formulary status, CheckInteractionsWorker screens for drug-drug conflicts, FillWorker prepares the medication, DispenseWorker records the dispensing event, and TrackWorker monitors refill adherence.
 

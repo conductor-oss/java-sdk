@@ -1,6 +1,8 @@
 # Inspection Workflow in Java with Conductor
 
-Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited. ## The Problem
+Conducts a government property inspection: scheduling the visit, performing the on-site assessment, documenting findings, and recording pass or fail via a SWITCH task with code violations cited.
+
+## The Problem
 
 You need to conduct a government property inspection (building code, fire safety, health, environmental). The inspection is scheduled, the inspector visits the property and conducts the assessment, findings are documented with photos and notes, and the result is recorded as pass or fail with specific code violations cited. Passing a property without thorough inspection creates safety risks; failing without documented evidence invites legal challenges.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manage inspections with paper checklists, phone-sch
 
 **You just write the scheduling, on-site assessment, findings documentation, and pass/fail determination logic. Conductor handles scheduling retries, findings routing, and inspection audit trails.**
 
-Each inspection concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each inspection concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (schedule, inspect, document, record pass/fail), routing via a SWITCH task based on the inspection result, tracking every inspection with timestamped evidence, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Scheduling, on-site inspection, findings recording, and compliance determination workers each own one step of the regulatory inspection process.
 

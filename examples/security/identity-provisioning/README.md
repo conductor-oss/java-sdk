@@ -10,7 +10,9 @@ Without orchestration, identity provisioning is a manual checklist. IT creates a
 
 **You just write the IdP account creation and SCIM provisioning calls. Conductor handles strict sequencing so roles are assigned only after identity creation, retries on SCIM failures, and a compliance audit trail for every provisioning action.**
 
-Each provisioning step is an independent worker. identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit. ### What You Write: Workers
+Each provisioning step is an independent worker. identity creation, role assignment, access provisioning, and setup verification. Conductor runs them in strict sequence: create the identity first, then assign roles, then provision access, then verify everything. Every provisioning action is tracked for compliance audit.
+
+### What You Write: Workers
 
 The provisioning pipeline sequences four workers: CreateIdentityWorker sets up the corporate account, AssignRolesWorker maps department-appropriate permissions, ProvisionAccessWorker grants system access, and VerifySetupWorker confirms everything works on day one.
 

@@ -20,7 +20,9 @@ The compensation pattern solves this with a separate compensation workflow that 
 
 **You just write the forward steps and their matching undo operations. Conductor handles forward execution sequencing, reverse-order compensation on failure, retries on each undo step, and a full audit trail of every forward and compensation action with their inputs and outputs.**
 
-Each forward step and its corresponding undo are simple, independent workers. Step A creates a resource, UndoA deletes it. Step B inserts a record, UndoB removes it. When Step C fails, the main workflow ends with FAILED status. You then start the compensation workflow, which runs the undo workers in reverse order automatically. Every compensation action is tracked, so you can see exactly which steps were undone and whether the rollback completed successfully. ### What You Write: Workers
+Each forward step and its corresponding undo are simple, independent workers. Step A creates a resource, UndoA deletes it. Step B inserts a record, UndoB removes it. When Step C fails, the main workflow ends with FAILED status. You then start the compensation workflow, which runs the undo workers in reverse order automatically. Every compensation action is tracked, so you can see exactly which steps were undone and whether the rollback completed successfully.
+
+### What You Write: Workers
 
 Three forward workers. CompStepAWorker, CompStepBWorker, and CompStepCWorker. Execute provisioning actions, while CompUndoBWorker and CompUndoAWorker reverse completed steps in reverse order when any forward step fails.
 

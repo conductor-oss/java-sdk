@@ -1,6 +1,8 @@
 # Trade Execution in Java with Conductor
 
-Trade execution workflow that validates orders, checks compliance, routes to optimal exchange, executes, and confirms. ## The Problem
+Trade execution workflow that validates orders, checks compliance, routes to optimal exchange, executes, and confirms.
+
+## The Problem
 
 You need to execute a securities trade from order validation to confirmation. An order is validated for completeness and market hours, checked against compliance rules (position limits, restricted lists, wash sale prevention), routed to the optimal exchange or dark pool, executed at the best available price, and confirmed with fill details. Executing without compliance checks violates regulations; routing to the wrong venue results in worse execution prices.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a single trade pipeline that validates orders
 
 **You just write the trade workers. Order validation, compliance checking, smart order routing, exchange execution, and fill confirmation. Conductor handles pipeline sequencing, automatic retries when an exchange connection drops, and full order lifecycle tracking for best execution reporting.**
 
-Each trade execution concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (validate, check compliance, route, execute, confirm), retrying if an exchange connection drops, tracking every order's full lifecycle for best execution reporting, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each trade execution concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (validate, check compliance, route, execute, confirm), retrying if an exchange connection drops, tracking every order's full lifecycle for best execution reporting, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers form the trade pipeline: ValidateOrderWorker checks order completeness and buying power, CheckComplianceWorker screens against regulatory rules, RouteWorker selects the optimal exchange, ExecuteWorker places the order, and ConfirmWorker delivers fill details.
 

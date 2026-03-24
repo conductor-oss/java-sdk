@@ -8,7 +8,9 @@ Without orchestration, error classification lives inside retry loops. Each calle
 
 ## The Solution
 
-The smart worker classifies each error as transient or permanent. For transient errors, it returns FAILED with a retryable flag so Conductor retries with backoff. For permanent errors, it returns FAILED_WITH_TERMINAL_ERROR so Conductor skips retries and fails immediately. This prevents wasted retries on permanent errors while ensuring transient errors get proper retry treatment. ### What You Write: Workers
+The smart worker classifies each error as transient or permanent. For transient errors, it returns FAILED with a retryable flag so Conductor retries with backoff. For permanent errors, it returns FAILED_WITH_TERMINAL_ERROR so Conductor skips retries and fails immediately. This prevents wasted retries on permanent errors while ensuring transient errors get proper retry treatment.
+
+### What You Write: Workers
 
 SmartTaskWorker classifies each error as transient (retryable via FAILED) or permanent (skip retries via FAILED_WITH_TERMINAL_ERROR), enabling Conductor to retry network timeouts and 503s while immediately failing on 404s and authentication errors.
 

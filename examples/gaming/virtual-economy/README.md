@@ -1,6 +1,8 @@
 # Virtual Economy in Java Using Conductor
 
-Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report. ## The Problem
+Processes virtual economy transactions: recording the transaction, validating balance and ownership, updating player balances, creating an audit trail for fraud detection, and generating a settlement report.
+
+## The Problem
 
 You need to process a virtual economy transaction in your game. a purchase, sale, trade, or currency conversion. The transaction must be recorded, validated for sufficient balance and item ownership, the sender and receiver balances updated atomically, an audit record created for fraud detection, and a transaction report generated. Processing transactions without validation enables item duplication and currency exploits; missing audit records makes fraud investigation impossible.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd handle transactions in a single database transactio
 
 **You just write the transaction recording, balance validation, currency transfer, audit logging, and settlement reporting logic. Conductor handles transaction validation retries, balance reconciliation, and economy audit trails.**
 
-Each economy concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each economy concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (transaction, validate, update balance, audit, report), retrying if the database is temporarily unavailable, tracking every transaction with full audit trail, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Currency minting, transaction validation, balance updates, and audit logging workers each govern one aspect of the in-game economy.
 

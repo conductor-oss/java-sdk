@@ -10,7 +10,9 @@ Without orchestration, you'd write a single registration endpoint that validates
 
 **You just write the validation, account-creation, confirmation, and activation workers. Conductor handles the registration sequence and user ID propagation.**
 
-Each registration step. validation, record creation, confirmation, activation, is a simple, independent worker. Conductor runs them in strict sequence, passes the validation result into account creation, threads the generated user ID into confirmation and activation, retries any step that fails without creating duplicates, and tracks the full registration journey for every user. ### What You Write: Workers
+Each registration step. validation, record creation, confirmation, activation, is a simple, independent worker. Conductor runs them in strict sequence, passes the validation result into account creation, threads the generated user ID into confirmation and activation, retries any step that fails without creating duplicates, and tracks the full registration journey for every user.
+
+### What You Write: Workers
 
 ValidateWorker checks username length and email format, CreateWorker generates a unique user ID, ConfirmWorker sends the confirmation email, and ActivateWorker flips the account to active.
 

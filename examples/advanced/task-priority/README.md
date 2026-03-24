@@ -14,7 +14,9 @@ Priority routing means classifying each task based on urgency and impact (a P1 i
 
 ### What You Write: Workers
 
-Four workers handle priority-based routing. urgency classification and three tier-specific handlers (high, medium, low), each queue operating with its own SLA and resource allocation.### The Workflow
+Four workers handle priority-based routing. urgency classification and three tier-specific handlers (high, medium, low), each queue operating with its own SLA and resource allocation.
+
+### The Workflow
 
 ```
 tpr_classify_priority

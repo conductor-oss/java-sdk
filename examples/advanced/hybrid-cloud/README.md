@@ -19,7 +19,9 @@ Three workers handle the classification-and-routing split. Sensitivity classific
 | Worker | Task | What It Does |
 |---|---|---|
 | **HybClassifyDataWorker** | `hyb_classify_data` | Classifies data by sensitivity (e.g., PII vs. general) and determines whether to route to on-prem or cloud |
-| **HybProcessCloudWorker** | `hyb_process_cloud` | Processes non-sensitive data in the cloud (e.g.### The Workflow
+| **HybProcessCloudWorker** | `hyb_process_cloud` | Processes non-sensitive data in the cloud (e.g.
+
+### The Workflow
 
 ```
 hyb_classify_data

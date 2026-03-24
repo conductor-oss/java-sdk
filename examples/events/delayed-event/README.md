@@ -1,6 +1,8 @@
 # Delayed Event in Java Using Conductor
 
-Delayed event processing workflow that receives an event, computes a delay, applies it, processes the event, and logs completion. ## The Problem
+Delayed event processing workflow that receives an event, computes a delay, applies it, processes the event, and logs completion.
+
+## The Problem
 
 You need to process events after a configurable delay. When an event arrives, the system must compute the appropriate wait time (based on business rules, priority, or a fixed delay), hold the event for that duration, and then process it. Use cases include scheduled notifications, rate-limited API calls, and time-delayed order confirmations. Processing an event before its delay expires violates business timing requirements.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a delay queue with Thread.sleep() or schedule
 
 **You just write the event-receive, delay-compute, delay-apply, and event-processing workers. Conductor handles durable delay that survives restarts, ordered post-delay execution, and full lifecycle tracking per event.**
 
-Each delayed-processing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the event, computing the delay, waiting the specified duration (durably, surviving restarts), processing the event after the delay, and logging completion. ### What You Write: Workers
+Each delayed-processing concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the event, computing the delay, waiting the specified duration (durably, surviving restarts), processing the event after the delay, and logging completion.
+
+### What You Write: Workers
 
 Five workers manage time-delayed processing: ReceiveEventWorker ingests the event, ComputeDelayWorker calculates the wait duration, ApplyDelayWorker holds execution, ProcessEventWorker handles the event after the delay, and LogCompletionWorker records the outcome.
 

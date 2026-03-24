@@ -10,7 +10,9 @@ Without orchestration, you'd build a single signup service that calls the user d
 
 **You just write the account-creation, email-verification, preferences, and welcome-email workers. Conductor handles the onboarding sequence and user ID threading.**
 
-Each onboarding step: account creation, email verification, preference setup, welcome delivery, is a simple, independent worker. Conductor executes them in the correct sequence, threads the generated user ID from account creation into every downstream step, retries if the email service times out or the database hiccups, and tracks the full onboarding journey for every user. ### What You Write: Workers
+Each onboarding step: account creation, email verification, preference setup, welcome delivery, is a simple, independent worker. Conductor executes them in the correct sequence, threads the generated user ID from account creation into every downstream step, retries if the email service times out or the database hiccups, and tracks the full onboarding journey for every user.
+
+### What You Write: Workers
 
 CreateAccountWorker generates a user ID, VerifyEmailWorker confirms ownership, SetPreferencesWorker initializes plan-appropriate defaults, and WelcomeWorker sends a personalized getting-started email.
 

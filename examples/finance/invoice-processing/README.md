@@ -12,7 +12,9 @@ Without orchestration, you'd build a single invoice handler that receives docume
 
 **You just write the invoice workers. Document receipt, OCR extraction, PO matching, approval, and payment processing. Conductor handles sequential processing, automatic retries when the OCR service returns low-confidence results, and end-to-end invoice tracking for audit.**
 
-Each invoice concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (receive, OCR extract, PO match, approve, pay), retrying if the OCR service returns low-confidence results, tracking every invoice's full lifecycle for audit, and resuming from the last step if the process crashes. ### What You Write: Workers
+Each invoice concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (receive, OCR extract, PO match, approve, pay), retrying if the OCR service returns low-confidence results, tracking every invoice's full lifecycle for audit, and resuming from the last step if the process crashes.
+
+### What You Write: Workers
 
 Five workers handle the invoice pipeline: ReceiveInvoiceWorker captures the document, OcrExtractWorker pulls key fields, MatchPoWorker validates against the purchase order, ApproveInvoiceWorker routes for approval, and ProcessPaymentWorker triggers payment.
 

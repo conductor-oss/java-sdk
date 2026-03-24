@@ -10,7 +10,9 @@ Without orchestration, fallback logic nests into deeply indented try/catch chain
 
 **You just write the primary, secondary, and cache lookup logic. Conductor handles SWITCH-based fallback routing through the tiered chain, retries at each level, and a record of every request showing which data source ultimately served the response.**
 
-The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked. you can see which data source served each response and how far down the fallback chain it went. ### What You Write: Workers
+The primary API worker makes the call. Based on its result, Conductor's SWITCH task routes to either the response path (primary succeeded), the secondary API (primary failed), or the cache lookup (both failed). Each fallback level is a simple, independent worker. Every request is tracked. you can see which data source served each response and how far down the fallback chain it went.
+
+### What You Write: Workers
 
 PrimaryApiWorker tries the preferred data source first, SecondaryApiWorker serves as the backup provider if the primary is unavailable, and CacheLookupWorker delivers stale-but-valid cached data as the last resort.
 

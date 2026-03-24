@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic monitoring service that polls de
 
 **You just write the RPM workers. Vital signs collection, trend analysis, and conditional routing to normal logging or clinical alert actions. Conductor handles conditional SWITCH routing between normal and alert paths, automatic retries when the device platform is down, and complete monitoring records for RPM billing.**
 
-Each stage of the monitoring cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation. ### What You Write: Workers
+Each stage of the monitoring cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting vitals before analyzing trends, routing to the correct clinical action (normal or alert) via SWITCH based on trend analysis, retrying if the device platform is temporarily unavailable, and maintaining a complete record of every monitoring cycle for RPM billing and clinical documentation.
+
+### What You Write: Workers
 
 Four workers form the RPM cycle: CollectVitalsWorker retrieves device readings, AnalyzeTrendsWorker evaluates against baselines, NormalActionWorker logs compliant readings, and AlertActionWorker triggers clinical notifications when trends are concerning.
 

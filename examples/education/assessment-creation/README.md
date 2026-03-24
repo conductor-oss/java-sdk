@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic assessment-builder service that 
 
 **You just write the criteria definition, question generation, review, and publishing logic. Conductor handles generation retries, review routing, and assessment version tracking.**
 
-Each assessment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (define criteria, create questions, review, publish), retrying if the LMS publishing API times out, tracking the full lifecycle of every assessment from criteria to published exam, and resuming from the last successful step if the process crashes. ### What You Write: Workers
+Each assessment concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of executing them in order (define criteria, create questions, review, publish), retrying if the LMS publishing API times out, tracking the full lifecycle of every assessment from criteria to published exam, and resuming from the last successful step if the process crashes.
+
+### What You Write: Workers
 
 Workers for criteria definition, question generation, review, and publishing each own one stage of assessment authoring.
 

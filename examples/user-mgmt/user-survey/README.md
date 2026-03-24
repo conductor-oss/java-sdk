@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic survey service that handles crea
 
 **You just write the survey-creation, distribution, collection, analysis, and reporting workers. Conductor handles the survey lifecycle and response data flow.**
 
-Each survey lifecycle phase. creation, distribution, collection, analysis, reporting, is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off. ### What You Write: Workers
+Each survey lifecycle phase. creation, distribution, collection, analysis, reporting, is a simple, independent worker. Conductor runs them in sequence, threads the generated survey ID from creation through every downstream step, feeds collected responses into the analyzer, and passes the analysis output into the report generator. If distribution times out or the analysis service fails, Conductor retries automatically and resumes from exactly where it left off.
+
+### What You Write: Workers
 
 CreateSurveyWorker generates a survey ID, DistributeSurveyWorker sends it to the audience, CollectResponsesWorker gathers answers, AnalyzeSurveyWorker computes satisfaction and sentiment, and SurveyReportWorker produces the summary.
 

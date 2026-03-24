@@ -1,6 +1,8 @@
 # Health Checks in Java with Conductor
 
-Check health of multiple services in parallel. ## The Problem
+Check health of multiple services in parallel.
+
+## The Problem
 
 Monitoring the health of multiple services (API gateway, database, cache) requires hitting each service's health endpoint, collecting status and latency data, and producing a consolidated health report. These checks should run in parallel to minimize total check time, and the report must account for partial failures.
 

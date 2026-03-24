@@ -10,7 +10,9 @@ Without orchestration, implementing different timeout policies per task means wr
 
 **You just write the task logic and declare timeout policies in the workflow definition. Conductor handles per-task timeout detection with configurable policy enforcement (TIME_OUT_WF, RETRY, ALERT_ONLY), and a record of every timeout event showing which policy was applied and what action was taken.**
 
-Each task's timeout policy is declared in the task definition. `timeoutPolicy: TIME_OUT_WF` for critical tasks, `RETRY` for flaky tasks, and `ALERT_ONLY` for non-critical tasks. The workers just do their work; Conductor handles the timeout detection and policy enforcement. Changing a task's timeout behavior is a config change, not a code change. ### What You Write: Workers
+Each task's timeout policy is declared in the task definition. `timeoutPolicy: TIME_OUT_WF` for critical tasks, `RETRY` for flaky tasks, and `ALERT_ONLY` for non-critical tasks. The workers just do their work; Conductor handles the timeout detection and policy enforcement. Changing a task's timeout behavior is a config change, not a code change.
+
+### What You Write: Workers
 
 CriticalWorker uses TIME_OUT_WF to fail the entire workflow on timeout, RetryableWorker uses RETRY to automatically retry on timeout, and OptionalWorker uses ALERT_ONLY to continue the pipeline while flagging the timeout event.
 

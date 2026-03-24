@@ -1,6 +1,8 @@
 # Event Fanout in Java Using Conductor
 
-Event fan-out workflow that receives an event, fans out to analytics, storage, and notification processing in parallel via FORK_JOIN, then aggregates the results. ## The Problem
+Event fan-out workflow that receives an event, fans out to analytics, storage, and notification processing in parallel via FORK_JOIN, then aggregates the results.
+
+## The Problem
 
 You need to distribute a single event to multiple downstream consumers simultaneously. When an event arrives, it must be processed by analytics (for tracking), storage (for persistence), and notification (for alerting). all in parallel so no single slow consumer delays the others. After all consumers finish, results must be aggregated into a unified response.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd spawn threads for each consumer, manage a CountDown
 
 **You just write the event-receive, analytics, storage, notification, and aggregation workers. Conductor handles parallel fan-out via FORK_JOIN, per-consumer retry isolation, and automatic aggregation after all consumers complete.**
 
-Each downstream consumer is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of fanning out to all three consumers in parallel via FORK_JOIN, waiting for all to complete, aggregating results, retrying any failed consumer independently, and tracking the entire fanout operation. ### What You Write: Workers
+Each downstream consumer is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of fanning out to all three consumers in parallel via FORK_JOIN, waiting for all to complete, aggregating results, retrying any failed consumer independently, and tracking the entire fanout operation.
+
+### What You Write: Workers
 
 Five workers implement parallel event distribution: ReceiveEventWorker ingests the event, then AnalyticsWorker, StorageWorker, and NotificationWorker process it simultaneously via FORK_JOIN, and AggregateWorker combines all outcomes.
 

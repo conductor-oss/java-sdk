@@ -8,7 +8,9 @@ Without orchestration, fixed retries mean a for-loop with Thread.sleep(1000) ins
 
 ## The Solution
 
-The worker does its job and returns failure if the transient issue persists. Conductor retries with a fixed 1-second delay as configured in the task definition. Every retry attempt is tracked with timing. Changing the delay or retry count is a JSON config change. ### What You Write: Workers
+The worker does its job and returns failure if the transient issue persists. Conductor retries with a fixed 1-second delay as configured in the task definition. Every retry attempt is tracked with timing. Changing the delay or retry count is a JSON config change.
+
+### What You Write: Workers
 
 RetryFixedWorker performs the task and reports success or failure, while Conductor handles fixed-interval retries with a constant 1-second delay between attempts. Ideal for transient errors with predictable recovery times.
 

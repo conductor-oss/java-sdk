@@ -1,6 +1,8 @@
 # Canary Release in Java with Conductor
 
-Canary release with progressive traffic increase. ## The Problem
+Canary release with progressive traffic increase.
+
+## The Problem
 
 A canary release progressively increases traffic to a new version in stages (e.g., 5% -> 50% -> 100%), monitoring health at each stage before proceeding. If anomalies are detected at any stage, the release is halted and traffic stays on the stable version.
 

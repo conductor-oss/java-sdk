@@ -1,6 +1,8 @@
 # Load Balancing in Java with Conductor
 
-Distribute requests across service instances in parallel. ## The Problem
+Distribute requests across service instances in parallel.
+
+## The Problem
 
 Processing a large batch of requests efficiently requires distributing the work across multiple service instances in parallel, collecting results from each instance, and aggregating them into a single response. The work is partitioned so each instance handles a subset, and the aggregation waits for all partitions.
 

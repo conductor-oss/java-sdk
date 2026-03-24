@@ -1,6 +1,8 @@
 # Event Split in Java Using Conductor
 
-Splits a composite event into multiple sub-events for parallel processing using FORK_JOIN. ## The Problem
+Splits a composite event into multiple sub-events for parallel processing using FORK_JOIN.
+
+## The Problem
 
 You need to decompose a composite event into multiple independent sub-events for parallel processing. A single incoming event may contain data for multiple downstream systems. analytics, billing, and notification. Splitting the composite event and processing each sub-event in parallel reduces latency compared to sequential processing, and isolates failures so a billing error does not block notification delivery.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd manually parse the composite event, extract sub-pay
 
 **You just write the event-receive, split, per-sub-event processing, and result-combination workers. Conductor handles parallel sub-event processing, per-processor retry isolation, and automatic result combination after all branches complete.**
 
-Each sub-event processor is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of splitting the composite event, processing all sub-events in parallel via FORK_JOIN, aggregating results after all complete, retrying any failed sub-event processor independently, and tracking the entire split-and-process operation. ### What You Write: Workers
+Each sub-event processor is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of splitting the composite event, processing all sub-events in parallel via FORK_JOIN, aggregating results after all complete, retrying any failed sub-event processor independently, and tracking the entire split-and-process operation.
+
+### What You Write: Workers
 
 Six workers decompose and process composite events: ReceiveCompositeWorker ingests the event, SplitEventWorker breaks it into sub-events, ProcessSubAWorker, ProcessSubBWorker, and ProcessSubCWorker each handle one piece in parallel via FORK_JOIN, and CombineResultsWorker merges the outcomes.
 

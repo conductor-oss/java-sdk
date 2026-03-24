@@ -14,7 +14,9 @@ Coordinating a fleet of edge nodes means tracking which nodes received the job, 
 
 ### What You Write: Workers
 
-Four workers coordinate edge-fleet processing: job dispatch to nodes, per-node execution, result collection, and multi-node result merging, each independent of the edge topology.### The Workflow
+Four workers coordinate edge-fleet processing: job dispatch to nodes, per-node execution, result collection, and multi-node result merging, each independent of the edge topology.
+
+### The Workflow
 
 ```
 eor_dispatch

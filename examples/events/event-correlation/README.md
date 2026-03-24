@@ -1,6 +1,8 @@
 # Event Correlation in Java Using Conductor
 
-Event Correlation. init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process. ## The Problem
+Event Correlation. init correlation session, fork to receive order/payment/shipping events in parallel, join, correlate, and process.
+
+## The Problem
 
 You need to correlate related events that arrive independently from different sources. An order event, a payment event, and a shipping event may arrive at different times from different services, but they all belong to the same business transaction. The workflow must initialize a correlation session, receive all expected events (potentially in parallel), correlate them by matching fields, and process the fully correlated result.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a stateful correlation engine with in-memory 
 
 **You just write the correlation-init, event-receiver, event-correlation, and processing workers. Conductor handles parallel event reception, durable session state, and automatic join before correlation.**
 
-Each correlation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of initializing the session, receiving events in parallel via FORK_JOIN, correlating them after all arrive, and processing the result, with durable state that survives restarts and full visibility into which events have arrived. ### What You Write: Workers
+Each correlation concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of initializing the session, receiving events in parallel via FORK_JOIN, correlating them after all arrive, and processing the result, with durable state that survives restarts and full visibility into which events have arrived.
+
+### What You Write: Workers
 
 Six workers correlate cross-service events: InitCorrelationWorker opens a session, ReceiveOrderWorker, ReceivePaymentWorker, and ReceiveShippingWorker collect events in parallel via FORK_JOIN, CorrelateEventsWorker matches them, and ProcessCorrelatedWorker acts on the unified result.
 

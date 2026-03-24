@@ -1,6 +1,8 @@
 # Calendar Agent in Java Using Conductor : Parse Requests, Check Availability, Find Slots, Book Meetings
 
-Calendar Agent. parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline. ## Meeting Scheduling Is a Constraint Satisfaction Problem
+Calendar Agent. parse meeting request, check attendee calendars, find available slots, and book the meeting through a sequential pipeline.
+
+## Meeting Scheduling Is a Constraint Satisfaction Problem
 
 Finding a time that works for three people across different time zones with existing commitments is tedious. The agent needs to parse the request ("1-hour meeting with Alice and Bob, preferably next Tuesday afternoon"), check each attendee's calendar for existing events, find overlapping free windows that satisfy the duration and preference constraints, and book the meeting with proper invitations.
 

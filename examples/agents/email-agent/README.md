@@ -1,6 +1,8 @@
 # Email Agent in Java Using Conductor : Analyze Intent, Draft, Review Tone, Send
 
-Email Agent. analyze request, draft email, review tone, and send through a sequential pipeline. ## Writing the Right Email in the Right Tone
+Email Agent. analyze request, draft email, review tone, and send through a sequential pipeline.
+
+## Writing the Right Email in the Right Tone
 
 "Send a follow-up to Sarah about the Q4 proposal, keep it professional but warm." This requires understanding the intent (follow-up), identifying the context (Q4 proposal discussion), drafting content that addresses the topic, and then separately reviewing the tone. is it actually professional but warm, or did it come across as cold and transactional?
 

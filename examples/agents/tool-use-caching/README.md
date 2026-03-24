@@ -1,6 +1,8 @@
 # Tool Use Caching in Java Using Conductor : Check Cache, Execute-or-Return-Cached, Store Results
 
-Tool Use Caching. checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss. ## Tool Calls Are Expensive : Don't Repeat Them
+Tool Use Caching. checks a cache before executing a tool, and caches the result afterward. Uses a SWITCH task to branch on cache hit vs miss.
+
+## Tool Calls Are Expensive : Don't Repeat Them
 
 Tool calls cost time and often money. A web search API charges per query. A database query consumes compute resources. A calculation takes CPU time. If the same tool is called with the same arguments within a short window (same weather query, same stock lookup, same calculation), returning the cached result saves time and cost.
 

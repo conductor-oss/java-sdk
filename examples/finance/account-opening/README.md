@@ -12,7 +12,9 @@ Without orchestration, you'd chain identity verification API calls, credit burea
 
 **You just write the account opening workers. Document collection, identity verification, credit check, account provisioning, and welcome package. Conductor handles step ordering, automatic retries when the credit bureau API times out, and complete application lifecycle tracking.**
 
-Each account-opening concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (collect info, verify identity, credit check, open account, send welcome), retrying if the credit bureau API times out, tracking every application's full lifecycle, and resuming from the last successful step if the process crashes mid-verification. ### What You Write: Workers
+Each account-opening concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (collect info, verify identity, credit check, open account, send welcome), retrying if the credit bureau API times out, tracking every application's full lifecycle, and resuming from the last successful step if the process crashes mid-verification.
+
+### What You Write: Workers
 
 Five workers cover the onboarding pipeline: CollectInfoWorker gathers identity documents, VerifyIdentityWorker runs KYC checks, CreditCheckWorker queries ChexSystems, OpenAccountWorker provisions the account, and WelcomeWorker sends the welcome package.
 

@@ -10,7 +10,9 @@ Without orchestration, you'd manage this through email reminders, spreadsheet tr
 
 **You just write the self-evaluation, manager evaluation, calibration, and review finalization logic. Conductor handles review routing, calibration sequencing, and evaluation cycle audit trails.**
 
-Each stage of the review cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting the self-eval before the manager eval, calibrating only after both evaluations are in, finalizing after calibration, and giving HR complete real-time visibility into every review's progress across the organization. ### What You Write: Workers
+Each stage of the review cycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of collecting the self-eval before the manager eval, calibrating only after both evaluations are in, finalizing after calibration, and giving HR complete real-time visibility into every review's progress across the organization.
+
+### What You Write: Workers
 
 Goal retrieval, self-assessment collection, manager review, and calibration workers each manage one stage of the performance evaluation cycle.
 

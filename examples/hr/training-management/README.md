@@ -10,7 +10,9 @@ Without orchestration, you'd manage training through spreadsheets and LMS report
 
 **You just write the course assignment, progress tracking, assessment administration, certification, and record keeping logic. Conductor handles enrollment retries, progress tracking, and certification audit trails.**
 
-Each stage of training management is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting. ### What You Write: Workers
+Each stage of training management is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of tracking progress only after assignment, assessing only after course completion, certifying only if the assessment score meets the passing threshold, recording the certification as the final step, retrying if the LMS or HRIS is temporarily unavailable, and maintaining a complete audit trail for compliance reporting.
+
+### What You Write: Workers
 
 Course assignment, enrollment, progress tracking, and certification workers each manage one phase of employee skill development.
 

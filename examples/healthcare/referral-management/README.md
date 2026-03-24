@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic referral system that creates the
 
 **You just write the referral workers. Order creation, specialist matching, appointment scheduling, completion tracking, and loop closure. Conductor handles lifecycle sequencing, automatic retries when the provider directory is temporarily unavailable, and full referral loop visibility for quality reporting.**
 
-Each stage of the referral lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of matching specialists only after the referral is created, scheduling only after a specialist is matched, tracking through completion, closing with the consultation report, and providing full visibility into every referral's status. ### What You Write: Workers
+Each stage of the referral lifecycle is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of matching specialists only after the referral is created, scheduling only after a specialist is matched, tracking through completion, closing with the consultation report, and providing full visibility into every referral's status.
+
+### What You Write: Workers
 
 Five workers manage the referral lifecycle: CreateReferralWorker generates the order, MatchSpecialistWorker finds the best in-network provider, ScheduleReferralWorker books the appointment, TrackReferralWorker monitors completion, and CloseReferralWorker closes the loop with the consultation report.
 

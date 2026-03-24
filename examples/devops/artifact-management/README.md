@@ -1,6 +1,8 @@
 # Artifact Management in Java with Conductor : Build, Sign, Publish, Cleanup
 
-Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts. ## Build Artifacts Need a Managed Lifecycle
+Build artifact lifecycle orchestration: build, sign, publish, and cleanup old artifacts.
+
+## Build Artifacts Need a Managed Lifecycle
 
 After building a JAR, Docker image, or npm package, the artifact needs signing (so consumers can verify it hasn't been tampered with), publishing to a repository (Artifactory, Docker Hub, npm registry), and old versions need cleanup (keeping the last 10 versions, deleting artifacts older than 90 days). Without lifecycle management, artifact repositories grow unbounded, unsigned artifacts create supply chain risks, and there's no audit trail of what was published when.
 

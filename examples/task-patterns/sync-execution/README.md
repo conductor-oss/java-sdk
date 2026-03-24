@@ -1,6 +1,8 @@
 # Sync Execution in Java with Conductor
 
-Simple workflow for demonstrating sync vs async execution. ## The Problem
+Simple workflow for demonstrating sync vs async execution.
+
+## The Problem
 
 You need to execute a workflow and get the result back immediately in the same API call. like a synchronous function call that happens to be a full workflow under the hood. For example, adding two numbers and returning the sum to the caller without them needing to poll for the result. The caller sends `{a: 5, b: 3}` and gets `{sum: 8}` back in the HTTP response, even though the computation ran through the full Conductor workflow engine with retries, durability, and tracking.
 

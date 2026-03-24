@@ -1,6 +1,8 @@
 # Secret Rotation in Java with Conductor
 
-Rotate secrets across services securely. ## The Problem
+Rotate secrets across services securely.
+
+## The Problem
 
 Secrets (API keys, database passwords, encryption keys) must be rotated periodically to limit the blast radius of a leak. Rotation involves generating a new secret, storing it in a vault, updating every dependent service to use the new secret, and verifying that all services have switched over and the old secret is revoked.
 

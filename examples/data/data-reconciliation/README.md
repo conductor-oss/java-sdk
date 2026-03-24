@@ -10,7 +10,9 @@ Without orchestration, you'd write a script that connects to both databases, pul
 
 **You just write the source fetching, record comparison, and discrepancy reporting workers. Conductor handles fetch-compare-report sequencing, retries when either data source is temporarily unavailable, and full tracking of match and mismatch counts.**
 
-Each stage of the reconciliation is a simple, independent worker. Source A and Source B fetch workers each connect to their respective system and return records. The comparator joins records by the configured key field and classifies each as matched, mismatched, missing-in-A, or missing-in-B. The report generator computes the reconciliation rate and lists every discrepancy. Conductor executes them in sequence, retries if a data source is temporarily unavailable, and tracks exactly how many records were fetched, matched, and mismatched. ### What You Write: Workers
+Each stage of the reconciliation is a simple, independent worker. Source A and Source B fetch workers each connect to their respective system and return records. The comparator joins records by the configured key field and classifies each as matched, mismatched, missing-in-A, or missing-in-B. The report generator computes the reconciliation rate and lists every discrepancy. Conductor executes them in sequence, retries if a data source is temporarily unavailable, and tracks exactly how many records were fetched, matched, and mismatched.
+
+### What You Write: Workers
 
 Four workers handle cross-system reconciliation: fetching records from source A (e.g., billing), fetching from source B (e.g., fulfillment), comparing them by key field to find matches and discrepancies, and generating a reconciliation report.
 

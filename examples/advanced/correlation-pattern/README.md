@@ -14,7 +14,9 @@ Without orchestration, you'd build a stateful correlator that buffers incoming m
 
 ### What You Write: Workers
 
-Four workers handle the match-and-group flow: message ingestion, correlation-ID matching, per-group aggregation, and group processing, each isolated from the others' data schemas.### The Workflow
+Four workers handle the match-and-group flow: message ingestion, correlation-ID matching, per-group aggregation, and group processing, each isolated from the others' data schemas.
+
+### The Workflow
 
 ```
 crp_receive_messages

@@ -1,6 +1,8 @@
 # Pubsub Consumer in Java Using Conductor
 
-Pub/Sub Consumer. receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message. ## The Problem
+Pub/Sub Consumer. receive a Pub/Sub message, decode the base64 payload, process sensor data with threshold checks, and acknowledge the message.
+
+## The Problem
 
 You need to process messages from a Google Cloud Pub/Sub subscription. Each message arrives base64-encoded with attributes metadata, must be decoded, processed (e.g., sensor data with threshold checks), and acknowledged so Pub/Sub stops redelivering it. Failing to acknowledge means the message is redelivered indefinitely; acknowledging before processing means you lose it on failure.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd build a Pub/Sub subscriber with manual message deco
 
 **You just write the message-receive, payload-decode, sensor-processing, and acknowledgment workers. Conductor handles receive-to-ack sequencing, guaranteed acknowledgment only after processing, and full message lifecycle visibility.**
 
-Each Pub/Sub consumption concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the message, decoding the base64 payload, processing the sensor data with threshold checks, and acknowledging the message, retrying on transient failures, tracking every message's lifecycle, and resuming if the process crashes. ### What You Write: Workers
+Each Pub/Sub consumption concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of receiving the message, decoding the base64 payload, processing the sensor data with threshold checks, and acknowledging the message, retrying on transient failures, tracking every message's lifecycle, and resuming if the process crashes.
+
+### What You Write: Workers
 
 Four workers process Pub/Sub messages: PsReceiveMessageWorker extracts the raw message, PsDecodePayloadWorker converts the base64 payload into structured sensor data, PsProcessDataWorker evaluates threshold alerts, and PsAckMessageWorker confirms delivery.
 

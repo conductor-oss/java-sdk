@@ -1,6 +1,8 @@
 # Itinerary Planning in Java with Conductor
 
-Itinerary planning: preferences, search, optimize, book, finalize. ## The Problem
+Itinerary planning: preferences, search, optimize, book, finalize.
+
+## The Problem
 
 You need to plan a complete travel itinerary for an employee. loading their travel preferences (seat, airline, hotel chain, meal requirements), searching for flights and hotels that match, optimizing the combination for cost and convenience (minimizing layovers, grouping nearby hotels), booking the selected options, and finalizing the itinerary with all confirmation details sent to the traveler. Each step builds on the previous one's output.
 

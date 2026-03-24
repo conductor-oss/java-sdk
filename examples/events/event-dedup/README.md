@@ -1,6 +1,8 @@
 # Event Dedup in Java Using Conductor
 
-Event deduplication workflow. computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task. ## The Problem
+Event deduplication workflow. computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task.
+
+## The Problem
 
 You need to deduplicate events so that the same event is never processed twice. In distributed systems, at-least-once delivery guarantees mean consumers may receive duplicate messages. The workflow must compute a content hash of the event payload, check whether that hash has been seen before, and either process the event (if new) or skip it (if duplicate). Processing duplicates can lead to double charges, duplicate notifications, or corrupted state.
 
@@ -10,7 +12,9 @@ Without orchestration, you'd maintain a deduplication cache (in-memory set, Redi
 
 **You just write the hash-computation, seen-check, event-processing, and skip workers. Conductor handles SWITCH-based duplicate routing, guaranteed dedup decisions, and a full record of every event's dedup outcome.**
 
-Each deduplication concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision. ### What You Write: Workers
+Each deduplication concern is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of computing the hash, checking the dedup store, routing via a SWITCH task to process or skip, and tracking every event's dedup decision.
+
+### What You Write: Workers
 
 Four workers enforce exactly-once event processing: ComputeHashWorker generates a content fingerprint, CheckSeenWorker queries the dedup store, ProcessEventWorker handles new events, and SkipEventWorker discards duplicates.
 

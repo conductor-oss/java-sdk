@@ -10,7 +10,9 @@ Without orchestration, compliance is a periodic manual audit. Scans run weekly, 
 
 **You just write the policy evaluation rules and remediation actions. Conductor handles the scan-evaluate-remediate cycle with conditional routing, retries when cloud config APIs are unavailable, and timestamped proof of every compliance check and remediation action.**
 
-Each compliance concern is an independent worker. resource scanning, policy evaluation, remediation, and compliance logging. Conductor runs them in sequence with conditional routing: violations route to remediation, clean resources route to logging. Every compliance check is tracked, you can prove exactly when resources were evaluated, which policies were applied, and what remediation was performed. ### What You Write: Workers
+Each compliance concern is an independent worker. resource scanning, policy evaluation, remediation, and compliance logging. Conductor runs them in sequence with conditional routing: violations route to remediation, clean resources route to logging. Every compliance check is tracked, you can prove exactly when resources were evaluated, which policies were applied, and what remediation was performed.
+
+### What You Write: Workers
 
 Four workers run the compliance loop: ScanResourcesWorker inventories infrastructure, EvaluatePoliciesWorker checks against CIS/SOC2/HIPAA rules, RemediateWorker auto-fixes violations where possible, and LogCompliantWorker records passing resources as audit evidence.
 

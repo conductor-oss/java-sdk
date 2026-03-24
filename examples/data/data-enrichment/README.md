@@ -12,7 +12,9 @@ Without orchestration, you'd write a single enrichment method that calls a geoco
 
 **You just write the geo lookup, company lookup, credit lookup, and merge workers. Conductor handles sequential enrichment passes, automatic retries when third-party APIs are rate-limited, and crash recovery that resumes from the exact enrichment step that failed.**
 
-Each enrichment source is a simple, independent worker. The geo lookup worker resolves zip codes to city, state, and timezone. The company lookup worker maps email domains to company profiles (industry, employee count, revenue range). The credit lookup worker retrieves credit scores and risk tiers. The merger combines all enrichment layers with the original records and summarizes how many fields were added. Conductor executes them in sequence, passes progressively enriched records between steps, retries if an API call is rate-limited or times out, and resumes from the exact enrichment step where it left off if the process crashes. ### What You Write: Workers
+Each enrichment source is a simple, independent worker. The geo lookup worker resolves zip codes to city, state, and timezone. The company lookup worker maps email domains to company profiles (industry, employee count, revenue range). The credit lookup worker retrieves credit scores and risk tiers. The merger combines all enrichment layers with the original records and summarizes how many fields were added. Conductor executes them in sequence, passes progressively enriched records between steps, retries if an API call is rate-limited or times out, and resumes from the exact enrichment step where it left off if the process crashes.
+
+### What You Write: Workers
 
 Five workers handle multi-source enrichment: loading customer records, resolving geographic data from zip codes, looking up company firmographics from email domains, retrieving credit scores, and merging all layers into a unified output.
 

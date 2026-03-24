@@ -8,7 +8,9 @@ Without orchestration, SOC2 compliance is a frantic evidence-gathering exercise 
 
 ## The Solution
 
-Each SOC2 step is an independent worker. control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot. ### What You Write: Workers
+Each SOC2 step is an independent worker. control collection, effectiveness testing, exception identification, and evidence generation. Conductor runs them in sequence: collect controls, test effectiveness, identify exceptions, then generate evidence. Every compliance cycle is tracked, building a continuous compliance record rather than a point-in-time snapshot.
+
+### What You Write: Workers
 
 Three workers automate the SOC2 cycle: CollectControlsWorker gathers control implementations across trust service criteria, IdentifyExceptionsWorker flags gaps like missing MFA enforcement, and GenerateEvidenceWorker assembles audit-ready packages for the auditor.
 

@@ -21,7 +21,9 @@ Six workers implement the split-and-recombine pattern: composite message recepti
 | **SplCombineWorker** | `spl_combine` | Recombines the individually processed line items into a final order total and fulfillment count |
 | **SplProcessPart1Worker** | `spl_process_part_1` | Fulfills the first line item (e.g., LAPTOP-15) and computes its subtotal |
 | **SplProcessPart2Worker** | `spl_process_part_2` | Fulfills the second line item (e.g., MOUSE-WL) and computes its subtotal |
-| **SplProcessPart3Worker** | `spl_process_part_3` | Fulfills the third line item (e.g.### The Workflow
+| **SplProcessPart3Worker** | `spl_process_part_3` | Fulfills the third line item (e.g.
+
+### The Workflow
 
 ```
 spl_receive_composite

@@ -12,7 +12,9 @@ Without orchestration, cron job management means parsing syslog for failures, wr
 
 **You just write the job execution and cleanup commands. Conductor handles sequential execution with guaranteed cleanup, retries on job failures, and a unified view of every cron job's execution history, exit codes, and cleanup status.**
 
-Each cron job concern is an independent worker. Scheduling, execution, result logging, and cleanup. Conductor orchestrates them in sequence: schedule the job, execute it, log the results, then clean up. Every job run is tracked with execution time, output, exit code, and cleanup status. ### What You Write: Workers
+Each cron job concern is an independent worker. Scheduling, execution, result logging, and cleanup. Conductor orchestrates them in sequence: schedule the job, execute it, log the results, then clean up. Every job run is tracked with execution time, output, exit code, and cleanup status.
+
+### What You Write: Workers
 
 Four workers manage each cron job run: ScheduleJobWorker registers the schedule, ExecuteJobWorker runs the command, LogResultWorker records stdout/stderr and exit codes, and CleanupWorker removes temporary files created during execution.
 

@@ -10,7 +10,9 @@ Without orchestration, user behavior analytics is either a batch job in a data w
 
 **You just write the sessionization logic and behavioral anomaly rules. Conductor handles the collect-sessionize-analyze-flag sequence, retries when event streams or analytics services are temporarily down, and a complete audit of every analysis run with session counts, risk scores, and anomaly flags.**
 
-Each analytics step is an independent worker. event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags. ### What You Write: Workers
+Each analytics step is an independent worker. event collection, sessionization, pattern analysis, and anomaly flagging. Conductor runs them in sequence: collect events, group into sessions, analyze patterns, then flag anomalies. Every analysis run is tracked with session counts, pattern metrics, and anomaly flags.
+
+### What You Write: Workers
 
 CollectEventsWorker ingests raw user events, SessionizeWorker groups them into coherent sessions by time proximity, AnalyzePatternsWorker computes risk scores and baseline deviations, and FlagAnomaliesWorker triggers security alerts when behavior exceeds configured thresholds.
 

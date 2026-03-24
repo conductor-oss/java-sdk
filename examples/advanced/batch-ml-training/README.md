@@ -14,7 +14,9 @@ Doing this manually means managing parallel training threads, ensuring both mode
 
 ### What You Write: Workers
 
-Five workers cover the training pipeline: data preparation, splitting, two parallel model trainers (random forest and gradient boosting), and evaluation, each isolated to one ML concern.### The Workflow
+Five workers cover the training pipeline: data preparation, splitting, two parallel model trainers (random forest and gradient boosting), and evaluation, each isolated to one ML concern.
+
+### The Workflow
 
 ```
 bml_prepare_data

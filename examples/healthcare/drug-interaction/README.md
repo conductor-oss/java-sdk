@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic prescribing safety service that 
 
 **You just write the drug safety workers. Medication list retrieval, pairwise interaction checks, conflict flagging, and alternative recommendation. Conductor handles sequential evaluation, automatic retries when the interaction database is unavailable, and logged records of every safety check for medication audits.**
 
-Each stage of the interaction check is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits. ### What You Write: Workers
+Each stage of the interaction check is a simple, independent worker. a plain Java class that does one thing. Conductor takes care of listing medications before checking pairs, flagging conflicts only after all pairs are evaluated, generating alternative recommendations only for flagged conflicts, and logging every check for medication safety audits.
+
+### What You Write: Workers
 
 Four workers form the drug safety pipeline: ListMedicationsWorker retrieves active medications, CheckPairsWorker evaluates pairwise interactions, FlagConflictsWorker categorizes severity, and RecommendAlternativesWorker suggests safer therapeutic options.
 

@@ -14,7 +14,9 @@ Building this manually means spawning two threads per message, ensuring the audi
 
 ### What You Write: Workers
 
-Three workers split between the main flow and the audit tap: message reception, business logic processing, and parallel audit logging, neither path blocking the other.### The Workflow
+Three workers split between the main flow and the audit tap: message reception, business logic processing, and parallel audit logging, neither path blocking the other.
+
+### The Workflow
 
 ```
 wtp_receive

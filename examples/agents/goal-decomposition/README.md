@@ -1,6 +1,8 @@
 # Goal Decomposition in Java Using Conductor : Break Down Goals, Execute Subgoals in Parallel, Aggregate
 
-Goal Decomposition. decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results. ## Big Goals Need to Be Broken Down
+Goal Decomposition. decomposes a high-level goal into subgoals, executes them in parallel via FORK/JOIN, then aggregates the results.
+
+## Big Goals Need to Be Broken Down
 
 "Improve customer satisfaction" is a goal, not a plan. A useful agent decomposes it into actionable subgoals: analyze current satisfaction scores and identify pain points, benchmark against competitors, and design improvement initiatives. These three subgoals are independent. they can run simultaneously; but all must complete before the results can be aggregated into a coherent improvement plan.
 

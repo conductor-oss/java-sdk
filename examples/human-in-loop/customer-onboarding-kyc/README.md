@@ -10,7 +10,9 @@ Without orchestration, you'd build a monolithic KYC system that runs risk checks
 
 **You just write the KYC risk-check and account-activation workers. Conductor handles the routing between auto-approve and manual review.**
 
-The SWITCH + WAIT pattern is the key here. After the KYC check determines the risk level and whether manual review is needed, a SWITCH routes the workflow: if `needsReview` is true (high-risk), the workflow enters a WAIT task for a compliance analyst's decision; if false (low-risk), it auto-approves via SET_VARIABLE and proceeds directly to activation. Conductor takes care of routing based on risk assessment, holding the workflow durably while a compliance analyst reviews high-risk cases, activating accounts only after approval (automatic or manual), and providing a complete BSA/AML audit trail of every KYC decision. ### What You Write: Workers
+The SWITCH + WAIT pattern is the key here. After the KYC check determines the risk level and whether manual review is needed, a SWITCH routes the workflow: if `needsReview` is true (high-risk), the workflow enters a WAIT task for a compliance analyst's decision; if false (low-risk), it auto-approves via SET_VARIABLE and proceeds directly to activation. Conductor takes care of routing based on risk assessment, holding the workflow durably while a compliance analyst reviews high-risk cases, activating accounts only after approval (automatic or manual), and providing a complete BSA/AML audit trail of every KYC decision.
+
+### What You Write: Workers
 
 KycCheckWorker assesses identity and watchlist risk, while KycActivateWorker enables account access. Neither manages the routing between auto-approval and manual compliance review.
 

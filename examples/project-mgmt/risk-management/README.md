@@ -10,7 +10,9 @@ Without orchestration, you'd wire all of this into a single monolithic class. if
 
 **You just write the risk identification, severity assessment, severity-based handling, and mitigation planning logic. Conductor handles assessment retries, mitigation routing, and risk tracking audit trails.**
 
-Each concern is a simple, independent worker. a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes. ### What You Write: Workers
+Each concern is a simple, independent worker. a plain Java class that does one thing: identify the risk, assess its severity, handle the high/medium/low response, or build the mitigation plan. Conductor takes care of executing them in the right order, routing to the correct severity handler via a SWITCH task, retrying on failure, tracking every execution, and resuming if the process crashes.
+
+### What You Write: Workers
 
 Risk identification, probability assessment, mitigation planning, and monitoring workers each address one stage of project risk governance.
 

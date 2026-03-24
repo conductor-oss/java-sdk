@@ -1,6 +1,8 @@
 # Coupon Engine in Java Using Conductor : Validate Code, Check Eligibility, Apply Discount, Record Usage
 
-Coupon engine: validate code, check eligibility, apply discount, record usage. ## Coupons Have Complex Validation Rules
+Coupon engine: validate code, check eligibility, apply discount, record usage.
+
+## Coupons Have Complex Validation Rules
 
 A customer enters coupon code "SAVE20" at checkout. Before applying a 20% discount, the system must verify the code exists and is currently active (not expired, not past its redemption limit), check that the customer is eligible (hasn't used this code before, meets the minimum cart total of $50, cart contains items from eligible categories), apply the correct discount type (percentage off, fixed dollar amount, free shipping, buy-one-get-one), and record the usage atomically so the same code can't be reused.
 

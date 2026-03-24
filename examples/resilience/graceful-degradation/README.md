@@ -22,7 +22,9 @@ With graceful degradation, the core order is created immediately. Enrichment and
 
 **You just write the core processing and optional enrichment logic. Conductor handles FORK/JOIN parallel execution of optional services, continuing the pipeline when optional tasks fail, and clear tracking of which services were available versus degraded for every execution.**
 
-The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel. Both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded. ### What You Write: Workers
+The core process worker runs first and always succeeds. Then Conductor's FORK/JOIN runs the enrichment and analytics workers in parallel. Both are optional, so their failure does not fail the workflow. The finalize worker checks which optional services succeeded, sets a degraded flag if any failed, and produces the final result. Every execution shows which services were available and which were degraded.
+
+### What You Write: Workers
 
 CoreProcessWorker handles the required order creation that must always succeed, EnrichWorker and AnalyticsWorker run in parallel via FORK/JOIN as optional enhancements, and FinalizeWorker checks which services responded and sets a degradation flag.
 
