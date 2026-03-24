@@ -1,50 +1,88 @@
-# Clinical Trials in Java Using Conductor: Screening, Consent, Randomization, Monitoring, and Analysis
+# Clinical Trials: 21 CFR Part 11 Audit Trails, Stratified Randomization, and p-Value Analysis
 
-A promising cardiac drug candidate has 200 patients waiting to enroll. Eligibility screening is a manual chart review that takes three days per patient. Consent forms are mailed, signed, scanned, and uploaded to a shared drive. Randomization happens in a spreadsheet that the biostatistician updates on Tuesdays. The result: it takes six weeks from "patient expressed interest" to "patient is enrolled and randomized," and by then a quarter of them have dropped out or enrolled in a competing trial. When the FDA auditor asks to see the audit trail for participant SUBJ-4401. exactly when they were screened, who obtained consent, how they were randomized, the clinical ops team spends two days assembling it from three disconnected systems. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full trial enrollment pipeline, screening, consent, randomization, monitoring, and analysis, with strict step sequencing and a 21 CFR Part 11-compliant audit trail built in.
+When the FDA asks "show me the audit trail for participant SUBJ-4401," you need to produce timestamped, electronically signed records for every action: screening, consent, randomization, monitoring, and analysis. This isn't optional -- 21 CFR Part 11 requires it. This example implements the full clinical trial enrollment pipeline using [Conductor](https://github.com/conductor-oss/conductor), with inclusion/exclusion screening against 14 medical conditions, SHA-256 signed informed consent, `SecureRandom`-based 1:1 stratified randomization, biomarker-driven monitoring, and statistical analysis with p-value computation.
 
-## The Problem
-
-You need to manage participants through the lifecycle of a clinical trial. Each potential participant must be screened against the trial's inclusion and exclusion criteria. Those who qualify must provide informed consent before being enrolled. Consented participants are then randomized into treatment or control arms. Throughout the trial, participants must be monitored for adverse events and protocol deviations. At the end, trial data must be analyzed and outcomes reported. Every step requires strict sequencing. You cannot randomize without consent, and you cannot analyze without monitoring data. FDA 21 CFR Part 11 requires a complete, tamper-evident audit trail of every action.
-
-Without orchestration, you'd build a monolithic trial management system that checks eligibility, records consent, calls the randomization service, logs monitoring events, and runs the analysis, all with inline error handling. If the randomization service fails after consent is recorded, you'd need to track where the participant is in the process. Sponsors and the FDA demand full traceability of every participant interaction for compliance audits.
-
-## The Solution
-
-**You just write the trial management workers. Participant screening, consent collection, arm randomization, adverse event monitoring, and outcome analysis. Conductor handles strict step sequencing, automatic retries, and a 21 CFR Part 11-compliant audit trail of every participant interaction.**
-
-Each stage of the trial enrollment pipeline is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of running screening before consent, randomizing only after consent is obtained, triggering monitoring after randomization, analyzing only after monitoring is complete, and maintaining a 21 CFR Part 11-compliant audit trail of every step.
-
-### What You Write: Workers
-
-Five workers manage the trial enrollment pipeline: ScreenWorker checks eligibility, ConsentWorker records informed consent, RandomizeWorker assigns treatment arms, MonitorWorker tracks adverse events, and AnalyzeTrialWorker runs outcome analysis.
-
-| Worker | Task | What It Does |
-|---|---|---|
-| **ScreenWorker** | `clt_screen` | Evaluates the participant against inclusion/exclusion criteria for the specified trial and condition |
-| **ConsentWorker** | `clt_consent` | Records the participant's informed consent with electronic signature and version tracking |
-| **RandomizeWorker** | `clt_randomize` | Assigns the participant to a treatment arm using stratified block randomization |
-| **MonitorWorker** | `clt_monitor` | Tracks the participant through the trial for adverse events, protocol deviations, and study visits |
-| **AnalyzeTrialWorker** | `clt_analyze` | Runs the statistical analysis on collected trial data and generates outcome reports |
-
-### The Workflow
+## The Pipeline
 
 ```
-clt_screen
- │
- ▼
-clt_consent
- │
- ▼
-clt_randomize
- │
- ▼
-clt_monitor
- │
- ▼
-clt_analyze
-
+clt_screen  -->  clt_consent  -->  clt_randomize  -->  clt_monitor  -->  clt_analyze
 ```
+
+Every worker outputs a `cfr11AuditTrail` map containing `timestamp`, `action`, `performedBy`, `participantId`, `electronicSignature`, and `reason`. This chain creates a complete regulatory record per participant.
+
+## Screening: 14 Conditions, Explicit Inclusion/Exclusion
+
+`ScreenWorker` evaluates three criteria. Age must be 18-65. The condition must be in the eligible set:
+
+```java
+private static final Set<String> ELIGIBLE_CONDITIONS = Set.of(
+    "hypertension", "diabetes_type2", "asthma", "arthritis", "depression",
+    "anxiety", "chronic_pain", "obesity", "insomnia");
+```
+
+And the condition must NOT be in the exclusion set: `pregnancy`, `renal_failure`, `hepatitis`, `hiv`, `active_cancer`. A 30-year-old with hypertension passes. A 30-year-old who is pregnant does not -- even though pregnancy is not an eligible condition, the explicit exclusion check is separate because it produces a different audit trail entry (`hasExclusion: true` vs `conditionEligible: false`).
+
+The output includes human-readable `inclusionCriteria` strings: `"age 18-65: PASS (age=45)"`, `"confirmed diagnosis: PASS (hypertension)"`, `"no contraindications: PASS"`. The electronic signature is `"SYS-SCREEN-" + Math.abs(participantId.hashCode()) % 100000`.
+
+## Informed Consent with SHA-256 Signatures
+
+`ConsentWorker` generates a cryptographic signature hash by concatenating `participantId + ":" + trialId + ":" + System.currentTimeMillis()` and computing a SHA-256 digest, truncated to the first 16 hex characters:
+
+```java
+MessageDigest md = MessageDigest.getInstance("SHA-256");
+byte[] digest = md.digest(signatureData.getBytes());
+signatureHash = HexFormat.of().formatHex(digest).substring(0, 16);
+```
+
+The consent form version is hardcoded to `"ICF-v3.2"` (Informed Consent Form version 3.2). The CFR Part 11 audit trail records the exact form version, making it traceable if consent forms are updated during a trial.
+
+## Stratified Randomization
+
+`RandomizeWorker` uses `java.security.SecureRandom` for cryptographically strong 1:1 allocation:
+
+```java
+boolean isTreatment = SECURE_RANDOM.nextBoolean();
+String group = isTreatment ? "treatment" : "control";
+```
+
+Stratification factors are computed from age: participants under 40 are classified `"age_young"`, 40+ as `"age_older"`. Each participant receives a randomization code: `"RND-" + String.format("%05d", SECURE_RANDOM.nextInt(100000))`. The CFR Part 11 audit trail explicitly records `"Stratified randomization with 1:1 allocation"` as the method.
+
+## Biomarker-Driven Monitoring
+
+`MonitorWorker` generates monitoring data that differs by group assignment. Treatment group participants show biomarker improvement of -5% to -25%, while control group participants show minimal change of -2% to +2%. This simulates a real drug effect:
+
+```java
+if ("treatment".equals(group)) {
+    biomarkerChange = -(5.0 + RNG.nextDouble() * 20.0);  // -5 to -25
+} else {
+    biomarkerChange = -2.0 + RNG.nextDouble() * 4.0;      // -2 to +2
+}
+```
+
+The worker also generates 4-8 visit records, 0-2 adverse events, and 80-100% compliance scores. Invalid group values (anything other than `"treatment"` or `"control"`) fail with a terminal error.
+
+## Statistical Analysis
+
+`AnalyzeTrialWorker` determines outcomes from biomarker changes: less than -5 is `"improvement"`, greater than +5 is `"deterioration"`, between is `"no_change"`. The p-value approximation uses an exponential decay based on effect size:
+
+```java
+double effectSize = Math.abs(biomarkerChange) / 15.0;
+double pValue = Math.max(0.001, Math.exp(-2.0 * effectSize * effectSize));
+boolean significanceReached = pValue < 0.05;
+```
+
+Safety is assessed as acceptable when adverse events are at most 2 AND compliance is at least 70%.
+
+## Test Coverage
+
+- **ScreenWorkerTest**: 10 tests -- eligible patient, too young, too old, excluded condition, non-eligible condition, CFR Part 11 audit trail fields, missing participant/condition/age, negative age
+- **ConsentWorkerTest**: 4 tests -- consent recording, CFR Part 11 fields, missing participant, missing trial
+- **MonitorWorkerTest**: 5 tests -- monitoring output, CFR Part 11 fields, missing participant, missing group, invalid group value
+- **AnalyzeTrialWorkerTest**: 10 tests -- improvement detection, no-change, deterioration, safety with high adverse events, safety with low compliance, CFR Part 11 fields, missing monitoring data/biomarker/compliance/adverse events
+- **ClinicalTrialsIntegrationTest**: 6 tests -- full pipeline, ineligible (too young), excluded condition, non-matching condition, CFR Part 11 audit at every step, invalid input
+
+**35 tests total**, with dedicated tests verifying the 21 CFR Part 11 audit trail is present and correctly structured at every step.
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **How to run:** See [RUNNING.md](../../RUNNING.md) | **Production guidance:** See [PRODUCTION.md](PRODUCTION.md)

@@ -1,46 +1,109 @@
-# Fork Join in Java with Conductor
+# Parallel Data Aggregation with FORK_JOIN: Building a Product Page from Three Independent Services
 
-FORK_JOIN demo: fetch product details, inventory status, and customer reviews in parallel, then merge into a unified product page. You write the business logic, Conductor handles retries, failure routing, durability, and observability.
+A product detail page needs data from three backends: the product catalog (name, price, category), the inventory system (stock levels, warehouse location), and the reviews service (average rating, review count). Calling them sequentially takes 3x the latency of the slowest service. Calling them in parallel from the application means managing threads, error handling, and result aggregation in every controller that needs composite data.
 
-## The Problem
+This example uses Conductor's FORK_JOIN to dispatch three independent data fetches in parallel, wait for all three to complete, and merge their outputs into a single product page -- with strict validation that every branch contributed its result.
 
-You need to assemble a product detail page by fetching data from three independent microservices simultaneously. Product catalog (name, description, price), inventory service (stock level, warehouse location), and reviews service (ratings, review text). Calling them sequentially triples the page load time. All three queries use the same productId and are completely independent of each other, but the merge step cannot run until all three have responded.
+## Workflow Structure
 
-Without orchestration, you'd fire three async HTTP calls, manage CompletableFutures or callbacks for each, write barrier logic to wait for all three, and handle the case where the reviews service is slow while the other two have already returned. If the inventory service times out, you need to decide whether to retry it independently or fail the entire page assembly. There is no record of what each service returned or how long each took.
+```
+FORK_JOIN ─┬─ fj_get_product    (catalog lookup by productId)
+           ├─ fj_get_inventory  (hash-based stock levels + warehouse assignment)
+           └─ fj_get_reviews    (hash-based ratings + review count)
+           |
+        JOIN (all three must complete)
+           |
+           v
+fj_merge_results  (combine product + inventory + reviews -> productPage)
+```
 
-## The Solution
+All three fork branches receive the same `productId` from workflow input. The JOIN waits for all three task references. The merge worker receives outputs wired as `${fj_get_product_ref.output.product}`, `${fj_get_inventory_ref.output.inventory}`, `${fj_get_reviews_ref.output.reviews}`.
 
-**You just write the product, inventory, reviews, and merge workers. Conductor handles running all three fetches in parallel via FORK_JOIN and waiting for completion.**
+## Branch 1: GetProductWorker (`fj_get_product`)
 
-This example demonstrates Conductor's FORK_JOIN task for parallel data aggregation. Three workers run simultaneously. GetProductWorker fetches catalog data (name, description, price), GetInventoryWorker queries stock levels and warehouse locations, and GetReviewsWorker retrieves ratings and review text. All three receive the same productId and execute concurrently. A JOIN task waits until all three branches complete, then MergeResultsWorker combines the product, inventory, and reviews data into a single product page object. If the reviews service is slow, Conductor waits for it while keeping the product and inventory results safe. If the inventory call fails, Conductor retries just that branch, the other two results are preserved.
+Looks up the product ID against a 5-item hardcoded catalog:
 
-### What You Write: Workers
+| ID | Name | Price | Category |
+|---|---|---|---|
+| PROD-001 | Wireless Headphones | $79.99 | Electronics |
+| PROD-002 | Mechanical Keyboard | $129.99 | Electronics |
+| PROD-003 | USB-C Hub | $49.99 | Accessories |
+| PROD-004 | Standing Desk | $399.99 | Furniture |
+| PROD-005 | Noise Cancelling Earbuds | $149.99 | Electronics |
 
-Four workers demonstrate parallel data aggregation: GetProductWorker, GetInventoryWorker, and GetReviewsWorker each fetch from their respective microservice concurrently, then MergeResultsWorker combines all three into a unified product page.
+Unknown product IDs return `FAILED_WITH_TERMINAL_ERROR` with a message naming the missing ID. This is the only branch where the data source is finite and failure is expected for invalid inputs.
 
-| Worker | Task | What It Does |
+## Branch 2: GetInventoryWorker (`fj_get_inventory`)
+
+Generates deterministic inventory data from the product ID hash:
+
+```java
+int hash = Math.abs(productId.hashCode());
+int quantity = hash % 500;
+boolean inStock = quantity > 0;
+String warehouse = WAREHOUSES[hash % WAREHOUSES.length];
+```
+
+Warehouse assignment cycles through `US-WEST-1`, `US-WEST-2`, `US-EAST-1`, `EU-WEST-1`, `AP-SOUTH-1`. The `inStock` flag is derived directly from `quantity > 0`, ensuring logical consistency. This branch never fails for valid product IDs -- it always produces an inventory record.
+
+## Branch 3: GetReviewsWorker (`fj_get_reviews`)
+
+Generates deterministic review metrics from the product ID hash:
+
+```java
+double averageRating = 1.0 + (hash % 41) / 10.0;  // range 1.0 - 5.0
+int totalReviews = hash % 1000;
+String topReview = SAMPLE_REVIEWS[hash % SAMPLE_REVIEWS.length];
+```
+
+The rating formula guarantees values between 1.0 and 5.0 inclusive. The top review is selected from 5 sample reviews.
+
+## The Merge: MergeResultsWorker (`fj_merge_results`)
+
+The merge worker is where branch independence meets strict assembly requirements. It validates that all three inputs are non-null before proceeding:
+
+```java
+if (product == null) {
+    fail.setReasonForIncompletion(
+        "Input 'product' is required -- the product fork branch must complete successfully");
+}
+```
+
+Each null check names the specific branch that failed, making it immediately clear which parallel task caused the merge to fail.
+
+The output `productPage` contains exactly 6 fields, each sourced from a specific branch:
+
+| Field | Source Branch | Derivation |
 |---|---|---|
-| **GetProductWorker** | `fj_get_product` | Returns product catalog data (id, name, price, category) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
-| **GetInventoryWorker** | `fj_get_inventory` | Returns inventory data (productId, inStock flag, quantity, warehouse location) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
-| **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. |
-| **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. |
+| `name` | product | Direct from catalog |
+| `price` | product | Direct from catalog |
+| `available` | inventory | `inStock` boolean |
+| `stock` | inventory | `quantity` integer |
+| `rating` | reviews | `averageRating` double |
+| `reviewCount` | reviews | `totalReviews` integer |
 
-Workers implement their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+## Branch Independence
 
-### The Workflow
+Every branch operates on immutable data derived solely from the `productId` input. There is no shared mutable state between branches. Running branches for `PROD-001` and `PROD-002` in any order produces the same results -- the tests explicitly verify this by comparing outputs across interleaved executions.
 
-```
-FORK_JOIN
- ├── fj_get_product
- ├── fj_get_inventory
- └── fj_get_reviews
- │
- ▼
-JOIN (wait for all branches)
-fj_merge_results
+## What Happens When a Branch Fails
 
-```
+When the product branch fails (e.g., unknown `PROD-999`), Conductor's FORK_JOIN propagates the failure. The merge worker receives `null` for the failed branch's output and returns `FAILED_WITH_TERMINAL_ERROR` with a message identifying which branch is missing. The inventory and reviews branches may have already completed successfully -- their results are simply not used.
+
+## Test Coverage
+
+5 test classes, 36 tests:
+
+**ForkJoinIntegrationTest (4 tests):** Full three-branch merge for `PROD-001`, branch independence across two products, failed branch causing merge failure, merge output containing all 6 fields from all 3 branches.
+
+**GetProductWorkerTest (8 tests):** Known product lookup, unknown product failure with ID in error message, missing/blank/null productId, 4-field output, deterministic output across invocations.
+
+**GetInventoryWorkerTest (8 tests):** Inventory field completeness, deterministic quantity/warehouse, different products getting different inventory, `inStock` matching `quantity > 0`, missing/blank/null productId.
+
+**GetReviewsWorkerTest (8 tests):** Rating range validation (1.0-5.0), deterministic review data, different products getting different reviews, 4-field output, missing/blank/null productId.
+
+**MergeResultsWorkerTest (8 tests):** Full merge, individual branch failures (product null, inventory null, reviews null), all branches null, missing input keys, out-of-stock handling, 6-field output.
 
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
