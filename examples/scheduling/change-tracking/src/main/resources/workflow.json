@@ -1,0 +1,61 @@
+{
+  "name": "change_tracking_427",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "resourceType",
+    "resourceId",
+    "changeSource"
+  ],
+  "tasks": [
+    {
+      "name": "chg_detect_change",
+      "taskReferenceName": "chg_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceType": "${workflow.input.resourceType}",
+        "resourceId": "${workflow.input.resourceId}",
+        "changeSource": "${workflow.input.changeSource}"
+      }
+    },
+    {
+      "name": "chg_diff",
+      "taskReferenceName": "chg_diff_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceId": "${workflow.input.resourceId}",
+        "previousVersion": "${chg_detect_ref.output.previousVersion}",
+        "currentVersion": "${chg_detect_ref.output.currentVersion}"
+      }
+    },
+    {
+      "name": "chg_classify",
+      "taskReferenceName": "chg_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "linesAdded": "${chg_diff_ref.output.linesAdded}",
+        "linesRemoved": "${chg_diff_ref.output.linesRemoved}",
+        "filesChanged": "${chg_diff_ref.output.filesChanged}",
+        "resourceType": "${workflow.input.resourceType}"
+      }
+    },
+    {
+      "name": "chg_record",
+      "taskReferenceName": "chg_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceId": "${workflow.input.resourceId}",
+        "changeType": "${chg_classify_ref.output.changeType}",
+        "riskLevel": "${chg_classify_ref.output.riskLevel}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "changeDetected": "${chg_detect_ref.output.changeDetected}",
+    "filesChanged": "${chg_diff_ref.output.filesChanged}",
+    "riskLevel": "${chg_classify_ref.output.riskLevel}",
+    "recorded": "${chg_record_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

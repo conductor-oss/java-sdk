@@ -1,0 +1,51 @@
+{
+  "name": "rolling_update_workflow",
+  "version": 1,
+  "description": "Orchestrates zero-downtime rolling updates by analyzing current state, planning the update strategy, executing the rollout, and verifying all replicas are healthy.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "newVersion"
+  ],
+  "tasks": [
+    {
+      "name": "ru_analyze",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "newVersion": "${workflow.input.newVersion}"
+      }
+    },
+    {
+      "name": "ru_plan",
+      "taskReferenceName": "plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "planData": "${analyze_ref.output}"
+      }
+    },
+    {
+      "name": "ru_execute",
+      "taskReferenceName": "execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "executeData": "${plan_ref.output}"
+      }
+    },
+    {
+      "name": "ru_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verifyData": "${execute_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "analyzeResult": "${analyze_ref.output}",
+    "verifyResult": "${verify_ref.output}"
+  }
+}

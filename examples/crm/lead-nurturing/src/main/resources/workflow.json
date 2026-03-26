@@ -1,0 +1,52 @@
+{
+  "name": "nur_lead_nurturing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["leadId", "leadStage", "interests"],
+  "tasks": [
+    {
+      "name": "nur_segment",
+      "taskReferenceName": "nur_segment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leadId": "${workflow.input.leadId}",
+        "stage": "${workflow.input.leadStage}",
+        "interests": "${workflow.input.interests}"
+      }
+    },
+    {
+      "name": "nur_personalize",
+      "taskReferenceName": "nur_personalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "segment": "${nur_segment_ref.output.segment}",
+        "interests": "${workflow.input.interests}"
+      }
+    },
+    {
+      "name": "nur_send",
+      "taskReferenceName": "nur_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leadId": "${workflow.input.leadId}",
+        "content": "${nur_personalize_ref.output.content}"
+      }
+    },
+    {
+      "name": "nur_track",
+      "taskReferenceName": "nur_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leadId": "${workflow.input.leadId}",
+        "deliveryId": "${nur_send_ref.output.deliveryId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "segment": "${nur_segment_ref.output.segment}",
+    "contentSent": "${nur_send_ref.output.sent}",
+    "engagement": "${nur_track_ref.output.engagement}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

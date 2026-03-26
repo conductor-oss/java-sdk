@@ -68,7 +68,7 @@ public class ReceiptWorker implements Worker {
             output.put("amount", amount);
             output.put("currency", currency);
             output.put("generatedAt", now.toString());
-            output.put("simulated", true);
+            output.put("demoMode", true);
             result.setOutputData(output);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;

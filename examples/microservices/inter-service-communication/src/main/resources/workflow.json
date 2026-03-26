@@ -1,0 +1,24 @@
+{
+  "name": "inter_service_comm_workflow",
+  "description": "Orchestrates request-response communication between microservices",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "customerId"],
+  "tasks": [
+    {"name": "isc_order_service", "taskReferenceName": "order_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "items": "${workflow.input.items}"}},
+    {"name": "isc_inventory_service", "taskReferenceName": "inv_ref", "type": "SIMPLE",
+      "inputParameters": {"items": "${workflow.input.items}", "orderRef": "${order_ref.output.orderRef}"}},
+    {"name": "isc_shipping_service", "taskReferenceName": "ship_ref", "type": "SIMPLE",
+      "inputParameters": {"orderId": "${workflow.input.orderId}", "warehouse": "${inv_ref.output.warehouse}"}},
+    {"name": "isc_notification_service", "taskReferenceName": "notify_ref", "type": "SIMPLE",
+      "inputParameters": {"customerId": "${workflow.input.customerId}", "trackingId": "${ship_ref.output.trackingId}"}}
+  ],
+  "outputParameters": {
+    "orderRef": "${order_ref.output.orderRef}",
+    "trackingId": "${ship_ref.output.trackingId}",
+    "notified": "${notify_ref.output.sent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

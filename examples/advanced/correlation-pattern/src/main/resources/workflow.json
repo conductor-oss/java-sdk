@@ -1,0 +1,51 @@
+{
+  "name": "crp_correlation_pattern",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "messages",
+    "correlationField"
+  ],
+  "tasks": [
+    {
+      "name": "crp_receive_messages",
+      "taskReferenceName": "crp_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messages": "${workflow.input.messages}"
+      }
+    },
+    {
+      "name": "crp_match_by_id",
+      "taskReferenceName": "crp_match_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messages": "${crp_receive_ref.output.messages}",
+        "correlationField": "${workflow.input.correlationField}"
+      }
+    },
+    {
+      "name": "crp_aggregate",
+      "taskReferenceName": "crp_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "correlatedGroups": "${crp_match_ref.output.correlatedGroups}"
+      }
+    },
+    {
+      "name": "crp_process",
+      "taskReferenceName": "crp_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregatedResults": "${crp_aggregate_ref.output.aggregatedResults}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalMessages": "${crp_receive_ref.output.totalMessages}",
+    "correlatedGroups": "${crp_match_ref.output.groupCount}",
+    "processedGroups": "${crp_process_ref.output.processedCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

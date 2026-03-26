@@ -1,0 +1,53 @@
+{
+  "name": "blue_green_deployment",
+  "description": "Orchestrates blue-green deployment: deploy to green, validate, switch traffic, and monitor.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "newVersion", "imageTag"],
+  "tasks": [
+    {
+      "name": "bg_deploy_green",
+      "taskReferenceName": "deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "imageTag": "${workflow.input.imageTag}"
+      }
+    },
+    {
+      "name": "bg_validate_green",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "environment": "green"
+      }
+    },
+    {
+      "name": "bg_switch_traffic",
+      "taskReferenceName": "switch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "from": "blue",
+        "to": "green"
+      }
+    },
+    {
+      "name": "bg_monitor_green",
+      "taskReferenceName": "monitor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}",
+        "version": "${workflow.input.newVersion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "deployed": "${deploy_ref.output.deployed}",
+    "switched": "${switch_ref.output.switched}",
+    "healthy": "${monitor_ref.output.healthy}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

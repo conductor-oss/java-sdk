@@ -1,0 +1,63 @@
+{
+  "name": "cer_certificate_issuance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentId", "courseId", "courseName"],
+  "tasks": [
+    {
+      "name": "cer_verify_completion",
+      "taskReferenceName": "cer_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "courseId": "${workflow.input.courseId}"
+      }
+    },
+    {
+      "name": "cer_generate",
+      "taskReferenceName": "cer_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${workflow.input.studentId}",
+        "courseName": "${workflow.input.courseName}",
+        "completionDate": "${cer_verify_ref.output.completionDate}"
+      }
+    },
+    {
+      "name": "cer_sign",
+      "taskReferenceName": "cer_sign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "certificateId": "${cer_generate_ref.output.certificateId}"
+      }
+    },
+    {
+      "name": "cer_issue",
+      "taskReferenceName": "cer_issue_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "certificateId": "${cer_generate_ref.output.certificateId}",
+        "studentId": "${workflow.input.studentId}"
+      }
+    },
+    {
+      "name": "cer_record",
+      "taskReferenceName": "cer_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "certificateId": "${cer_generate_ref.output.certificateId}",
+        "studentId": "${workflow.input.studentId}",
+        "courseId": "${workflow.input.courseId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "completed": "${cer_verify_ref.output.completed}",
+    "certificateId": "${cer_generate_ref.output.certificateId}",
+    "signed": "${cer_sign_ref.output.signed}",
+    "issued": "${cer_issue_ref.output.issued}",
+    "recorded": "${cer_record_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

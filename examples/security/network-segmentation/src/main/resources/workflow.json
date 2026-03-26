@@ -1,0 +1,50 @@
+{
+  "name": "network_segmentation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "environment",
+    "segmentationType"
+  ],
+  "tasks": [
+    {
+      "name": "ns_define_zones",
+      "taskReferenceName": "define_zones_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "environment": "${workflow.input.environment}",
+        "segmentationType": "${workflow.input.segmentationType}"
+      }
+    },
+    {
+      "name": "ns_configure_rules",
+      "taskReferenceName": "configure_rules_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "configure_rulesData": "${define_zones_ref.output}"
+      }
+    },
+    {
+      "name": "ns_apply_policies",
+      "taskReferenceName": "apply_policies_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apply_policiesData": "${configure_rules_ref.output}"
+      }
+    },
+    {
+      "name": "ns_verify_isolation",
+      "taskReferenceName": "verify_isolation_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_isolationData": "${apply_policies_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "define_zonesResult": "${define_zones_ref.output}",
+    "verify_isolationResult": "${verify_isolation_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

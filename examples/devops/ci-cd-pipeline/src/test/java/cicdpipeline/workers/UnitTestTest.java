@@ -18,6 +18,15 @@ class UnitTestTest {
     }
 
     @Test
+    void failsOnMissingBuildId() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>());
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
     void returnsCompletedStatus() {
         Task task = taskWith("BLD-100001");
         TaskResult result = worker.execute(task);
@@ -42,12 +51,10 @@ class UnitTestTest {
 
     @Test
     void javaVersionCheckPasses() {
-        // Without a build directory, the worker runs "java -version" as a smoke test
         Task task = taskWith("BLD-100001");
         TaskResult result = worker.execute(task);
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         assertEquals("java-version", result.getOutputData().get("tool"));
-        // java -version should succeed on any machine with JDK installed
         assertEquals(1, ((Number) result.getOutputData().get("passed")).intValue());
         assertEquals(0, ((Number) result.getOutputData().get("failed")).intValue());
     }

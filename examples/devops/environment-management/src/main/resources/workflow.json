@@ -1,0 +1,48 @@
+{
+  "name": "environment_management_workflow",
+  "version": 1,
+  "description": "Environment lifecycle orchestration: create, configure, seed data, and verify.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": ["envName", "template", "ttlHours"],
+  "tasks": [
+    {
+      "name": "em_create_env",
+      "taskReferenceName": "create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "envName": "${workflow.input.envName}",
+        "template": "${workflow.input.template}"
+      }
+    },
+    {
+      "name": "em_configure",
+      "taskReferenceName": "config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "envId": "${create_ref.output.envId}"
+      }
+    },
+    {
+      "name": "em_seed_data",
+      "taskReferenceName": "seed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "envId": "${create_ref.output.envId}"
+      }
+    },
+    {
+      "name": "em_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "envId": "${create_ref.output.envId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "envId": "${create_ref.output.envId}",
+    "healthy": "${verify_ref.output.healthy}"
+  }
+}

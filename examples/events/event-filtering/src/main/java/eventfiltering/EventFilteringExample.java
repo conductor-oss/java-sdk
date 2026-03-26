@@ -1,0 +1,98 @@
+package eventfiltering;
+
+import com.netflix.conductor.client.worker.Worker;
+import com.netflix.conductor.common.run.Workflow;
+import eventfiltering.workers.ReceiveEventWorker;
+import eventfiltering.workers.ClassifyPriorityWorker;
+import eventfiltering.workers.UrgentHandlerWorker;
+import eventfiltering.workers.StandardHandlerWorker;
+import eventfiltering.workers.DropEventWorker;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Event Filtering Demo
+ *
+ * Demonstrates event filtering using a SWITCH pattern: events are received,
+ * classified by priority, then routed to an urgent handler, standard handler,
+ * or dropped based on severity.
+ *
+ *   ef_receive_event -> ef_classify_priority -> SWITCH -> [ef_urgent_handler | ef_standard_handler | ef_drop_event]
+ *
+ * Run:
+ *   java -jar target/event-filtering-1.0.0.jar
+ */
+public class EventFilteringExample {
+
+    public static void main(String[] args) throws Exception {
+        boolean workersOnly = args.length > 0 && "--workers".equals(args[0]);
+
+        System.out.println("=== Event Filtering Demo ===\n");
+
+        var client = new ConductorClientHelper();
+
+        // Step 1 -- Register task definitions
+        System.out.println("Step 1: Registering task definitions...");
+        client.registerTaskDefs(List.of(
+                "ef_receive_event", "ef_classify_priority",
+                "ef_urgent_handler", "ef_standard_handler", "ef_drop_event"));
+        System.out.println("  Registered: ef_receive_event, ef_classify_priority, ef_urgent_handler, ef_standard_handler, ef_drop_event\n");
+
+        // Step 2 -- Register workflow
+        System.out.println("Step 2: Registering workflow 'event_filtering_wf'...");
+        client.registerWorkflow("workflow.json");
+        System.out.println("  Workflow registered.\n");
+
+        // Step 3 -- Start workers
+        System.out.println("Step 3: Starting workers...");
+        List<Worker> workers = List.of(
+                new ReceiveEventWorker(),
+                new ClassifyPriorityWorker(),
+                new UrgentHandlerWorker(),
+                new StandardHandlerWorker(),
+                new DropEventWorker()
+        );
+        client.startWorkers(workers);
+        System.out.println("  5 workers polling.\n");
+
+        if (workersOnly) {
+            System.out.println("Running in worker-only mode. Use the Conductor CLI to start workflows.");
+            System.out.println("Press Ctrl+C to stop.\n");
+            Thread.currentThread().join();
+            return;
+        }
+
+        Thread.sleep(2000);
+
+        // Step 4 -- Start the workflow
+        System.out.println("Step 4: Starting workflow...\n");
+        String workflowId = client.startWorkflow("event_filtering_wf", 1,
+                Map.of("eventId", "evt-fixed-001",
+                        "eventType", "system.alert",
+                        "severity", "critical",
+                        "payload", Map.of(
+                                "service", "payment-gateway",
+                                "cpu", 98.5,
+                                "memory", 92.1,
+                                "errorRate", 15.3)));
+        System.out.println("  Workflow ID: " + workflowId + "\n");
+
+        // Step 5 -- Wait for completion
+        System.out.println("Step 5: Waiting for completion...");
+        Workflow workflow = client.waitForWorkflow(workflowId, "COMPLETED", 60000);
+        String status = workflow.getStatus().name();
+        System.out.println("  Status: " + status);
+        System.out.println("  Output: " + workflow.getOutput());
+
+        client.stopWorkers();
+
+        if ("COMPLETED".equals(status)) {
+            System.out.println("\nResult: PASSED");
+            System.exit(0);
+        } else {
+            System.out.println("\nResult: FAILED");
+            System.exit(1);
+        }
+    }
+}

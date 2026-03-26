@@ -1,0 +1,20 @@
+{
+  "name": "event_driven_microservices",
+  "description": "Event-driven microservices choreography via Conductor",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["eventType", "payload", "source"],
+  "tasks": [
+    {"name": "edm_emit_event", "taskReferenceName": "emit_ref", "type": "SIMPLE",
+      "inputParameters": {"eventType": "${workflow.input.eventType}", "payload": "${workflow.input.payload}", "source": "${workflow.input.source}"}},
+    {"name": "edm_process_event", "taskReferenceName": "process_ref", "type": "SIMPLE",
+      "inputParameters": {"eventId": "${emit_ref.output.eventId}", "eventType": "${workflow.input.eventType}", "payload": "${workflow.input.payload}"}},
+    {"name": "edm_update_projection", "taskReferenceName": "proj_ref", "type": "SIMPLE",
+      "inputParameters": {"eventId": "${emit_ref.output.eventId}", "processedData": "${process_ref.output.result}"}},
+    {"name": "edm_notify_subscribers", "taskReferenceName": "notify_ref", "type": "SIMPLE",
+      "inputParameters": {"eventId": "${emit_ref.output.eventId}", "subscribers": "${process_ref.output.subscribers}"}}
+  ],
+  "outputParameters": {"eventId": "${emit_ref.output.eventId}", "processed": "${process_ref.output.result}", "notified": "${notify_ref.output.count}"},
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

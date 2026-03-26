@@ -1,0 +1,15 @@
+{
+  "name": "cch_cold_chain", "description": "Cold chain monitoring: monitor temp, check thresholds, switch on status, and act.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["shipmentId", "product", "minTemp", "maxTemp"],
+  "tasks": [
+    {"name":"cch_monitor_temp","taskReferenceName":"cch_monitor_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}","product":"${workflow.input.product}"}},
+    {"name":"cch_check_thresholds","taskReferenceName":"cch_check_ref","type":"SIMPLE","inputParameters":{"currentTemp":"${cch_monitor_ref.output.currentTemp}","minTemp":"${workflow.input.minTemp}","maxTemp":"${workflow.input.maxTemp}"}},
+    {"name":"threshold_switch","taskReferenceName":"cch_switch_ref","type":"SWITCH","evaluatorType":"value-param","expression":"switchCaseValue",
+      "inputParameters":{"switchCaseValue":"${cch_check_ref.output.status}"},
+      "decisionCases":{"ok":[{"name":"cch_handle_ok","taskReferenceName":"cch_ok_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}"}}]},
+      "defaultCase":[{"name":"cch_handle_alert","taskReferenceName":"cch_alert_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}","currentTemp":"${cch_monitor_ref.output.currentTemp}"}}]},
+    {"name":"cch_act","taskReferenceName":"cch_act_ref","type":"SIMPLE","inputParameters":{"shipmentId":"${workflow.input.shipmentId}","status":"${cch_check_ref.output.status}"}}
+  ],
+  "outputParameters": {"shipmentId":"${workflow.input.shipmentId}","currentTemp":"${cch_monitor_ref.output.currentTemp}","status":"${cch_check_ref.output.status}","actionTaken":"${cch_act_ref.output.action}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

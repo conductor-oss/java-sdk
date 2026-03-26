@@ -35,10 +35,21 @@ public class ShipOrderWorker implements Worker {
         TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
-        String orderId = task.getInputData().get("orderId") != null
-                ? task.getInputData().get("orderId").toString() : "UNKNOWN";
-        String fulfillmentId = task.getInputData().get("fulfillmentId") != null
-                ? task.getInputData().get("fulfillmentId").toString() : "UNKNOWN";
+        // --- Validate required inputs ---
+        String orderId = (String) task.getInputData().get("orderId");
+        if (orderId == null || orderId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: orderId");
+            return result;
+        }
+
+        String fulfillmentId = (String) task.getInputData().get("fulfillmentId");
+        if (fulfillmentId == null || fulfillmentId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: fulfillmentId");
+            return result;
+        }
+
         String shippingMethod = task.getInputData().get("shippingMethod") != null
                 ? task.getInputData().get("shippingMethod").toString().toLowerCase() : "standard";
 

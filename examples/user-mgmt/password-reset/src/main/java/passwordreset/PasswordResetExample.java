@@ -9,6 +9,10 @@ import passwordreset.workers.NotifyWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Example 603: Password Reset — Request, Verify, Reset, Notify
@@ -52,6 +56,17 @@ public class PasswordResetExample {
         Thread.sleep(2000);
 
         System.out.println("Step 4: Starting workflow...\n");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/reset_password"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"S3cure!Pass#2026\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'reset_password\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("pwd_password_reset", 1,
                 Map.of("email", "carol@example.com", "newPassword", "S3cure!Pass#2026"));
         System.out.println("  Workflow ID: " + workflowId + "\n");

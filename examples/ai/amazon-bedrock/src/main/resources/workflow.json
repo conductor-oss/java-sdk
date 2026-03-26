@@ -1,0 +1,49 @@
+{
+  "name": "amazon_bedrock_workflow",
+  "description": "Orchestrates Amazon Bedrock InvokeModel calls through Conductor",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt", "useCase"],
+  "tasks": [
+    {
+      "name": "bedrock_build_payload",
+      "taskReferenceName": "build_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "useCase": "${workflow.input.useCase}",
+        "modelId": "anthropic.claude-3-sonnet-20240229-v1:0",
+        "region": "us-east-1",
+        "maxTokens": 512,
+        "temperature": 0.5
+      }
+    },
+    {
+      "name": "bedrock_invoke_model",
+      "taskReferenceName": "invoke_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${build_ref.output.modelId}",
+        "payload": "${build_ref.output.payload}",
+        "region": "${build_ref.output.region}"
+      }
+    },
+    {
+      "name": "bedrock_parse_output",
+      "taskReferenceName": "parse_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "responseBody": "${invoke_ref.output.responseBody}",
+        "metrics": "${invoke_ref.output.metrics}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "classification": "${parse_ref.output.classification}",
+    "modelId": "${build_ref.output.modelId}",
+    "latency": "${invoke_ref.output.metrics.latencyMs}",
+    "tokens": "${invoke_ref.output.responseBody.usage}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,60 @@
+{
+  "name": "data_reconciliation",
+  "description": "Data reconciliation workflow that fetches records from two sources, compares them, and generates a discrepancy report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceA",
+    "sourceB",
+    "keyField"
+  ],
+  "tasks": [
+    {
+      "name": "rc_fetch_source_a",
+      "taskReferenceName": "fetch_a_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "${workflow.input.sourceA}"
+      }
+    },
+    {
+      "name": "rc_fetch_source_b",
+      "taskReferenceName": "fetch_b_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "${workflow.input.sourceB}"
+      }
+    },
+    {
+      "name": "rc_compare_records",
+      "taskReferenceName": "compare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recordsA": "${fetch_a_ref.output.records}",
+        "recordsB": "${fetch_b_ref.output.records}",
+        "keyField": "${workflow.input.keyField}"
+      }
+    },
+    {
+      "name": "rc_generate_discrepancy_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "matched": "${compare_ref.output.matched}",
+        "mismatched": "${compare_ref.output.mismatched}",
+        "missingInA": "${compare_ref.output.missingInA}",
+        "missingInB": "${compare_ref.output.missingInB}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalA": "${fetch_a_ref.output.recordCount}",
+    "totalB": "${fetch_b_ref.output.recordCount}",
+    "matched": "${compare_ref.output.matchedCount}",
+    "mismatched": "${compare_ref.output.mismatchedCount}",
+    "reconciliationRate": "${report_ref.output.reconciliationRate}",
+    "discrepancies": "${report_ref.output.discrepancies}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

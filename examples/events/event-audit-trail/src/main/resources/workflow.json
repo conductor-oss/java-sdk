@@ -1,0 +1,77 @@
+{
+  "name": "event_audit_trail_wf",
+  "description": "Sequential event audit trail workflow: log_received -> validate_event -> log_validated -> process_event -> log_processed -> finalize_audit",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType",
+    "eventData"
+  ],
+  "tasks": [
+    {
+      "name": "at_log_received",
+      "taskReferenceName": "log_received_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "stage": "received"
+      }
+    },
+    {
+      "name": "at_validate_event",
+      "taskReferenceName": "validate_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventData": "${workflow.input.eventData}"
+      }
+    },
+    {
+      "name": "at_log_validated",
+      "taskReferenceName": "log_validated_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "validationResult": "${validate_event_ref.output.valid}",
+        "stage": "validated"
+      }
+    },
+    {
+      "name": "at_process_event",
+      "taskReferenceName": "process_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventData": "${workflow.input.eventData}"
+      }
+    },
+    {
+      "name": "at_log_processed",
+      "taskReferenceName": "log_processed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "processResult": "${process_event_ref.output.result}",
+        "stage": "processed"
+      }
+    },
+    {
+      "name": "at_finalize_audit",
+      "taskReferenceName": "finalize_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "stages": 3
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "auditTrailId": "${finalize_audit_ref.output.auditTrailId}",
+    "finalized": "${finalize_audit_ref.output.finalized}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

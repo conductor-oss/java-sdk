@@ -1,0 +1,90 @@
+{
+  "name": "complex_event_processing",
+  "description": "Complex event processing workflow that ingests events, detects sequences, absences, and timing violations, then routes via SWITCH to trigger alerts or log normal activity.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "events",
+    "patternRules"
+  ],
+  "tasks": [
+    {
+      "name": "cp_ingest_events",
+      "taskReferenceName": "ingest_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${workflow.input.events}"
+      }
+    },
+    {
+      "name": "cp_detect_sequence",
+      "taskReferenceName": "seq_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "rule": "login_then_purchase"
+      }
+    },
+    {
+      "name": "cp_detect_absence",
+      "taskReferenceName": "abs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "rule": "expected_confirmation"
+      }
+    },
+    {
+      "name": "cp_detect_timing",
+      "taskReferenceName": "time_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "maxGapMs": 5000
+      }
+    },
+    {
+      "name": "pattern_decision",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${time_ref.output.overallResult}"
+      },
+      "decisionCases": {
+        "pattern_found": [
+          {
+            "name": "cp_trigger_alert",
+            "taskReferenceName": "alert_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "sequenceDetected": "${seq_ref.output.detected}",
+              "absenceDetected": "${abs_ref.output.detected}",
+              "timingViolation": "${time_ref.output.violation}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "cp_log_normal",
+          "taskReferenceName": "normal_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "message": "No anomalous patterns detected"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventsAnalyzed": "${ingest_ref.output.count}",
+    "sequenceDetected": "${seq_ref.output.detected}",
+    "absenceDetected": "${abs_ref.output.detected}",
+    "timingViolation": "${time_ref.output.violation}",
+    "overallResult": "${time_ref.output.overallResult}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

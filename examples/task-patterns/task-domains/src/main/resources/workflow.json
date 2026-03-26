@@ -1,0 +1,23 @@
+{
+  "name": "task_domain_demo",
+  "description": "Task Domains demo — route tasks to specific worker groups using domains.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["data"],
+  "tasks": [
+    {
+      "name": "td_process",
+      "taskReferenceName": "td_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "data": "${workflow.input.data}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${td_process_ref.output.result}",
+    "worker": "${td_process_ref.output.worker}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

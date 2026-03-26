@@ -1,0 +1,113 @@
+{
+  "name": "enterprise_rag",
+  "description": "Enterprise RAG with caching, rate limiting, token budgets, and audit logging",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "userId"],
+  "tasks": [
+    {
+      "name": "er_check_cache",
+      "taskReferenceName": "check_cache_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "cache_decision",
+      "taskReferenceName": "cache_decision_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${check_cache_ref.output.cacheStatus}"
+      },
+      "decisionCases": {
+        "hit": [
+          {
+            "name": "er_audit_log",
+            "taskReferenceName": "audit_log_hit_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "userId": "${workflow.input.userId}",
+              "question": "${workflow.input.question}",
+              "sessionId": "${workflow.input.sessionId}",
+              "source": "cache",
+              "answer": "${check_cache_ref.output.cachedAnswer}",
+              "tokensUsed": 0
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "er_rate_limit",
+          "taskReferenceName": "rate_limit_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "userId": "${workflow.input.userId}"
+          }
+        },
+        {
+          "name": "er_retrieve",
+          "taskReferenceName": "retrieve_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}"
+          }
+        },
+        {
+          "name": "er_token_budget",
+          "taskReferenceName": "token_budget_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "context": "${retrieve_ref.output.context}",
+            "userId": "${workflow.input.userId}"
+          }
+        },
+        {
+          "name": "er_generate",
+          "taskReferenceName": "generate_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}",
+            "context": "${token_budget_ref.output.trimmedContext}",
+            "tokenBudget": "${token_budget_ref.output.remainingBudget}"
+          }
+        },
+        {
+          "name": "er_cache_result",
+          "taskReferenceName": "cache_result_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "question": "${workflow.input.question}",
+            "answer": "${generate_ref.output.answer}",
+            "ttlSeconds": 3600
+          }
+        },
+        {
+          "name": "er_audit_log",
+          "taskReferenceName": "audit_log_miss_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "userId": "${workflow.input.userId}",
+            "question": "${workflow.input.question}",
+            "sessionId": "${workflow.input.sessionId}",
+            "source": "generated",
+            "answer": "${generate_ref.output.answer}",
+            "tokensUsed": "${generate_ref.output.tokensUsed}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "source": "${check_cache_ref.output.cacheStatus}",
+    "tokensUsed": "${generate_ref.output.tokensUsed}",
+    "model": "${generate_ref.output.model}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

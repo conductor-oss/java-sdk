@@ -1,0 +1,62 @@
+{
+  "name": "lgb_legal_billing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["clientId", "matterId", "billingPeriod"],
+  "tasks": [
+    {
+      "name": "lgb_track_time",
+      "taskReferenceName": "lgb_track_time_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${workflow.input.clientId}",
+        "matterId": "${workflow.input.matterId}",
+        "billingPeriod": "${workflow.input.billingPeriod}"
+      }
+    },
+    {
+      "name": "lgb_review",
+      "taskReferenceName": "lgb_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "timeEntries": "${lgb_track_time_ref.output.timeEntries}"
+      }
+    },
+    {
+      "name": "lgb_generate",
+      "taskReferenceName": "lgb_generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "approvedEntries": "${lgb_review_ref.output.approvedEntries}",
+        "clientId": "${workflow.input.clientId}",
+        "matterId": "${workflow.input.matterId}"
+      }
+    },
+    {
+      "name": "lgb_send",
+      "taskReferenceName": "lgb_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "invoiceId": "${lgb_generate_ref.output.invoiceId}",
+        "clientId": "${workflow.input.clientId}"
+      }
+    },
+    {
+      "name": "lgb_collect",
+      "taskReferenceName": "lgb_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "invoiceId": "${lgb_generate_ref.output.invoiceId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalHours": "${lgb_track_time_ref.output.totalHours}",
+    "approvedHours": "${lgb_review_ref.output.approvedHours}",
+    "invoiceId": "${lgb_generate_ref.output.invoiceId}",
+    "totalAmount": "${lgb_generate_ref.output.totalAmount}",
+    "paymentStatus": "${lgb_collect_ref.output.paymentStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

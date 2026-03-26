@@ -1,0 +1,71 @@
+{
+  "name": "recurring_billing",
+  "version": 1,
+  "description": "Fetches subscription details, calculates charges (prorating, discounts, tax), processes payment, generates an invoice, and sends a billing notification. Routes to receipt or failure notice based on payment outcome.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "customerId",
+    "planId",
+    "billingCycleStart",
+    "billingCycleEnd",
+    "subscriptionStart"
+  ],
+  "tasks": [
+    {
+      "name": "billing_fetch_subscription",
+      "taskReferenceName": "billing_fetch_subscription_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "planId": "${workflow.input.planId}",
+        "billingCycleStart": "${workflow.input.billingCycleStart}",
+        "billingCycleEnd": "${workflow.input.billingCycleEnd}"
+      }
+    },
+    {
+      "name": "billing_calculate_charges",
+      "taskReferenceName": "billing_calculate_charges_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscription": "${billing_fetch_subscription_ref.output.subscription}",
+        "subscriptionStart": "${workflow.input.subscriptionStart}"
+      }
+    },
+    {
+      "name": "billing_process_payment",
+      "taskReferenceName": "billing_process_payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscription": "${billing_fetch_subscription_ref.output.subscription}",
+        "charges": "${billing_calculate_charges_ref.output.charges}"
+      }
+    },
+    {
+      "name": "billing_generate_invoice",
+      "taskReferenceName": "billing_generate_invoice_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subscription": "${billing_fetch_subscription_ref.output.subscription}",
+        "charges": "${billing_calculate_charges_ref.output.charges}",
+        "payment": "${billing_process_payment_ref.output.payment}"
+      }
+    },
+    {
+      "name": "billing_send_notification",
+      "taskReferenceName": "billing_send_notification_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "invoice": "${billing_generate_invoice_ref.output.invoice}",
+        "subscription": "${billing_fetch_subscription_ref.output.subscription}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "invoice": "${billing_generate_invoice_ref.output.invoice}",
+    "payment": "${billing_process_payment_ref.output.payment}",
+    "charges": "${billing_calculate_charges_ref.output.charges}",
+    "notification": "${billing_send_notification_ref.output.notification}"
+  }
+}

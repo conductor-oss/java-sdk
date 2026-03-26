@@ -1,0 +1,104 @@
+{
+  "name": "service_decomposition_workflow",
+  "description": "Strangler fig pattern: routes requests to monolith or microservice based on feature flags, with optional shadow comparison.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "feature",
+    "request"
+  ],
+  "tasks": [
+    {
+      "name": "sd_check_feature_flag",
+      "taskReferenceName": "flag_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "feature": "${workflow.input.feature}"
+      }
+    },
+    {
+      "name": "routing_decision",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${flag_ref.output.target}"
+      },
+      "decisionCases": {
+        "microservice": [
+          {
+            "name": "sd_call_microservice",
+            "taskReferenceName": "micro_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "request": "${workflow.input.request}"
+            }
+          }
+        ],
+        "shadow": [
+          {
+            "name": "parallel_compare",
+            "taskReferenceName": "fork_ref",
+            "type": "FORK_JOIN",
+            "forkTasks": [
+              [
+                {
+                  "name": "sd_call_monolith",
+                  "taskReferenceName": "mono_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "request": "${workflow.input.request}"
+                  }
+                }
+              ],
+              [
+                {
+                  "name": "sd_call_microservice",
+                  "taskReferenceName": "shadow_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "request": "${workflow.input.request}"
+                  }
+                }
+              ]
+            ]
+          },
+          {
+            "name": "join_compare",
+            "taskReferenceName": "join_ref",
+            "type": "JOIN",
+            "joinOn": [
+              "mono_ref",
+              "shadow_ref"
+            ]
+          },
+          {
+            "name": "sd_compare_results",
+            "taskReferenceName": "compare_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "monolith": "${mono_ref.output}",
+              "microservice": "${shadow_ref.output}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "sd_call_monolith",
+          "taskReferenceName": "default_mono_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "request": "${workflow.input.request}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "target": "${flag_ref.output.target}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

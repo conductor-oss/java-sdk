@@ -1,0 +1,84 @@
+{
+  "name": "event_dedup",
+  "description": "Event deduplication workflow — computes a hash of the event payload, checks if the event has been seen before, and either processes or skips the event via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventPayload"
+  ],
+  "tasks": [
+    {
+      "name": "dd_compute_hash",
+      "taskReferenceName": "hash_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "payload": "${workflow.input.eventPayload}"
+      }
+    },
+    {
+      "name": "dd_check_seen",
+      "taskReferenceName": "seen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "hash": "${hash_ref.output.hash}"
+      }
+    },
+    {
+      "name": "route_by_seen_status",
+      "taskReferenceName": "dedup_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${seen_ref.output.status}"
+      },
+      "decisionCases": {
+        "new": [
+          {
+            "name": "dd_process_event",
+            "taskReferenceName": "process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${workflow.input.eventPayload}",
+              "hash": "${hash_ref.output.hash}"
+            }
+          }
+        ],
+        "duplicate": [
+          {
+            "name": "dd_skip_event",
+            "taskReferenceName": "skip_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "hash": "${hash_ref.output.hash}",
+              "reason": "Event already processed (duplicate detected)"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "dd_skip_event",
+          "taskReferenceName": "skip_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${workflow.input.eventId}",
+            "hash": "${hash_ref.output.hash}",
+            "reason": "Unknown dedup status — skipping as precaution"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "hash": "${hash_ref.output.hash}",
+    "dedupResult": "${seen_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -27,6 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AnalyzeTransactionWorker implements Worker {
 
+    /** Maximum transaction amount in cents to avoid overflow. */
+    private static final double MAX_AMOUNT = 10_000_000.0; // $10M
+
     /**
      * In-memory customer transaction history for computing running averages.
      * Maps customerId -> list of transaction amounts.
@@ -70,17 +73,46 @@ public class AnalyzeTransactionWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String transactionId = (String) task.getInputData().get("transactionId");
-        if (transactionId == null) transactionId = "UNKNOWN";
-        Object amountObj = task.getInputData().get("amount");
-        String merchantId = (String) task.getInputData().get("merchantId");
-        if (merchantId == null) merchantId = "UNKNOWN";
-        String customerId = (String) task.getInputData().get("customerId");
-        if (customerId == null) customerId = "UNKNOWN";
+        TaskResult result = new TaskResult(task);
 
-        double amount = 0.0;
-        if (amountObj instanceof Number) {
-            amount = ((Number) amountObj).doubleValue();
+        // --- Validate required inputs ---
+        String transactionId = (String) task.getInputData().get("transactionId");
+        if (transactionId == null || transactionId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: transactionId");
+            return result;
+        }
+
+        Object amountObj = task.getInputData().get("amount");
+        if (amountObj == null || !(amountObj instanceof Number)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or non-numeric required input: amount");
+            return result;
+        }
+        double amount = ((Number) amountObj).doubleValue();
+        if (amount < 0) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Invalid input: amount must be non-negative, got " + amount);
+            return result;
+        }
+        if (amount > MAX_AMOUNT) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Invalid input: amount exceeds maximum allowed ($" + MAX_AMOUNT + "), got " + amount);
+            return result;
+        }
+
+        String merchantId = (String) task.getInputData().get("merchantId");
+        if (merchantId == null || merchantId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: merchantId");
+            return result;
+        }
+
+        String customerId = (String) task.getInputData().get("customerId");
+        if (customerId == null || customerId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: customerId");
+            return result;
         }
 
         System.out.println("  [analyze] Analyzing transaction " + transactionId
@@ -138,7 +170,6 @@ public class AnalyzeTransactionWorker implements Worker {
         features.put("accountAge", accountAge);
         features.put("riskTier", riskTier);
 
-        TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
         result.getOutputData().put("profile", profile);
         result.getOutputData().put("features", features);

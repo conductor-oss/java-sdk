@@ -1,0 +1,54 @@
+{
+  "name": "api_gateway_routing",
+  "description": "API gateway routing workflow that authenticates requests, checks rate limits, routes to backend services, and transforms responses.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["path", "method", "headers", "body"],
+  "tasks": [
+    {
+      "name": "gw_authenticate",
+      "taskReferenceName": "auth_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "authorization": "${workflow.input.headers.authorization}",
+        "path": "${workflow.input.path}"
+      }
+    },
+    {
+      "name": "gw_rate_check",
+      "taskReferenceName": "rate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${auth_ref.output.clientId}",
+        "path": "${workflow.input.path}"
+      }
+    },
+    {
+      "name": "gw_route_request",
+      "taskReferenceName": "route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "path": "${workflow.input.path}",
+        "method": "${workflow.input.method}",
+        "body": "${workflow.input.body}",
+        "clientId": "${auth_ref.output.clientId}"
+      }
+    },
+    {
+      "name": "gw_transform_response",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceResponse": "${route_ref.output.response}",
+        "clientVersion": "${auth_ref.output.clientVersion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "statusCode": "${route_ref.output.statusCode}",
+    "body": "${transform_ref.output.transformedBody}",
+    "requestId": "${auth_ref.output.requestId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

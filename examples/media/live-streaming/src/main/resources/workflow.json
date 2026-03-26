@@ -1,0 +1,70 @@
+{
+  "name": "live_streaming_workflow",
+  "description": "Live streaming pipeline: setup, encode, CDN distribute, monitor quality, archive",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "streamId",
+    "channelId",
+    "title",
+    "resolution"
+  ],
+  "tasks": [
+    {
+      "name": "lsm_setup_stream",
+      "taskReferenceName": "setup_stream_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamId": "${workflow.input.streamId}",
+        "channelId": "${workflow.input.channelId}",
+        "title": "${workflow.input.title}",
+        "resolution": "${workflow.input.resolution}"
+      }
+    },
+    {
+      "name": "lsm_encode_stream",
+      "taskReferenceName": "encode_stream_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamId": "${workflow.input.streamId}",
+        "resolution": "${workflow.input.resolution}"
+      }
+    },
+    {
+      "name": "lsm_distribute_stream",
+      "taskReferenceName": "distribute_stream_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamId": "${workflow.input.streamId}",
+        "encodedUrl": "${encode_stream_ref.output.encodedUrl}"
+      }
+    },
+    {
+      "name": "lsm_monitor_quality",
+      "taskReferenceName": "monitor_quality_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamId": "${workflow.input.streamId}",
+        "cdnUrl": "${distribute_stream_ref.output.cdnUrl}"
+      }
+    },
+    {
+      "name": "lsm_archive_stream",
+      "taskReferenceName": "archive_stream_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "streamId": "${workflow.input.streamId}",
+        "title": "${workflow.input.title}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "streamSetup": "${setup_stream_ref.output.ready}",
+    "encoded": "${encode_stream_ref.output.encoded}",
+    "cdnUrl": "${distribute_stream_ref.output.cdnUrl}",
+    "qualityScore": "${monitor_quality_ref.output.qualityScore}",
+    "archived": "${archive_stream_ref.output.archived}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

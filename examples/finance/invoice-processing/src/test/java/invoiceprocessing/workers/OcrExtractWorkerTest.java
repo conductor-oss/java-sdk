@@ -41,4 +41,45 @@ class OcrExtractWorkerTest {
         double lineSum = items.stream().mapToDouble(i -> ((Number) i.get("total")).doubleValue()).sum();
         assertEquals(((Number) r.getOutputData().get("subtotal")).doubleValue(), lineSum, 0.01);
     }
+
+    @Test void lineItemArithmeticIsValid() {
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>(Map.of("invoiceId", "INV-ARITH-CHECK")));
+        TaskResult r = worker.execute(t);
+        assertEquals(TaskResult.Status.COMPLETED, r.getStatus());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> items = (List<Map<String, Object>>) r.getOutputData().get("lineItems");
+        for (Map<String, Object> item : items) {
+            double unitPrice = ((Number) item.get("unitPrice")).doubleValue();
+            int qty = ((Number) item.get("quantity")).intValue();
+            double lineTotal = ((Number) item.get("total")).doubleValue();
+            assertEquals(unitPrice * qty, lineTotal, 0.01,
+                    "Line item total must equal unitPrice * quantity");
+        }
+    }
+
+    // ---- Failure path ---------------------------------------------------
+
+    @Test void failsWithTerminalErrorOnMissingInvoiceId() {
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>());
+        TaskResult r = worker.execute(t);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("invoiceId"));
+    }
+
+    @Test void failsWithTerminalErrorOnInvalidInvoiceIdFormat() {
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>(Map.of("invoiceId", "MALFORMED-123")));
+        TaskResult r = worker.execute(t);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("Invalid invoiceId format"));
+    }
+
+    @Test void failsWithTerminalErrorOnBlankInvoiceId() {
+        Task t = new Task(); t.setStatus(Task.Status.IN_PROGRESS);
+        t.setInputData(new HashMap<>(Map.of("invoiceId", "  ")));
+        TaskResult r = worker.execute(t);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+    }
 }

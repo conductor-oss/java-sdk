@@ -1,0 +1,20 @@
+{
+  "name": "mai_monitoring_ai",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "timeWindow"],
+  "tasks": [
+    { "name": "mai_collect_metrics", "taskReferenceName": "mai_collect_ref", "type": "SIMPLE", "inputParameters": { "serviceName": "${workflow.input.serviceName}", "timeWindow": "${workflow.input.timeWindow}" } },
+    { "name": "mai_detect_anomalies", "taskReferenceName": "mai_detect_ref", "type": "SIMPLE", "inputParameters": { "metrics": "${mai_collect_ref.output.metrics}" } },
+    { "name": "mai_diagnose", "taskReferenceName": "mai_diagnose_ref", "type": "SIMPLE", "inputParameters": { "anomalies": "${mai_detect_ref.output.anomalies}" } },
+    { "name": "mai_recommend", "taskReferenceName": "mai_recommend_ref", "type": "SIMPLE", "inputParameters": { "diagnosis": "${mai_diagnose_ref.output.diagnosis}" } }
+  ],
+  "outputParameters": {
+    "metricsCollected": "${mai_collect_ref.output.metricCount}",
+    "anomaliesFound": "${mai_detect_ref.output.anomalyCount}",
+    "rootCause": "${mai_diagnose_ref.output.rootCause}",
+    "recommendations": "${mai_recommend_ref.output.recommendations}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

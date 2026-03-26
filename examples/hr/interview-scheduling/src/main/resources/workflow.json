@@ -1,0 +1,13 @@
+{
+  "name":"ivs_interview_scheduling","description":"Interview scheduling: availability, schedule, invite, confirm, remind.","version":1,"schemaVersion":2,
+  "inputParameters":["candidateName","interviewers","role"],
+  "tasks":[
+    {"name":"ivs_availability","taskReferenceName":"ivs_avail_ref","type":"SIMPLE","inputParameters":{"interviewers":"${workflow.input.interviewers}"}},
+    {"name":"ivs_schedule","taskReferenceName":"ivs_sched_ref","type":"SIMPLE","inputParameters":{"slots":"${ivs_avail_ref.output.availableSlots}"}},
+    {"name":"ivs_invite","taskReferenceName":"ivs_invite_ref","type":"SIMPLE","inputParameters":{"candidateName":"${workflow.input.candidateName}","scheduledTime":"${ivs_sched_ref.output.scheduledTime}"}},
+    {"name":"ivs_confirm","taskReferenceName":"ivs_confirm_ref","type":"SIMPLE","inputParameters":{"interviewId":"${ivs_sched_ref.output.interviewId}"}},
+    {"name":"ivs_remind","taskReferenceName":"ivs_remind_ref","type":"SIMPLE","inputParameters":{"interviewId":"${ivs_sched_ref.output.interviewId}","candidateName":"${workflow.input.candidateName}"}}
+  ],
+  "outputParameters":{"interviewId":"${ivs_sched_ref.output.interviewId}","scheduledTime":"${ivs_sched_ref.output.scheduledTime}"},
+  "ownerEmail":"examples@orkes.io","timeoutSeconds":60
+}

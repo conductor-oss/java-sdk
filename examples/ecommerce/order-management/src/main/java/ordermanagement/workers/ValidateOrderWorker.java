@@ -32,12 +32,26 @@ public class ValidateOrderWorker implements Worker {
         TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
-        String orderId = task.getInputData().get("orderId") != null
-                ? task.getInputData().get("orderId").toString() : "UNKNOWN";
-        List<Map<String, Object>> items = new ArrayList<>();
+        // --- Validate required inputs ---
+        String orderId = (String) task.getInputData().get("orderId");
+        if (orderId == null || orderId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: orderId");
+            return result;
+        }
+
         Object itemsObj = task.getInputData().get("items");
-        if (itemsObj instanceof List) {
-            items = (List<Map<String, Object>>) itemsObj;
+        if (itemsObj == null || !(itemsObj instanceof List)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or invalid required input: items (must be a list)");
+            return result;
+        }
+        List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
+
+        if (items.isEmpty()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Order validation failed: items list is empty");
+            return result;
         }
 
         // Check if order exists
@@ -91,9 +105,12 @@ public class ValidateOrderWorker implements Worker {
         output.put("status", currentStatus != null ? currentStatus : (valid ? "CONFIRMED" : previousStatus));
 
         result.setOutputData(output);
-        result.setStatus(valid ? TaskResult.Status.COMPLETED : TaskResult.Status.FAILED);
         if (!valid) {
-            result.setReasonForIncompletion("Order validation failed");
+            result.setStatus(TaskResult.Status.FAILED);
+            result.setReasonForIncompletion("Order validation failed" +
+                    (!allInStock ? ": items out of stock" : ": invalid state transition"));
+        } else {
+            result.setStatus(TaskResult.Status.COMPLETED);
         }
         return result;
     }

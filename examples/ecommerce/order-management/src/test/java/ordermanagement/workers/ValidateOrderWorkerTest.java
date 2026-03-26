@@ -26,7 +26,6 @@ class ValidateOrderWorkerTest {
 
     @Test
     void validatesOrder() {
-        // First create an order
         String orderId = createOrder("cust-1", List.of(Map.of("sku", "A", "name", "A", "price", 10.0, "qty", 1)));
 
         Task task = taskWith(Map.of("orderId", orderId, "items",
@@ -69,6 +68,32 @@ class ValidateOrderWorkerTest {
 
         assertEquals("CREATED", r.getOutputData().get("previousStatus"));
         assertEquals("CONFIRMED", r.getOutputData().get("status"));
+    }
+
+    // ---- Failure path ---------------------------------------------------
+
+    @Test
+    void failsWithTerminalErrorOnMissingOrderId() {
+        Task task = taskWith(Map.of("items",
+                List.of(Map.of("sku", "A", "name", "A", "price", 10.0, "qty", 1))));
+        TaskResult r = validateWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("orderId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingItems() {
+        Task task = taskWith(Map.of("orderId", "ORD-123"));
+        TaskResult r = validateWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("items"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnEmptyItems() {
+        Task task = taskWith(Map.of("orderId", "ORD-123", "items", List.of()));
+        TaskResult r = validateWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
     }
 
     private String createOrder(String customerId, List<Map<String, Object>> items) {

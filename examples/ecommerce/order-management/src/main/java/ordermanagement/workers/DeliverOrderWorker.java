@@ -37,10 +37,20 @@ public class DeliverOrderWorker implements Worker {
         TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
-        String orderId = task.getInputData().get("orderId") != null
-                ? task.getInputData().get("orderId").toString() : "UNKNOWN";
-        String trackingNumber = task.getInputData().get("trackingNumber") != null
-                ? task.getInputData().get("trackingNumber").toString() : "UNKNOWN";
+        // --- Validate required inputs ---
+        String orderId = (String) task.getInputData().get("orderId");
+        if (orderId == null || orderId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: orderId");
+            return result;
+        }
+
+        String trackingNumber = (String) task.getInputData().get("trackingNumber");
+        if (trackingNumber == null || trackingNumber.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: trackingNumber");
+            return result;
+        }
 
         // Validate state transition
         String previousStatus = OrderStore.getStatus(orderId);
@@ -76,7 +86,6 @@ public class DeliverOrderWorker implements Worker {
         String transitTime = "N/A";
         if (history.size() >= 2) {
             try {
-                // Find the SHIPPED timestamp
                 for (Map<String, Object> entry : history) {
                     if ("SHIPPED".equals(entry.get("to"))) {
                         Instant shippedAt = Instant.parse((String) entry.get("timestamp"));

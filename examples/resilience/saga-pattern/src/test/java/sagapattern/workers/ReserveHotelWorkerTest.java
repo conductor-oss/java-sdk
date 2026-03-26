@@ -43,10 +43,26 @@ class ReserveHotelWorkerTest {
     }
 
     @Test
-    void statusIsAlwaysCompleted() {
-        Task task = taskWith(Map.of("tripId", "TRIP-X"));
+    void failsOnMissingTripId() {
+        Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void failsWhenShouldFailIsTrue() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100", "shouldFail", true));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertFalse(BookingStore.HOTEL_RESERVATIONS.containsKey("HTL-TRIP-100"),
+                "Hotel should NOT be in store on failure");
+    }
+
+    @Test
+    void recordsActionInLog() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100"));
+        worker.execute(task);
+        assertTrue(BookingStore.getActionLog().contains("RESERVE_HOTEL:HTL-TRIP-100"));
     }
 
     private Task taskWith(Map<String, Object> input) {

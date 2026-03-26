@@ -1,0 +1,10 @@
+[
+  {
+    "name": "poll_normal_task",
+    "retryCount": 2,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "pollTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

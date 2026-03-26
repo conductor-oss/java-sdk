@@ -1,0 +1,16 @@
+{
+  "name": "multi_tenancy_workflow",
+  "description": "Tenant-isolated workflows with per-tenant routing",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["tenantId", "action", "data"],
+  "tasks": [
+    {"name": "mt_resolve_tenant", "taskReferenceName": "tenant_ref", "type": "SIMPLE",
+      "inputParameters": {"tenantId": "${workflow.input.tenantId}"}},
+    {"name": "mt_process_request", "taskReferenceName": "process_ref", "type": "SIMPLE",
+      "inputParameters": {"tenantId": "${workflow.input.tenantId}", "action": "${workflow.input.action}", "data": "${workflow.input.data}", "tier": "${tenant_ref.output.tier}"}},
+    {"name": "mt_log_usage", "taskReferenceName": "usage_ref", "type": "SIMPLE",
+      "inputParameters": {"tenantId": "${workflow.input.tenantId}", "action": "${workflow.input.action}", "cost": "${process_ref.output.cost}"}}
+  ],
+  "outputParameters": {"tenantId": "${workflow.input.tenantId}", "result": "${process_ref.output.result}", "tier": "${tenant_ref.output.tier}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 30
+}

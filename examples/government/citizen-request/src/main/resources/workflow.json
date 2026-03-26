@@ -1,0 +1,59 @@
+{
+  "name": "ctz_citizen_request",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["citizenId", "requestType", "description"],
+  "tasks": [
+    {
+      "name": "ctz_submit",
+      "taskReferenceName": "ctz_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "citizenId": "${workflow.input.citizenId}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "ctz_classify",
+      "taskReferenceName": "ctz_classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${ctz_submit_ref.output.requestId}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "ctz_route",
+      "taskReferenceName": "ctz_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "category": "${ctz_classify_ref.output.category}",
+        "priority": "${ctz_classify_ref.output.priority}"
+      }
+    },
+    {
+      "name": "ctz_resolve",
+      "taskReferenceName": "ctz_resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${ctz_submit_ref.output.requestId}",
+        "department": "${ctz_route_ref.output.department}"
+      }
+    },
+    {
+      "name": "ctz_notify",
+      "taskReferenceName": "ctz_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "citizenId": "${workflow.input.citizenId}",
+        "resolution": "${ctz_resolve_ref.output.resolution}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${ctz_submit_ref.output.requestId}",
+    "resolution": "${ctz_resolve_ref.output.resolution}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,25 @@
+{
+  "name": "event_triggered_workflow",
+  "description": "Workflow triggered by external events. Processes the event type and payload.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["eventType", "payload"],
+  "tasks": [
+    {
+      "name": "eh_process_event",
+      "taskReferenceName": "eh_process_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${eh_process_event_ref.output.result}",
+    "eventType": "${eh_process_event_ref.output.eventType}",
+    "payload": "${eh_process_event_ref.output.payload}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

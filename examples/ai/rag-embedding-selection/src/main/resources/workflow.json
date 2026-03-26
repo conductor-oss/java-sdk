@@ -1,0 +1,94 @@
+{
+  "name": "rag_embedding_selection",
+  "description": "Benchmark multiple embedding providers in parallel and select the best model",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "es_prepare_benchmark",
+      "taskReferenceName": "prepare_benchmark_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    },
+    {
+      "name": "fork_embed_providers",
+      "taskReferenceName": "fork_embed_providers",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "es_embed_openai",
+            "taskReferenceName": "embed_openai_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "benchmarkQueries": "${prepare_benchmark_ref.output.benchmarkQueries}",
+              "benchmarkCorpus": "${prepare_benchmark_ref.output.benchmarkCorpus}",
+              "groundTruth": "${prepare_benchmark_ref.output.groundTruth}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "es_embed_cohere",
+            "taskReferenceName": "embed_cohere_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "benchmarkQueries": "${prepare_benchmark_ref.output.benchmarkQueries}",
+              "benchmarkCorpus": "${prepare_benchmark_ref.output.benchmarkCorpus}",
+              "groundTruth": "${prepare_benchmark_ref.output.groundTruth}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "es_embed_local",
+            "taskReferenceName": "embed_local_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "benchmarkQueries": "${prepare_benchmark_ref.output.benchmarkQueries}",
+              "benchmarkCorpus": "${prepare_benchmark_ref.output.benchmarkCorpus}",
+              "groundTruth": "${prepare_benchmark_ref.output.groundTruth}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_embed_providers",
+      "taskReferenceName": "join_embed_providers",
+      "type": "JOIN",
+      "joinOn": [
+        "embed_openai_ref",
+        "embed_cohere_ref",
+        "embed_local_ref"
+      ]
+    },
+    {
+      "name": "es_evaluate_embeddings",
+      "taskReferenceName": "evaluate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "openaiMetrics": "${embed_openai_ref.output.metrics}",
+        "cohereMetrics": "${embed_cohere_ref.output.metrics}",
+        "localMetrics": "${embed_local_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "es_select_best",
+      "taskReferenceName": "select_best_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rankings": "${evaluate_ref.output.rankings}",
+        "evaluation": "${evaluate_ref.output.evaluation}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "bestModel": "${select_best_ref.output.bestModel}",
+    "bestScore": "${select_best_ref.output.bestScore}",
+    "recommendation": "${select_best_ref.output.recommendation}",
+    "rankings": "${evaluate_ref.output.rankings}"
+  }
+}

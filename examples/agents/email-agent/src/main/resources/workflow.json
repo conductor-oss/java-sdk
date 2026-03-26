@@ -1,0 +1,61 @@
+{
+  "name": "email_agent",
+  "description": "Email Agent — analyze request, draft email, review tone, and send through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["intent", "recipient", "context", "desiredTone"],
+  "tasks": [
+    {
+      "name": "ea_analyze_request",
+      "taskReferenceName": "analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "intent": "${workflow.input.intent}",
+        "recipient": "${workflow.input.recipient}",
+        "context": "${workflow.input.context}"
+      }
+    },
+    {
+      "name": "ea_draft_email",
+      "taskReferenceName": "draft_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "emailType": "${analyze_ref.output.emailType}",
+        "keyPoints": "${analyze_ref.output.keyPoints}",
+        "recipient": "${workflow.input.recipient}",
+        "desiredTone": "${workflow.input.desiredTone}"
+      }
+    },
+    {
+      "name": "ea_review_tone",
+      "taskReferenceName": "review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "subject": "${draft_ref.output.subject}",
+        "body": "${draft_ref.output.body}",
+        "desiredTone": "${workflow.input.desiredTone}"
+      }
+    },
+    {
+      "name": "ea_send_email",
+      "taskReferenceName": "send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recipient": "${workflow.input.recipient}",
+        "subject": "${review_ref.output.finalSubject}",
+        "body": "${review_ref.output.finalBody}",
+        "approved": "${review_ref.output.toneApproved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sent": "${send_ref.output.sent}",
+    "messageId": "${send_ref.output.messageId}",
+    "deliveryStatus": "${send_ref.output.deliveryStatus}",
+    "toneScore": "${review_ref.output.toneScore}",
+    "subject": "${review_ref.output.finalSubject}",
+    "wordCount": "${draft_ref.output.wordCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

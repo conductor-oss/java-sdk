@@ -1,0 +1,58 @@
+{
+  "name": "clickstream_analytics",
+  "description": "Clickstream analytics workflow that ingests clicks, sessionizes events, analyzes user journeys, and generates reports.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "clickData",
+    "sessionTimeout",
+    "analysisType"
+  ],
+  "tasks": [
+    {
+      "name": "ck_ingest_clicks",
+      "taskReferenceName": "ingest_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clickData": "${workflow.input.clickData}"
+      }
+    },
+    {
+      "name": "ck_sessionize",
+      "taskReferenceName": "session_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "sessionTimeout": "${workflow.input.sessionTimeout}"
+      }
+    },
+    {
+      "name": "ck_analyze_journeys",
+      "taskReferenceName": "journey_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessions": "${session_ref.output.sessions}"
+      }
+    },
+    {
+      "name": "ck_generate_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sessions": "${session_ref.output.sessions}",
+        "journeyAnalysis": "${journey_ref.output.analysis}",
+        "analysisType": "${workflow.input.analysisType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalClicks": "${ingest_ref.output.clickCount}",
+    "sessionCount": "${session_ref.output.sessionCount}",
+    "avgSessionDuration": "${session_ref.output.avgDuration}",
+    "topJourney": "${journey_ref.output.topJourney}",
+    "conversionRate": "${journey_ref.output.conversionRate}",
+    "report": "${report_ref.output.report}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

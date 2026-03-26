@@ -1,206 +1,80 @@
-# Order Management in Java Using Conductor: Create, Validate, Fulfill, Ship, Deliver
+# Order Management: A Five-State Machine with Thread-Safe In-Memory Persistence
 
-A customer orders a laptop and a USB-C hub. The warehouse picks the laptop but grabs the wrong hub: someone else's return, repackaged with the wrong SKU label. The customer opens the box, finds a used cable they didn't order, and initiates a return. But the returns system doesn't cross-reference the original pick list, so it marks the laptop as returned too and issues a full refund for items the customer still has. One mis-pick cascades into a $2,000 inventory discrepancy that takes three departments a week to untangle. This example uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate each order stage as independent workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+An e-commerce order isn't a single operation -- it's a state machine. An order in `CREATED` state can transition to `CONFIRMED`, but never directly to `SHIPPED`. A `DELIVERED` order can't be cancelled. Skip a step, and you ship an unvalidated order or charge for items never packed. This example implements a strict five-state order lifecycle (`CREATED -> CONFIRMED -> PROCESSING -> SHIPPED -> DELIVERED`) using [Conductor](https://github.com/conductor-oss/conductor), where every transition is validated, every worker enforces the state machine, and the entire history is preserved in a thread-safe shared `OrderStore`.
 
-## Orders Have Five Stages, Each With Different Failure Modes
+## How the State Machine Works
 
-An order for 3 items with next-day shipping must flow through creation (assign order number, lock prices), validation (verify inventory, check payment authorization), fulfillment (pick items, pack shipment, generate packing slip), shipping (create label, schedule pickup, trigger tracking), and delivery confirmation (update status, send delivery notification). Each stage involves different systems, the order database, inventory service, warehouse management, carrier API, and notification service.
+The `OrderStore` class (line 18) defines every legal transition in a `Map<String, Set<String>>`:
 
-If the carrier API is down during the shipping step, the order is already packed and waiting: retrying should resume from shipping, not restart fulfillment. If delivery confirmation fails, the shipment is still in transit, the status update should be retried. Every order needs a complete audit trail showing exactly when it moved through each stage.
-
-## The Solution
-
-**You just write the order creation, validation, fulfillment, shipping, and delivery confirmation logic. Conductor handles fulfillment retries, status transition tracking, and order lifecycle audit trails.**
-
-`CreateWorker` initializes the order with a unique ID, line items, pricing, and customer details. `ValidateWorker` verifies item availability, confirms pricing hasn't changed, and validates the shipping address. `FulfillWorker` triggers warehouse operations. Pick list generation, item picking, packing, and quality check. `ShipWorker` creates shipping labels, schedules carrier pickup, and generates tracking numbers. `DeliverWorker` monitors delivery status and sends confirmation notifications upon delivery. Conductor sequences these five stages, retries failed carrier calls without re-packing, and records timestamps for every stage transition.
-
-### What You Write: Workers
-
-Five workers track an order from creation through validation, fulfillment, shipping, and delivery, with each step owning its own state transitions.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **CreateOrderWorker** | `ord_create` | Performs the create order operation | Simulated |
-| **DeliverOrderWorker** | `ord_deliver` | Performs the deliver order operation | Simulated |
-| **FulfillOrderWorker** | `ord_fulfill` | Performs the fulfill order operation | Simulated |
-| **ShipOrderWorker** | `ord_ship` | Ships the order | Simulated |
-| **ValidateOrderWorker** | `ord_validate` | Performs the validate order operation | Simulated |
-
-Workers simulate e-commerce operations: payment processing, inventory checks, shipping, with realistic outputs so you can run the full order flow. Replace with real service integrations and the workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
-### The Workflow
-
-```
-ord_create
-    │
-    ▼
-ord_validate
-    │
-    ▼
-ord_fulfill
-    │
-    ▼
-ord_ship
-    │
-    ▼
-ord_deliver
+```java
+private static final Map<String, Set<String>> VALID_TRANSITIONS = Map.of(
+    "CREATED",   Set.of("CONFIRMED", "CANCELLED"),
+    "CONFIRMED", Set.of("PROCESSING", "CANCELLED"),
+    "PROCESSING", Set.of("SHIPPED", "CANCELLED"),
+    "SHIPPED",   Set.of("DELIVERED", "CANCELLED"),
+    "DELIVERED", Set.of(),   // terminal
+    "CANCELLED", Set.of()    // terminal
+);
 ```
 
-## Example Output
+Any state can reach `CANCELLED`, but `DELIVERED` and `CANCELLED` are terminal -- no further transitions allowed. The `transition()` method acquires a `synchronized` lock on the order object before checking and applying the transition, making it safe for concurrent worker execution.
+
+## The Workflow
 
 ```
-=== Example 455: Order Management ===
-
-Step 1: Registering task definitions...
-  Registered: ord_create, ord_validate, ord_fulfill, ord_ship, ord_deliver
-
-Step 2: Registering workflow 'order_management'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: ba500755-0f02-7841-8efa-277832205900
-
-  [validate] Order ORD-: 3 items, all in stock: true
-  [fulfill] Order ORD-: picked & packed at WH-EAST-01 -> FUL-
-  [ship] Order ORD-: express TRK to N/A
-  [deliver] Order ORD-: delivered (tracking: TRK)
-
-
-  Status: COMPLETED
-  Output: {orderId=ORD-, fulfillmentId=FUL-, trackingNumber=TRK, delivered=True}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
+ord_create  -->  ord_validate  -->  ord_fulfill  -->  ord_ship  -->  ord_deliver
+ (CREATED)      (CONFIRMED)       (PROCESSING)      (SHIPPED)      (DELIVERED)
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+The workflow is defined in `workflow.json` with `timeoutSeconds: 60`. Input parameters are `customerId`, `items`, `shippingAddress`, and `shippingMethod`. Data flows forward through task reference names: `create_ref.output.orderId` feeds into every subsequent task. The fulfillment step receives a hardcoded `warehouseId: "WH-EAST-01"` from the workflow definition. The ship step receives both the `orderId` and the `fulfillmentId` generated by fulfill. Deliver receives the `trackingNumber` generated by ship. The final workflow output includes `orderId`, `fulfillmentId`, `trackingNumber`, and `delivered` boolean.
 
-If port 8080 is already taken:
+Every transition is recorded with an `actor` field (e.g., `"validate_worker"`, `"ship_worker"`) and a descriptive `note` like `"FedEx tracking FX0012345678 to Austin, TX"`. The complete history is returned in the deliver step's output, giving you a full audit trail of the order's journey through the state machine.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
+## Worker-by-Worker Breakdown
 
-### Option 2: Run locally
+**CreateOrderWorker** (`ord_create`) -- Validates each item has a `sku`, positive `price`, and positive `qty`. Calculates line totals with cent-precision rounding (`Math.round(price * qty * 100.0) / 100.0`). Generates order IDs using base-36 encoded timestamps plus an `AtomicLong` counter: `"ORD-" + Long.toString(System.currentTimeMillis(), 36).toUpperCase() + "-" + COUNTER.incrementAndGet()`. Items with missing SKUs, zero prices, or zero quantities are collected as warnings -- but if ALL items are invalid, the task fails terminally. The order is stored in `OrderStore` in `CREATED` state with a full history list.
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+**ValidateOrderWorker** (`ord_validate`) -- Performs a stock check on every item: quantities between 1 and 1000 are considered in stock. Outputs a per-item `stockCheck` list with `sku`, `requestedQty`, and `inStock` flags. If all items pass and the order is in `CREATED` state, transitions to `CONFIRMED`. If the order is already in a state that can't transition to `CONFIRMED` (e.g., already cancelled), the worker fails with a `stateError` message.
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+**FulfillOrderWorker** (`ord_fulfill`) -- Requires `orderId`, `items`, and `warehouseId`. Validates each item has a SKU and positive quantity before processing. Generates fulfillment IDs incorporating the warehouse prefix: `"FUL-" + warehouseId.replace("WH-", "") + "-" + timestamp + "-" + counter`. Assigns each item a warehouse bin using `"BIN-" + Math.abs(sku.hashCode() % 100)`. Records `pickedAt` timestamps per item. Transitions `CONFIRMED -> PROCESSING`.
 
-# Build and run
-mvn package -DskipTests
-java -jar target/order-management-1.0.0.jar
-```
+**ShipOrderWorker** (`ord_ship`) -- Maps shipping methods to carriers: `express` -> FedEx (3 days, prefix `FX`), `overnight` -> UPS (1 day, prefix `1Z`), `standard` -> USPS (7 days, prefix `94`). Generates 14-digit carrier-format tracking numbers from the timestamp and order hash. Calculates `estimatedDelivery` using `Instant.plus(transitDays, ChronoUnit.DAYS)`. Parses the shipping address map to extract `city`, `state`, `zip` for the transition note. Transitions `PROCESSING -> SHIPPED`.
 
-### Option 3: Use the run script
+**DeliverOrderWorker** (`ord_deliver`) -- Generates delivery signatures by hashing the tracking number against a six-element array: `{"Front Desk", "Mailroom", "Resident", "Neighbor", "Locker", "Doorstep"}`. Calculates transit time from the `SHIPPED` history entry to the current instant. Returns the complete order history showing every state transition with timestamps, actors, and notes. Transitions `SHIPPED -> DELIVERED`.
 
-```bash
-./run.sh
+## Error Handling: Terminal vs. Retryable
 
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
+The workers make a deliberate distinction between two failure modes:
 
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
+**Terminal errors** (`FAILED_WITH_TERMINAL_ERROR`) -- Missing `customerId`, items not being a List, empty items list, items with no valid SKU, missing `orderId`, missing `warehouseId`, missing `trackingNumber`. These represent caller bugs that retrying won't fix. Conductor marks them as permanent failures.
 
-## Configuration
+**Retryable errors** (`FAILED`) -- Invalid state transitions (e.g., trying to validate a cancelled order), stock validation failures (items out of stock). These use the retryable status because the underlying condition might change: stock could be replenished, or a concurrent workflow might release the order from a transient state.
 
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+The integration test at `OrderManagementIntegrationTest.java` verifies that skipping steps fails: attempting to ship a `CONFIRMED` order (skipping fulfillment) returns `"Invalid state transition from CONFIRMED to SHIPPED"`. It also tests the cancellation path -- cancelling from `CREATED` state works, and subsequent validation attempts on the cancelled order fail because `CANCELLED` is a terminal state with no outgoing transitions.
 
-## Using the Conductor CLI
+## Test Coverage
 
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
+- **CreateOrderWorkerTest**: 11 tests -- order ID generation, total calculation (`$10.00 * 2 + $5.00 * 3 = $35.00`), uniqueness, empty items, zero price/quantity, missing customer ID
+- **ValidateOrderWorkerTest**: 7 tests -- stock validation, state transitions, previous status tracking, missing inputs
+- **FulfillOrderWorkerTest**: 11 tests -- fulfillment ID generation, state transitions, uniqueness, missing warehouse/SKU, zero quantity
+- **ShipOrderWorkerTest**: 6 tests -- carrier selection (FedEx/USPS/UPS), transit days, estimated delivery, state transitions
+- **DeliverOrderWorkerTest**: 7 tests -- delivery confirmation, signature generation, order history completeness, full state machine path, invalid state rejection
+- **OrderManagementIntegrationTest**: 5 tests -- full lifecycle, cancellation from CREATED, cancellation from CONFIRMED, invalid state transition, missing input validation
 
-```bash
-java -jar target/order-management-1.0.0.jar --workers
-```
+**42 tests total** covering the happy path, every failure mode, and the complete state machine.
 
-Then in a separate terminal:
+## The Integration Test: A $2,098.98 Order Through All Five States
 
-```bash
-conductor workflow start \
-  --workflow order_management \
-  --version 1 \
-  --input '{"customerId": "cust-301", "items": [{"sku": "LAPTOP-PRO", "name": "Laptop Pro 16", "price": 1999.0, "qty": 1}, {"sku": "USB-C-HUB", "name": "USB-C Hub", "price": 49.99, "qty": 1}], "shippingAddress": {"street": "742 Evergreen Terrace", "city": "Springfield", "state": "IL", "zip": "62701"}, "shippingMethod": "express"}'
-```
+The full lifecycle test in `OrderManagementIntegrationTest` creates an order with two items: a Laptop Pro 16 ($1,999.00 x 1) and a USB-C Hub ($49.99 x 2). The expected total is $2,098.98. The test then walks the order through all five states, asserting at each step:
 
-### Check workflow status
+1. **Create**: status = `CREATED`, total = `"2098.98"`
+2. **Validate**: status = `CONFIRMED`, previousStatus = `CREATED`, valid = true
+3. **Fulfill**: status = `PROCESSING`, fulfillmentId starts with `"FUL-"`
+4. **Ship**: status = `SHIPPED`, carrier = `FedEx` (express shipping), tracking number present
+5. **Deliver**: status = `DELIVERED`, delivered = true, order history has at least 4 transition entries
 
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w order_management -s COMPLETED -c 5
-```
+The test also verifies that attempting to ship before fulfilling (CONFIRMED -> SHIPPED) is rejected with `"Invalid state transition"`, and that cancellation from both CREATED and CONFIRMED states works correctly -- after cancellation, subsequent workflow steps fail because `CANCELLED` has no outgoing transitions.
 
-## How to Extend
+---
 
-Wire each worker to your real fulfillment stack. Your OMS for order creation, your WMS for warehouse picking, carrier APIs for shipping labels, and the workflow runs identically in production.
-
-- **FulfillWorker** (`ord_fulfill`): integrate with warehouse management systems (ShipBob, ShipMonk) or send pick lists to a WMS via EDI/API for physical warehouse operations
-- **ShipWorker** (`ord_ship`): use EasyPost, Shippo, or ShipStation APIs for multi-carrier rate shopping, label generation, and tracking number assignment
-- **DeliverWorker** (`ord_deliver`): poll carrier tracking APIs (FedEx, UPS, USPS) for delivery status, send push notifications via Firebase Cloud Messaging, and trigger post-delivery review requests
-
-Connect each worker to your fulfillment systems and the order lifecycle operates without pipeline changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-
-## Project Structure
-
-```
-order-management/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/ordermanagement/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── OrderManagementExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── CreateOrderWorker.java
-│       ├── DeliverOrderWorker.java
-│       ├── FulfillOrderWorker.java
-│       ├── ShipOrderWorker.java
-│       └── ValidateOrderWorker.java
-└── src/test/java/ordermanagement/workers/
-    ├── CreateOrderWorkerTest.java        # 5 tests
-    ├── DeliverOrderWorkerTest.java        # 2 tests
-    ├── FulfillOrderWorkerTest.java        # 3 tests
-    ├── ShipOrderWorkerTest.java        # 4 tests
-    └── ValidateOrderWorkerTest.java        # 2 tests
-```
+> **How to run:** See [RUNNING.md](../../RUNNING.md) | **Production guidance:** See [PRODUCTION.md](PRODUCTION.md)

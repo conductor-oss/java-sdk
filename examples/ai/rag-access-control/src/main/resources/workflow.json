@@ -1,0 +1,66 @@
+{
+  "name": "rag_access_control",
+  "description": "RAG pipeline with user authentication, permission checking, filtered retrieval, sensitive data redaction, and access-controlled generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "tasks": [
+    {
+      "name": "ac_authenticate_user",
+      "taskReferenceName": "authenticate_user_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "authToken": "${workflow.input.authToken}"
+      }
+    },
+    {
+      "name": "ac_check_permissions",
+      "taskReferenceName": "check_permissions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${authenticate_user_ref.output.userId}",
+        "roles": "${authenticate_user_ref.output.roles}",
+        "clearanceLevel": "${authenticate_user_ref.output.clearanceLevel}"
+      }
+    },
+    {
+      "name": "ac_filtered_retrieve",
+      "taskReferenceName": "filtered_retrieve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "allowedCollections": "${check_permissions_ref.output.allowedCollections}",
+        "clearanceLevel": "${authenticate_user_ref.output.clearanceLevel}"
+      }
+    },
+    {
+      "name": "ac_redact_sensitive",
+      "taskReferenceName": "redact_sensitive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documents": "${filtered_retrieve_ref.output.documents}",
+        "clearanceLevel": "${authenticate_user_ref.output.clearanceLevel}"
+      }
+    },
+    {
+      "name": "ac_generate",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "context": "${redact_sensitive_ref.output.redactedDocuments}",
+        "userId": "${workflow.input.userId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "authenticated": "${authenticate_user_ref.output.authenticated}",
+    "allowedCollections": "${check_permissions_ref.output.allowedCollections}",
+    "documentsRetrieved": "${filtered_retrieve_ref.output.totalRetrieved}",
+    "documentsAfterFilter": "${filtered_retrieve_ref.output.afterFilter}",
+    "fieldsRedacted": "${redact_sensitive_ref.output.fieldsRedacted}",
+    "answer": "${generate_ref.output.answer}"
+  }
+}

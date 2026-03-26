@@ -1,0 +1,6 @@
+[
+  {"name": "cus_define_metrics", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cus_collect_data", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cus_aggregate", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cus_update_dashboard", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"}
+]

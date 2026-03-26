@@ -1,0 +1,89 @@
+{
+  "name": "pbs_publish_subscribe",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "event",
+    "topic"
+  ],
+  "tasks": [
+    {
+      "name": "pbs_publish",
+      "taskReferenceName": "pbs_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "event": "${workflow.input.event}",
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "subscriber_fork",
+      "taskReferenceName": "pbs_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "pbs_subscriber_1",
+            "taskReferenceName": "pbs_sub1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}",
+              "subscriberName": "analytics_service"
+            }
+          }
+        ],
+        [
+          {
+            "name": "pbs_subscriber_2",
+            "taskReferenceName": "pbs_sub2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}",
+              "subscriberName": "notification_service"
+            }
+          }
+        ],
+        [
+          {
+            "name": "pbs_subscriber_3",
+            "taskReferenceName": "pbs_sub3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}",
+              "subscriberName": "audit_service"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "subscriber_join",
+      "taskReferenceName": "pbs_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "pbs_sub1_ref",
+        "pbs_sub2_ref",
+        "pbs_sub3_ref"
+      ]
+    },
+    {
+      "name": "pbs_confirm",
+      "taskReferenceName": "pbs_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sub1Status": "${pbs_sub1_ref.output.received}",
+        "sub2Status": "${pbs_sub2_ref.output.received}",
+        "sub3Status": "${pbs_sub3_ref.output.received}",
+        "eventId": "${pbs_publish_ref.output.eventId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${pbs_publish_ref.output.eventId}",
+    "topic": "${workflow.input.topic}",
+    "subscribersNotified": "${pbs_confirm_ref.output.subscribersNotified}",
+    "allDelivered": "${pbs_confirm_ref.output.allDelivered}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

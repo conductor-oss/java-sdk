@@ -1,0 +1,24 @@
+{
+  "name": "ttk_time_tracking",
+  "description": "Time tracking workflow: submit, validate, approve, process.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["employeeId", "weekEnding", "entries"],
+  "tasks": [
+    { "name": "ttk_submit", "taskReferenceName": "ttk_submit_ref", "type": "SIMPLE",
+      "inputParameters": { "employeeId": "${workflow.input.employeeId}", "weekEnding": "${workflow.input.weekEnding}" } },
+    { "name": "ttk_validate", "taskReferenceName": "ttk_validate_ref", "type": "SIMPLE",
+      "inputParameters": { "timesheetId": "${ttk_submit_ref.output.timesheetId}", "entries": "${workflow.input.entries}" } },
+    { "name": "ttk_approve", "taskReferenceName": "ttk_approve_ref", "type": "SIMPLE",
+      "inputParameters": { "timesheetId": "${ttk_submit_ref.output.timesheetId}" } },
+    { "name": "ttk_process", "taskReferenceName": "ttk_process_ref", "type": "SIMPLE",
+      "inputParameters": { "timesheetId": "${ttk_submit_ref.output.timesheetId}", "totalHours": "${ttk_validate_ref.output.totalHours}" } }
+  ],
+  "outputParameters": {
+    "timesheetId": "${ttk_submit_ref.output.timesheetId}",
+    "totalHours": "${ttk_validate_ref.output.totalHours}",
+    "processed": "${ttk_process_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

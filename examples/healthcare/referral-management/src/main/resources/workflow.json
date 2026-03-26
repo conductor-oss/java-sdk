@@ -1,0 +1,66 @@
+{
+  "name": "referral_management_workflow",
+  "description": "Referral Management: create, match specialist, schedule, track, close",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["referralId", "patientId", "specialty", "reason"],
+  "tasks": [
+    {
+      "name": "ref_create",
+      "taskReferenceName": "ref_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "referralId": "${workflow.input.referralId}",
+        "patientId": "${workflow.input.patientId}",
+        "specialty": "${workflow.input.specialty}",
+        "reason": "${workflow.input.reason}"
+      }
+    },
+    {
+      "name": "ref_match_specialist",
+      "taskReferenceName": "ref_match_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "specialty": "${workflow.input.specialty}",
+        "patientId": "${workflow.input.patientId}",
+        "insurancePlan": "${ref_create_ref.output.insurancePlan}"
+      }
+    },
+    {
+      "name": "ref_schedule",
+      "taskReferenceName": "ref_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "referralId": "${workflow.input.referralId}",
+        "patientId": "${workflow.input.patientId}",
+        "specialistId": "${ref_match_ref.output.specialistId}"
+      }
+    },
+    {
+      "name": "ref_track",
+      "taskReferenceName": "ref_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "referralId": "${workflow.input.referralId}",
+        "appointmentId": "${ref_schedule_ref.output.appointmentId}"
+      }
+    },
+    {
+      "name": "ref_close",
+      "taskReferenceName": "ref_close_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "referralId": "${workflow.input.referralId}",
+        "outcome": "${ref_track_ref.output.outcome}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "referralId": "${workflow.input.referralId}",
+    "specialist": "${ref_match_ref.output.specialistName}",
+    "appointmentDate": "${ref_schedule_ref.output.appointmentDate}",
+    "outcome": "${ref_close_ref.output.closedStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,23 @@
+{
+  "name": "resp_timeout_demo",
+  "description": "Response timeout demo — detect stuck workers using responseTimeoutSeconds.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["mode"],
+  "tasks": [
+    {
+      "name": "resp_timeout_task",
+      "taskReferenceName": "ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "mode": "${workflow.input.mode}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${ref.output.result}",
+    "attempt": "${ref.output.attempt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

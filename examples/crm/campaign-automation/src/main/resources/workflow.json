@@ -1,0 +1,19 @@
+{
+  "name": "cpa_campaign_automation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["campaignName", "type", "budget"],
+  "tasks": [
+    { "name": "cpa_design", "taskReferenceName": "cpa_design_ref", "type": "SIMPLE", "inputParameters": { "name": "${workflow.input.campaignName}", "type": "${workflow.input.type}" } },
+    { "name": "cpa_target", "taskReferenceName": "cpa_target_ref", "type": "SIMPLE", "inputParameters": { "campaignId": "${cpa_design_ref.output.campaignId}", "budget": "${workflow.input.budget}" } },
+    { "name": "cpa_execute", "taskReferenceName": "cpa_execute_ref", "type": "SIMPLE", "inputParameters": { "campaignId": "${cpa_design_ref.output.campaignId}", "audience": "${cpa_target_ref.output.audience}" } },
+    { "name": "cpa_measure", "taskReferenceName": "cpa_measure_ref", "type": "SIMPLE", "inputParameters": { "campaignId": "${cpa_design_ref.output.campaignId}", "executionId": "${cpa_execute_ref.output.executionId}" } }
+  ],
+  "outputParameters": {
+    "campaignId": "${cpa_design_ref.output.campaignId}",
+    "audienceSize": "${cpa_target_ref.output.audienceSize}",
+    "roi": "${cpa_measure_ref.output.roi}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

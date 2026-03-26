@@ -1,0 +1,53 @@
+{
+  "name": "slo_social_login",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "provider",
+    "email"
+  ],
+  "tasks": [
+    {
+      "name": "slo_detect_provider",
+      "taskReferenceName": "slo_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "provider": "${workflow.input.provider}"
+      }
+    },
+    {
+      "name": "slo_auth",
+      "taskReferenceName": "slo_auth_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "provider": "${workflow.input.provider}",
+        "oauthToken": "${workflow.secrets.oauth_token}"
+      }
+    },
+    {
+      "name": "slo_link_account",
+      "taskReferenceName": "slo_link_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "providerUserId": "${slo_auth_ref.output.providerUserId}",
+        "provider": "${workflow.input.provider}"
+      }
+    },
+    {
+      "name": "slo_session",
+      "taskReferenceName": "slo_session_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${slo_link_ref.output.userId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${slo_link_ref.output.userId}",
+    "provider": "${slo_detect_ref.output.providerName}",
+    "sessionToken": "${slo_session_ref.output.sessionToken}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

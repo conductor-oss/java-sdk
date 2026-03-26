@@ -13,16 +13,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Deploys the build artifacts to a production directory. Creates a real directory
- * structure under /tmp/cicd-production/ containing a deployment manifest,
- * a version marker, and a health check file.
- *
- * This mirrors the staging deploy but targets a separate "production" path,
- * demonstrating a real file-based deployment.
+ * Deploys the build artifacts to a production directory. Validates that
+ * build artifacts exist before deploying.
  *
  * Input:
- *   - buildId (String): build identifier
- *   - imageTag (String): docker image tag or artifact version
+ *   - buildId (String, required): build identifier
+ *   - imageTag (String, required): docker image tag or artifact version
+ *   - buildDir (String, optional): path to build artifacts; validated if provided
  *
  * Output:
  *   - deployed (boolean): whether deployment succeeded
@@ -40,14 +37,37 @@ public class DeployProd implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String buildId = (String) task.getInputData().get("buildId");
-        String imageTag = (String) task.getInputData().get("imageTag");
+        TaskResult result = new TaskResult(task);
+
+        String buildId = getRequiredString(task, "buildId");
+        if (buildId == null || buildId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: buildId");
+            return result;
+        }
+
+        String imageTag = getRequiredString(task, "imageTag");
+        if (imageTag == null || imageTag.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: imageTag");
+            return result;
+        }
+
+        // Validate build artifacts exist if buildDir is provided
+        String buildDir = getRequiredString(task, "buildDir");
+        if (buildDir != null && !buildDir.isBlank()) {
+            Path buildPath = Path.of(buildDir);
+            if (!Files.exists(buildPath)) {
+                result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+                result.setReasonForIncompletion("Build artifacts not found at: " + buildDir
+                        + ". Ensure the build step completed successfully.");
+                return result;
+            }
+        }
 
         System.out.println("[cicd_deploy_prod] Deploying " + imageTag + " to production");
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
-
         long startMs = System.currentTimeMillis();
 
         try {
@@ -55,7 +75,7 @@ public class DeployProd implements Worker {
             Path prodRoot = Path.of(System.getProperty("java.io.tmpdir"), "cicd-production");
             Files.createDirectories(prodRoot);
 
-            String deployDirName = "deploy-" + (buildId != null ? buildId : "unknown") + "-" + System.currentTimeMillis();
+            String deployDirName = "deploy-" + buildId + "-" + System.currentTimeMillis();
             Path deployDir = prodRoot.resolve(deployDirName);
             Files.createDirectories(deployDir);
 
@@ -72,7 +92,7 @@ public class DeployProd implements Worker {
             Files.writeString(manifestPath, manifest, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             // Write version marker
-            Files.writeString(deployDir.resolve("VERSION"), imageTag != null ? imageTag : "unknown",
+            Files.writeString(deployDir.resolve("VERSION"), imageTag,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             // Write health check file
@@ -83,8 +103,6 @@ public class DeployProd implements Worker {
             long durationMs = System.currentTimeMillis() - startMs;
 
             System.out.println("  Deployed to: " + deployDir);
-            System.out.println("  Manifest: " + manifestPath);
-            System.out.println("  Duration: " + durationMs + "ms");
 
             output.put("deployed", true);
             output.put("environment", "production");
@@ -109,5 +127,11 @@ public class DeployProd implements Worker {
         result.setStatus(TaskResult.Status.COMPLETED);
         result.setOutputData(output);
         return result;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

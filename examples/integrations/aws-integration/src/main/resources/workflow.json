@@ -1,0 +1,73 @@
+{
+  "name": "aws_integration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["bucket", "tableName", "topicArn", "payload"],
+  "tasks": [
+    {
+      "name": "fork_aws_services",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "aws_s3_upload",
+            "taskReferenceName": "s3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "bucket": "${workflow.input.bucket}",
+              "key": "data/${workflow.input.payload.id}.json",
+              "body": "${workflow.input.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "aws_dynamodb_write",
+            "taskReferenceName": "dynamo_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "tableName": "${workflow.input.tableName}",
+              "item": "${workflow.input.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "aws_sns_notify",
+            "taskReferenceName": "sns_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "topicArn": "${workflow.input.topicArn}",
+              "message": "${workflow.input.payload}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_aws_services",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": ["s3_ref", "dynamo_ref", "sns_ref"]
+    },
+    {
+      "name": "aws_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "s3Result": "${s3_ref.output.s3Key}",
+        "dynamoResult": "${dynamo_ref.output.itemId}",
+        "snsResult": "${sns_ref.output.messageId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "s3Key": "${s3_ref.output.s3Key}",
+    "dynamoItemId": "${dynamo_ref.output.itemId}",
+    "snsMessageId": "${sns_ref.output.messageId}",
+    "verified": "${verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

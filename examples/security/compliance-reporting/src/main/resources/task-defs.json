@@ -1,0 +1,6 @@
+[
+  {"name": "cr_collect_evidence", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cr_map_controls", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cr_assess_gaps", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"},
+  {"name": "cr_generate_report", "retryCount": 2, "timeoutSeconds": 60, "responseTimeoutSeconds": 30, "ownerEmail": "examples@orkes.io"}
+]

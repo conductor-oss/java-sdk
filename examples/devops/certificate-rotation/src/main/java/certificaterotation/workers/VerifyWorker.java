@@ -107,6 +107,18 @@ public class VerifyWorker implements Worker {
                 result.addOutputData("cipherSuite", cipherSuite);
                 return result;
             }
+        } catch (java.net.UnknownHostException e) {
+            System.err.println("  [verify] DNS resolution failed for " + domain + ": " + e.getMessage());
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("DNS resolution failed for " + domain + ": " + e.getMessage());
+            return fail;
+        } catch (java.net.ConnectException | java.net.SocketTimeoutException e) {
+            System.err.println("  [verify] Network error connecting to " + domain + ": " + e.getMessage());
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED);
+            fail.setReasonForIncompletion("Retryable network error for " + domain + ":" + port + ": " + e.getMessage());
+            return fail;
         } catch (Exception e) {
             System.err.println("  [verify] TLS verification failed for " + domain + ": " + e.getMessage());
             TaskResult fail = new TaskResult(task);

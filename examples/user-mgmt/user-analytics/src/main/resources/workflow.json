@@ -1,0 +1,19 @@
+{
+  "name": "uan_user_analytics",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["dateRange", "segments"],
+  "tasks": [
+    { "name": "uan_collect_events", "taskReferenceName": "uan_collect_ref", "type": "SIMPLE", "inputParameters": { "dateRange": "${workflow.input.dateRange}" } },
+    { "name": "uan_aggregate", "taskReferenceName": "uan_agg_ref", "type": "SIMPLE", "inputParameters": { "events": "${uan_collect_ref.output.events}", "segments": "${workflow.input.segments}" } },
+    { "name": "uan_compute_metrics", "taskReferenceName": "uan_metrics_ref", "type": "SIMPLE", "inputParameters": { "aggregated": "${uan_agg_ref.output.aggregated}" } },
+    { "name": "uan_report", "taskReferenceName": "uan_report_ref", "type": "SIMPLE", "inputParameters": { "metrics": "${uan_metrics_ref.output.metrics}" } }
+  ],
+  "outputParameters": {
+    "totalEvents": "${uan_collect_ref.output.totalEvents}",
+    "dau": "${uan_metrics_ref.output.metrics.dau}",
+    "retention": "${uan_metrics_ref.output.metrics.retention}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,19 @@
+{
+  "name": "rom_role_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "requestedRole", "requestedBy"],
+  "tasks": [
+    { "name": "rom_request_role", "taskReferenceName": "rom_request_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "role": "${workflow.input.requestedRole}", "requestedBy": "${workflow.input.requestedBy}" } },
+    { "name": "rom_validate", "taskReferenceName": "rom_validate_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "role": "${workflow.input.requestedRole}" } },
+    { "name": "rom_assign", "taskReferenceName": "rom_assign_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "role": "${workflow.input.requestedRole}", "approved": "${rom_validate_ref.output.approved}" } },
+    { "name": "rom_sync_permissions", "taskReferenceName": "rom_sync_ref", "type": "SIMPLE", "inputParameters": { "userId": "${workflow.input.userId}", "role": "${workflow.input.requestedRole}", "permissions": "${rom_assign_ref.output.permissions}" } }
+  ],
+  "outputParameters": {
+    "roleAssigned": "${rom_assign_ref.output.assigned}",
+    "permissions": "${rom_assign_ref.output.permissions}",
+    "synced": "${rom_sync_ref.output.synced}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

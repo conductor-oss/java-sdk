@@ -1,0 +1,38 @@
+{
+  "name": "msc_compensation_workflow",
+  "description": "Compensation workflow: undo operations in reverse order",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "msc_undo_provision",
+      "taskReferenceName": "undo_provision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "resourceId": "${workflow.input.resourceId}"
+      }
+    },
+    {
+      "name": "msc_undo_billing",
+      "taskReferenceName": "undo_billing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "billingId": "${workflow.input.billingId}"
+      }
+    },
+    {
+      "name": "msc_undo_account",
+      "taskReferenceName": "undo_account_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "accountId": "${workflow.input.accountId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "provisionUndone": "${undo_provision_ref.output.undone}",
+    "billingUndone": "${undo_billing_ref.output.undone}",
+    "accountUndone": "${undo_account_ref.output.undone}"
+  }
+}

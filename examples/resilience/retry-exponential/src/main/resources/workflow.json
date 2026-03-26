@@ -1,0 +1,23 @@
+{
+  "name": "retry_expo_demo",
+  "description": "Exponential backoff retry demo -- worker returns 429 errors, Conductor retries with doubling delay.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["apiUrl"],
+  "tasks": [
+    {
+      "name": "retry_expo_task",
+      "taskReferenceName": "retry_expo_task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiUrl": "${workflow.input.apiUrl}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "attempts": "${retry_expo_task_ref.output.attempts}",
+    "data": "${retry_expo_task_ref.output.data}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

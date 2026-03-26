@@ -1,0 +1,77 @@
+{
+  "name": "qi_quality_inspection",
+  "description": "Quality inspection: sample, test, switch on pass/fail, and record results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchId", "product", "sampleSize"],
+  "tasks": [
+    {
+      "name": "qi_sample",
+      "taskReferenceName": "qi_sample_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "sampleSize": "${workflow.input.sampleSize}"
+      }
+    },
+    {
+      "name": "qi_test",
+      "taskReferenceName": "qi_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "samples": "${qi_sample_ref.output.samples}"
+      }
+    },
+    {
+      "name": "result_switch",
+      "taskReferenceName": "qi_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${qi_test_ref.output.result}"
+      },
+      "decisionCases": {
+        "pass": [
+          {
+            "name": "qi_handle_pass",
+            "taskReferenceName": "qi_pass_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "batchId": "${workflow.input.batchId}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "qi_handle_fail",
+          "taskReferenceName": "qi_fail_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "batchId": "${workflow.input.batchId}",
+            "defects": "${qi_test_ref.output.defects}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "qi_record",
+      "taskReferenceName": "qi_record_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}",
+        "result": "${qi_test_ref.output.result}",
+        "product": "${workflow.input.product}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "batchId": "${workflow.input.batchId}",
+    "result": "${qi_test_ref.output.result}",
+    "defectRate": "${qi_test_ref.output.defectRate}",
+    "recorded": "${qi_record_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

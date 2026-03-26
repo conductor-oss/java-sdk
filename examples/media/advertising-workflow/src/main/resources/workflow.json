@@ -1,0 +1,76 @@
+{
+  "name": "advertising_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "campaignId",
+    "advertiserId",
+    "budget",
+    "objective"
+  ],
+  "tasks": [
+    {
+      "name": "adv_create_campaign",
+      "taskReferenceName": "adv_create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "advertiserId": "${workflow.input.advertiserId}",
+        "budget": "${workflow.input.budget}",
+        "objective": "${workflow.input.objective}"
+      }
+    },
+    {
+      "name": "adv_target_audience",
+      "taskReferenceName": "adv_target_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "objective": "${workflow.input.objective}",
+        "creativeId": "${adv_create_ref.output.creativeId}"
+      }
+    },
+    {
+      "name": "adv_set_bids",
+      "taskReferenceName": "adv_bid_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "budget": "${workflow.input.budget}",
+        "audienceSize": "${adv_target_ref.output.audienceSize}",
+        "objective": "${workflow.input.objective}"
+      }
+    },
+    {
+      "name": "adv_serve_ads",
+      "taskReferenceName": "adv_serve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "creativeId": "${adv_create_ref.output.creativeId}",
+        "bidStrategy": "${adv_bid_ref.output.bidStrategy}",
+        "audienceSegments": "${adv_target_ref.output.segments}"
+      }
+    },
+    {
+      "name": "adv_generate_report",
+      "taskReferenceName": "adv_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "impressions": "${adv_serve_ref.output.impressions}",
+        "clicks": "${adv_serve_ref.output.clicks}",
+        "spend": "${adv_serve_ref.output.spend}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "campaignId": "${workflow.input.campaignId}",
+    "impressions": "${adv_serve_ref.output.impressions}",
+    "clicks": "${adv_serve_ref.output.clicks}",
+    "roas": "${adv_report_ref.output.roas}",
+    "cpa": "${adv_report_ref.output.cpa}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

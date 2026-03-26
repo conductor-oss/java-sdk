@@ -1,0 +1,59 @@
+{
+  "name": "analytics_reporting_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "reportId",
+    "dateRange",
+    "dataSources"
+  ],
+  "tasks": [
+    {
+      "name": "anr_collect_events",
+      "taskReferenceName": "anr_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportId": "${workflow.input.reportId}",
+        "dateRange": "${workflow.input.dateRange}",
+        "dataSources": "${workflow.input.dataSources}"
+      }
+    },
+    {
+      "name": "anr_aggregate_data",
+      "taskReferenceName": "anr_aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportId": "${workflow.input.reportId}",
+        "eventCount": "${anr_collect_ref.output.eventCount}",
+        "rawDataPath": "${anr_collect_ref.output.rawDataPath}"
+      }
+    },
+    {
+      "name": "anr_compute_metrics",
+      "taskReferenceName": "anr_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportId": "${workflow.input.reportId}",
+        "aggregatedData": "${anr_aggregate_ref.output.aggregatedData}"
+      }
+    },
+    {
+      "name": "anr_generate_report",
+      "taskReferenceName": "anr_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportId": "${workflow.input.reportId}",
+        "metrics": "${anr_metrics_ref.output.metrics}",
+        "dateRange": "${workflow.input.dateRange}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "reportId": "${workflow.input.reportId}",
+    "reportUrl": "${anr_report_ref.output.reportUrl}",
+    "totalEvents": "${anr_collect_ref.output.eventCount}",
+    "keyMetrics": "${anr_metrics_ref.output.metrics}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

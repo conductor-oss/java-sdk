@@ -1,0 +1,58 @@
+{
+  "name": "real_time_analytics",
+  "description": "Real-time analytics workflow: ingest events, process streams, update aggregates, and check alerts.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventBatch",
+    "windowSize",
+    "alertRules"
+  ],
+  "tasks": [
+    {
+      "name": "ry_ingest_events",
+      "taskReferenceName": "ingest_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventBatch": "${workflow.input.eventBatch}"
+      }
+    },
+    {
+      "name": "ry_process_stream",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${ingest_ref.output.events}",
+        "windowSize": "${workflow.input.windowSize}"
+      }
+    },
+    {
+      "name": "ry_update_aggregates",
+      "taskReferenceName": "update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "processed": "${process_ref.output.processed}",
+        "windowMetrics": "${process_ref.output.windowMetrics}"
+      }
+    },
+    {
+      "name": "ry_check_alerts",
+      "taskReferenceName": "alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregates": "${update_ref.output.aggregates}",
+        "alertRules": "${workflow.input.alertRules}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventsIngested": "${ingest_ref.output.eventCount}",
+    "eventsProcessed": "${process_ref.output.processedCount}",
+    "windowMetrics": "${process_ref.output.windowMetrics}",
+    "aggregatesUpdated": "${update_ref.output.updatedCount}",
+    "alertsTriggered": "${alert_ref.output.alertCount}",
+    "alerts": "${alert_ref.output.alerts}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

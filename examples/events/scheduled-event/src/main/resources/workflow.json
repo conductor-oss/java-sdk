@@ -1,0 +1,65 @@
+{
+  "name": "scheduled_event_wf",
+  "description": "Sequential scheduled-event workflow: queue_event -> check_schedule -> wait_until_ready -> execute_event -> confirm",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "payload",
+    "scheduledTime"
+  ],
+  "tasks": [
+    {
+      "name": "se_queue_event",
+      "taskReferenceName": "queue_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "payload": "${workflow.input.payload}",
+        "scheduledTime": "${workflow.input.scheduledTime}"
+      }
+    },
+    {
+      "name": "se_check_schedule",
+      "taskReferenceName": "check_schedule_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scheduledTime": "${queue_event_ref.output.scheduledTime}"
+      }
+    },
+    {
+      "name": "se_wait_until_ready",
+      "taskReferenceName": "wait_until_ready_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "delayMs": "${check_schedule_ref.output.delayMs}",
+        "eventId": "${queue_event_ref.output.eventId}"
+      }
+    },
+    {
+      "name": "se_execute_event",
+      "taskReferenceName": "execute_event_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${queue_event_ref.output.eventId}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "se_confirm",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${queue_event_ref.output.eventId}",
+        "executedAt": "${execute_event_ref.output.executedAt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${queue_event_ref.output.eventId}",
+    "confirmed": "${confirm_ref.output.confirmed}",
+    "executedAt": "${execute_event_ref.output.executedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

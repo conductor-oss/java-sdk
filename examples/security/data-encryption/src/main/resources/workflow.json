@@ -1,0 +1,50 @@
+{
+  "name": "data_encryption_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataSource",
+    "classification"
+  ],
+  "tasks": [
+    {
+      "name": "de_classify_data",
+      "taskReferenceName": "classify_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataSource": "${workflow.input.dataSource}",
+        "classification": "${workflow.input.classification}"
+      }
+    },
+    {
+      "name": "de_generate_key",
+      "taskReferenceName": "generate_key_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generate_keyData": "${classify_data_ref.output}"
+      }
+    },
+    {
+      "name": "de_encrypt_data",
+      "taskReferenceName": "encrypt_data_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "encrypt_dataData": "${generate_key_ref.output}"
+      }
+    },
+    {
+      "name": "de_verify_encryption",
+      "taskReferenceName": "verify_encryption_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_encryptionData": "${encrypt_data_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "classify_dataResult": "${classify_data_ref.output}",
+    "verify_encryptionResult": "${verify_encryption_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

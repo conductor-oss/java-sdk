@@ -1,0 +1,63 @@
+{
+  "name": "aft_fine_tuning",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "baseModel",
+    "datasetId",
+    "taskType"
+  ],
+  "tasks": [
+    {
+      "name": "aft_prepare_dataset",
+      "taskReferenceName": "aft_prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}",
+        "taskType": "${workflow.input.taskType}"
+      }
+    },
+    {
+      "name": "aft_configure",
+      "taskReferenceName": "aft_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "baseModel": "${workflow.input.baseModel}",
+        "datasetSize": "${aft_prep_ref.output.datasetSize}"
+      }
+    },
+    {
+      "name": "aft_train",
+      "taskReferenceName": "aft_train_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "config": "${aft_config_ref.output.config}",
+        "datasetPath": "${aft_prep_ref.output.datasetPath}"
+      }
+    },
+    {
+      "name": "aft_evaluate",
+      "taskReferenceName": "aft_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "checkpointId": "${aft_train_ref.output.checkpointId}"
+      }
+    },
+    {
+      "name": "aft_deploy",
+      "taskReferenceName": "aft_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${aft_train_ref.output.modelId}",
+        "metrics": "${aft_eval_ref.output.metrics}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "modelId": "${aft_train_ref.output.modelId}",
+    "finalLoss": "${aft_train_ref.output.finalLoss}",
+    "endpoint": "${aft_deploy_ref.output.endpoint}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

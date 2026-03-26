@@ -1,0 +1,24 @@
+{
+  "name": "retry_jitter_demo",
+  "description": "Retry with jitter demo -- adds jitter delay before API calls to avoid thundering herd.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["endpoint"],
+  "tasks": [
+    {
+      "name": "jitter_api_call",
+      "taskReferenceName": "jitter_api_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "endpoint": "${workflow.input.endpoint}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${jitter_api_call_ref.output.result}",
+    "jitterMs": "${jitter_api_call_ref.output.jitterMs}",
+    "attempt": "${jitter_api_call_ref.output.attempt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

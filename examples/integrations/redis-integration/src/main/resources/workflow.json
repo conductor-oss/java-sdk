@@ -1,0 +1,58 @@
+{
+  "name": "redis_integration_445",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "redisHost",
+    "cacheKey",
+    "cacheValue",
+    "channel"
+  ],
+  "tasks": [
+    {
+      "name": "red_connect",
+      "taskReferenceName": "connect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "host": "${workflow.input.redisHost}"
+      }
+    },
+    {
+      "name": "red_get_set",
+      "taskReferenceName": "getset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "connectionId": "${connect_ref.output.connectionId}",
+        "key": "${workflow.input.cacheKey}",
+        "value": "${workflow.input.cacheValue}"
+      }
+    },
+    {
+      "name": "red_pub_sub",
+      "taskReferenceName": "pubsub_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "connectionId": "${connect_ref.output.connectionId}",
+        "channel": "${workflow.input.channel}",
+        "message": "${workflow.input.cacheValue}"
+      }
+    },
+    {
+      "name": "red_cache_mgmt",
+      "taskReferenceName": "cache_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "connectionId": "${connect_ref.output.connectionId}",
+        "key": "${workflow.input.cacheKey}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "connected": "${connect_ref.output.connected}",
+    "cachedValue": "${getset_ref.output.retrievedValue}",
+    "published": "${pubsub_ref.output.published}",
+    "ttl": "${cache_ref.output.ttl}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

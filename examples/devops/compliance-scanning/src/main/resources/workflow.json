@@ -1,0 +1,50 @@
+{
+  "name": "compliance_scanning_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "environment",
+    "framework"
+  ],
+  "tasks": [
+    {
+      "name": "cs_discover_resources",
+      "taskReferenceName": "discover_resources_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "environment": "${workflow.input.environment}",
+        "framework": "${workflow.input.framework}"
+      }
+    },
+    {
+      "name": "cs_scan_policies",
+      "taskReferenceName": "scan_policies_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "scan_policiesData": "${discover_resources_ref.output}"
+      }
+    },
+    {
+      "name": "cs_generate_report",
+      "taskReferenceName": "generate_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "generate_reportData": "${scan_policies_ref.output}"
+      }
+    },
+    {
+      "name": "cs_remediate",
+      "taskReferenceName": "remediate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "remediateData": "${generate_report_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "discover_resourcesResult": "${discover_resources_ref.output}",
+    "remediateResult": "${remediate_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1200
+}

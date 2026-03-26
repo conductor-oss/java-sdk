@@ -1,0 +1,66 @@
+{
+  "name": "database_integration_444",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "sourceDb",
+    "targetDb",
+    "query",
+    "transformRules"
+  ],
+  "tasks": [
+    {
+      "name": "dbi_connect",
+      "taskReferenceName": "connect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceDb": "${workflow.input.sourceDb}",
+        "targetDb": "${workflow.input.targetDb}"
+      }
+    },
+    {
+      "name": "dbi_query",
+      "taskReferenceName": "query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "connectionId": "${connect_ref.output.sourceConnectionId}",
+        "query": "${workflow.input.query}"
+      }
+    },
+    {
+      "name": "dbi_transform",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rows": "${query_ref.output.rows}",
+        "rules": "${workflow.input.transformRules}"
+      }
+    },
+    {
+      "name": "dbi_write",
+      "taskReferenceName": "write_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "connectionId": "${connect_ref.output.targetConnectionId}",
+        "transformedRows": "${transform_ref.output.transformedRows}"
+      }
+    },
+    {
+      "name": "dbi_verify",
+      "taskReferenceName": "verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sourceCount": "${query_ref.output.rowCount}",
+        "writtenCount": "${write_ref.output.writtenCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sourceRows": "${query_ref.output.rowCount}",
+    "transformedRows": "${transform_ref.output.transformedCount}",
+    "writtenRows": "${write_ref.output.writtenCount}",
+    "verified": "${verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

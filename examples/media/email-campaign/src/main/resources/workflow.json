@@ -1,0 +1,73 @@
+{
+  "name": "email_campaign_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "campaignId",
+    "subject",
+    "templateId",
+    "listId"
+  ],
+  "tasks": [
+    {
+      "name": "eml_segment_audience",
+      "taskReferenceName": "eml_segment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "listId": "${workflow.input.listId}"
+      }
+    },
+    {
+      "name": "eml_personalize",
+      "taskReferenceName": "eml_personalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "templateId": "${workflow.input.templateId}",
+        "segments": "${eml_segment_ref.output.segments}",
+        "recipientCount": "${eml_segment_ref.output.recipientCount}"
+      }
+    },
+    {
+      "name": "eml_send_campaign",
+      "taskReferenceName": "eml_send_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "subject": "${workflow.input.subject}",
+        "personalizedCount": "${eml_personalize_ref.output.personalizedCount}"
+      }
+    },
+    {
+      "name": "eml_track_engagement",
+      "taskReferenceName": "eml_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "sentCount": "${eml_send_ref.output.sentCount}",
+        "sendId": "${eml_send_ref.output.sendId}"
+      }
+    },
+    {
+      "name": "eml_analyze_results",
+      "taskReferenceName": "eml_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "campaignId": "${workflow.input.campaignId}",
+        "openRate": "${eml_track_ref.output.openRate}",
+        "clickRate": "${eml_track_ref.output.clickRate}",
+        "unsubscribeRate": "${eml_track_ref.output.unsubscribeRate}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "campaignId": "${workflow.input.campaignId}",
+    "sentCount": "${eml_send_ref.output.sentCount}",
+    "openRate": "${eml_track_ref.output.openRate}",
+    "clickRate": "${eml_track_ref.output.clickRate}",
+    "performance": "${eml_analyze_ref.output.performance}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

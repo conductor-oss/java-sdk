@@ -1,0 +1,43 @@
+{
+  "name": "rag_redis_workflow",
+  "description": "RAG with Redis Vector Similarity Search",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["question", "indexName"],
+  "tasks": [
+    {
+      "name": "redis_embed",
+      "taskReferenceName": "embed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}"
+      }
+    },
+    {
+      "name": "redis_ft_search",
+      "taskReferenceName": "search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "embedding": "${embed_ref.output.embedding}",
+        "indexName": "${workflow.input.indexName}",
+        "k": 3,
+        "scoreField": "vector_score"
+      }
+    },
+    {
+      "name": "redis_generate",
+      "taskReferenceName": "gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "results": "${search_ref.output.results}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${gen_ref.output.answer}",
+    "redisInfo": "${search_ref.output.indexInfo}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

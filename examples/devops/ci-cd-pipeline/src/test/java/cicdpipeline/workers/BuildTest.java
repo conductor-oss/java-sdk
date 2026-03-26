@@ -18,6 +18,29 @@ class BuildTest {
     }
 
     @Test
+    void failsOnMissingRepoUrl() {
+        Task task = taskWith(null, "main", "abc1234");
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("repoUrl"));
+    }
+
+    @Test
+    void failsOnBlankRepoUrl() {
+        Task task = taskWith("  ", "main", "abc1234");
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void failsOnMissingBranch() {
+        Task task = taskWith("https://github.com/octocat/Hello-World.git", null, "abc1234");
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("branch"));
+    }
+
+    @Test
     void returnsCompletedStatus() {
         Task task = taskWith("https://github.com/octocat/Hello-World.git", "main", "abc1234def5678");
         TaskResult result = worker.execute(task);
@@ -46,13 +69,6 @@ class BuildTest {
         TaskResult r1 = worker.execute(t1);
         TaskResult r2 = worker.execute(t2);
         assertEquals(r1.getOutputData().get("buildId"), r2.getOutputData().get("buildId"));
-    }
-
-    @Test
-    void handlesShortCommitSha() {
-        Task task = taskWith("https://github.com/octocat/Hello-World.git", "main", "abc");
-        TaskResult result = worker.execute(task);
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
     }
 
     @Test

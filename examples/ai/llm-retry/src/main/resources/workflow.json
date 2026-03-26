@@ -1,0 +1,36 @@
+{
+  "name": "llm_retry_wf",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["prompt", "model"],
+  "tasks": [
+    {
+      "name": "retry_llm_call",
+      "taskReferenceName": "llm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${workflow.input.prompt}",
+        "model": "${workflow.input.model}"
+      },
+      "retryCount": 3,
+      "retryLogic": "EXPONENTIAL_BACKOFF",
+      "retryDelaySeconds": 1
+    },
+    {
+      "name": "retry_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "response": "${llm_ref.output.response}",
+        "attempts": "${llm_ref.output.attempts}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "response": "${llm_ref.output.response}",
+    "attempts": "${llm_ref.output.attempts}",
+    "retryPolicy": "EXPONENTIAL_BACKOFF"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

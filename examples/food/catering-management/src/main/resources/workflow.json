@@ -1,0 +1,21 @@
+{
+  "name": "catering_management_740",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["clientName", "eventDate", "guestCount"],
+  "tasks": [
+    { "name": "cat_inquiry", "taskReferenceName": "inquiry_ref", "type": "SIMPLE",
+      "inputParameters": { "clientName": "${workflow.input.clientName}", "eventDate": "${workflow.input.eventDate}", "guestCount": "${workflow.input.guestCount}" } },
+    { "name": "cat_quote", "taskReferenceName": "quote_ref", "type": "SIMPLE",
+      "inputParameters": { "guestCount": "${workflow.input.guestCount}", "requirements": "${inquiry_ref.output.requirements}" } },
+    { "name": "cat_plan_menu", "taskReferenceName": "menu_ref", "type": "SIMPLE",
+      "inputParameters": { "guestCount": "${workflow.input.guestCount}", "budget": "${quote_ref.output.budget}" } },
+    { "name": "cat_execute", "taskReferenceName": "execute_ref", "type": "SIMPLE",
+      "inputParameters": { "eventDate": "${workflow.input.eventDate}", "menu": "${menu_ref.output.menu}" } },
+    { "name": "cat_invoice", "taskReferenceName": "invoice_ref", "type": "SIMPLE",
+      "inputParameters": { "clientName": "${workflow.input.clientName}", "total": "${quote_ref.output.total}" } }
+  ],
+  "outputParameters": { "catering": "${invoice_ref.output.invoice}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

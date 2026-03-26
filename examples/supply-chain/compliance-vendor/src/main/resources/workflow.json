@@ -1,0 +1,12 @@
+{
+  "name": "vcm_vendor_compliance", "description": "Vendor compliance: assess, audit, certify, and monitor.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["vendorId", "vendorName", "complianceStandard"],
+  "tasks": [
+    {"name":"vcm_assess","taskReferenceName":"vcm_assess_ref","type":"SIMPLE","inputParameters":{"vendorId":"${workflow.input.vendorId}","complianceStandard":"${workflow.input.complianceStandard}"}},
+    {"name":"vcm_audit","taskReferenceName":"vcm_audit_ref","type":"SIMPLE","inputParameters":{"vendorId":"${workflow.input.vendorId}","assessmentResult":"${vcm_assess_ref.output.assessmentResult}"}},
+    {"name":"vcm_certify","taskReferenceName":"vcm_certify_ref","type":"SIMPLE","inputParameters":{"vendorId":"${workflow.input.vendorId}","auditPassed":"${vcm_audit_ref.output.passed}"}},
+    {"name":"vcm_monitor","taskReferenceName":"vcm_monitor_ref","type":"SIMPLE","inputParameters":{"vendorId":"${workflow.input.vendorId}","certificationId":"${vcm_certify_ref.output.certificationId}"}}
+  ],
+  "outputParameters": {"assessmentScore":"${vcm_assess_ref.output.score}","auditPassed":"${vcm_audit_ref.output.passed}","certificationId":"${vcm_certify_ref.output.certificationId}","monitoringActive":"${vcm_monitor_ref.output.active}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,249 +1,86 @@
-# Implementing Saga Pattern in Java with Conductor: Orchestrated Compensation for Distributed Trip Booking
+# Saga Pattern: Orchestrated Compensation with a ConcurrentHashMap Booking Store
 
-A Java Conductor workflow example demonstrating the saga pattern. Booking a flight, reserving a hotel, and charging payment in sequence, with compensating transactions (cancel flight, cancel hotel, refund payment) that execute in reverse order when any step fails.
+A customer books a trip: flight confirmed, hotel reserved, then the payment is declined. Without compensation, the airline holds a seat and the hotel holds a room for a trip that will never happen. The customer sees "payment failed" but gets charged a no-show fee three weeks later. The saga pattern solves this by pairing every forward action with a compensating action and running them in reverse order on failure. This example implements an orchestrated saga using [Conductor](https://github.com/conductor-oss/conductor) with three `ConcurrentHashMap` stores that track exactly which bookings exist at any moment, so compensation workers can verify they actually removed the record they were supposed to undo.
 
-## The Problem
+## How the Workflow Uses SWITCH for Compensation
 
-You need to book a trip as a distributed transaction across three independent services. Flight booking, hotel reservation, and payment. If the payment charge fails after the flight and hotel are booked, both must be cancelled. If the hotel reservation fails after the flight is booked, the flight must be cancelled. Each service has its own compensating action that must run in reverse order.
-
-Without orchestration, saga compensation is implemented as deeply nested try/catch blocks. Each forward step must know about every previous step's undo operation. Adding a new step (e.g., travel insurance) means updating the compensation logic for every existing step. Testing all compensation paths requires simulating failures at each step.
-
-### What Goes Wrong Without a Saga
-
-Consider what happens when the payment step fails midway through a trip booking:
-
-1. Hotel is reserved (HTL-TRIP-001 confirmed)
-2. Flight is booked (FLT-TRIP-001 confirmed)
-3. Payment is charged. **DECLINED**
-
-Without compensation, the hotel and flight remain booked. The customer sees a "payment failed" error but the hotel holds a room and the airline holds a seat. The hotel charges a no-show fee, the flight seat is wasted, and the customer gets billed for a trip they never took.
-
-The saga pattern solves this by defining a compensating action for every forward step. When payment fails, Conductor runs `cancel_flight` then `cancel_hotel` in reverse order. Undoing exactly the steps that completed.
-
-## The Solution
-
-**You just write the booking and compensation logic for each service. Conductor handles forward sequencing, SWITCH-based failure detection, reverse-order compensation execution, retries on each booking and cancellation step, and a full audit trail of every saga with its forward and rollback paths.**
-
-Each forward step (book flight, reserve hotel, charge payment) and its compensation (cancel flight, cancel hotel, refund payment) are independent workers. Conductor runs the forward steps in sequence and, on failure, triggers the compensation workflow that runs undo steps in reverse order. Every step in both directions is tracked with full context. You get all of that for free, without writing a single line of orchestration code.
-
-### What You Write: Workers
-
-Six workers form the saga: ReserveHotelWorker, BookFlightWorker, and ChargePaymentWorker handle forward booking, while CancelHotelWorker, CancelFlightWorker, and RefundPaymentWorker execute compensating rollbacks in reverse order when any step fails.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **BookFlightWorker** | `saga_book_flight` | Books a flight for the given tripId, returns a booking ID like `FLT-TRIP-001`. | Simulated |
-| **CancelFlightWorker** | `saga_cancel_flight` | Compensation: cancels a previously booked flight using the tripId. Returns `{cancelled: true}`. | Simulated |
-| **CancelHotelWorker** | `saga_cancel_hotel` | Compensation: cancels a previously reserved hotel using the tripId. Returns `{cancelled: true}`. | Simulated |
-| **ChargePaymentWorker** | `saga_charge_payment` | Charges payment for the trip. When `shouldFail=true`, returns `{status: "failed"}` to trigger saga rollback. Otherwise returns `{status: "success", transactionId: "TXN-TRIP-001"}`. | Simulated |
-| **RefundPaymentWorker** | `saga_refund_payment` | Compensation: refunds a previously charged payment. Returns `{refunded: true}`. Registered but not used in the current workflow (payment failure prevents a charge from existing). | Simulated |
-| **ReserveHotelWorker** | `saga_reserve_hotel` | Reserves a hotel room for the given tripId, returns a reservation ID like `HTL-TRIP-001`. | Simulated |
-
-Workers simulate success and failure scenarios so you can observe the resilience pattern end-to-end. Swap in real service calls and the retry, compensation, and recovery behavior works identically.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
-### The Workflow
+The workflow definition in `workflow.json` is not a simple linear sequence. After the three forward steps, a `SWITCH` task inspects the payment status:
 
 ```
-saga_reserve_hotel
-    |
-    v
-saga_book_flight
-    |
-    v
-saga_charge_payment
-    |
-    v
-SWITCH (check_payment_ref)
-    |-- "failed": saga_cancel_flight -> saga_cancel_hotel -> TERMINATE(ROLLED_BACK)
-    |-- default:  workflow completes with booking details
+saga_reserve_hotel  -->  saga_book_flight  -->  saga_charge_payment  -->  SWITCH
+                                                                          |
+                        "failed": saga_cancel_flight --> saga_cancel_hotel --> TERMINATE(ROLLED_BACK)
+                        default:  workflow completes with booking details
 ```
 
-## Running It
+The SWITCH uses `value-param` evaluation on `${charge_payment_ref.output.status}`. When the status is `"failed"`, it triggers the compensation branch: cancel flight first, then cancel hotel (reverse order of the forward steps), then terminate the workflow with `status: "ROLLED_BACK"`. When the payment succeeds, the default case passes through and the workflow completes normally.
 
-### Prerequisites
+Task definitions in `task-defs.json` configure `retryCount: 2` and `responseTimeoutSeconds: 30` for all six tasks -- forward and compensation -- ensuring that even cancellation operations are retried if they fail transiently.
 
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+## The BookingStore: Proving Compensation Actually Works
 
-### Option 1: Docker Compose (everything included)
+The key design insight is `BookingStore`, a shared in-memory store using three `ConcurrentHashMap<String, String>` instances:
 
-```bash
-docker compose up --build
+```java
+static final ConcurrentHashMap<String, String> HOTEL_RESERVATIONS = new ConcurrentHashMap<>();
+static final ConcurrentHashMap<String, String> FLIGHT_BOOKINGS = new ConcurrentHashMap<>();
+static final ConcurrentHashMap<String, String> PAYMENT_TRANSACTIONS = new ConcurrentHashMap<>();
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+Forward workers `put()` entries; compensation workers `remove()` them. The `remove()` return value tells you whether the booking actually existed: `removedFromStore: true` means the compensation undid a real booking, `false` means the booking was already gone (idempotent compensation).
 
-If port 8080 is already taken:
+A synchronized `ACTION_LOG` list records every operation in order: `"BOOK_FLIGHT:FLT-TRIP-100"`, `"RESERVE_HOTEL:HTL-TRIP-100"`, `"CHARGE_PAYMENT:TXN-TRIP-100"`. The integration tests use this log to verify that compensation runs in the correct reverse order.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
+## Forward Workers
 
-### Option 2: Run locally
+**ReserveHotelWorker** (`saga_reserve_hotel`) -- Creates a reservation entry `"HTL-" + tripId` in the hotel store. Supports a `shouldFail` flag that simulates hotel unavailability by returning `FAILED_WITH_TERMINAL_ERROR` without creating a store entry -- meaning no compensation is needed for a reservation that was never made.
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+**BookFlightWorker** (`saga_book_flight`) -- Creates a booking entry `"FLT-" + tripId` in the flight store. Returns the `bookingId` and `bookedAt` timestamp.
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+**ChargePaymentWorker** (`saga_charge_payment`) -- Creates a transaction entry `"TXN-" + tripId` on success. Validates that if an `amount` is provided, it must be a positive number. When `shouldFail` is `true` (either as boolean or string `"true"`), the worker returns `FAILED_WITH_TERMINAL_ERROR` with `status: "failed"` -- this is what triggers the SWITCH compensation branch.
 
-# Build and run
-mvn package -DskipTests
-java -jar target/saga-pattern-1.0.0.jar
-```
+## Compensation Workers
 
-### Option 3: Use the run script
+**CancelFlightWorker** (`saga_cancel_flight`) -- Calls `BookingStore.FLIGHT_BOOKINGS.remove(bookingId)`. If no explicit `bookingId` is provided, defaults to `"FLT-" + tripId`. Returns `removedFromStore: true/false` to indicate whether the booking existed.
 
-```bash
-./run.sh
+**CancelHotelWorker** (`saga_cancel_hotel`) -- Same pattern: removes from `HOTEL_RESERVATIONS`, defaults to `"HTL-" + tripId`.
 
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
+**RefundPaymentWorker** (`saga_refund_payment`) -- Removes from `PAYMENT_TRANSACTIONS` using `"TXN-" + tripId`. This worker is registered in `task-defs.json` but not used in the current workflow's compensation branch (because when payment fails, no transaction was created). It exists for the case where you need to compensate after a successful payment -- for example, if a post-payment validation step fails.
 
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
+## Idempotent Compensation
 
-## Example Output
+A critical property of saga compensation workers is idempotency. Every cancel/refund worker returns `removedFromStore: true` if the booking existed and was removed, or `removedFromStore: false` if it was already gone. This means running compensation twice doesn't fail -- it just reports that there was nothing to undo. The integration test `handlesNonExistentBooking` in `CancelFlightWorkerTest` verifies this: cancelling a flight that was never booked completes successfully with `removedFromStore: false`.
 
-```
-=== Saga Pattern: Orchestrated Compensation for Trip Booking ===
+## Workflow Configuration
 
-Step 1: Registering task definitions...
-  Registered: saga_reserve_hotel, saga_book_flight, saga_charge_payment, saga_cancel_flight, saga_cancel_hotel, saga_refund_payment
+The `task-defs.json` defines retry and timeout behavior for all six tasks:
 
-Step 2: Registering workflow 'trip_booking_saga'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  6 workers polling.
-
---- Scenario 1: Successful trip booking ---
-  Workflow ID: 85a1c3e0-...
-  [reserve_hotel] Reserving hotel for trip TRIP-001
-  [book_flight] Booking flight for trip TRIP-001
-  [charge_payment] Payment succeeded for trip TRIP-001
-  Status: COMPLETED
-  Output: {tripId=TRIP-001, hotel=HTL-TRIP-001, flight=FLT-TRIP-001, payment=success, transactionId=TXN-TRIP-001}
-  As expected: trip booked successfully with all services confirmed.
-
---- Scenario 2: Payment failure triggers saga rollback ---
-  Workflow ID: 92b4d7f1-...
-  [reserve_hotel] Reserving hotel for trip TRIP-002
-  [book_flight] Booking flight for trip TRIP-002
-  [charge_payment] Payment FAILED for trip TRIP-002
-  [cancel_flight] Cancelling flight for trip TRIP-002 (compensation)
-  [cancel_hotel] Cancelling hotel for trip TRIP-002 (compensation)
-  Status: COMPLETED
-  Output: {tripId=TRIP-002, status=ROLLED_BACK}
-  As expected: payment failed, saga compensated by cancelling flight and hotel.
-
-Key insight: The saga pattern uses orchestrated compensation --
-when a step fails, the workflow runs compensating tasks in reverse order
-to undo the effects of previously completed steps.
-
-Result: PASSED
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
+| Setting | Value | Purpose |
 |---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+| `retryCount` | 2 | Each task retries twice before failing |
+| `timeoutSeconds` | 60 | Task times out after 60 seconds |
+| `responseTimeoutSeconds` | 30 | Worker must respond within 30 seconds |
 
-## Using the Conductor CLI
+These settings apply equally to forward and compensation tasks. If `saga_cancel_flight` fails on the first attempt (e.g., a transient network error), Conductor retries it automatically. The overall workflow timeout is 60 seconds.
 
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
+## Test Coverage
 
-```bash
-java -jar target/saga-pattern-1.0.0.jar --workers
-```
+**Unit tests** (per worker):
+- **BookFlightWorkerTest**: 5 tests -- booking creation, ID format, store entry verification, missing/blank tripId, action log
+- **CancelFlightWorkerTest**: 4 tests -- cancel existing (removedFromStore=true), cancel non-existent (removedFromStore=false), missing tripId, action log
+- **ChargePaymentWorkerTest**: 9 tests -- success creates transaction, failure returns terminal error without transaction, `shouldFail` as string, missing tripId, negative/zero/non-numeric amount, valid positive amount, action log
+- **RefundPaymentWorkerTest**: 4 tests -- refund existing, refund non-existent, missing tripId, action log
+- (ReserveHotelWorkerTest and CancelHotelWorkerTest follow the same pattern)
 
-Then in a separate terminal:
+**SagaIntegrationTest** (5 tests):
+- **Happy path**: all three bookings created, action log shows `BOOK_FLIGHT -> RESERVE_HOTEL -> CHARGE_PAYMENT`
+- **Compensation in reverse order**: after payment failure, hotel is cancelled before flight; the test asserts `cancelHotelIdx < cancelFlightIdx` in the action log
+- **Partial failure**: hotel fails after flight succeeds; flight remains in store until explicitly compensated
+- **Every forward worker has a matching cancel**: books all three, cancels all three, asserts `BookingStore.isEmpty()`
+- **Full compensation with refund**: all three succeed, then full reverse compensation (refund -> cancel hotel -> cancel flight) leaves empty stores and correct ordering in the action log
 
-```bash
-# Happy path: all services succeed
-conductor workflow start \
-  --workflow trip_booking_saga \
-  --version 1 \
-  --input '{"tripId": "TRIP-101", "shouldFail": false}'
+**27+ tests total** with explicit verification of compensation ordering, store cleanup, and idempotent cancellation.
 
-# Failure path: payment fails, triggers compensation
-conductor workflow start \
-  --workflow trip_booking_saga \
-  --version 1 \
-  --input '{"tripId": "TRIP-102", "shouldFail": true}'
-```
+---
 
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w trip_booking_saga -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker maps to a real booking service. Connect the flight worker to Amadeus or Sabre GDS, the hotel worker to your reservation system, the payment worker to Stripe, and the saga with compensating transactions stays the same.
-
-- **BookFlightWorker** (`saga_book_flight`): book real flights via Amadeus/Sabre APIs, returning a PNR for cancellation
-- **CancelFlightWorker** (`saga_cancel_flight`): cancel the flight booking via Amadeus/Sabre APIs using the PNR returned by the booking step
-- **CancelHotelWorker** (`saga_cancel_hotel`): cancel the hotel reservation via the hotel booking API using the confirmation number from the reservation step
-- **Add a new step**: e.g., travel insurance: add `BookInsuranceWorker` and `CancelInsuranceWorker`, insert the forward task in the workflow, add the compensation task to the rollback branch. No existing workers change.
-
-Connect each booking worker to your real GDS, hotel reservation system, and payment gateway, and the saga with compensating transactions operates in production unmodified.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-saga-pattern/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/sagapattern/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── SagaPatternExample.java      # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── BookFlightWorker.java
-│       ├── CancelFlightWorker.java
-│       ├── CancelHotelWorker.java
-│       ├── ChargePaymentWorker.java
-│       ├── RefundPaymentWorker.java
-│       └── ReserveHotelWorker.java
-└── src/test/java/sagapattern/workers/
-    ├── BookFlightWorkerTest.java     # 4 tests
-    ├── CancelFlightWorkerTest.java   # 4 tests
-    ├── CancelHotelWorkerTest.java    # 4 tests
-    ├── ChargePaymentWorkerTest.java  # 5 tests
-    ├── RefundPaymentWorkerTest.java  # 4 tests
-    └── ReserveHotelWorkerTest.java   # 4 tests
-```
+> **How to run:** See [RUNNING.md](../../RUNNING.md) | **Production guidance:** See [PRODUCTION.md](PRODUCTION.md)

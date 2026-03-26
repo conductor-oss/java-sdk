@@ -1,0 +1,16 @@
+{
+  "name": "distributed_locking_workflow",
+  "description": "Distributed locking for concurrency control",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["resourceId", "operation", "ttlSeconds"],
+  "tasks": [
+    {"name": "dl_acquire_lock", "taskReferenceName": "lock_ref", "type": "SIMPLE",
+      "inputParameters": {"resourceId": "${workflow.input.resourceId}", "ttlSeconds": "${workflow.input.ttlSeconds}"}},
+    {"name": "dl_execute_critical", "taskReferenceName": "exec_ref", "type": "SIMPLE",
+      "inputParameters": {"resourceId": "${workflow.input.resourceId}", "operation": "${workflow.input.operation}", "lockToken": "${lock_ref.output.lockToken}"}},
+    {"name": "dl_release_lock", "taskReferenceName": "release_ref", "type": "SIMPLE",
+      "inputParameters": {"resourceId": "${workflow.input.resourceId}", "lockToken": "${lock_ref.output.lockToken}"}}
+  ],
+  "outputParameters": {"result": "${exec_ref.output.result}", "lockToken": "${lock_ref.output.lockToken}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

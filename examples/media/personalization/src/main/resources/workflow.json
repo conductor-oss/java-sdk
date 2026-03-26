@@ -1,0 +1,69 @@
+{
+  "name": "personalization_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "sessionId",
+    "pageContext"
+  ],
+  "tasks": [
+    {
+      "name": "per_collect_profile",
+      "taskReferenceName": "per_profile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "sessionId": "${workflow.input.sessionId}"
+      }
+    },
+    {
+      "name": "per_segment_user",
+      "taskReferenceName": "per_segment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "interests": "${per_profile_ref.output.interests}",
+        "demographics": "${per_profile_ref.output.demographics}"
+      }
+    },
+    {
+      "name": "per_select_content",
+      "taskReferenceName": "per_select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "segment": "${per_segment_ref.output.segment}",
+        "pageContext": "${workflow.input.pageContext}"
+      }
+    },
+    {
+      "name": "per_rank_content",
+      "taskReferenceName": "per_rank_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "candidates": "${per_select_ref.output.candidates}",
+        "preferences": "${per_profile_ref.output.preferences}"
+      }
+    },
+    {
+      "name": "per_serve_content",
+      "taskReferenceName": "per_serve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "sessionId": "${workflow.input.sessionId}",
+        "rankedItems": "${per_rank_ref.output.rankedItems}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${workflow.input.userId}",
+    "segment": "${per_segment_ref.output.segment}",
+    "servedItems": "${per_serve_ref.output.servedCount}",
+    "responseTimeMs": "${per_serve_ref.output.responseTimeMs}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,86 @@
+{
+  "name": "air_quality_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "stationId",
+    "region"
+  ],
+  "tasks": [
+    {
+      "name": "aq_collect_readings",
+      "taskReferenceName": "aq_read_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stationId": "${workflow.input.stationId}",
+        "region": "${workflow.input.region}"
+      }
+    },
+    {
+      "name": "aq_check_standards",
+      "taskReferenceName": "aq_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "pm25": "${aq_read_ref.output.pm25}",
+        "pm10": "${aq_read_ref.output.pm10}",
+        "o3": "${aq_read_ref.output.o3}",
+        "co": "${aq_read_ref.output.co}"
+      }
+    },
+    {
+      "name": "aq_route_action",
+      "taskReferenceName": "aq_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "inputParameters": {
+        "switchCaseValue": "${aq_check_ref.output.category}"
+      },
+      "expression": "switchCaseValue",
+      "decisionCases": {
+        "good": [
+          {
+            "name": "aq_action_good",
+            "taskReferenceName": "aq_good_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "stationId": "${workflow.input.stationId}",
+              "aqi": "${aq_check_ref.output.aqi}"
+            }
+          }
+        ],
+        "moderate": [
+          {
+            "name": "aq_action_moderate",
+            "taskReferenceName": "aq_mod_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "stationId": "${workflow.input.stationId}",
+              "aqi": "${aq_check_ref.output.aqi}",
+              "advisory": "Sensitive groups should limit outdoor activity"
+            }
+          }
+        ],
+        "poor": [
+          {
+            "name": "aq_action_poor",
+            "taskReferenceName": "aq_poor_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "stationId": "${workflow.input.stationId}",
+              "aqi": "${aq_check_ref.output.aqi}",
+              "advisory": "Health warning \u2014 reduce outdoor exposure"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "stationId": "${workflow.input.stationId}",
+    "aqi": "${aq_check_ref.output.aqi}",
+    "category": "${aq_check_ref.output.category}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

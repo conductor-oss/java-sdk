@@ -1,215 +1,50 @@
-# Document Ingestion Pipeline in Java Using Conductor: PDF to Vector Store in Four Steps
+# PDF-to-Vector-Store Ingestion Pipeline
 
-Someone dumps 10,000 PDFs into a shared drive and expects the RAG system to answer questions about them by Monday. Your chatbot can't find anything because nobody extracted the text, chunked it for embedding models, generated vectors, or loaded them into the vector store. If the embedding API rate-limits you halfway through, a naive script loses track of what was already processed and starts over from page one. This example builds a four-stage document ingestion pipeline using [Conductor](https://github.com/conductor-oss/conductor): extract, chunk, embed, store, that turns raw PDFs into searchable vectors with per-stage retries and full visibility into which document failed at which step.
+Someone drops a batch of PDFs that need to be searchable by Monday. Before RAG can answer questions, documents must be extracted, chunked, embedded, and stored. If the embedding API rate-limits you at chunk 47 of 200, you need to retry from that exact point -- not re-extract a 200-page PDF. This pipeline handles it in four stages.
 
-## Turning Documents into Searchable Knowledge
-
-Before a RAG system can answer questions, documents must be ingested: raw PDFs need to be parsed into plain text, that text needs to be split into chunks small enough for embedding models (with overlap to preserve context at boundaries), each chunk needs to be embedded into a vector, and those vectors need to be upserted into a collection in your vector store.
-
-Each step depends on the previous one's output. You can't chunk text you haven't extracted, and you can't embed chunks you haven't created. If the embedding API rate-limits you mid-batch or the vector store connection drops during upsert, you need to retry that specific step without re-extracting a 200-page PDF. And when you're ingesting thousands of documents, you need to see exactly which document failed at which stage.
-
-Without orchestration, this becomes a fragile script where a single embedding API timeout means restarting from scratch, with no record of what was already processed.
-
-## The Solution
-
-**You write the extraction, chunking, embedding, and storage logic. Conductor handles the pipeline sequencing, retries, and observability.**
-
-Each stage of the ingestion pipeline is an independent worker. PDF extraction, text chunking, embedding generation, vector storage. Conductor sequences them, passes the output of each stage to the next, retries on transient failures (embedding API timeouts, vector store connection drops), and tracks every document's journey from PDF to stored vectors. You get a production-grade ingestion pipeline without writing retry loops or progress tracking.
-
-### What You Write: Workers
-
-Four workers form the ingestion pipeline. PDF text extraction, word-based chunking with configurable overlap, embedding generation, and vector database upsert, each stage feeding its output to the next.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **IngestChunkTextWorker** | `ingest_chunk_text` | Worker 2: Splits extracted text into overlapping chunks. Uses word-based chunking with configurable size and overlap. | Simulated |
-| **IngestEmbedChunksWorker** | `ingest_embed_chunks` | Worker 3: Generates embeddings for each text chunk. Uses fixed (deterministic) embeddings for reproducible tests. | Simulated |
-| **IngestExtractPdfWorker** | `ingest_extract_pdf` | Worker 1: Extracts text from a PDF document. Simulates PDF parsing by returning fixed text about vector databases. | Simulated |
-| **IngestStoreVectorsWorker** | `ingest_store_vectors` | Worker 4: Stores embedding vectors in a vector database collection. Simulates upserting vectors and returns the count... | Simulated |
-
-Workers simulate LLM API responses with realistic outputs so you can run the full pipeline without API keys. Set the provider API key environment variable to switch to live mode, the workflow and worker interfaces stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
-### The Workflow
+## Workflow
 
 ```
-ingest_extract_pdf
-    │
-    ▼
-ingest_chunk_text
-    │
-    ▼
-ingest_embed_chunks
-    │
-    ▼
-ingest_store_vectors
+documentUrl, collection, chunkSize, chunkOverlap
+       │
+       ▼
+┌───────────────────┐
+│ ingest_extract_pdf│  Parse PDF/text/URL via PDFBox
+└────────┬──────────┘
+         │  text, pageCount, charCount
+         ▼
+┌───────────────────┐
+│ ingest_chunk_text │  Word-based sliding window
+└────────┬──────────┘
+         │  chunks[], chunkCount
+         ▼
+┌────────────────────┐
+│ ingest_embed_chunks│  OpenAI text-embedding-3-small
+└────────┬───────────┘
+         │  vectors[], model
+         ▼
+┌─────────────────────┐
+│ ingest_store_vectors│  Write to JSON file on disk
+└─────────────────────┘
+         │
+         ▼
+   pagesExtracted, chunksCreated, vectorsStored
 ```
 
-## Example Output
+## Workers
 
-```
-=== Example 141: Document Ingestion Pipeline ===
+**IngestExtractPdfWorker** (`ingest_extract_pdf`) -- Handles three input formats: local PDF files (parsed with Apache PDFBox via `Loader.loadPDF()` and `PDFTextStripper`), local text files (read with `Files.readString()`), and HTTP/HTTPS URLs (fetched with `HttpClient`, 15-second connect timeout, following redirects). For non-PDF text, estimates page count as `Math.max(1, text.length() / 2000)`. Validates that `documentUrl` is not null/blank, returning `FAILED` if missing.
 
-Step 1: Registering task definitions...
-  Registered: ingest_extract_pdf, ingest_chunk_text, ingest_embed_chunks, ingest_store_vectors
+**IngestChunkTextWorker** (`ingest_chunk_text`) -- Splits text on `\\s+` into words and creates overlapping chunks using a sliding window. Defaults: `chunkSize=200` words, `chunkOverlap=50` words. Each chunk gets an id like `"chunk-0"`, the text content, `wordCount`, and `startOffset`. The window advances by `chunkSize - chunkOverlap` (150 words by default). Both parameters are configurable from workflow input via `Integer.parseInt()`.
 
-Step 2: Registering workflow 'document_ingestion_workflow'...
-  Workflow registered.
+**IngestEmbedChunksWorker** (`ingest_embed_chunks`) -- Requires `CONDUCTOR_OPENAI_API_KEY`. Iterates chunks and calls OpenAI's Embeddings API at `https://api.openai.com/v1/embeddings` with model `text-embedding-3-small` for each chunk. Builds a vector entry with the chunk's `id`, the embedding array (from `data[0].embedding`), and metadata (first 100 chars of text + wordCount). Distinguishes retryable errors (429/503) from terminal errors (other 4xx).
 
-Step 3: Starting workers...
-  4 workers polling.
+**IngestStoreVectorsWorker** (`ingest_store_vectors`) -- Writes vectors to `<collection>_vectors.json` in the system temp directory (`java.io.tmpdir`). The file name is sanitized via `replaceAll("[^a-zA-Z0-9_-]", "_")`. Uses Jackson `ObjectMapper` with `INDENT_OUTPUT` enabled. Output includes `collection`, `vectorCount`, and the full `vectors` array. The output directory is overridable via a constructor parameter for testing.
 
-Step 4: Starting workflow...
-  Workflow ID: 64c30ad7-f43b-ea15-5df9-19b3f53633da
+## Tests
 
-  [extract] Processing PDF: https://example.com/vector-databases-guide.pdf
-  [extract] Extracted 256 chars from 5 pages
-  [chunk] Split into 3 chunks (size=30 words, overlap=5)
-    - ID-001: 3 words, \"256\"
-  [embed] Generated 3 embeddings via OpenAI (LIVE)
-  [embed] Generated 3 embeddings (8-dim simulated)
-  [store] Upserting 3 vectors into collection \"knowledge_base\"
-    - ID-001: stored successfully
+22 tests across 4 test files cover PDF extraction, chunking with different sizes/overlaps, embedding API calls, and file-based vector storage.
 
+## Further Reading
 
-  Status: COMPLETED
-  Output: {documentUrl=https://example.com/vector-databases-guide.pdf, pagesExtracted=5, chunksCreated=3, vectorsStored=3}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/document-ingestion-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(none)_ | OpenAI API key for embeddings and generation. When absent, workers use simulated responses. |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/document-ingestion-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow document_ingestion_workflow \
-  --version 1 \
-  --input '{"documentUrl": "https://example.com/vector-databases-guide.pdf", "collection": "knowledge_base", "chunkSize": "30", "chunkOverlap": "5"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w document_ingestion_workflow -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker handles one ingestion stage. Swap in Apache PDFBox for extraction, OpenAI Embeddings for vectorization, upsert to Pinecone or Weaviate for storage, and the four-step pipeline runs unchanged.
-
-- **IngestExtractPdfWorker** (`ingest_extract_pdf`): swap in Apache PDFBox, Tika, or a cloud document AI service for real PDF text extraction
-- **IngestChunkTextWorker** (`ingest_chunk_text`): integrate LangChain4j's text splitters or implement custom sentence-boundary chunking
-- **IngestEmbedChunksWorker** (`ingest_embed_chunks`): replace fixed embeddings with calls to OpenAI Embeddings, Cohere, or a local sentence-transformers model
-- **IngestStoreVectorsWorker** (`ingest_store_vectors`): swap in real upsert calls to Pinecone, Weaviate, pgvector, Qdrant, or Milvus
-
-Each worker preserves the same chunk/embedding contract, so replacing PDFBox with Tika or swapping Pinecone for Weaviate requires no workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-document-ingestion/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/documentingestion/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DocumentIngestionExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── IngestChunkTextWorker.java
-│       ├── IngestEmbedChunksWorker.java
-│       ├── IngestExtractPdfWorker.java
-│       └── IngestStoreVectorsWorker.java
-└── src/test/java/documentingestion/workers/
-    ├── IngestChunkTextWorkerTest.java        # 6 tests
-    ├── IngestEmbedChunksWorkerTest.java        # 7 tests
-    ├── IngestExtractPdfWorkerTest.java        # 5 tests
-    └── IngestStoreVectorsWorkerTest.java        # 5 tests
-```
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

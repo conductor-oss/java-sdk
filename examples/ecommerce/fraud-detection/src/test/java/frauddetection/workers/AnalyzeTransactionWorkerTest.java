@@ -13,8 +13,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for {@link AnalyzeTransactionWorker} — verifies customer profile output,
- * feature extraction, and in-memory history tracking.
+ * Tests for {@link AnalyzeTransactionWorker} -- verifies customer profile output,
+ * feature extraction, in-memory history tracking, and input validation.
  */
 @SuppressWarnings("unchecked")
 class AnalyzeTransactionWorkerTest {
@@ -63,7 +63,6 @@ class AnalyzeTransactionWorkerTest {
 
     @Test
     void firstTransactionHasZeroDeviation() {
-        // First transaction for a customer has no history, so deviation = 0
         TaskResult result = execute(100.0, "MERCH-1234", "CUST-NEW-1");
 
         Map<String, Object> features = (Map<String, Object>) result.getOutputData().get("features");
@@ -73,9 +72,7 @@ class AnalyzeTransactionWorkerTest {
 
     @Test
     void secondTransactionComputesDeviationFromHistory() {
-        // First transaction: $100
         execute(100.0, "MERCH-1234", "CUST-HIST-1");
-        // Second transaction: $300 (average is $100, deviation = |300-100|/100 = 2.0)
         TaskResult result = execute(300.0, "MERCH-1234", "CUST-HIST-1");
 
         Map<String, Object> features = (Map<String, Object>) result.getOutputData().get("features");
@@ -85,7 +82,6 @@ class AnalyzeTransactionWorkerTest {
 
     @Test
     void newMerchantFlaggedCorrectly() {
-        // First transaction with this merchant
         TaskResult result = execute(100.0, "NEW-MERCH-99", "CUST-5678");
         Map<String, Object> features = (Map<String, Object>) result.getOutputData().get("features");
         assertEquals(true, features.get("isNewMerchant"));
@@ -93,9 +89,7 @@ class AnalyzeTransactionWorkerTest {
 
     @Test
     void returningMerchantNotFlagged() {
-        // First visit to merchant
         execute(100.0, "MERCH-1234", "CUST-RETURN-1");
-        // Second visit to same merchant
         TaskResult result = execute(50.0, "MERCH-1234", "CUST-RETURN-1");
         Map<String, Object> features = (Map<String, Object>) result.getOutputData().get("features");
         assertEquals(false, features.get("isNewMerchant"));
@@ -137,23 +131,142 @@ class AnalyzeTransactionWorkerTest {
 
     @Test
     void newAccountRiskTier() {
-        // First transaction = 0 prior transactions = "high" risk tier
         TaskResult result = execute(100.0, "MERCH-1", "CUST-BRAND-NEW");
         Map<String, Object> profile = (Map<String, Object>) result.getOutputData().get("profile");
         assertEquals("high", profile.get("riskTier"));
         assertEquals("new", profile.get("accountAge"));
     }
 
+    // ---- Failure path: input validation ---------------------------------
+
     @Test
-    void nullInputsDoNotFail() {
+    void failsWithTerminalErrorOnNullTransactionId() {
         Task task = new Task();
         task.setStatus(Status.IN_PROGRESS);
-        task.setInputData(new HashMap<>());
+        Map<String, Object> input = new HashMap<>();
+        input.put("amount", 100.0);
+        input.put("merchantId", "MERCH-1");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
 
         TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("transactionId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingAmount() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("merchantId", "MERCH-1");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("amount"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnNegativeAmount() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", -50.0);
+        input.put("merchantId", "MERCH-1");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("non-negative"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnExcessiveAmount() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", 999_999_999.0);
+        input.put("merchantId", "MERCH-1");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("exceeds maximum"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingMerchantId() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", 100.0);
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("merchantId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingCustomerId() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", 100.0);
+        input.put("merchantId", "MERCH-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("customerId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnBlankMerchantId() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", 100.0);
+        input.put("merchantId", "   ");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("merchantId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnNonNumericAmount() {
+        Task task = new Task();
+        task.setStatus(Status.IN_PROGRESS);
+        Map<String, Object> input = new HashMap<>();
+        input.put("transactionId", "TXN-1");
+        input.put("amount", "not_a_number");
+        input.put("merchantId", "MERCH-1");
+        input.put("customerId", "CUST-1");
+        task.setInputData(input);
+
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("amount"));
+    }
+
+    @Test
+    void zeroAmountIsValid() {
+        TaskResult result = execute(0.0, "MERCH-1", "CUST-1");
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        assertNotNull(result.getOutputData().get("profile"));
-        assertNotNull(result.getOutputData().get("features"));
     }
 
     // ---- Helper ---------------------------------------------------------

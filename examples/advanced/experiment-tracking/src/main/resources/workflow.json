@@ -1,0 +1,68 @@
+{
+  "name": "experiment_tracking_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "experimentName",
+    "hypothesis",
+    "baselineMetric"
+  ],
+  "tasks": [
+    {
+      "name": "ext_define_experiment",
+      "taskReferenceName": "ext_define_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "experimentName": "${workflow.input.experimentName}",
+        "hypothesis": "${workflow.input.hypothesis}"
+      }
+    },
+    {
+      "name": "ext_run_experiment",
+      "taskReferenceName": "ext_run_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "experimentId": "${ext_define_ref.output.experimentId}",
+        "config": "${ext_define_ref.output.config}"
+      }
+    },
+    {
+      "name": "ext_log_metrics",
+      "taskReferenceName": "ext_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "experimentId": "${ext_define_ref.output.experimentId}",
+        "metrics": "${ext_run_ref.output.metrics}"
+      }
+    },
+    {
+      "name": "ext_compare",
+      "taskReferenceName": "ext_compare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "experimentId": "${ext_define_ref.output.experimentId}",
+        "currentMetric": "${ext_run_ref.output.primaryMetric}",
+        "baselineMetric": "${workflow.input.baselineMetric}"
+      }
+    },
+    {
+      "name": "ext_decide",
+      "taskReferenceName": "ext_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "experimentName": "${workflow.input.experimentName}",
+        "improvement": "${ext_compare_ref.output.improvement}",
+        "significant": "${ext_compare_ref.output.statSignificant}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "experimentName": "${workflow.input.experimentName}",
+    "experimentId": "${ext_define_ref.output.experimentId}",
+    "primaryMetric": "${ext_run_ref.output.primaryMetric}",
+    "improvement": "${ext_compare_ref.output.improvement}",
+    "decision": "${ext_decide_ref.output.decision}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,24 @@
+{
+  "name": "emr_exponential_max_retry",
+  "description": "Exponential backoff with max retries -- calls emr_unreliable_api with exponential backoff retries. On final failure, triggers dead letter handler.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["shouldSucceed"],
+  "failureWorkflow": "emr_dead_letter_handler",
+  "tasks": [
+    {
+      "name": "emr_unreliable_api",
+      "taskReferenceName": "emr_unreliable_api_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shouldSucceed": "${workflow.input.shouldSucceed}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "status": "${emr_unreliable_api_ref.output.status}",
+    "data": "${emr_unreliable_api_ref.output.data}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,24 @@
+{
+  "name": "tax_calculation_workflow",
+  "description": "Tax calculation: determine jurisdiction, calculate rates, apply tax, report",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["orderId", "subtotal", "shippingAddress"],
+  "tasks": [
+    { "name": "tax_determine_jurisdiction", "taskReferenceName": "tax_jurisdiction_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "shippingAddress": "${workflow.input.shippingAddress}" } },
+    { "name": "tax_calculate_rates", "taskReferenceName": "tax_rates_ref", "type": "SIMPLE",
+      "inputParameters": { "jurisdiction": "${tax_jurisdiction_ref.output.jurisdiction}", "subtotal": "${workflow.input.subtotal}" } },
+    { "name": "tax_apply", "taskReferenceName": "tax_apply_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "subtotal": "${workflow.input.subtotal}", "taxRate": "${tax_rates_ref.output.combinedRate}" } },
+    { "name": "tax_report", "taskReferenceName": "tax_report_ref", "type": "SIMPLE",
+      "inputParameters": { "orderId": "${workflow.input.orderId}", "jurisdiction": "${tax_jurisdiction_ref.output.jurisdiction}", "taxAmount": "${tax_apply_ref.output.taxAmount}", "total": "${tax_apply_ref.output.total}" } }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "subtotal": "${workflow.input.subtotal}",
+    "taxAmount": "${tax_apply_ref.output.taxAmount}",
+    "total": "${tax_apply_ref.output.total}",
+    "jurisdiction": "${tax_jurisdiction_ref.output.jurisdiction}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

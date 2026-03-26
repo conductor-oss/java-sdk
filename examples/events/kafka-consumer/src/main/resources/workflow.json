@@ -1,0 +1,66 @@
+{
+  "name": "kafka_consumer_wf",
+  "version": 1,
+  "description": "Kafka consumer pipeline: receives a message, deserializes it, processes the payload, and commits the offset.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "topic",
+    "partition",
+    "offset",
+    "messageKey",
+    "messageValue"
+  ],
+  "tasks": [
+    {
+      "name": "kc_receive_message",
+      "taskReferenceName": "kc_receive_message_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "partition": "${workflow.input.partition}",
+        "offset": "${workflow.input.offset}",
+        "messageKey": "${workflow.input.messageKey}",
+        "messageValue": "${workflow.input.messageValue}"
+      }
+    },
+    {
+      "name": "kc_deserialize",
+      "taskReferenceName": "kc_deserialize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawMessage": "${kc_receive_message_ref.output.rawMessage}",
+        "format": "${kc_receive_message_ref.output.format}"
+      }
+    },
+    {
+      "name": "kc_process_payload",
+      "taskReferenceName": "kc_process_payload_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deserializedData": "${kc_deserialize_ref.output.deserializedData}",
+        "messageType": "${kc_deserialize_ref.output.messageType}"
+      }
+    },
+    {
+      "name": "kc_commit_offset",
+      "taskReferenceName": "kc_commit_offset_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "partition": "${workflow.input.partition}",
+        "offset": "${workflow.input.offset}",
+        "processingResult": "${kc_process_payload_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "topic": "${workflow.input.topic}",
+    "partition": "${workflow.input.partition}",
+    "offset": "${workflow.input.offset}",
+    "messageType": "${kc_deserialize_ref.output.messageType}",
+    "processed": "${kc_process_payload_ref.output.processed}",
+    "committed": "${kc_commit_offset_ref.output.committed}"
+  }
+}

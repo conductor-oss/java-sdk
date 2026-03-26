@@ -1,0 +1,56 @@
+{
+  "name": "mixed_tasks_demo",
+  "description": "Combines SIMPLE workers with INLINE system tasks",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["storeId", "dateRange"],
+  "tasks": [
+    {
+      "name": "fetch_orders",
+      "taskReferenceName": "fetch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "storeId": "${workflow.input.storeId}",
+        "dateRange": "${workflow.input.dateRange}"
+      }
+    },
+    {
+      "name": "calculate_stats",
+      "taskReferenceName": "stats_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "orders": "${fetch_ref.output.orders}",
+        "evaluatorType": "javascript",
+        "expression": "(function() { var orders = $.orders; var total = 0; for (var i = 0; i < orders.length; i++) { total += orders[i].amount; } var avg = Math.round(total / orders.length); var max = 0; for (var i = 0; i < orders.length; i++) { if (orders[i].amount > max) max = orders[i].amount; } return { totalRevenue: total, avgOrderValue: avg, maxOrder: max, orderCount: orders.length }; })()"
+      }
+    },
+    {
+      "name": "generate_visual_report",
+      "taskReferenceName": "visual_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stats": "${stats_ref.output.result}",
+        "storeId": "${workflow.input.storeId}"
+      }
+    },
+    {
+      "name": "format_summary",
+      "taskReferenceName": "format_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "storeId": "${workflow.input.storeId}",
+        "totalRevenue": "${stats_ref.output.result.totalRevenue}",
+        "orderCount": "${stats_ref.output.result.orderCount}",
+        "chartUrl": "${visual_ref.output.chartUrl}",
+        "evaluatorType": "javascript",
+        "expression": "(function() { return { subject: 'Store ' + $.storeId + ' Report', body: 'Revenue: $' + $.totalRevenue + ' from ' + $.orderCount + ' orders. Chart: ' + $.chartUrl }; })()"
+      }
+    }
+  ],
+  "outputParameters": {
+    "stats": "${stats_ref.output.result}",
+    "summary": "${format_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

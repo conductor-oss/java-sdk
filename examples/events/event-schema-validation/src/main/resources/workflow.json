@@ -1,0 +1,60 @@
+{
+  "name": "event_schema_validation",
+  "description": "Event Schema Validation — validate an incoming event against a named schema, then route valid events for processing or invalid events to a dead-letter queue via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["event", "schemaName"],
+  "tasks": [
+    {
+      "name": "sv_validate_schema",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "event": "${workflow.input.event}",
+        "schemaName": "${workflow.input.schemaName}"
+      }
+    },
+    {
+      "name": "route_validation",
+      "taskReferenceName": "route_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${validate_ref.output.result}"
+      },
+      "decisionCases": {
+        "valid": [
+          {
+            "name": "sv_process_valid",
+            "taskReferenceName": "process_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}",
+              "schema": "${validate_ref.output.schemaUsed}"
+            }
+          }
+        ],
+        "invalid": [
+          {
+            "name": "sv_dead_letter",
+            "taskReferenceName": "dead_letter_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}",
+              "errors": "${validate_ref.output.errors}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "validationResult": "${validate_ref.output.result}",
+    "errors": "${validate_ref.output.errors}",
+    "schemaUsed": "${validate_ref.output.schemaUsed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

@@ -45,7 +45,7 @@ class MergeResultsWorkerTest {
     }
 
     @Test
-    void handlesNullProduct() {
+    void failsWhenProductBranchFailed() {
         Map<String, Object> inventory = Map.of("inStock", true, "quantity", 10);
         Map<String, Object> reviews = Map.of("averageRating", 3.0, "totalReviews", 5);
 
@@ -57,34 +57,29 @@ class MergeResultsWorkerTest {
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertEquals("Unknown Product", page.get("name"));
-        assertEquals(0.0, page.get("price"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("product"));
     }
 
     @Test
-    void handlesNullInventory() {
+    void failsWhenInventoryBranchFailed() {
         Map<String, Object> product = Map.of("name", "Widget", "price", 9.99);
+        Map<String, Object> reviews = Map.of("averageRating", 4.0, "totalReviews", 50);
 
         Map<String, Object> input = new HashMap<>();
         input.put("product", product);
         input.put("inventory", null);
-        input.put("reviews", Map.of("averageRating", 4.0, "totalReviews", 50));
+        input.put("reviews", reviews);
 
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertEquals(false, page.get("available"));
-        assertEquals(0, page.get("stock"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("inventory"));
     }
 
     @Test
-    void handlesNullReviews() {
+    void failsWhenReviewsBranchFailed() {
         Map<String, Object> product = Map.of("name", "Widget", "price", 9.99);
         Map<String, Object> inventory = Map.of("inStock", false, "quantity", 0);
 
@@ -96,14 +91,12 @@ class MergeResultsWorkerTest {
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertEquals(0.0, page.get("rating"));
-        assertEquals(0, page.get("reviewCount"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("reviews"));
     }
 
     @Test
-    void handlesAllNullInputs() {
+    void failsWhenAllBranchesFailed() {
         Map<String, Object> input = new HashMap<>();
         input.put("product", null);
         input.put("inventory", null);
@@ -112,29 +105,31 @@ class MergeResultsWorkerTest {
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertEquals("Unknown Product", page.get("name"));
-        assertEquals(0.0, page.get("price"));
-        assertEquals(false, page.get("available"));
-        assertEquals(0, page.get("stock"));
-        assertEquals(0.0, page.get("rating"));
-        assertEquals(0, page.get("reviewCount"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
     }
 
     @Test
-    void handlesMissingInputKeys() {
+    void failsWhenInputKeysAreMissing() {
         Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
 
+    @Test
+    void handlesOutOfStockInventory() {
+        Map<String, Object> product = Map.of("name", "Sold Out Item", "price", 49.99);
+        Map<String, Object> inventory = Map.of("inStock", false, "quantity", 0);
+        Map<String, Object> reviews = Map.of("averageRating", 2.0, "totalReviews", 3);
+
+        Task task = taskWith(Map.of("product", product, "inventory", inventory, "reviews", reviews));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         @SuppressWarnings("unchecked")
         Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertNotNull(page);
-        assertEquals("Unknown Product", page.get("name"));
+        assertEquals(false, page.get("available"));
+        assertEquals(0, page.get("stock"));
     }
 
     @Test
@@ -155,21 +150,6 @@ class MergeResultsWorkerTest {
         assertTrue(page.containsKey("stock"));
         assertTrue(page.containsKey("rating"));
         assertTrue(page.containsKey("reviewCount"));
-    }
-
-    @Test
-    void handlesOutOfStockInventory() {
-        Map<String, Object> product = Map.of("name", "Sold Out Item", "price", 49.99);
-        Map<String, Object> inventory = Map.of("inStock", false, "quantity", 0);
-        Map<String, Object> reviews = Map.of("averageRating", 2.0, "totalReviews", 3);
-
-        Task task = taskWith(Map.of("product", product, "inventory", inventory, "reviews", reviews));
-        TaskResult result = worker.execute(task);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> page = (Map<String, Object>) result.getOutputData().get("productPage");
-        assertEquals(false, page.get("available"));
-        assertEquals(0, page.get("stock"));
     }
 
     private Task taskWith(Map<String, Object> input) {

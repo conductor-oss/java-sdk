@@ -1,212 +1,81 @@
-# Invoice Processing in Java with Conductor
+# Invoice Processing: OCR Extraction, Three-Way PO Matching, and Tiered Approval Routing
 
-Invoices arrive as PDF email attachments, portal downloads, and occasionally faxes. An AP clerk spends two hours every morning opening each one, squinting at vendor names and line items, and copy-pasting amounts into the ERP. Last month they transposed two digits on a $47,500 invoice and paid $74,500. caught six weeks later during reconciliation. Another invoice sat in a shared mailbox for three weeks because the clerk was on PTO and nobody knew it was there; the vendor cut off shipments. Right now there are 340 invoices in various stages of "processing," and nobody can tell you which ones are matched to a PO, which are approved, or which are about to miss their payment terms. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate invoice processing end-to-end, receive the document, extract fields via OCR, match against purchase orders, route for approval, and process payment, so every invoice is tracked from arrival to settlement.
+A vendor sends you an invoice for $8,437.50. Is that right? Your AP clerk squints at two line items -- "Cloud hosting Q1" and "Support license" -- multiplies mentally, adds 8.75% tax, and enters $8,437.50 into the ERP. But the PO says $9,200. Is the invoice under-billing (good) or is the PO wrong (bad)? This example builds the full accounts-payable pipeline using [Conductor](https://github.com/conductor-oss/conductor): receive the document, extract fields with computed line-item arithmetic, match against the purchase order within a 10% variance threshold, route through tiered approval ($10K to VP-Finance, $50K to CFO), and schedule payment on Net-15 or Net-30 terms.
 
-## The Problem
-
-You need to process vendor invoices from receipt to payment. An invoice document arrives, OCR extracts the key fields (vendor, amount, line items, dates), the invoice is matched against a purchase order to verify the charges, a manager approves the payment, and the payment is processed. Paying an invoice without PO matching enables unauthorized charges; skipping approval violates spending controls.
-
-Without orchestration, you'd build a single invoice handler that receives documents, calls OCR APIs, queries the PO database, emails approvers, and triggers payment. Manually handling OCR errors on poor-quality scans, retrying failed PO lookups, and tracking approval status through email threads.
-
-## The Solution
-
-**You just write the invoice workers. Document receipt, OCR extraction, PO matching, approval, and payment processing. Conductor handles sequential processing, automatic retries when the OCR service returns low-confidence results, and end-to-end invoice tracking for audit.**
-
-Each invoice concern is a simple, independent worker, a plain Java class that does one thing. Conductor takes care of executing them in order (receive, OCR extract, PO match, approve, pay), retrying if the OCR service returns low-confidence results, tracking every invoice's full lifecycle for audit, and resuming from the last step if the process crashes. You get all of that for free, without writing a single line of orchestration code.
-
-### What You Write: Workers
-
-Five workers handle the invoice pipeline: ReceiveInvoiceWorker captures the document, OcrExtractWorker pulls key fields, MatchPoWorker validates against the purchase order, ApproveInvoiceWorker routes for approval, and ProcessPaymentWorker triggers payment.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ApproveInvoiceWorker** | `ivc_approve_invoice` | Approves the invoice | Simulated |
-| **MatchPoWorker** | `ivc_match_po` | Matches the po | Simulated |
-| **OcrExtractWorker** | `ivc_ocr_extract` | Extracting data from invoice | Simulated |
-| **ProcessPaymentWorker** | `ivc_process_payment` | Process Payment. Computes and returns payment status, payment id, scheduled date, payment method | Simulated |
-| **ReceiveInvoiceWorker** | `ivc_receive_invoice` | Receive Invoice. Computes and returns received at, document type, page count | Simulated |
-
-Workers simulate financial operations: risk assessment, compliance checks, settlement, with realistic outputs. Replace with real financial system integrations and the workflow, audit trail, and compliance logic stay the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
-### The Workflow
+## The Pipeline
 
 ```
-ivc_receive_invoice
-    │
-    ▼
-ivc_ocr_extract
-    │
-    ▼
-ivc_match_po
-    │
-    ▼
-ivc_approve_invoice
-    │
-    ▼
-ivc_process_payment
+ivc_receive_invoice  -->  ivc_ocr_extract  -->  ivc_match_po  -->  ivc_approve_invoice  -->  ivc_process_payment
 ```
 
-## Example Output
+The workflow accepts `invoiceId`, `vendorId`, and `documentUrl`. Data flows forward through task reference names: OCR outputs `amount` and `poNumber` (via `ivc_ocr_ref.output`), which feed into the PO matcher along with the original `vendorId`. The matcher's `matched` boolean and `poNumber` feed into approval. The final workflow output includes `invoiceId`, `amount`, `paymentStatus`, and `paymentId`. Timeout is set to 60 seconds.
 
-```
-=== Example 506: Invoice Processing ===
+## How Each Worker Actually Works
 
-Step 1: Registering task definitions...
-  Registered: ivc_receive_invoice, ivc_ocr_extract, ivc_match_po, ivc_approve_invoice, ivc_process_payment
+**ReceiveInvoiceWorker** (`ivc_receive_invoice`) -- Validates invoice and vendor ID formats. Invoice IDs must start with `INV-` or `INVOICE-`; vendor IDs must start with `VND-` or `VENDOR-`. Rejects malformed identifiers with `FAILED_WITH_TERMINAL_ERROR` and a specific message like `"Invalid invoiceId format: must start with 'INV-' or 'INVOICE-', got: GARBAGE"`.
 
-Step 2: Registering workflow 'invoice_processing_workflow'...
-  Workflow registered.
+**OcrExtractWorker** (`ivc_ocr_extract`) -- Generates deterministic line items from the invoice ID hash. Every invoice gets two line items: "Cloud hosting Q1" (quantity 1, base price $5,000 + `hash % 1000`) and "Support license" (quantity 1-3, unit price $3,000). The worker then performs full arithmetic validation:
 
-Step 3: Starting workers...
-  5 workers polling.
-
-Step 4: Starting workflow...
-  Workflow ID: cb432c3e-3986-fdc2-723a-01028a9fc61d
-
-  [receive] Invoice INV-2026-5500 from vendor VND-330
-  [ocr] Extracting data from invoice INV-2026-5500
-  [match] Matching PO PO-2026-1234 for $8750
-  [approve] Invoice $8750, PO matched: true
-  [pay] Processing $8750 payment to vendor VND-330
-
-
-  Status: COMPLETED
-  Output: {invoiceId=INV-2026-5500, amount=8750, paymentStatus=scheduled, paymentId=PMT-506-001}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
+```java
+// Validate each line item: total = unitPrice * quantity
+for (int i = 0; i < lineItems.size(); i++) {
+    double expected = unitPrice * quantity;
+    if (Math.abs(lineTotal - expected) > 0.01) {
+        r.setStatus(TaskResult.Status.FAILED);
+        r.setReasonForIncompletion("Line item " + (i + 1) + " arithmetic error...");
+    }
+}
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+Tax is computed at a fixed 8.75% rate (`taxRate = 0.0875`), rounded to the nearest cent. The grand total is validated against `subtotal + tax` with a $0.01 tolerance. PO numbers are generated as `"PO-2026-" + (1000 + hash % 9000)`. OCR confidence is reported as 0.98.
 
-If port 8080 is already taken:
+**MatchPoWorker** (`ivc_match_po`) -- Derives the PO amount deterministically from the PO number hash: `5000.0 + (poHash % 10000)`, giving a range of $5,000-$15,000. Computes the absolute variance and variance percentage: `Math.round((variance / poAmount) * 10000.0) / 100.0`. The match threshold is 10% -- if the invoice amount is within 10% of the PO amount, `matched = true`. Otherwise, the invoice proceeds but is flagged as unmatched.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
+**ApproveInvoiceWorker** (`ivc_approve_invoice`) -- Three-tier approval routing based on PO match status and amount:
 
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/invoice-processing-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
+| Condition | Approver | Decision |
 |---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+| PO not matched | `SYSTEM` | REJECTED ("manual review required") |
+| Amount > $50,000 | `CFO` | APPROVED |
+| Amount > $10,000 | `VP-Finance` | APPROVED |
+| Amount <= $10,000 | `AP-Manager` | Auto-approved |
 
-## Using the Conductor CLI
+**ProcessPaymentWorker** (`ivc_process_payment`) -- Determines payment terms based on vendor classification: vendors with `PREF` in their ID or whose `hashCode() % 3 == 0` get Net-15; everyone else gets Net-30. Payment method is `wire_transfer` for amounts over $10,000, `ach` otherwise. Schedules the payment date using `LocalDate.now().plusDays(netDays)`.
 
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
+## How the Arithmetic Validation Chain Works
 
-```bash
-java -jar target/invoice-processing-1.0.0.jar --workers
+The key design decision is that arithmetic integrity is validated at multiple points. The OCR worker validates each line item (`unitPrice * quantity == lineTotal` within $0.01), then validates the grand total (`subtotal + tax == total` within $0.01). The integration test re-validates these relationships by reading the output:
+
+```java
+double subtotal = ((Number) ocrResult.getOutputData().get("subtotal")).doubleValue();
+double tax = ((Number) ocrResult.getOutputData().get("tax")).doubleValue();
+assertEquals(amount, subtotal + tax, 0.01, "total must equal subtotal + tax");
 ```
 
-Then in a separate terminal:
+The PO match worker then computes its own variance against the PO amount. If the OCR extraction was wrong (transposed digits, misread decimal), the variance check catches it -- a $47,500 invoice against a $4,750 PO shows a 900% variance, well above the 10% threshold. The three-tier approval then adds a human gate for high-value invoices even when the PO matches.
 
-```bash
-conductor workflow start \
-  --workflow invoice_processing_workflow \
-  --version 1 \
-  --input '{"invoiceId": "INV-2026-5500", "vendorId": "VND-330", "documentUrl": "https://docs.example.com/invoices/5500.pdf"}'
-```
+## Workflow Input/Output Mapping
 
-### Check workflow status
+The `workflow.json` wires data between workers using Conductor's expression language:
 
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w invoice_processing_workflow -s COMPLETED -c 5
-```
+| Worker Input | Source Expression |
+|---|---|
+| Match PO `extractedAmount` | `${ivc_ocr_ref.output.amount}` |
+| Match PO `extractedPoNumber` | `${ivc_ocr_ref.output.poNumber}` |
+| Approve `poMatched` | `${ivc_match_ref.output.matched}` |
+| Payment `amount` | `${ivc_ocr_ref.output.amount}` |
+| Payment `approved` | `${ivc_approve_ref.output.approved}` |
 
-## How to Extend
+Notice that the payment worker receives `amount` directly from the OCR step (not from approval), ensuring the amount hasn't been modified in transit.
 
-Connect OcrExtractWorker to your OCR service (ABBYY, AWS Textract), MatchPoWorker to your ERP purchase order module, and ProcessPaymentWorker to your accounts payable system. The workflow definition stays exactly the same.
+## Test Coverage
 
-- **OCR extractor**: use AWS Textract, Google Document AI, or ABBYY to extract invoice fields from PDF/image documents
-- **PO matcher**: query your procurement system (SAP Ariba, Coupa, Oracle Procurement Cloud) for matching purchase orders and validate line items
-- **Approver**: route to the correct approver based on amount thresholds and vendor category; use a WAIT task for human approval
-- **Payment processor**: trigger payment via your AP system (SAP, Oracle AP, Bill.com) with proper GL coding and payment terms
+- **OcrExtractWorkerTest**: 7 tests -- data extraction, tax computation (`total == subtotal + tax`), line item totals match subtotal, arithmetic validation, missing/blank/malformed invoice IDs
+- **MatchPoWorkerTest**: 5 tests -- variance computation, missing PO number, missing/negative/zero amounts
+- **InvoiceProcessingIntegrationTest**: 4 tests -- full pipeline with arithmetic integrity verification, malformed invoice ID, malformed vendor ID, PO mismatch leading to rejection
 
-Replace simulated OCR and PO matching with real document intelligence and ERP integrations while preserving the same output fields, and the invoice pipeline requires no workflow changes.
+**16 tests total** verifying the full pipeline arithmetic and every failure path.
 
-## SDK
+---
 
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-invoice-processing/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/invoiceprocessing/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── InvoiceProcessingExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ApproveInvoiceWorker.java
-│       ├── MatchPoWorker.java
-│       ├── OcrExtractWorker.java
-│       ├── ProcessPaymentWorker.java
-│       └── ReceiveInvoiceWorker.java
-└── src/test/java/invoiceprocessing/workers/
-    ├── MatchPoWorkerTest.java        # 2 tests
-    └── OcrExtractWorkerTest.java        # 2 tests
-```
+> **How to run:** See [RUNNING.md](../../RUNNING.md) | **Production guidance:** See [PRODUCTION.md](PRODUCTION.md)

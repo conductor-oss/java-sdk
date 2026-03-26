@@ -1,0 +1,50 @@
+{
+  "name": "mobile_approval_flutter",
+  "description": "Mobile Approval with Push Notifications -- submit, send push, WAIT for mobile response, finalize.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "userId"],
+  "tasks": [
+    {
+      "name": "mob_submit",
+      "taskReferenceName": "mob_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "mob_send_push",
+      "taskReferenceName": "mob_send_push_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "mobile_response",
+      "taskReferenceName": "mobile_response_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "mob_finalize",
+      "taskReferenceName": "mob_finalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "approved": "${mobile_response_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submitted": "${mob_submit_ref.output.submitted}",
+    "pushSent": "${mob_send_push_ref.output.pushSent}",
+    "approved": "${mobile_response_ref.output.approved}",
+    "done": "${mob_finalize_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

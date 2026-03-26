@@ -1,0 +1,53 @@
+{
+  "name": "ehr_integration_workflow",
+  "description": "EHR Integration: query patient records, merge, validate, update master record",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "sourceSystem"],
+  "tasks": [
+    {
+      "name": "ehr_query_patient",
+      "taskReferenceName": "ehr_query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "sourceSystem": "${workflow.input.sourceSystem}"
+      }
+    },
+    {
+      "name": "ehr_merge_records",
+      "taskReferenceName": "ehr_merge_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "records": "${ehr_query_ref.output.records}"
+      }
+    },
+    {
+      "name": "ehr_validate",
+      "taskReferenceName": "ehr_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "mergedRecord": "${ehr_merge_ref.output.mergedRecord}"
+      }
+    },
+    {
+      "name": "ehr_update",
+      "taskReferenceName": "ehr_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "validatedRecord": "${ehr_validate_ref.output.validatedRecord}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "recordsMerged": "${ehr_merge_ref.output.sourceCount}",
+    "validationPassed": "${ehr_validate_ref.output.passed}",
+    "updated": "${ehr_update_ref.output.updated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

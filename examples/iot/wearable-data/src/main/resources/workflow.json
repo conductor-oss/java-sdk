@@ -1,0 +1,60 @@
+{
+  "name": "wearable_data_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "deviceId"
+  ],
+  "tasks": [
+    {
+      "name": "wer_collect_vitals",
+      "taskReferenceName": "wer_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "deviceId": "${workflow.input.deviceId}"
+      }
+    },
+    {
+      "name": "wer_process_data",
+      "taskReferenceName": "wer_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "heartRate": "${wer_collect_ref.output.heartRate}",
+        "spo2": "${wer_collect_ref.output.spo2}",
+        "steps": "${wer_collect_ref.output.steps}",
+        "temperature": "${wer_collect_ref.output.temperature}"
+      }
+    },
+    {
+      "name": "wer_detect_anomalies",
+      "taskReferenceName": "wer_anomaly_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "processed": "${wer_process_ref.output.processed}",
+        "avgHeartRate": "${wer_process_ref.output.avgHeartRate}",
+        "minSpo2": "${wer_process_ref.output.minSpo2}"
+      }
+    },
+    {
+      "name": "wer_notify",
+      "taskReferenceName": "wer_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "anomalies": "${wer_anomaly_ref.output.anomalies}",
+        "severity": "${wer_anomaly_ref.output.severity}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${workflow.input.userId}",
+    "anomalyCount": "${wer_anomaly_ref.output.anomalyCount}",
+    "severity": "${wer_anomaly_ref.output.severity}",
+    "notified": "${wer_notify_ref.output.notified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,64 @@
+{
+  "name": "agm_agency_management",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "agentId",
+    "agentName",
+    "state"
+  ],
+  "tasks": [
+    {
+      "name": "agm_onboard",
+      "taskReferenceName": "agm_onboard_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "agentName": "${workflow.input.agentName}"
+      }
+    },
+    {
+      "name": "agm_license",
+      "taskReferenceName": "agm_license_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "state": "${workflow.input.state}"
+      }
+    },
+    {
+      "name": "agm_assign_territory",
+      "taskReferenceName": "agm_territory_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "state": "${workflow.input.state}"
+      }
+    },
+    {
+      "name": "agm_track",
+      "taskReferenceName": "agm_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "territory": "${agm_territory_ref.output.territory}"
+      }
+    },
+    {
+      "name": "agm_review",
+      "taskReferenceName": "agm_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "performance": "${agm_track_ref.output.performance}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "agentId": "${workflow.input.agentId}",
+    "territory": "${agm_territory_ref.output.territory}",
+    "rating": "${agm_review_ref.output.rating}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,52 @@
+{
+  "name": "lpl_lesson_planning",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["courseId", "lessonTitle", "week"],
+  "tasks": [
+    {
+      "name": "lpl_define_objectives",
+      "taskReferenceName": "lpl_objectives_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseId": "${workflow.input.courseId}",
+        "lessonTitle": "${workflow.input.lessonTitle}"
+      }
+    },
+    {
+      "name": "lpl_create_content",
+      "taskReferenceName": "lpl_content_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "objectives": "${lpl_objectives_ref.output.objectives}",
+        "lessonTitle": "${workflow.input.lessonTitle}"
+      }
+    },
+    {
+      "name": "lpl_review",
+      "taskReferenceName": "lpl_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "lessonPlan": "${lpl_content_ref.output.lessonPlan}"
+      }
+    },
+    {
+      "name": "lpl_publish",
+      "taskReferenceName": "lpl_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "lessonPlan": "${lpl_content_ref.output.lessonPlan}",
+        "courseId": "${workflow.input.courseId}",
+        "week": "${workflow.input.week}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "objectiveCount": "${lpl_objectives_ref.output.objectiveCount}",
+    "contentSections": "${lpl_content_ref.output.sectionCount}",
+    "reviewStatus": "${lpl_review_ref.output.status}",
+    "published": "${lpl_publish_ref.output.published}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

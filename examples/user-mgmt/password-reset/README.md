@@ -1,219 +1,120 @@
-# Password Reset Workflow in Java Using Conductor
+# Secure Password Reset with PBKDF2 Hashing and Conductor's Secrets API
 
-User clicks "Reset Password." The email takes eight minutes because your SMTP relay is backed up. They click "Reset" again. Now two tokens are live. The first email arrives, they click it, but that token expired after five minutes. Locked out. They try the second link: it works, but the password update succeeds while the confirmation email fails, so they don't know the reset went through and submit a third request. Support gets a ticket from a frustrated user who "can't log in" with a trail of three tokens, two expired, one used, and no audit log of what happened. This example orchestrates the password reset flow with Conductor: account lookup, token validation, credential update, and confirmation notification, each step sequenced, retriable, and fully auditable. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the identity logic, Conductor handles retries, failure routing, durability, and observability for free.
+A user clicks "forgot password." The system must generate a cryptographically secure token, validate it has not expired, enforce password complexity rules, hash the new password with a proper key derivation function, and send the right notification -- without leaking the plaintext password into workflow history.
 
-## The Forgot-Password Flow
+This example implements a four-stage pipeline with real `SecureRandom` token generation, `Instant`-based expiration checking, PBKDF2WithHmacSHA256 hashing (65,536 iterations), and Conductor's `workflow.secrets` API to keep the new password out of task logs.
 
-A user clicks "Forgot Password" and enters their email. The system needs to look up the account, validate the reset token (checking it was issued for this user and hasn't expired), update the credential store with the new password hash, and send a confirmation email, all in the correct order, with no step skipped. If the token is valid but the password update fails, the user is stuck: the token may be consumed but the password unchanged. If the notification fails, the user doesn't know the reset succeeded and submits another request.
+## Pipeline
 
-Without orchestration, you'd chain all of this in a single servlet or controller method. Catching exceptions at each step, manually rolling back on failure, and hoping the email service doesn't time out while you're holding a database transaction open. That code becomes brittle, hard to test, and impossible to audit when security reviews ask "show me every reset that happened last month."
+```
+pwd_request  (email validation + SecureRandom token + 1-hour expiry)
+     |
+     v
+pwd_verify   (token length check + Instant.parse expiration check)
+     |
+     v
+pwd_reset    (strength scoring + PBKDF2WithHmacSHA256 hashing)
+     |        newPassword sourced from ${workflow.secrets.reset_password}
+     v
+pwd_notify   (conditional email: success or failure message)
+```
 
-## The Solution
+## The Secrets API Integration
 
-**You just write the account-lookup, token-validation, password-update, and confirmation workers. Conductor handles the secure reset sequence and retry logic.**
+The workflow wires the new password from Conductor's secrets store: `"newPassword": "${workflow.secrets.reset_password}"`. The plaintext password never appears in workflow input parameters, execution history, or task logs. It is resolved at runtime by Conductor's secrets engine and passed directly to the worker.
 
-Each worker handles one user lifecycle step. Conductor manages the onboarding sequence, verification wait states, timeout escalation, and user state tracking.
+## Worker: RequestWorker (`pwd_request`)
 
-### What You Write: Workers
+Validates the email format against `^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$` and generates a 256-bit token:
 
-RequestWorker looks up the account by email, VerifyTokenWorker validates the reset token, ResetWorker updates the password hash, and NotifyWorker sends a confirmation email, each handles one step of the secure reset flow.
+```java
+byte[] tokenBytes = new byte[32];
+SECURE_RANDOM.nextBytes(tokenBytes);
+String resetToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+```
 
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| `RequestWorker` | `pwd_request` | Looks up the user account by email and returns the user ID (`USR-A1B2C3`) and a timestamp | Simulated |
-| `VerifyTokenWorker` | `pwd_verify` | Validates the reset token against the user ID, confirming it is valid with 900 seconds remaining | Simulated |
-| `ResetWorker` | `pwd_reset` | Updates the user's password in the credential store and records the update timestamp | Simulated |
-| `NotifyWorker` | `pwd_notify` | Sends a password-change confirmation email to the user's address | Simulated |
+The token is URL-safe Base64 (no `+`, `/`, or `=`), making it safe to embed in a reset link without encoding. Expiration is set to 1 hour from request time. The userId is derived from `Integer.toHexString(email.hashCode())`, prefixed with `USR-`.
 
-Workers simulate user lifecycle operations: account creation, verification, profile setup, with realistic outputs. Replace with real identity provider and database calls and the workflow stays the same.
+## Worker: VerifyTokenWorker (`pwd_verify`)
 
-### What Conductor Gives You For Free
+Two validation checks:
 
-| Capability | How It Works |
+1. **Token length:** Must be at least 8 characters (the SecureRandom tokens from RequestWorker are 43 characters, but this catches truncated or manually entered tokens)
+2. **Expiration:** Parses the `expiresAt` string via `Instant.parse()` and compares against `Instant.now()`
+
+```java
+Instant expiresAt = Instant.parse(expiresAtStr);
+expired = Instant.now().isAfter(expiresAt);
+```
+
+Invalid `expiresAt` format is a terminal error. Expired tokens fail with "Reset token has expired." Short tokens fail with "Reset token is invalid (too short)." Both `verified` and `expired` booleans are always present in output for downstream decision-making.
+
+## Worker: ResetWorker (`pwd_reset`) -- Password Strength and PBKDF2
+
+### Gate Check
+
+Before processing the password, the worker checks that `verified == true` from the previous step. If the token was not verified, the reset is rejected immediately -- even if a valid password is provided.
+
+### Strength Scoring
+
+Five criteria, each worth 1 point:
+
+| Criterion | Check |
 |---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
+| Minimum length | `newPassword.length() >= 8` |
+| Uppercase letter | `Character.isUpperCase` |
+| Lowercase letter | `Character.isLowerCase` |
+| Digit | `Character.isDigit` |
+| Special character | Match against `!@#$%^&*()_+-=[]{}|;':\",./<>?` |
 
-### The Workflow
+A password must score at least 3/5 AND meet the minimum length. "MyStr0ng!Pass" scores 5/5. "alllowercase" scores 2/5 (length + lowercase) and is rejected. "abc" scores 1/5 and is rejected.
 
-```
-pwd_request
-    |
-    v
-pwd_verify
-    |
-    v
-pwd_reset
-    |
-    v
-pwd_notify
-```
+### PBKDF2 Hashing
 
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
+```java
+byte[] saltBytes = new byte[16];
+SECURE_RANDOM.nextBytes(saltBytes);
+PBEKeySpec spec = new PBEKeySpec(newPassword.toCharArray(), saltBytes, 65536, 256);
+SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+byte[] hash = factory.generateSecret(spec).getEncoded();
+passwordHash = Base64.getEncoder().encodeToString(hash);
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+65,536 iterations of PBKDF2WithHmacSHA256 with a 128-bit random salt producing a 256-bit derived key. Both the hash and salt are Base64-encoded in the output for storage. The plaintext password is never stored or logged.
 
-If port 8080 is already taken:
+### Audit Trail
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
+Every outcome -- success, weak password, unverified token -- includes `resetAt` (timestamp), `userId`, and `strength` (score) in the output. The worker never returns without these fields.
 
-### Option 2: Run locally
+## Worker: NotifyWorker (`pwd_notify`)
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+Generates a conditional notification based on `resetSuccess`:
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+- **true:** Subject "Your password has been reset", body includes contact-support warning
+- **false/missing:** Subject "Password reset failed", body suggests trying a stronger password
 
-# Build and run
-mvn package -DskipTests
-java -jar target/password-reset-1.0.0.jar
-```
+The `resetSuccess` flag defaults to `false` when missing, ensuring users are never silently left without notification.
 
-### Option 3: Use the run script
+## Error Handling
 
-```bash
-./run.sh
+Every worker uses `FAILED_WITH_TERMINAL_ERROR` for non-retryable conditions: invalid email, expired token, unparseable `expiresAt`, short token, weak password, and unverified token. The only retryable failure is PBKDF2 algorithm unavailability (a JVM issue). Each failure halts the pipeline at the relevant step -- Conductor does not advance to the next worker.
 
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
+## Test Coverage
 
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
+5 test classes, 23 tests across four categories:
 
-### Sample Output
+**Integration (4 tests):** Full pipeline success, expired token blocking pipeline, weak password rejected while notify still works, audit trail preserved across all steps.
 
-```
-=== Example 603: Password Reset ===
+**Token lifecycle (11 tests):** URL-safe Base64 token generation, email validation, `Instant.parse` expiration, short/missing/blank token rejection, userId passthrough.
 
-Step 1: Registering task definitions...
-  Registered: pwd_request, pwd_verify, pwd_reset, pwd_notify
+**Password hashing (8 tests):** PBKDF2 hash + salt output, strength scoring for strong/weak/short/all-lowercase passwords, unverified token gate, audit fields on every outcome.
 
-Step 2: Registering workflow 'pwd_password_reset'...
-  Workflow registered.
+---
 
-Step 3: Starting workers...
-  4 workers polling.
+## Production Notes
 
-Step 4: Starting workflow...
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
 
-  [request] Password reset requested for carol@example.com
-  [verify] Verifying reset token for user USR-A1B2C3
-  [reset] Password updated for user USR-A1B2C3
-  [notify] Password change confirmation sent to carol@example.com
+---
 
-  Workflow ID: 3fa85f64-5542-4562-b3fc-2c963f66afa6
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Output: {userId=USR-A1B2C3, resetSuccess=true, notified=true}
-
-Result: PASSED
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/password-reset-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow pwd_password_reset \
-  --version 1 \
-  --input '{"email": "carol@example.com", "newPassword": "S3cure!Pass#2026"}'
-```
-
-> **Production note:** In production, avoid passing passwords as plain workflow input.
-> On Orkes Cloud / Conductor Enterprise, use
-> [Conductor Secrets](https://orkes.io/content/developer-guides/secrets-in-conductor)
-> and reference the password as `${workflow.secrets.reset_password}` in the
-> workflow definition so the value never appears in workflow history.
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w pwd_password_reset -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker handles one reset step. Connect your identity provider (Auth0, Cognito, Okta) for credential updates and your email service (SendGrid, SES) for confirmation delivery, and the password-reset workflow stays the same.
-
-- **`RequestWorker`**: Look up the user in your identity provider (Auth0, Cognito, Keycloak, or a database) and generate a time-limited reset token stored in Redis or a token table.
-
-- **`VerifyTokenWorker`**: Validate the token against the stored hash, check expiration, and enforce single-use by marking it consumed after verification.
-
-- **`ResetWorker`**: Hash the new password with bcrypt/scrypt and update the credential store, invalidating all existing sessions for the user.
-
-- **`NotifyWorker`**: Send a confirmation email via SendGrid, SES, or your transactional email service, including device/location metadata for security awareness.
-
-Connect your credential store and email service and the lookup-verify-reset-notify password flow operates without any workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-password-reset/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/passwordreset/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── PasswordResetExample.java    # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── NotifyWorker.java        # Sends password-change confirmation email
-│       ├── RequestWorker.java       # Looks up user account by email
-│       ├── ResetWorker.java         # Updates password in credential store
-│       └── VerifyTokenWorker.java   # Validates reset token and expiration
-└── src/test/java/passwordreset/workers/
-    ├── NotifyWorkerTest.java
-    ├── RequestWorkerTest.java
-    ├── ResetWorkerTest.java
-    └── VerifyTokenWorkerTest.java
-```
+> **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

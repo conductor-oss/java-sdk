@@ -1,0 +1,53 @@
+{
+  "name": "recommendation_engine_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "context"],
+  "tasks": [
+    {
+      "name": "rec_collect_behavior",
+      "taskReferenceName": "rec_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "context": "${workflow.input.context}"
+      }
+    },
+    {
+      "name": "rec_compute_similarity",
+      "taskReferenceName": "rec_similarity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "viewedProducts": "${rec_collect_ref.output.viewedProducts}",
+        "purchasedProducts": "${rec_collect_ref.output.purchasedProducts}"
+      }
+    },
+    {
+      "name": "rec_rank_candidates",
+      "taskReferenceName": "rec_rank_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "similarProducts": "${rec_similarity_ref.output.similarProducts}"
+      }
+    },
+    {
+      "name": "rec_personalize",
+      "taskReferenceName": "rec_personalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "rankedProducts": "${rec_rank_ref.output.rankedProducts}",
+        "context": "${workflow.input.context}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${workflow.input.userId}",
+    "recommendations": "${rec_personalize_ref.output.recommendations}",
+    "totalCandidates": "${rec_rank_ref.output.totalCandidates}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

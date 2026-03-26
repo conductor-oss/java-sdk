@@ -1,0 +1,59 @@
+{
+  "name": "cmg_case_management_gov",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["caseType", "reporterId", "description"],
+  "tasks": [
+    {
+      "name": "cmg_open_case",
+      "taskReferenceName": "cmg_open_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseType": "${workflow.input.caseType}",
+        "reporterId": "${workflow.input.reporterId}"
+      }
+    },
+    {
+      "name": "cmg_investigate",
+      "taskReferenceName": "cmg_inv_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${cmg_open_ref.output.caseId}",
+        "description": "${workflow.input.description}"
+      }
+    },
+    {
+      "name": "cmg_evaluate",
+      "taskReferenceName": "cmg_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "findings": "${cmg_inv_ref.output.findings}"
+      }
+    },
+    {
+      "name": "cmg_decide",
+      "taskReferenceName": "cmg_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${cmg_open_ref.output.caseId}",
+        "evaluation": "${cmg_eval_ref.output.evaluation}"
+      }
+    },
+    {
+      "name": "cmg_close",
+      "taskReferenceName": "cmg_close_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "caseId": "${cmg_open_ref.output.caseId}",
+        "decision": "${cmg_decide_ref.output.decision}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "caseId": "${cmg_open_ref.output.caseId}",
+    "decision": "${cmg_decide_ref.output.decision}",
+    "closedAt": "${cmg_close_ref.output.closedAt}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,52 @@
+{
+  "name": "identity_provisioning_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "department",
+    "role"
+  ],
+  "tasks": [
+    {
+      "name": "ip_create_identity",
+      "taskReferenceName": "create_identity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "department": "${workflow.input.department}",
+        "role": "${workflow.input.role}"
+      }
+    },
+    {
+      "name": "ip_assign_roles",
+      "taskReferenceName": "assign_roles_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assign_rolesData": "${create_identity_ref.output}"
+      }
+    },
+    {
+      "name": "ip_provision_access",
+      "taskReferenceName": "provision_access_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "provision_accessData": "${assign_roles_ref.output}"
+      }
+    },
+    {
+      "name": "ip_verify_setup",
+      "taskReferenceName": "verify_setup_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_setupData": "${provision_access_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "create_identityResult": "${create_identity_ref.output}",
+    "verify_setupResult": "${verify_setup_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

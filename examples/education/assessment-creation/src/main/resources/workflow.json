@@ -1,0 +1,52 @@
+{
+  "name": "asc_assessment_creation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["courseId", "assessmentType", "topics"],
+  "tasks": [
+    {
+      "name": "asc_define_criteria",
+      "taskReferenceName": "asc_criteria_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "courseId": "${workflow.input.courseId}",
+        "assessmentType": "${workflow.input.assessmentType}",
+        "topics": "${workflow.input.topics}"
+      }
+    },
+    {
+      "name": "asc_create_questions",
+      "taskReferenceName": "asc_questions_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "criteria": "${asc_criteria_ref.output.criteria}"
+      }
+    },
+    {
+      "name": "asc_review",
+      "taskReferenceName": "asc_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "questions": "${asc_questions_ref.output.questions}"
+      }
+    },
+    {
+      "name": "asc_publish",
+      "taskReferenceName": "asc_publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assessmentId": "${asc_questions_ref.output.assessmentId}",
+        "courseId": "${workflow.input.courseId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "criteriaCount": "${asc_criteria_ref.output.criteriaCount}",
+    "questionCount": "${asc_questions_ref.output.questionCount}",
+    "assessmentId": "${asc_questions_ref.output.assessmentId}",
+    "reviewStatus": "${asc_review_ref.output.status}",
+    "published": "${asc_publish_ref.output.published}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

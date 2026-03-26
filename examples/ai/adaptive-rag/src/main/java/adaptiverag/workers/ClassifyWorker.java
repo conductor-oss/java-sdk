@@ -40,9 +40,27 @@ public class ClassifyWorker implements Worker {
         return "ar_classify";
     }
 
+    /**
+     * Classification criteria (documented for testability):
+     * <ul>
+     *   <li><b>factual</b> — simple lookups, definitions, "what is", "who is", "when did"</li>
+     *   <li><b>analytical</b> — comparisons ("compare", "vs", "trade-offs"), multi-step reasoning
+     *       ("how does X affect Y"), cause/effect, pros/cons</li>
+     *   <li><b>creative</b> — imaginative ("write a poem", "tell a story", "imagine"),
+     *       brainstorming, hypothetical scenarios</li>
+     * </ul>
+     */
+    private static final List<String> VALID_TYPES = List.of("factual", "analytical", "creative");
+
     @Override
     public TaskResult execute(Task task) {
         String question = (String) task.getInputData().get("question");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
 
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
@@ -51,8 +69,11 @@ public class ClassifyWorker implements Worker {
         try {
             String systemPrompt = "You are a query classifier. Classify the question into exactly one category: factual, analytical, or creative. "
                     + "Respond with ONLY a JSON object: {\"queryType\": \"...\", \"confidence\": 0.XX}. "
-                    + "factual = simple factual lookups. analytical = comparisons, trade-offs, multi-step reasoning. creative = imaginative, stories, poems.";
-            String userPrompt = "Classify: " + (question != null ? question : "");
+                    + "Classification criteria: "
+                    + "factual = simple factual lookups, definitions, 'what is', 'who is', 'when did'. "
+                    + "analytical = comparisons, trade-offs, multi-step reasoning, cause/effect, pros/cons. "
+                    + "creative = imaginative, stories, poems, brainstorming, hypothetical scenarios.";
+            String userPrompt = "Classify: " + question;
 
             String responseText = callChatCompletion(systemPrompt, userPrompt, result);
             if (responseText == null) {
@@ -63,9 +84,12 @@ public class ClassifyWorker implements Worker {
             String queryType = parsed.path("queryType").asText("factual");
             double confidence = parsed.path("confidence").asDouble(0.85);
 
-            // Validate queryType
-            if (!"factual".equals(queryType) && !"analytical".equals(queryType) && !"creative".equals(queryType)) {
-                queryType = "factual";
+            // Validate queryType is one of the known types
+            if (!VALID_TYPES.contains(queryType)) {
+                result.setStatus(TaskResult.Status.FAILED);
+                result.setReasonForIncompletion("LLM returned invalid queryType: '" + queryType
+                        + "'. Valid types: " + VALID_TYPES);
+                return result;
             }
 
             System.out.println("  [classify] \"" + question + "\" -> " + queryType + " (" + confidence + ")");

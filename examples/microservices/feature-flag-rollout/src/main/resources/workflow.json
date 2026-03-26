@@ -1,0 +1,20 @@
+{
+  "name": "feature_flag_rollout",
+  "description": "Manages feature flag lifecycle: create flag, staged rollout, monitor impact, and full activation or rollback.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["flagName", "targetSegment", "rolloutPercentage"],
+  "tasks": [
+    { "name": "ff_create_flag", "taskReferenceName": "create_ref", "type": "SIMPLE", "inputParameters": { "flagName": "${workflow.input.flagName}" } },
+    { "name": "ff_enable_segment", "taskReferenceName": "segment_ref", "type": "SIMPLE", "inputParameters": { "flagName": "${workflow.input.flagName}", "segment": "${workflow.input.targetSegment}", "percentage": "${workflow.input.rolloutPercentage}" } },
+    { "name": "ff_monitor_impact", "taskReferenceName": "monitor_ref", "type": "SIMPLE", "inputParameters": { "flagName": "${workflow.input.flagName}", "duration": "10m" } },
+    { "name": "ff_full_rollout", "taskReferenceName": "rollout_ref", "type": "SIMPLE", "inputParameters": { "flagName": "${workflow.input.flagName}", "healthy": "${monitor_ref.output.healthy}" } }
+  ],
+  "outputParameters": {
+    "flagName": "${workflow.input.flagName}",
+    "fullyRolledOut": "${rollout_ref.output.active}",
+    "impact": "${monitor_ref.output.metrics}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

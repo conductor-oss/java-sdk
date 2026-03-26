@@ -1,0 +1,51 @@
+{
+  "name": "hro_hr_onboarding",
+  "description": "HR onboarding workflow: create profile, provision systems, assign mentor, training.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["employeeName", "department", "startDate"],
+  "tasks": [
+    {
+      "name": "hro_create_profile",
+      "taskReferenceName": "hro_profile_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeName": "${workflow.input.employeeName}",
+        "department": "${workflow.input.department}"
+      }
+    },
+    {
+      "name": "hro_provision",
+      "taskReferenceName": "hro_provision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${hro_profile_ref.output.employeeId}",
+        "department": "${workflow.input.department}"
+      }
+    },
+    {
+      "name": "hro_assign_mentor",
+      "taskReferenceName": "hro_mentor_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${hro_profile_ref.output.employeeId}",
+        "department": "${workflow.input.department}"
+      }
+    },
+    {
+      "name": "hro_training",
+      "taskReferenceName": "hro_training_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${hro_profile_ref.output.employeeId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "employeeId": "${hro_profile_ref.output.employeeId}",
+    "mentorId": "${hro_mentor_ref.output.mentorId}",
+    "trainingPlan": "${hro_training_ref.output.planId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

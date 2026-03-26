@@ -1,0 +1,78 @@
+{
+  "name": "training_data_labeling",
+  "description": "Training data labeling workflow -- parallel annotators with inter-annotator agreement computation.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["batchId"],
+  "tasks": [
+    {
+      "name": "tdl_prepare_batch",
+      "taskReferenceName": "prepare_batch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "batchId": "${workflow.input.batchId}"
+      }
+    },
+    {
+      "name": "annotator_fork",
+      "taskReferenceName": "annotator_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "annotator1_wait",
+            "taskReferenceName": "annotator1_wait_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "annotator": "annotator1"
+            }
+          }
+        ],
+        [
+          {
+            "name": "annotator2_wait",
+            "taskReferenceName": "annotator2_wait_ref",
+            "type": "WAIT",
+            "inputParameters": {
+              "annotator": "annotator2"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "annotator_join",
+      "taskReferenceName": "annotator_join_ref",
+      "type": "JOIN",
+      "joinOn": ["annotator1_wait_ref", "annotator2_wait_ref"]
+    },
+    {
+      "name": "tdl_compute_agreement",
+      "taskReferenceName": "compute_agreement_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "labels1": "${annotator1_wait_ref.output.labels}",
+        "labels2": "${annotator2_wait_ref.output.labels}"
+      }
+    },
+    {
+      "name": "tdl_store_labels",
+      "taskReferenceName": "store_labels_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "labels1": "${annotator1_wait_ref.output.labels}",
+        "labels2": "${annotator2_wait_ref.output.labels}",
+        "agreementPct": "${compute_agreement_ref.output.agreementPct}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prepared": "${prepare_batch_ref.output.prepared}",
+    "agreementPct": "${compute_agreement_ref.output.agreementPct}",
+    "agreements": "${compute_agreement_ref.output.agreements}",
+    "disagreements": "${compute_agreement_ref.output.disagreements}",
+    "stored": "${store_labels_ref.output.stored}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

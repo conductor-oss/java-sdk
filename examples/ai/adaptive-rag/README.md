@@ -1,262 +1,118 @@
-# Adaptive RAG in Java Using Conductor: Classify Query Complexity, Route to Optimal Retrieval Strategy
+# Adaptive RAG: Routing Queries to Different Retrieval Strategies Based on LLM Classification
 
-"What's the capital of France?" gets routed through the full RAG pipeline: embed, search, rerank, generate, burning tokens and adding 3 seconds of latency for an answer the LLM already knows. Meanwhile, "How did the 2008 financial crisis reshape European monetary policy over the following decade?" gets the same single-pass retrieval and produces a shallow, incomplete answer. One-size-fits-all RAG over-engineers simple questions and under-serves complex ones. This example builds an adaptive RAG pipeline using [Conductor](https://github.com/conductor-oss/conductor) that classifies each query by complexity and routes it to the optimal strategy, fast single-pass for factual lookups, multi-hop retrieval with chain-of-thought reasoning for analytical questions, and direct generation for creative queries.
+Not all questions are equal. "What is Conductor?" needs a quick document lookup. "Compare Conductor and Temporal's architecture trade-offs" requires gathering evidence from multiple sources, building a reasoning chain, then synthesizing. "Write a poem about microservices" needs no retrieval at all. A one-size-fits-all RAG pipeline either over-fetches for simple queries (wasting tokens and latency) or under-fetches for complex ones (producing shallow answers).
 
-## One RAG Strategy Does Not Fit All Questions
+This example implements a query router that classifies questions via GPT-4o-mini, then uses Conductor's SWITCH task to dispatch to three completely different retrieval-and-generation pipelines -- each with its own document corpus, retrieval algorithm, and generation prompt.
 
-"What is the capital of France?" needs a single vector lookup and a short generation. "How did the 2008 financial crisis affect European monetary policy in the following decade?" needs multi-hop retrieval across multiple documents with a reasoning step to synthesize findings. Sending both through the same RAG pipeline either over-engineers simple questions (wasting tokens and latency) or under-serves complex ones (producing shallow, incomplete answers).
-
-Adaptive RAG classifies each query to determine its complexity. Factual, multi-hop, or analytical, and routes to the retrieval strategy that fits. Simple queries get fast, single-pass retrieval. Multi-hop queries get iterative retrieval with intermediate reasoning. Analytical queries get specialized generation that synthesizes across sources. The classification happens once, and the routing is automatic.
-
-## The Solution
-
-**You write the query classifier and the per-complexity retrieval strategies. Conductor handles the routing, retries, and observability.**
-
-`ClassifyWorker` examines the question and determines its complexity class. Simple, multi-hop, or analytical. A `SWITCH` task routes based on the classification: simple questions go to `SimpleRetrieveWorker` then `SimpleGenerateWorker` for direct retrieval and answer generation. Multi-hop questions go to `MultiHopRetrieveWorker` then `ReasonWorker` for iterative retrieval with intermediate reasoning steps. Analytical questions go to `AnalyticalGenerateWorker` for synthesis-heavy generation. Conductor makes this routing declarative and records which strategy was selected for each query.
-
-### What You Write: Workers
-
-Seven workers span three retrieval strategies: simple lookup, multi-hop reasoning, and creative generation, with a classifier that routes each query to the right path via a SWITCH task.
-
-| Worker | Task | What It Does | Real / Notes |
-|---|---|---|---|
-| **ClassifyWorker** | `ar_classify` | Examines the question and determines its complexity class (`factual`, `analytical`, or `creative`) with a confidence score, routing it to the optimal retrieval strategy | Requires API key, or swap in a real LLM classifier (Claude, GPT-4) or a fine-tuned BERT model |
-| **SimpleRetrieveWorker** | `ar_simple_ret` | Single-pass retrieval for factual queries. Returns basic document chunks from the vector store | Requires API key, or swap in Pinecone, Weaviate, Qdrant, or pgvector |
-| **SimpleGenerateWorker** | `ar_simple_gen` | Produces a direct, concise answer from the retrieved documents (factual path) | Requires API key, or swap in Claude Messages API or OpenAI Chat Completions |
-| **MultiHopRetrieveWorker** | `ar_mhop_ret` | Iterative multi-hop retrieval for analytical queries. Gathers documents across multiple hops to build a comprehensive evidence base | Requires API key, or swap in iterative vector store queries with query reformulation |
-| **ReasoningWorker** | `ar_reason` | Builds a chain-of-thought reasoning trace from the multi-hop retrieved documents, connecting evidence across sources | Requires API key, or swap in Claude or GPT-4 with chain-of-thought prompting |
-| **AnalyticalGenerateWorker** | `ar_anal_gen` | Synthesizes a comprehensive analytical answer from the reasoning chain and retrieved documents (analytical path) | Requires API key, or swap in Claude or GPT-4 with synthesis prompting |
-| **CreativeGenerateWorker** | `ar_creative_gen` | Produces a free-form creative answer without retrieval (default/creative path) | Requires API key, or swap in any LLM with creative generation settings |
-
-Workers require CONDUCTOR_OPENAI_API_KEY. Retrieval workers use Jaccard similarity over bundled documents.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Conditional routing** | SWITCH tasks route execution to different paths based on worker output |
-
-### The Workflow
+## The Three Paths
 
 ```
-ar_classify
-    │
-    ▼
-SWITCH (sw_ref)
-    ├── factual: ar_simple_ret -> ar_simple_gen
-    ├── analytical: ar_mhop_ret -> ar_reason -> ar_anal_gen
-    └── default: ar_creative_gen
+ar_classify  (GPT-4o-mini -> {queryType: factual|analytical|creative, confidence: 0.XX})
+     |
+     v
+SWITCH on queryType:
+     |
+     |── "factual"
+     |      ar_simple_ret  (Jaccard similarity, 8-doc corpus, top 2)
+     |      ar_simple_gen  (concise factual answer, temp 0.3)
+     |
+     |── "analytical"
+     |      ar_mhop_ret    (2-hop retrieval: 4 factual + 4 analytical docs, query expansion)
+     |      ar_reason      (chain-of-thought: 3 reasoning steps from multi-hop docs)
+     |      ar_anal_gen    (synthesize from reasoning chain, temp 0.3)
+     |
+     |── default (creative)
+            ar_creative_gen (free-form generation, no retrieval, temp 0.9)
 ```
 
-## Running It
+## Worker: ClassifyWorker (`ar_classify`) -- The Query Router
 
-### Prerequisites
+Sends the question to GPT-4o-mini with `temperature: 0.1` and a structured prompt requesting `{"queryType": "...", "confidence": 0.XX}`. The classification criteria are documented in the source:
 
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+- **factual** -- simple lookups, definitions, "what is", "who is", "when did"
+- **analytical** -- comparisons ("compare", "vs", "trade-offs"), multi-step reasoning ("how does X affect Y"), cause/effect, pros/cons
+- **creative** -- imaginative ("write a poem", "tell a story", "imagine"), brainstorming, hypothetical scenarios
 
-### Option 1: Docker Compose (everything included)
+The returned `queryType` is validated against `List.of("factual", "analytical", "creative")`. If the LLM returns anything else (e.g., `"opinion"` or `"technical"`), the worker fails with a clear message listing the valid types.
 
-```bash
-docker compose up --build
+## Factual Path: Single-Hop Retrieval
+
+### SimpleRetrieveWorker (`ar_simple_ret`)
+
+Uses Jaccard similarity (set intersection over set union) against an 8-document knowledge base about Conductor. Tokenization lowercases text, strips non-alphanumeric characters, and filters tokens under 2 characters. Returns exactly 2 documents, always sorted by similarity score.
+
+```java
+Set<String> intersection = new HashSet<>(a);
+intersection.retainAll(b);
+Set<String> union = new HashSet<>(a);
+union.addAll(b);
+return (double) intersection.size() / union.size();
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+### SimpleGenerateWorker (`ar_simple_gen`)
 
-If port 8080 is already taken:
+Feeds the 2 retrieved documents as context to GPT-4o-mini with system prompt "Be concise and factual." Tags output with `strategy: "simple_rag"`.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
+## Analytical Path: Multi-Hop Retrieval with Chain-of-Thought
+
+### MultiHopRetrieveWorker (`ar_mhop_ret`)
+
+Maintains two separate document corpora:
+
+**Hop 1 (4 docs):** Direct factual content about Conductor and Temporal -- their architectures, SDK support, UI features.
+
+**Hop 2 (4 docs):** Deeper analytical content -- orchestration vs choreography trade-offs, centralization pros/cons, Temporal's replay architecture.
+
+The algorithm works in two stages. First, it finds the 2 most relevant Hop 1 documents using Jaccard similarity against the original query. Then it expands the query tokens by adding all tokens from the Hop 1 results:
+
+```java
+Set<String> expandedTokens = new HashSet<>(queryTokens);
+for (Map<String, Object> doc : hop1Results) {
+    expandedTokens.addAll(tokenize((String) doc.get("text")));
+}
 ```
 
-### Option 2: Run locally
+This expanded token set is used to search Hop 2, pulling in analytical documents related to concepts discovered in Hop 1. Each returned document carries a `hop` metadata field (1 or 2) for traceability.
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+### ReasoningWorker (`ar_reason`)
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+Takes the 4 multi-hop documents and asks GPT-4o-mini to produce exactly 3 chain-of-thought reasoning steps, each building on the previous. The output is parsed by splitting on newlines and filtering blank lines.
 
-# Build and run
-mvn package -DskipTests
-java -jar target/adaptive-rag-1.0.0.jar
-```
+### AnalyticalGenerateWorker (`ar_anal_gen`)
 
-### Option 3: Use the run script
+Synthesizes from the reasoning chain (not the raw documents) using system prompt "Compare and contrast different aspects." Tags output with `strategy: "multi_hop_rag"`.
 
-```bash
-./run.sh
+## Creative Path: No Retrieval
 
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
+### CreativeGenerateWorker (`ar_creative_gen`)
 
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
+Bypasses retrieval entirely. Sends the question directly to GPT-4o-mini with `temperature: 0.9` for maximum variety. Accepts an optional `style` parameter (defaults to `"creative"`). Tags output with `strategy: "creative"`.
+
+## Error Handling Across All Workers
+
+Every OpenAI-calling worker uses the same pattern: HTTP 429 and 503 are `FAILED` (retryable by Conductor), all other HTTP errors are `FAILED_WITH_TERMINAL_ERROR`. Every failure includes `errorBody` and `httpStatus` in the output for debugging. The ClassifyWorker constructor throws `IllegalStateException` if `CONDUCTOR_OPENAI_API_KEY` is not set, failing fast at worker registration time rather than at task execution time.
+
+## Test Coverage
+
+5 test classes, 11 tests:
+
+**AdaptiveRagIntegrationTest (4 tests):** Factual path produces 2 documents compatible with SimpleGenerateWorker's `List<String>` input contract. Analytical path produces 4 documents with hop metadata compatible with ReasoningWorker's `List<Map>` input. Same query on both paths returns non-overlapping document sets. Blank question rejection across all retrieval paths.
+
+**SimpleRetrieveWorkerTest, MultiHopRetrieveWorkerTest, ClassifyWorkerTest, and other worker tests:** Task def names, API key requirements, blank input rejection.
 
 ## Configuration
 
-| Environment Variable | Default | Description |
+| Variable | Default | Purpose |
 |---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-| `CONDUCTOR_OPENAI_API_KEY` | _(required)_ | OpenAI API key. When set, classify, generate, and reasoning workers call OpenAI (gpt-4o-mini). Workers throw IllegalStateException if not set. |
+| `CONDUCTOR_OPENAI_API_KEY` | (required) | OpenAI API authentication for classify, generate, and reason workers |
+| All LLM workers | `gpt-4o-mini` | Model used for classification, reasoning, and generation |
 
-### API Key Requirement
+---
 
-All LLM workers (classify, generate, reasoning) require CONDUCTOR_OPENAI_API_KEY.
-Retrieval workers (SimpleRetrieveWorker, MultiHopRetrieveWorker) use Jaccard similarity over bundled documents.; no vector database needed.
+## Production Notes
 
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
 
-## Example Output
+---
 
-```
-=== Adaptive RAG Demo: Route by Query Complexity ===
-
-Step 1: Registering task definitions...
-  Registered: ar_classify, ar_simple_ret, ar_simple_gen, ar_mhop_ret, ar_reason,
-    ar_anal_gen, ar_creative_gen
-
-Step 2: Registering workflow 'adaptive_rag'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  7 workers polling.
-
-Step 4: Starting workflow...
-  [classify] Question: "What is Conductor?" -> factual (confidence: 0.92)
-  [simple_ret] Retrieved 2 documents for factual query
-  [simple_gen] Generated direct answer from 2 documents
-
-  Workflow ID: a5b6c7d8-...
-
-Step 5: Waiting for completion...
-  Status: COMPLETED
-  Query type: factual
-  Confidence: 0.92
-
---- Adaptive RAG Pattern ---
-  Query classified as 'factual' with 0.92 confidence.
-  Routed to simple retrieval + direct generation (fast path).
-
-Result: PASSED
-```
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/adaptive-rag-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-Factual query (simple retrieval + direct generation):
-
-```bash
-conductor workflow start \
-  --workflow adaptive_rag \
-  --version 1 \
-  --input '{"question": "What is Conductor?"}'
-```
-
-Analytical query (multi-hop retrieval + reasoning + synthesis):
-
-```bash
-conductor workflow start \
-  --workflow adaptive_rag \
-  --version 1 \
-  --input '{"question": "How does Conductor compare to Temporal for long-running workflow orchestration?"}'
-```
-
-Creative query (free-form generation, no retrieval):
-
-```bash
-conductor workflow start \
-  --workflow adaptive_rag \
-  --version 1 \
-  --input '{"question": "Write a poem about microservices orchestration"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w adaptive_rag -s COMPLETED -c 5
-```
-
-## The Adaptive RAG Pipeline
-
-Not all questions need the same retrieval strategy. Adaptive RAG classifies each query and routes to the optimal pipeline:
-
-1. **Classify** (`ar_classify`): An LLM-based classifier examines the question and determines its complexity: `factual` (single-hop lookup), `analytical` (multi-source synthesis), or `creative` (free-form generation). The classification includes a confidence score.
-
-2. **Route** (SWITCH): Conductor's SWITCH task routes based on the classification:
-   - **Factual**: `ar_simple_ret` -> `ar_simple_gen`. Single-pass vector retrieval, then direct answer generation. Fast and cheap.
-   - **Analytical**: `ar_mhop_ret` -> `ar_reason` -> `ar_anal_gen`. Multi-hop retrieval across multiple documents, intermediate chain-of-thought reasoning, then synthesis. Thorough but more expensive.
-   - **Creative** (default): `ar_creative_gen`. Free-form generation without retrieval. No vector store cost.
-
-This saves tokens and latency on simple questions while giving complex questions the depth they need. Every execution records which strategy was selected, so you can analyze classification accuracy and strategy effectiveness over time.
-
-## How to Extend
-
-Each worker handles one retrieval strategy or classification step. Plug in a real LLM classifier, connect vector stores for simple and multi-hop retrieval, and add chain-of-thought reasoning via Claude or GPT-4, and the adaptive routing runs unchanged.
-
-- **ClassifyWorker** (`ar_classify`): use a real LLM classifier (Claude, GPT-4) to determine query complexity, or fine-tune a small BERT model on labeled query complexity data for faster, cheaper classification
-- **SimpleRetrieveWorker** (`ar_simple_ret`): query a real vector database (Pinecone, Weaviate, Qdrant, pgvector) with the embedded question to retrieve relevant document chunks
-- **MultiHopRetrieveWorker** (`ar_mhop_ret`): implement iterative retrieval with query reformulation: retrieve initial documents, extract key entities, reformulate the query, and retrieve additional documents across multiple hops
-- **ReasoningWorker** (`ar_reason`): call Claude or GPT-4 with chain-of-thought prompting to build a structured reasoning trace from the multi-hop evidence
-- **AnalyticalGenerateWorker** (`ar_anal_gen`): call a real LLM with the reasoning chain and retrieved context, using a specialized analytical prompt that instructs cross-source synthesis and evidence-based reasoning
-
-Each worker's interface is fixed. Replace the classifier model, upgrade the retrieval strategy, or swap LLM providers, and the adaptive routing runs without modification.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-adaptive-rag/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/adaptiverag/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── AdaptiveRagExample.java      # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AnalyticalGenerateWorker.java  # Synthesis from reasoning chain
-│       ├── ClassifyWorker.java            # Query complexity classifier
-│       ├── CreativeGenerateWorker.java    # Free-form generation (no retrieval)
-│       ├── MultiHopRetrieveWorker.java    # Iterative multi-hop retrieval
-│       ├── ReasoningWorker.java           # Chain-of-thought reasoning
-│       ├── SimpleGenerateWorker.java      # Direct answer from documents
-│       └── SimpleRetrieveWorker.java      # Single-pass vector retrieval
-└── src/test/java/adaptiverag/workers/
-    ├── AnalyticalGenerateWorkerTest.java
-    ├── ClassifyWorkerTest.java
-    ├── CreativeGenerateWorkerTest.java
-    ├── MultiHopRetrieveWorkerTest.java
-    ├── ReasoningWorkerTest.java
-    ├── SimpleGenerateWorkerTest.java
-    └── SimpleRetrieveWorkerTest.java
-```
+> **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

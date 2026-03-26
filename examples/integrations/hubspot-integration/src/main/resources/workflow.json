@@ -1,0 +1,62 @@
+{
+  "name": "hubspot_integration_439",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "email",
+    "firstName",
+    "lastName",
+    "company"
+  ],
+  "tasks": [
+    {
+      "name": "hs_create_contact",
+      "taskReferenceName": "create_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "firstName": "${workflow.input.firstName}",
+        "lastName": "${workflow.input.lastName}",
+        "company": "${workflow.input.company}"
+      }
+    },
+    {
+      "name": "hs_enrich_data",
+      "taskReferenceName": "enrich_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contactId": "${create_ref.output.contactId}",
+        "email": "${workflow.input.email}",
+        "company": "${workflow.input.company}"
+      }
+    },
+    {
+      "name": "hs_assign_owner",
+      "taskReferenceName": "assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contactId": "${create_ref.output.contactId}",
+        "industry": "${enrich_ref.output.industry}",
+        "companySize": "${enrich_ref.output.companySize}"
+      }
+    },
+    {
+      "name": "hs_nurture_sequence",
+      "taskReferenceName": "nurture_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "contactId": "${create_ref.output.contactId}",
+        "ownerId": "${assign_ref.output.ownerId}",
+        "segment": "${enrich_ref.output.segment}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "contactId": "${create_ref.output.contactId}",
+    "segment": "${enrich_ref.output.segment}",
+    "owner": "${assign_ref.output.ownerName}",
+    "nurtureSequence": "${nurture_ref.output.sequenceName}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

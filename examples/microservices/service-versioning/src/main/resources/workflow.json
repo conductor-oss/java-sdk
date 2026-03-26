@@ -1,0 +1,24 @@
+{
+  "name": "service_versioning_workflow",
+  "description": "API version management with version routing",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["apiVersion", "request"],
+  "tasks": [
+    {"name": "sv_resolve_version", "taskReferenceName": "version_ref", "type": "SIMPLE",
+      "inputParameters": {"apiVersion": "${workflow.input.apiVersion}"}},
+    {"name": "version_route", "taskReferenceName": "route_ref", "type": "SWITCH",
+      "evaluatorType": "value-param", "expression": "switchCaseValue",
+      "inputParameters": {"switchCaseValue": "${version_ref.output.resolvedVersion}"},
+      "decisionCases": {
+        "v2": [{"name": "sv_call_v2", "taskReferenceName": "v2_ref", "type": "SIMPLE",
+          "inputParameters": {"request": "${workflow.input.request}"}}]
+      },
+      "defaultCase": [{"name": "sv_call_v1", "taskReferenceName": "v1_ref", "type": "SIMPLE",
+        "inputParameters": {"request": "${workflow.input.request}"}}]
+    },
+    {"name": "sv_log_version_usage", "taskReferenceName": "log_ref", "type": "SIMPLE",
+      "inputParameters": {"apiVersion": "${workflow.input.apiVersion}", "resolved": "${version_ref.output.resolvedVersion}"}}
+  ],
+  "outputParameters": {"version": "${version_ref.output.resolvedVersion}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 30
+}

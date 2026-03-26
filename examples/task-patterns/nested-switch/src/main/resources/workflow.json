@@ -1,0 +1,130 @@
+{
+  "name": "nested_switch_demo",
+  "description": "Multi-level decision tree using nested SWITCH tasks with value-param",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "region",
+    "tier",
+    "amount"
+  ],
+  "tasks": [
+    {
+      "name": "route_by_region",
+      "taskReferenceName": "region_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${workflow.input.region}"
+      },
+      "decisionCases": {
+        "US": [
+          {
+            "name": "route_us_tier",
+            "taskReferenceName": "us_tier_switch_ref",
+            "type": "SWITCH",
+            "evaluatorType": "value-param",
+            "expression": "switchCaseValue",
+            "inputParameters": {
+              "switchCaseValue": "${workflow.input.tier}"
+            },
+            "decisionCases": {
+              "premium": [
+                {
+                  "name": "ns_us_premium",
+                  "taskReferenceName": "us_premium_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "region": "${workflow.input.region}",
+                    "tier": "${workflow.input.tier}",
+                    "amount": "${workflow.input.amount}"
+                  }
+                }
+              ]
+            },
+            "defaultCase": [
+              {
+                "name": "ns_us_standard",
+                "taskReferenceName": "us_standard_ref",
+                "type": "SIMPLE",
+                "inputParameters": {
+                  "region": "${workflow.input.region}",
+                  "tier": "${workflow.input.tier}",
+                  "amount": "${workflow.input.amount}"
+                }
+              }
+            ]
+          }
+        ],
+        "EU": [
+          {
+            "name": "route_eu_tier",
+            "taskReferenceName": "eu_tier_switch_ref",
+            "type": "SWITCH",
+            "evaluatorType": "value-param",
+            "expression": "switchCaseValue",
+            "inputParameters": {
+              "switchCaseValue": "${workflow.input.tier}"
+            },
+            "decisionCases": {
+              "premium": [
+                {
+                  "name": "ns_eu_premium",
+                  "taskReferenceName": "eu_premium_ref",
+                  "type": "SIMPLE",
+                  "inputParameters": {
+                    "region": "${workflow.input.region}",
+                    "tier": "${workflow.input.tier}",
+                    "amount": "${workflow.input.amount}"
+                  }
+                }
+              ]
+            },
+            "defaultCase": [
+              {
+                "name": "ns_eu_standard",
+                "taskReferenceName": "eu_standard_ref",
+                "type": "SIMPLE",
+                "inputParameters": {
+                  "region": "${workflow.input.region}",
+                  "tier": "${workflow.input.tier}",
+                  "amount": "${workflow.input.amount}"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ns_other_region",
+          "taskReferenceName": "other_region_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "region": "${workflow.input.region}",
+            "tier": "${workflow.input.tier}",
+            "amount": "${workflow.input.amount}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ns_complete",
+      "taskReferenceName": "complete_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "region": "${workflow.input.region}",
+        "tier": "${workflow.input.tier}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "region": "${workflow.input.region}",
+    "tier": "${workflow.input.tier}",
+    "done": "${complete_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

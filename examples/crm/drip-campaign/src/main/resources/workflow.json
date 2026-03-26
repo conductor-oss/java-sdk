@@ -1,0 +1,19 @@
+{
+  "name": "drp_drip_campaign",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["contactId", "campaignId", "email"],
+  "tasks": [
+    { "name": "drp_enroll", "taskReferenceName": "drp_enroll_ref", "type": "SIMPLE", "inputParameters": { "contactId": "${workflow.input.contactId}", "campaignId": "${workflow.input.campaignId}" } },
+    { "name": "drp_send_series", "taskReferenceName": "drp_send_ref", "type": "SIMPLE", "inputParameters": { "contactId": "${workflow.input.contactId}", "email": "${workflow.input.email}", "enrollmentId": "${drp_enroll_ref.output.enrollmentId}" } },
+    { "name": "drp_track_engagement", "taskReferenceName": "drp_track_ref", "type": "SIMPLE", "inputParameters": { "enrollmentId": "${drp_enroll_ref.output.enrollmentId}" } },
+    { "name": "drp_graduate", "taskReferenceName": "drp_grad_ref", "type": "SIMPLE", "inputParameters": { "contactId": "${workflow.input.contactId}", "engagement": "${drp_track_ref.output.engagementScore}" } }
+  ],
+  "outputParameters": {
+    "enrollmentId": "${drp_enroll_ref.output.enrollmentId}",
+    "emailsSent": "${drp_send_ref.output.emailsSent}",
+    "graduated": "${drp_grad_ref.output.graduated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

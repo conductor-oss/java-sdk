@@ -1,0 +1,26 @@
+{
+  "name": "bff_workflow",
+  "description": "Backend for Frontend pattern with platform-specific responses",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "platform"],
+  "tasks": [
+    {"name": "bff_fetch_data", "taskReferenceName": "data_ref", "type": "SIMPLE",
+      "inputParameters": {"userId": "${workflow.input.userId}"}},
+    {"name": "platform_switch", "taskReferenceName": "switch_ref", "type": "SWITCH",
+      "evaluatorType": "value-param", "expression": "switchCaseValue",
+      "inputParameters": {"switchCaseValue": "${workflow.input.platform}"},
+      "decisionCases": {
+        "web": [{"name": "bff_transform_web", "taskReferenceName": "web_ref", "type": "SIMPLE",
+          "inputParameters": {"data": "${data_ref.output}"}}],
+        "mobile": [{"name": "bff_transform_mobile", "taskReferenceName": "mobile_ref", "type": "SIMPLE",
+          "inputParameters": {"data": "${data_ref.output}"}}]
+      },
+      "defaultCase": [{"name": "bff_transform_web", "taskReferenceName": "default_ref", "type": "SIMPLE",
+        "inputParameters": {"data": "${data_ref.output}"}}]
+    }
+  ],
+  "outputParameters": {"response": "${switch_ref.output}"},
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

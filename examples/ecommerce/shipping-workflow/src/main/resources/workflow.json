@@ -1,0 +1,70 @@
+{
+  "name": "shipping_workflow",
+  "description": "Shipping workflow: select carrier, create label, track, deliver, confirm",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "weight", "dimensions", "origin", "destination", "shippingSpeed"],
+  "tasks": [
+    {
+      "name": "shp_select_carrier",
+      "taskReferenceName": "carrier_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "weight": "${workflow.input.weight}",
+        "dimensions": "${workflow.input.dimensions}",
+        "origin": "${workflow.input.origin}",
+        "destination": "${workflow.input.destination}",
+        "speed": "${workflow.input.shippingSpeed}"
+      }
+    },
+    {
+      "name": "shp_create_label",
+      "taskReferenceName": "label_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "carrier": "${carrier_ref.output.carrier}",
+        "serviceType": "${carrier_ref.output.serviceType}",
+        "origin": "${workflow.input.origin}",
+        "destination": "${workflow.input.destination}"
+      }
+    },
+    {
+      "name": "shp_track",
+      "taskReferenceName": "track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trackingNumber": "${label_ref.output.trackingNumber}",
+        "carrier": "${carrier_ref.output.carrier}"
+      }
+    },
+    {
+      "name": "shp_deliver",
+      "taskReferenceName": "deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "trackingNumber": "${label_ref.output.trackingNumber}",
+        "destination": "${workflow.input.destination}"
+      }
+    },
+    {
+      "name": "shp_confirm",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "trackingNumber": "${label_ref.output.trackingNumber}",
+        "deliveredAt": "${deliver_ref.output.deliveredAt}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "carrier": "${carrier_ref.output.carrier}",
+    "trackingNumber": "${label_ref.output.trackingNumber}",
+    "shippingCost": "${carrier_ref.output.cost}",
+    "delivered": "${deliver_ref.output.delivered}",
+    "confirmed": "${confirm_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

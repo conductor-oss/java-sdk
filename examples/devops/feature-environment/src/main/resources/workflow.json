@@ -1,0 +1,50 @@
+{
+  "name": "feature_environment_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "branch",
+    "repository"
+  ],
+  "tasks": [
+    {
+      "name": "fe_provision",
+      "taskReferenceName": "provision_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "branch": "${workflow.input.branch}",
+        "repository": "${workflow.input.repository}"
+      }
+    },
+    {
+      "name": "fe_deploy_branch",
+      "taskReferenceName": "deploy_branch_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deploy_branchData": "${provision_ref.output}"
+      }
+    },
+    {
+      "name": "fe_configure_dns",
+      "taskReferenceName": "configure_dns_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "configure_dnsData": "${deploy_branch_ref.output}"
+      }
+    },
+    {
+      "name": "fe_notify",
+      "taskReferenceName": "notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "notifyData": "${configure_dns_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "provisionResult": "${provision_ref.output}",
+    "notifyResult": "${notify_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

@@ -1,0 +1,48 @@
+{
+  "name": "cjy_customer_journey",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "timeWindow"],
+  "tasks": [
+    {
+      "name": "cjy_track_touchpoints",
+      "taskReferenceName": "cjy_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "timeWindow": "${workflow.input.timeWindow}"
+      }
+    },
+    {
+      "name": "cjy_map_journey",
+      "taskReferenceName": "cjy_map_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "touchpoints": "${cjy_track_ref.output.touchpoints}"
+      }
+    },
+    {
+      "name": "cjy_analyze",
+      "taskReferenceName": "cjy_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "journeyMap": "${cjy_map_ref.output.journeyMap}"
+      }
+    },
+    {
+      "name": "cjy_optimize",
+      "taskReferenceName": "cjy_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "insights": "${cjy_analyze_ref.output.insights}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "touchpointCount": "${cjy_track_ref.output.touchpointCount}",
+    "journeyStages": "${cjy_map_ref.output.stageCount}",
+    "recommendations": "${cjy_optimize_ref.output.recommendations}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

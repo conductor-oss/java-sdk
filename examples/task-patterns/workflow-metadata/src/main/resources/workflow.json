@@ -1,0 +1,26 @@
+{
+  "name": "metadata_demo",
+  "description": "Demonstrates workflow metadata and search",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "category",
+    "priority"
+  ],
+  "tasks": [
+    {
+      "name": "md_task",
+      "taskReferenceName": "task_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "category": "${workflow.input.category}",
+        "priority": "${workflow.input.priority}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "category": "${workflow.input.category}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

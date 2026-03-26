@@ -82,47 +82,31 @@ class GetReviewsWorkerTest {
     }
 
     @Test
-    void handlesCustomProductId() {
-        Task task = taskWith(Map.of("productId", "PROD-ABC"));
-        TaskResult result = worker.execute(task);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> reviews = (Map<String, Object>) result.getOutputData().get("reviews");
-        assertEquals("PROD-ABC", reviews.get("productId"));
-    }
-
-    @Test
-    void defaultsProductIdWhenMissing() {
+    void failsOnMissingProductId() {
         Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> reviews = (Map<String, Object>) result.getOutputData().get("reviews");
-        assertEquals("UNKNOWN", reviews.get("productId"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("productId"));
     }
 
     @Test
-    void defaultsProductIdWhenBlank() {
+    void failsOnBlankProductId() {
         Task task = taskWith(Map.of("productId", "  "));
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> reviews = (Map<String, Object>) result.getOutputData().get("reviews");
-        assertEquals("UNKNOWN", reviews.get("productId"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("productId"));
     }
 
     @Test
-    void defaultsProductIdWhenNull() {
+    void failsOnNullProductId() {
         Map<String, Object> input = new HashMap<>();
         input.put("productId", null);
         Task task = taskWith(input);
         TaskResult result = worker.execute(task);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> reviews = (Map<String, Object>) result.getOutputData().get("reviews");
-        assertEquals("UNKNOWN", reviews.get("productId"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
     }
 
     @Test

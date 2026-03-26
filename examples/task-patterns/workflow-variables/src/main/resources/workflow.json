@@ -1,0 +1,60 @@
+{
+  "name": "workflow_variables_demo",
+  "description": "Shows how variables and expressions work across tasks",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["orderId", "items", "customerTier"],
+  "tasks": [
+    {
+      "name": "wv_calc_price",
+      "taskReferenceName": "price_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "apply_tier_discount",
+      "taskReferenceName": "discount_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "subtotal": "${price_ref.output.subtotal}",
+        "tier": "${workflow.input.customerTier}",
+        "evaluatorType": "javascript",
+        "expression": "(function() { var rates = { gold: 0.20, silver: 0.10, bronze: 0.05 }; var rate = rates[$.tier] || 0; var discount = Math.round($.subtotal * rate * 100) / 100; return { discountRate: rate, discountAmount: discount, afterDiscount: $.subtotal - discount }; })()"
+      }
+    },
+    {
+      "name": "wv_calc_shipping",
+      "taskReferenceName": "shipping_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "itemCount": "${price_ref.output.itemCount}",
+        "afterDiscount": "${discount_ref.output.result.afterDiscount}",
+        "tier": "${workflow.input.customerTier}"
+      }
+    },
+    {
+      "name": "wv_build_summary",
+      "taskReferenceName": "summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "customerTier": "${workflow.input.customerTier}",
+        "subtotal": "${price_ref.output.subtotal}",
+        "discount": "${discount_ref.output.result.discountAmount}",
+        "discountRate": "${discount_ref.output.result.discountRate}",
+        "shipping": "${shipping_ref.output.shippingCost}",
+        "finalTotal": "${shipping_ref.output.finalTotal}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "summary": "${summary_ref.output.summary}",
+    "finalTotal": "${shipping_ref.output.finalTotal}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

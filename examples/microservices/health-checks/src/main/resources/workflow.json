@@ -1,0 +1,71 @@
+{
+  "name": "health_checks_295",
+  "description": "Check health of multiple services in parallel",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [],
+  "tasks": [
+    {
+      "name": "hc_parallel_checks",
+      "taskReferenceName": "hc_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "hc_check_service",
+            "taskReferenceName": "hc_api_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "serviceName": "api-gateway",
+              "endpoint": "http://api-gateway:8080/health"
+            }
+          }
+        ],
+        [
+          {
+            "name": "hc_check_service",
+            "taskReferenceName": "hc_db_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "serviceName": "database",
+              "endpoint": "http://database:5432/health"
+            }
+          }
+        ],
+        [
+          {
+            "name": "hc_check_service",
+            "taskReferenceName": "hc_cache_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "serviceName": "redis-cache",
+              "endpoint": "http://redis:6379/health"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "hc_join_checks",
+      "taskReferenceName": "hc_join_ref",
+      "type": "JOIN",
+      "joinOn": ["hc_api_ref", "hc_db_ref", "hc_cache_ref"]
+    },
+    {
+      "name": "hc_generate_report",
+      "taskReferenceName": "hc_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "apiHealth": "${hc_api_ref.output.health}",
+        "dbHealth": "${hc_db_ref.output.health}",
+        "cacheHealth": "${hc_cache_ref.output.health}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "overallStatus": "${hc_report_ref.output.overallStatus}",
+    "services": "${hc_report_ref.output.services}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

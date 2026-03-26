@@ -1,0 +1,28 @@
+{
+  "name": "data_lake_ingestion",
+  "description": "Ingest data into a data lake: validate schema, partition by date, convert format, write to lake, update catalog.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["records", "lakePath", "format"],
+  "tasks": [
+    { "name": "li_validate_schema", "taskReferenceName": "schema_ref", "type": "SIMPLE",
+      "inputParameters": { "records": "${workflow.input.records}" } },
+    { "name": "li_partition_by_date", "taskReferenceName": "partition_ref", "type": "SIMPLE",
+      "inputParameters": { "records": "${schema_ref.output.validRecords}", "lakePath": "${workflow.input.lakePath}" } },
+    { "name": "li_convert_format", "taskReferenceName": "convert_ref", "type": "SIMPLE",
+      "inputParameters": { "partitions": "${partition_ref.output.partitions}", "targetFormat": "${workflow.input.format}" } },
+    { "name": "li_write_to_lake", "taskReferenceName": "write_ref", "type": "SIMPLE",
+      "inputParameters": { "files": "${convert_ref.output.files}", "lakePath": "${workflow.input.lakePath}" } },
+    { "name": "li_update_catalog", "taskReferenceName": "catalog_ref", "type": "SIMPLE",
+      "inputParameters": { "lakePath": "${workflow.input.lakePath}", "filesWritten": "${write_ref.output.filesWritten}", "totalRecords": "${schema_ref.output.validCount}" } }
+  ],
+  "outputParameters": {
+    "validRecords": "${schema_ref.output.validCount}",
+    "partitions": "${partition_ref.output.partitionCount}",
+    "filesWritten": "${write_ref.output.filesWritten}",
+    "catalogUpdated": "${catalog_ref.output.updated}",
+    "summary": "${catalog_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

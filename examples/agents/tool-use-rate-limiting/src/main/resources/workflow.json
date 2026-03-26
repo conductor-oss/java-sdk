@@ -1,0 +1,78 @@
+{
+  "name": "tool_use_rate_limiting",
+  "description": "Tool Use Rate Limiting \u2014 checks API rate limits before tool execution, queuing and delaying requests when throttled.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "toolName",
+    "toolArgs"
+  ],
+  "tasks": [
+    {
+      "name": "rl_check_rate_limit",
+      "taskReferenceName": "rate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "apiKey": "${workflow.secrets.rate_limit_api_key}"
+      }
+    },
+    {
+      "name": "rate_limit_decision",
+      "taskReferenceName": "rate_limit_decision_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${rate_ref.output.decision}"
+      },
+      "decisionCases": {
+        "allowed": [
+          {
+            "name": "rl_execute_tool",
+            "taskReferenceName": "execute_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "toolName": "${workflow.input.toolName}",
+              "toolArgs": "${workflow.input.toolArgs}",
+              "quotaRemaining": "${rate_ref.output.quotaRemaining}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "rl_queue_request",
+          "taskReferenceName": "queue_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "toolName": "${workflow.input.toolName}",
+            "toolArgs": "${workflow.input.toolArgs}",
+            "retryAfterMs": "${rate_ref.output.retryAfterMs}",
+            "queuePosition": "${rate_ref.output.queuePosition}"
+          }
+        },
+        {
+          "name": "rl_delayed_execute",
+          "taskReferenceName": "delayed_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "toolName": "${workflow.input.toolName}",
+            "toolArgs": "${workflow.input.toolArgs}",
+            "queueId": "${queue_ref.output.queueId}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "toolName": "${workflow.input.toolName}",
+    "decision": "${rate_ref.output.decision}",
+    "quotaUsed": "${rate_ref.output.quotaUsed}",
+    "quotaLimit": "${rate_ref.output.quotaLimit}",
+    "result": "${rate_limit_decision_ref.output.result}",
+    "executedImmediately": "${rate_limit_decision_ref.output.executedImmediately}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

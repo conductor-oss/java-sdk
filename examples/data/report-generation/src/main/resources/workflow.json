@@ -1,0 +1,60 @@
+{
+  "name": "report_generation",
+  "description": "Report generation workflow: query data, aggregate, format, and distribute reports.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "reportType",
+    "dateRange",
+    "recipients"
+  ],
+  "tasks": [
+    {
+      "name": "rg_query_data",
+      "taskReferenceName": "query_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportType": "${workflow.input.reportType}",
+        "dateRange": "${workflow.input.dateRange}"
+      }
+    },
+    {
+      "name": "rg_aggregate_results",
+      "taskReferenceName": "agg_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawData": "${query_ref.output.data}",
+        "reportType": "${workflow.input.reportType}"
+      }
+    },
+    {
+      "name": "rg_format_report",
+      "taskReferenceName": "format_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "aggregated": "${agg_ref.output.aggregated}",
+        "reportType": "${workflow.input.reportType}",
+        "dateRange": "${workflow.input.dateRange}"
+      }
+    },
+    {
+      "name": "rg_distribute_report",
+      "taskReferenceName": "dist_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "report": "${format_ref.output.report}",
+        "recipients": "${workflow.input.recipients}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recordsQueried": "${query_ref.output.recordCount}",
+    "aggregations": "${agg_ref.output.aggregationCount}",
+    "reportFormat": "${format_ref.output.format}",
+    "reportUrl": "${format_ref.output.reportUrl}",
+    "distributedTo": "${dist_ref.output.recipientCount}",
+    "deliveryStatus": "${dist_ref.output.status}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

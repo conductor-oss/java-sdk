@@ -1,0 +1,65 @@
+{
+  "name": "canary_release_297",
+  "description": "Canary release with progressive traffic increase",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["appName", "newVersion"],
+  "tasks": [
+    {
+      "name": "cy_deploy_canary",
+      "taskReferenceName": "cy_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "version": "${workflow.input.newVersion}",
+        "trafficPercent": 5
+      }
+    },
+    {
+      "name": "cy_monitor_canary",
+      "taskReferenceName": "cy_monitor5_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "trafficPercent": 5,
+        "monitorDuration": "5m"
+      }
+    },
+    {
+      "name": "cy_increase_traffic",
+      "taskReferenceName": "cy_increase50_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "version": "${workflow.input.newVersion}",
+        "trafficPercent": 50
+      }
+    },
+    {
+      "name": "cy_monitor_canary",
+      "taskReferenceName": "cy_monitor50_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "trafficPercent": 50,
+        "monitorDuration": "10m"
+      }
+    },
+    {
+      "name": "cy_full_rollout",
+      "taskReferenceName": "cy_rollout_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appName": "${workflow.input.appName}",
+        "version": "${workflow.input.newVersion}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "deploymentStatus": "${cy_rollout_ref.output.status}",
+    "version": "${workflow.input.newVersion}",
+    "rolloutComplete": "${cy_rollout_ref.output.complete}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

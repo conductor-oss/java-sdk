@@ -1,0 +1,85 @@
+{
+  "name": "event_driven_wf",
+  "description": "Event-driven workflow that receives events, classifies them by type, and routes to the appropriate handler via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType",
+    "eventData"
+  ],
+  "tasks": [
+    {
+      "name": "ed_receive_event",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "eventData": "${workflow.input.eventData}"
+      }
+    },
+    {
+      "name": "ed_classify_event",
+      "taskReferenceName": "classify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventType": "${receive_ref.output.eventType}",
+        "metadata": "${receive_ref.output.metadata}"
+      }
+    },
+    {
+      "name": "route_by_category",
+      "taskReferenceName": "category_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${classify_ref.output.category}"
+      },
+      "decisionCases": {
+        "order": [
+          {
+            "name": "ed_handle_order",
+            "taskReferenceName": "handle_order_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventData": "${receive_ref.output.eventData}",
+              "priority": "${classify_ref.output.priority}"
+            }
+          }
+        ],
+        "payment": [
+          {
+            "name": "ed_handle_payment",
+            "taskReferenceName": "handle_payment_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventData": "${receive_ref.output.eventData}",
+              "priority": "${classify_ref.output.priority}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ed_handle_generic",
+          "taskReferenceName": "handle_generic_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventData": "${receive_ref.output.eventData}",
+            "category": "${classify_ref.output.category}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "category": "${classify_ref.output.category}",
+    "priority": "${classify_ref.output.priority}",
+    "handled": "true"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

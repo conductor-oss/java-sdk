@@ -1,0 +1,62 @@
+{
+  "name": "sac_service_activation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "customerId",
+    "serviceType"
+  ],
+  "tasks": [
+    {
+      "name": "sac_validate_order",
+      "taskReferenceName": "sac_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "customerId": "${workflow.input.customerId}"
+      }
+    },
+    {
+      "name": "sac_provision",
+      "taskReferenceName": "sac_prov_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "serviceType": "${workflow.input.serviceType}"
+      }
+    },
+    {
+      "name": "sac_test",
+      "taskReferenceName": "sac_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceId": "${sac_prov_ref.output.serviceId}"
+      }
+    },
+    {
+      "name": "sac_activate",
+      "taskReferenceName": "sac_act_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceId": "${sac_prov_ref.output.serviceId}",
+        "testPassed": "${sac_test_ref.output.passed}"
+      }
+    },
+    {
+      "name": "sac_notify",
+      "taskReferenceName": "sac_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "serviceId": "${sac_prov_ref.output.serviceId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "serviceId": "${sac_prov_ref.output.serviceId}",
+    "activated": "${sac_act_ref.output.activated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

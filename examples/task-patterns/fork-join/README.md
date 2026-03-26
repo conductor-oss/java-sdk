@@ -1,211 +1,115 @@
-# Fork Join in Java with Conductor
+# Parallel Data Aggregation with FORK_JOIN: Building a Product Page from Three Independent Services
 
-FORK_JOIN demo: fetch product details, inventory status, and customer reviews in parallel, then merge into a unified product page. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A product detail page needs data from three backends: the product catalog (name, price, category), the inventory system (stock levels, warehouse location), and the reviews service (average rating, review count). Calling them sequentially takes 3x the latency of the slowest service. Calling them in parallel from the application means managing threads, error handling, and result aggregation in every controller that needs composite data.
 
-## The Problem
+This example uses Conductor's FORK_JOIN to dispatch three independent data fetches in parallel, wait for all three to complete, and merge their outputs into a single product page -- with strict validation that every branch contributed its result.
 
-You need to assemble a product detail page by fetching data from three independent microservices simultaneously. Product catalog (name, description, price), inventory service (stock level, warehouse location), and reviews service (ratings, review text). Calling them sequentially triples the page load time. All three queries use the same productId and are completely independent of each other, but the merge step cannot run until all three have responded.
+## Workflow Structure
 
-Without orchestration, you'd fire three async HTTP calls, manage CompletableFutures or callbacks for each, write barrier logic to wait for all three, and handle the case where the reviews service is slow while the other two have already returned. If the inventory service times out, you need to decide whether to retry it independently or fail the entire page assembly. There is no record of what each service returned or how long each took.
+```
+FORK_JOIN ─┬─ fj_get_product    (catalog lookup by productId)
+           ├─ fj_get_inventory  (hash-based stock levels + warehouse assignment)
+           └─ fj_get_reviews    (hash-based ratings + review count)
+           |
+        JOIN (all three must complete)
+           |
+           v
+fj_merge_results  (combine product + inventory + reviews -> productPage)
+```
 
-## The Solution
+All three fork branches receive the same `productId` from workflow input. The JOIN waits for all three task references. The merge worker receives outputs wired as `${fj_get_product_ref.output.product}`, `${fj_get_inventory_ref.output.inventory}`, `${fj_get_reviews_ref.output.reviews}`.
 
-**You just write the product, inventory, reviews, and merge workers. Conductor handles running all three fetches in parallel via FORK_JOIN and waiting for completion.**
+## Branch 1: GetProductWorker (`fj_get_product`)
 
-This example demonstrates Conductor's FORK_JOIN task for parallel data aggregation. Three workers run simultaneously. GetProductWorker fetches catalog data (name, description, price), GetInventoryWorker queries stock levels and warehouse locations, and GetReviewsWorker retrieves ratings and review text. All three receive the same productId and execute concurrently. A JOIN task waits until all three branches complete, then MergeResultsWorker combines the product, inventory, and reviews data into a single product page object. If the reviews service is slow, Conductor waits for it while keeping the product and inventory results safe. If the inventory call fails, Conductor retries just that branch, the other two results are preserved.
+Looks up the product ID against a 5-item hardcoded catalog:
 
-### What You Write: Workers
-
-Four workers demonstrate parallel data aggregation: GetProductWorker, GetInventoryWorker, and GetReviewsWorker each fetch from their respective microservice concurrently, then MergeResultsWorker combines all three into a unified product page.
-
-| Worker | Task | What It Does | Real / Simulated |
+| ID | Name | Price | Category |
 |---|---|---|---|
-| **GetProductWorker** | `fj_get_product` | Returns product catalog data (id, name, price, category) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **GetInventoryWorker** | `fj_get_inventory` | Returns inventory data (productId, inStock flag, quantity, warehouse location) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **GetReviewsWorker** | `fj_get_reviews` | Returns review data (productId, averageRating, totalReviews, topReview text) for the given productId. Defaults to "UNKNOWN" if productId is missing or blank. | Simulated |
-| **MergeResultsWorker** | `fj_merge_results` | Combines product, inventory, and review data into a single product page with name, price, availability, stock count, rating, and review count. Handles null inputs gracefully with safe defaults. | Simulated |
+| PROD-001 | Wireless Headphones | $79.99 | Electronics |
+| PROD-002 | Mechanical Keyboard | $129.99 | Electronics |
+| PROD-003 | USB-C Hub | $49.99 | Accessories |
+| PROD-004 | Standing Desk | $399.99 | Furniture |
+| PROD-005 | Noise Cancelling Earbuds | $149.99 | Electronics |
 
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
+Unknown product IDs return `FAILED_WITH_TERMINAL_ERROR` with a message naming the missing ID. This is the only branch where the data source is finite and failure is expected for invalid inputs.
 
-### What Conductor Gives You For Free
+## Branch 2: GetInventoryWorker (`fj_get_inventory`)
 
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
+Generates deterministic inventory data from the product ID hash:
 
-### The Workflow
-
-```
-FORK_JOIN
-    ├── fj_get_product
-    ├── fj_get_inventory
-    └── fj_get_reviews
-    │
-    ▼
-JOIN (wait for all branches)
-fj_merge_results
+```java
+int hash = Math.abs(productId.hashCode());
+int quantity = hash % 500;
+boolean inStock = quantity > 0;
+String warehouse = WAREHOUSES[hash % WAREHOUSES.length];
 ```
 
-## Running It
+Warehouse assignment cycles through `US-WEST-1`, `US-WEST-2`, `US-EAST-1`, `EU-WEST-1`, `AP-SOUTH-1`. The `inStock` flag is derived directly from `quantity > 0`, ensuring logical consistency. This branch never fails for valid product IDs -- it always produces an inventory record.
 
-### Prerequisites
+## Branch 3: GetReviewsWorker (`fj_get_reviews`)
 
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+Generates deterministic review metrics from the product ID hash:
 
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
+```java
+double averageRating = 1.0 + (hash % 41) / 10.0;  // range 1.0 - 5.0
+int totalReviews = hash % 1000;
+String topReview = SAMPLE_REVIEWS[hash % SAMPLE_REVIEWS.length];
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+The rating formula guarantees values between 1.0 and 5.0 inclusive. The top review is selected from 5 sample reviews.
 
-If port 8080 is already taken:
+## The Merge: MergeResultsWorker (`fj_merge_results`)
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
+The merge worker is where branch independence meets strict assembly requirements. It validates that all three inputs are non-null before proceeding:
+
+```java
+if (product == null) {
+    fail.setReasonForIncompletion(
+        "Input 'product' is required -- the product fork branch must complete successfully");
+}
 ```
 
-### Option 2: Run locally
+Each null check names the specific branch that failed, making it immediately clear which parallel task caused the merge to fail.
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+The output `productPage` contains exactly 6 fields, each sourced from a specific branch:
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/fork-join-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
+| Field | Source Branch | Derivation |
 |---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
+| `name` | product | Direct from catalog |
+| `price` | product | Direct from catalog |
+| `available` | inventory | `inStock` boolean |
+| `stock` | inventory | `quantity` integer |
+| `rating` | reviews | `averageRating` double |
+| `reviewCount` | reviews | `totalReviews` integer |
 
-## Using the Conductor CLI
+## Branch Independence
 
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
+Every branch operates on immutable data derived solely from the `productId` input. There is no shared mutable state between branches. Running branches for `PROD-001` and `PROD-002` in any order produces the same results -- the tests explicitly verify this by comparing outputs across interleaved executions.
 
-```bash
-java -jar target/fork-join-1.0.0.jar --workers
-```
+## What Happens When a Branch Fails
 
-Then in a separate terminal:
+When the product branch fails (e.g., unknown `PROD-999`), Conductor's FORK_JOIN propagates the failure. The merge worker receives `null` for the failed branch's output and returns `FAILED_WITH_TERMINAL_ERROR` with a message identifying which branch is missing. The inventory and reviews branches may have already completed successfully -- their results are simply not used.
 
-```bash
-conductor workflow start \
-  --workflow fork_join_demo \
-  --version 1 \
-  --input '{"productId": "PROD-001"}'
-```
+## Test Coverage
 
-### Check workflow status
+5 test classes, 36 tests:
 
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w fork_join_demo -s COMPLETED -c 5
-```
+**ForkJoinIntegrationTest (4 tests):** Full three-branch merge for `PROD-001`, branch independence across two products, failed branch causing merge failure, merge output containing all 6 fields from all 3 branches.
 
-## Example Output
+**GetProductWorkerTest (8 tests):** Known product lookup, unknown product failure with ID in error message, missing/blank/null productId, 4-field output, deterministic output across invocations.
 
-```
-=== FORK_JOIN Demo: Parallel Product Page Assembly ===
+**GetInventoryWorkerTest (8 tests):** Inventory field completeness, deterministic quantity/warehouse, different products getting different inventory, `inStock` matching `quantity > 0`, missing/blank/null productId.
 
-Step 1: Registering task definitions...
-  Registered: fj_get_product, fj_get_inventory, fj_get_reviews, fj_merge_results
+**GetReviewsWorkerTest (8 tests):** Rating range validation (1.0-5.0), deterministic review data, different products getting different reviews, 4-field output, missing/blank/null productId.
 
-Step 2: Registering workflow 'fork_join_demo'...
-  Workflow registered.
+**MergeResultsWorkerTest (8 tests):** Full merge, individual branch failures (product null, inventory null, reviews null), all branches null, missing input keys, out-of-stock handling, 6-field output.
 
-Step 3: Starting workers...
-  4 workers polling.
+---
 
-Step 4: Starting workflow...
+## Production Notes
 
-  Workflow ID: 3f8a1b2c-...
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
 
-Step 5: Waiting for completion...
-  [fj_get_product] Fetching product details for: PROD-001
-  [fj_get_inventory] Checking inventory for: PROD-001
-  [fj_get_reviews] Fetching reviews for: PROD-001
-  [fj_merge_results] Building product page:
-    -> Wireless Headphones | $79.99 |  | 0 stars (0 reviews)
+---
 
-
-
-  Status: COMPLETED
-  Output: {productPage=productPage-value}
-
-Result: PASSED
-```
-## How to Extend
-
-Connect the data-fetching workers to your product catalog, inventory system (SAP, NetSuite), and reviews service (Bazaarvoice, Yotpo), and the parallel assembly works unchanged.
-
-- **GetProductWorker** (`fj_get_product`): query your product catalog service or database (PostgreSQL, MongoDB, Elasticsearch) for the product name, description, price, images, and category
-- **GetInventoryWorker** (`fj_get_inventory`): call your inventory management system (SAP, NetSuite, or a custom microservice) for real-time stock levels, warehouse locations, and reorder status
-- **GetReviewsWorker** (`fj_get_reviews`): fetch customer reviews from your reviews service, Bazaarvoice, or Yotpo, returning average rating, review count, and recent review text
-- **MergeResultsWorker** (`fj_merge_results`): add SEO metadata, compute pricing tiers (wholesale vs: retail), inject personalized recommendations, and cache the assembled page in Redis
-
-Connecting each worker to a real microservice API does not change the parallel fetch-then-merge workflow, provided each returns the expected product, inventory, or review data structure.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-fork-join/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/forkjoin/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── ForkJoinExample.java         # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── GetInventoryWorker.java
-│       ├── GetProductWorker.java
-│       ├── GetReviewsWorker.java
-│       └── MergeResultsWorker.java
-└── src/test/java/forkjoin/workers/
-    ├── GetInventoryWorkerTest.java   # 7 tests
-    ├── GetProductWorkerTest.java     # 6 tests
-    ├── GetReviewsWorkerTest.java     # 7 tests
-    └── MergeResultsWorkerTest.java   # 9 tests
-```
+> **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

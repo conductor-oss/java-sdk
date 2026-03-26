@@ -1,0 +1,62 @@
+{
+  "name": "wfp_workflow_profiling",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "workflowName",
+    "iterations"
+  ],
+  "tasks": [
+    {
+      "name": "wfp_instrument",
+      "taskReferenceName": "wfp_instrument_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "workflowName": "${workflow.input.workflowName}",
+        "iterations": "${workflow.input.iterations}"
+      }
+    },
+    {
+      "name": "wfp_execute",
+      "taskReferenceName": "wfp_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instrumentedWorkflow": "${wfp_instrument_ref.output.instrumentedWorkflow}",
+        "iterations": "${workflow.input.iterations}"
+      }
+    },
+    {
+      "name": "wfp_measure_times",
+      "taskReferenceName": "wfp_measure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "executionResults": "${wfp_execute_ref.output.executionResults}"
+      }
+    },
+    {
+      "name": "wfp_bottleneck",
+      "taskReferenceName": "wfp_bottleneck_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "timings": "${wfp_measure_ref.output.timings}"
+      }
+    },
+    {
+      "name": "wfp_optimize",
+      "taskReferenceName": "wfp_optimize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "bottlenecks": "${wfp_bottleneck_ref.output.bottlenecks}",
+        "workflowName": "${workflow.input.workflowName}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "workflowName": "${workflow.input.workflowName}",
+    "bottlenecks": "${wfp_bottleneck_ref.output.bottlenecks}",
+    "optimizations": "${wfp_optimize_ref.output.optimizations}",
+    "expectedSpeedup": "${wfp_optimize_ref.output.expectedSpeedup}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

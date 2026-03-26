@@ -1,0 +1,49 @@
+{
+  "name": "error_classification_demo",
+  "description": "Error classification demo -- classifies API errors as retryable (429, 503) or non-retryable (400) and routes accordingly.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["triggerError"],
+  "tasks": [
+    {
+      "name": "ec_api_call",
+      "taskReferenceName": "api_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "triggerError": "${workflow.input.triggerError}"
+      }
+    },
+    {
+      "name": "error_type_switch",
+      "taskReferenceName": "error_type_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${api_call_ref.output.errorType}"
+      },
+      "decisionCases": {
+        "non_retryable": [
+          {
+            "name": "ec_handle_error",
+            "taskReferenceName": "handle_error_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "errorType": "${api_call_ref.output.errorType}",
+              "error": "${api_call_ref.output.error}",
+              "httpStatus": "${api_call_ref.output.httpStatus}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "result": "${api_call_ref.output.result}",
+    "errorType": "${api_call_ref.output.errorType}",
+    "handled": "${handle_error_ref.output.handled}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

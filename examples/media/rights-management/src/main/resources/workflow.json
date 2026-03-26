@@ -1,0 +1,67 @@
+{
+  "name": "rights_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "assetId",
+    "licenseId",
+    "usageType",
+    "territory"
+  ],
+  "tasks": [
+    {
+      "name": "rts_check_license",
+      "taskReferenceName": "rts_license_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "licenseId": "${workflow.input.licenseId}",
+        "usageType": "${workflow.input.usageType}"
+      }
+    },
+    {
+      "name": "rts_verify_usage",
+      "taskReferenceName": "rts_usage_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "licenseId": "${workflow.input.licenseId}",
+        "usageType": "${workflow.input.usageType}",
+        "territory": "${workflow.input.territory}",
+        "licenseValid": "${rts_license_ref.output.valid}",
+        "allowedUsages": "${rts_license_ref.output.allowedUsages}"
+      }
+    },
+    {
+      "name": "rts_track_royalties",
+      "taskReferenceName": "rts_royalties_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "licenseId": "${workflow.input.licenseId}",
+        "usageVerified": "${rts_usage_ref.output.usageAllowed}",
+        "royaltyRate": "${rts_license_ref.output.royaltyRate}"
+      }
+    },
+    {
+      "name": "rts_generate_report",
+      "taskReferenceName": "rts_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "assetId": "${workflow.input.assetId}",
+        "licenseId": "${workflow.input.licenseId}",
+        "royaltyAmount": "${rts_royalties_ref.output.royaltyAmount}",
+        "usageCount": "${rts_royalties_ref.output.usageCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "assetId": "${workflow.input.assetId}",
+    "licenseValid": "${rts_license_ref.output.valid}",
+    "usageAllowed": "${rts_usage_ref.output.usageAllowed}",
+    "royaltyAmount": "${rts_royalties_ref.output.royaltyAmount}",
+    "reportId": "${rts_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

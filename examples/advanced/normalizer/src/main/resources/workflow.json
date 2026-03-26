@@ -1,0 +1,88 @@
+{
+  "name": "nrm_normalizer",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "rawInput",
+    "sourceSystem"
+  ],
+  "tasks": [
+    {
+      "name": "nrm_detect_format",
+      "taskReferenceName": "nrm_detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawInput": "${workflow.input.rawInput}",
+        "sourceSystem": "${workflow.input.sourceSystem}"
+      }
+    },
+    {
+      "name": "format_switch",
+      "taskReferenceName": "nrm_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${nrm_detect_ref.output.detectedFormat}"
+      },
+      "decisionCases": {
+        "json": [
+          {
+            "name": "nrm_convert_json",
+            "taskReferenceName": "nrm_json_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "rawInput": "${workflow.input.rawInput}"
+            }
+          }
+        ],
+        "xml": [
+          {
+            "name": "nrm_convert_xml",
+            "taskReferenceName": "nrm_xml_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "rawInput": "${workflow.input.rawInput}"
+            }
+          }
+        ],
+        "csv": [
+          {
+            "name": "nrm_convert_csv",
+            "taskReferenceName": "nrm_csv_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "rawInput": "${workflow.input.rawInput}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "nrm_convert_json",
+          "taskReferenceName": "nrm_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "rawInput": "${workflow.input.rawInput}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nrm_output",
+      "taskReferenceName": "nrm_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "detectedFormat": "${nrm_detect_ref.output.detectedFormat}",
+        "sourceSystem": "${workflow.input.sourceSystem}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "detectedFormat": "${nrm_detect_ref.output.detectedFormat}",
+    "sourceSystem": "${workflow.input.sourceSystem}",
+    "normalized": "${nrm_output_ref.output.normalized}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

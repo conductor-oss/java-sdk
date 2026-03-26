@@ -44,18 +44,30 @@ public class ReasoningWorker implements Worker {
     @Override
     @SuppressWarnings("unchecked")
     public TaskResult execute(Task task) {
+        String question = (String) task.getInputData().get("question");
+        if (question == null || question.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'question' is required and must not be blank");
+            return fail;
+        }
+
+        List<Map<String, Object>> documents = (List<Map<String, Object>>) task.getInputData().get("documents");
+        if (documents == null || documents.isEmpty()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'documents' is required and must contain at least one document");
+            return fail;
+        }
+
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);
 
         System.out.println("  [reasoning] Calling OpenAI to build chain-of-thought...");
         try {
-            String question = (String) task.getInputData().get("question");
-            List<Map<String, Object>> documents = (List<Map<String, Object>>) task.getInputData().get("documents");
             StringBuilder docsStr = new StringBuilder();
-            if (documents != null) {
-                for (Map<String, Object> doc : documents) {
-                    docsStr.append("- ").append(doc.get("text")).append("\n");
-                }
+            for (Map<String, Object> doc : documents) {
+                docsStr.append("- ").append(doc.get("text")).append("\n");
             }
 
             String systemPrompt = "You are a reasoning assistant. Build a chain-of-thought analysis from the provided documents. "

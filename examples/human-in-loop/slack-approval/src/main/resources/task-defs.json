@@ -1,0 +1,30 @@
+[
+  {
+    "name": "sa_submit",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "sa_post_slack",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "slack_response",
+    "retryCount": 0,
+    "timeoutSeconds": 3600,
+    "responseTimeoutSeconds": 3600,
+    "ownerEmail": "examples@orkes.io"
+  },
+  {
+    "name": "sa_finalize",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

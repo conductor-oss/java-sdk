@@ -1,0 +1,51 @@
+{
+  "name": "service_discovery_293",
+  "description": "Discover services, select instance, call with failover",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["serviceName", "request"],
+  "tasks": [
+    {
+      "name": "sd_discover_services",
+      "taskReferenceName": "sd_discover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "serviceName": "${workflow.input.serviceName}"
+      }
+    },
+    {
+      "name": "sd_select_instance",
+      "taskReferenceName": "sd_select_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instances": "${sd_discover_ref.output.instances}",
+        "strategy": "least-connections"
+      }
+    },
+    {
+      "name": "sd_call_service",
+      "taskReferenceName": "sd_call_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "instance": "${sd_select_ref.output.selectedInstance}",
+        "request": "${workflow.input.request}"
+      }
+    },
+    {
+      "name": "sd_handle_failover",
+      "taskReferenceName": "sd_failover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "response": "${sd_call_ref.output.response}",
+        "instance": "${sd_select_ref.output.selectedInstance}",
+        "allInstances": "${sd_discover_ref.output.instances}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${sd_failover_ref.output.finalResult}",
+    "instanceUsed": "${sd_select_ref.output.selectedInstance}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

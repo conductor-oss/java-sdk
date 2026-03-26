@@ -1,0 +1,74 @@
+{
+  "name": "gvp_government_permit",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["applicantId", "permitType", "details"],
+  "tasks": [
+    {
+      "name": "gvp_apply",
+      "taskReferenceName": "gvp_apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicantId": "${workflow.input.applicantId}",
+        "permitType": "${workflow.input.permitType}"
+      }
+    },
+    {
+      "name": "gvp_validate",
+      "taskReferenceName": "gvp_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "application": "${gvp_apply_ref.output.application}"
+      }
+    },
+    {
+      "name": "gvp_review",
+      "taskReferenceName": "gvp_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "application": "${gvp_validate_ref.output.validatedApp}"
+      }
+    },
+    {
+      "name": "route_decision",
+      "taskReferenceName": "gvp_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${gvp_review_ref.output.decision}"
+      },
+      "decisionCases": {
+        "approve": [
+          {
+            "name": "gvp_issue",
+            "taskReferenceName": "gvp_issue_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "applicantId": "${workflow.input.applicantId}",
+              "permitType": "${workflow.input.permitType}"
+            }
+          }
+        ],
+        "deny": [
+          {
+            "name": "gvp_deny",
+            "taskReferenceName": "gvp_deny_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "applicantId": "${workflow.input.applicantId}",
+              "reason": "${gvp_review_ref.output.reason}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "applicantId": "${workflow.input.applicantId}",
+    "decision": "${gvp_review_ref.output.decision}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

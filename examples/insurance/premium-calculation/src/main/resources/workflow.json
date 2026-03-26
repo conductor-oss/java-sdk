@@ -1,0 +1,54 @@
+{
+  "name": "pmc_premium_calculation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "policyType",
+    "applicantAge",
+    "coverageAmount"
+  ],
+  "tasks": [
+    {
+      "name": "pmc_collect_factors",
+      "taskReferenceName": "pmc_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "policyType": "${workflow.input.policyType}",
+        "applicantAge": "${workflow.input.applicantAge}"
+      }
+    },
+    {
+      "name": "pmc_calculate_base",
+      "taskReferenceName": "pmc_base_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "factors": "${pmc_collect_ref.output.factors}",
+        "coverageAmount": "${workflow.input.coverageAmount}"
+      }
+    },
+    {
+      "name": "pmc_apply_modifiers",
+      "taskReferenceName": "pmc_mod_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "basePremium": "${pmc_base_ref.output.basePremium}",
+        "factors": "${pmc_collect_ref.output.factors}"
+      }
+    },
+    {
+      "name": "pmc_finalize",
+      "taskReferenceName": "pmc_final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "adjustedPremium": "${pmc_mod_ref.output.adjustedPremium}",
+        "policyType": "${workflow.input.policyType}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "basePremium": "${pmc_base_ref.output.basePremium}",
+    "finalPremium": "${pmc_final_ref.output.finalPremium}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

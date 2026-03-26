@@ -29,7 +29,6 @@ class FulfillOrderWorkerTest {
     @Test
     void returnsFulfillmentId() {
         String orderId = createAndConfirmOrder();
-
         Task task = taskWith(Map.of("orderId", orderId, "items",
                 List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
         TaskResult r = fulfillWorker.execute(task);
@@ -40,11 +39,9 @@ class FulfillOrderWorkerTest {
     @Test
     void transitionsToProcessing() {
         String orderId = createAndConfirmOrder();
-
         Task task = taskWith(Map.of("orderId", orderId, "items",
                 List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
         fulfillWorker.execute(task);
-
         assertEquals("PROCESSING", OrderStore.getStatus(orderId));
     }
 
@@ -52,9 +49,10 @@ class FulfillOrderWorkerTest {
     void fulfillmentIdIsUnique() {
         String orderId1 = createAndConfirmOrder();
         String orderId2 = createAndConfirmOrder();
-
-        Task t1 = taskWith(Map.of("orderId", orderId1, "items", List.of(), "warehouseId", "WH-1"));
-        Task t2 = taskWith(Map.of("orderId", orderId2, "items", List.of(), "warehouseId", "WH-1"));
+        Task t1 = taskWith(Map.of("orderId", orderId1, "items",
+                List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
+        Task t2 = taskWith(Map.of("orderId", orderId2, "items",
+                List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
         assertNotEquals(fulfillWorker.execute(t1).getOutputData().get("fulfillmentId"),
                 fulfillWorker.execute(t2).getOutputData().get("fulfillmentId"));
     }
@@ -62,7 +60,6 @@ class FulfillOrderWorkerTest {
     @Test
     void includesPackedAt() {
         String orderId = createAndConfirmOrder();
-
         Task task = taskWith(Map.of("orderId", orderId, "items",
                 List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
         TaskResult r = fulfillWorker.execute(task);
@@ -72,7 +69,6 @@ class FulfillOrderWorkerTest {
     @Test
     void tracksPreviousStatus() {
         String orderId = createAndConfirmOrder();
-
         Task task = taskWith(Map.of("orderId", orderId, "items",
                 List.of(Map.of("sku", "A", "qty", 1)), "warehouseId", "WH-1"));
         TaskResult r = fulfillWorker.execute(task);
@@ -80,8 +76,55 @@ class FulfillOrderWorkerTest {
         assertEquals("PROCESSING", r.getOutputData().get("status"));
     }
 
+    // ---- Failure path: input validation ---------------------------------
+
+    @Test
+    void failsWithTerminalErrorOnMissingOrderId() {
+        Task task = taskWith(Map.of("items", List.of(Map.of("sku", "A", "qty", 1)),
+                "warehouseId", "WH-1"));
+        TaskResult r = fulfillWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("orderId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnMissingWarehouseId() {
+        Task task = taskWith(Map.of("orderId", "ORD-1", "items",
+                List.of(Map.of("sku", "A", "qty", 1))));
+        TaskResult r = fulfillWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("warehouseId"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnEmptyItems() {
+        Task task = taskWith(Map.of("orderId", "ORD-1", "items", List.of(),
+                "warehouseId", "WH-1"));
+        TaskResult r = fulfillWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+    }
+
+    @Test
+    void failsWithTerminalErrorOnItemWithZeroQty() {
+        String orderId = createAndConfirmOrder();
+        Task task = taskWith(Map.of("orderId", orderId, "items",
+                List.of(Map.of("sku", "A", "qty", 0)), "warehouseId", "WH-1"));
+        TaskResult r = fulfillWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("invalid quantity"));
+    }
+
+    @Test
+    void failsWithTerminalErrorOnItemWithMissingSku() {
+        String orderId = createAndConfirmOrder();
+        Task task = taskWith(Map.of("orderId", orderId, "items",
+                List.of(Map.of("qty", 1)), "warehouseId", "WH-1"));
+        TaskResult r = fulfillWorker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, r.getStatus());
+        assertTrue(r.getReasonForIncompletion().contains("no SKU"));
+    }
+
     private String createAndConfirmOrder() {
-        // Create
         Task createTask = new Task();
         createTask.setStatus(Task.Status.IN_PROGRESS);
         createTask.setInputData(new HashMap<>(Map.of("customerId", "cust-" + System.nanoTime(),
@@ -89,7 +132,6 @@ class FulfillOrderWorkerTest {
         TaskResult createResult = createWorker.execute(createTask);
         String orderId = createResult.getOutputData().get("orderId").toString();
 
-        // Validate (transitions to CONFIRMED)
         Task valTask = new Task();
         valTask.setStatus(Task.Status.IN_PROGRESS);
         valTask.setInputData(new HashMap<>(Map.of("orderId", orderId,

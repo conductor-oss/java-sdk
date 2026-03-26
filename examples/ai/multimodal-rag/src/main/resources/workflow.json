@@ -1,0 +1,95 @@
+{
+  "name": "multimodal_rag_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "question",
+    "attachments"
+  ],
+  "tasks": [
+    {
+      "name": "mm_detect_modality",
+      "taskReferenceName": "detect_modality_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "attachments": "${workflow.input.attachments}"
+      }
+    },
+    {
+      "name": "fork_modalities",
+      "taskReferenceName": "fork_modalities_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "mm_process_text",
+            "taskReferenceName": "process_text_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "question": "${workflow.input.question}",
+              "textContent": "${detect_modality_ref.output.textContent}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mm_process_image",
+            "taskReferenceName": "process_image_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "imageRefs": "${detect_modality_ref.output.imageRefs}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "mm_process_audio",
+            "taskReferenceName": "process_audio_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "audioRefs": "${detect_modality_ref.output.audioRefs}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_modalities",
+      "taskReferenceName": "join_modalities_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "process_text_ref",
+        "process_image_ref",
+        "process_audio_ref"
+      ]
+    },
+    {
+      "name": "mm_multimodal_search",
+      "taskReferenceName": "multimodal_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "textEmbedding": "${process_text_ref.output.embedding}",
+        "imageFeatures": "${process_image_ref.output.imageFeatures}",
+        "audioFeatures": "${process_audio_ref.output.audioFeatures}"
+      }
+    },
+    {
+      "name": "mm_generate",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "searchResults": "${multimodal_search_ref.output.searchResults}",
+        "modalities": "${detect_modality_ref.output.detectedModalities}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "searchResults": "${multimodal_search_ref.output.searchResults}",
+    "detectedModalities": "${detect_modality_ref.output.detectedModalities}"
+  }
+}

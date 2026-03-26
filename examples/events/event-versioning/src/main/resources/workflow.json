@@ -1,0 +1,76 @@
+{
+  "name": "event_versioning",
+  "description": "Event versioning workflow that detects event schema version, transforms older versions to the latest format via a SWITCH task, and processes the event uniformly.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "event"
+  ],
+  "tasks": [
+    {
+      "name": "vr_detect_version",
+      "taskReferenceName": "detect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "event": "${workflow.input.event}"
+      }
+    },
+    {
+      "name": "version_route",
+      "taskReferenceName": "switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${detect_ref.output.version}"
+      },
+      "decisionCases": {
+        "v1": [
+          {
+            "name": "vr_transform_v1",
+            "taskReferenceName": "v1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}"
+            }
+          }
+        ],
+        "v2": [
+          {
+            "name": "vr_transform_v2",
+            "taskReferenceName": "v2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "event": "${workflow.input.event}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "vr_pass_through",
+          "taskReferenceName": "pass_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "event": "${workflow.input.event}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "vr_process_event",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "originalVersion": "${detect_ref.output.version}",
+        "event": "${workflow.input.event}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "detectedVersion": "${detect_ref.output.version}",
+    "processed": "${process_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

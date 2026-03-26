@@ -1,0 +1,61 @@
+{
+  "name": "quality_gate_demo",
+  "description": "Quality Gate -- run automated tests, switch on results, wait for QA sign-off, then deploy.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [],
+  "tasks": [
+    {
+      "name": "qg_run_tests",
+      "taskReferenceName": "run_tests_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    },
+    {
+      "name": "test_result_switch",
+      "taskReferenceName": "test_result_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${run_tests_ref.output.allPassed}"
+      },
+      "decisionCases": {
+        "false": [
+          {
+            "name": "tests_failed_terminate",
+            "taskReferenceName": "tests_failed_terminate_ref",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "FAILED",
+              "terminationReason": "Automated tests failed. Deployment blocked."
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "qa_signoff",
+          "taskReferenceName": "qa_signoff_ref",
+          "type": "WAIT",
+          "inputParameters": {}
+        },
+        {
+          "name": "qg_deploy",
+          "taskReferenceName": "deploy_ref",
+          "type": "SIMPLE",
+          "inputParameters": {}
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "allPassed": "${run_tests_ref.output.allPassed}",
+    "totalTests": "${run_tests_ref.output.totalTests}",
+    "passedTests": "${run_tests_ref.output.passedTests}",
+    "failedTests": "${run_tests_ref.output.failedTests}",
+    "deployed": "${deploy_ref.output.deployed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

@@ -1,0 +1,57 @@
+{
+  "name": "fork_loop_demo",
+  "description": "FORK inside DO_WHILE demo — iterative parallel processing. Each iteration forks parallel batch-processing tasks, then a summary task reports after the loop.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["totalBatches"],
+  "tasks": [
+    {
+      "name": "batch_loop",
+      "taskReferenceName": "batch_loop",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.batch_loop['iteration'] < $.totalBatches) { true; } else { false; }",
+      "inputParameters": {
+        "totalBatches": "${workflow.input.totalBatches}"
+      },
+      "loopOver": [
+        {
+          "name": "fork_batch",
+          "taskReferenceName": "fork_batch_ref",
+          "type": "FORK_JOIN",
+          "forkTasks": [
+            [
+              {
+                "name": "fl_process_batch",
+                "taskReferenceName": "fl_process_batch_ref",
+                "type": "SIMPLE",
+                "inputParameters": {
+                  "iteration": "${batch_loop.output.iteration}"
+                }
+              }
+            ]
+          ]
+        },
+        {
+          "name": "join_batch",
+          "taskReferenceName": "join_batch_ref",
+          "type": "JOIN",
+          "joinOn": ["fl_process_batch_ref"]
+        }
+      ]
+    },
+    {
+      "name": "fl_summary",
+      "taskReferenceName": "fl_summary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "iterations": "${batch_loop.output.iteration}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalIterations": "${batch_loop.output.iteration}",
+    "summary": "${fl_summary_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

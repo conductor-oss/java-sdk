@@ -1,0 +1,61 @@
+{
+  "name": "avg_video_generation",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "topic",
+    "duration",
+    "style"
+  ],
+  "tasks": [
+    {
+      "name": "avg_script",
+      "taskReferenceName": "avg_script_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topic": "${workflow.input.topic}",
+        "duration": "${workflow.input.duration}"
+      }
+    },
+    {
+      "name": "avg_storyboard",
+      "taskReferenceName": "avg_story_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "script": "${avg_script_ref.output.script}"
+      }
+    },
+    {
+      "name": "avg_generate",
+      "taskReferenceName": "avg_gen_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "storyboard": "${avg_story_ref.output.storyboard}",
+        "style": "${workflow.input.style}"
+      }
+    },
+    {
+      "name": "avg_edit",
+      "taskReferenceName": "avg_edit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${avg_gen_ref.output.videoId}"
+      }
+    },
+    {
+      "name": "avg_render",
+      "taskReferenceName": "avg_render_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "videoId": "${avg_edit_ref.output.editedVideoId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "videoId": "${avg_render_ref.output.finalVideoId}",
+    "duration": "${avg_render_ref.output.duration}",
+    "renderComplete": "${avg_render_ref.output.complete}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

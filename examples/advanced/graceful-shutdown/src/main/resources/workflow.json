@@ -1,0 +1,63 @@
+{
+  "name": "gsh_graceful_shutdown",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "workerGroup",
+    "drainTimeoutSec"
+  ],
+  "tasks": [
+    {
+      "name": "gsh_signal",
+      "taskReferenceName": "gsh_signal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "workerGroup": "${workflow.input.workerGroup}"
+      }
+    },
+    {
+      "name": "gsh_drain_tasks",
+      "taskReferenceName": "gsh_drain_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "workerGroup": "${workflow.input.workerGroup}",
+        "drainTimeoutSec": "${workflow.input.drainTimeoutSec}"
+      }
+    },
+    {
+      "name": "gsh_complete_inflight",
+      "taskReferenceName": "gsh_inflight_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "inFlightTasks": "${gsh_drain_ref.output.inFlightTasks}"
+      }
+    },
+    {
+      "name": "gsh_checkpoint",
+      "taskReferenceName": "gsh_checkpoint_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "completedTasks": "${gsh_inflight_ref.output.completedTasks}",
+        "workerGroup": "${workflow.input.workerGroup}"
+      }
+    },
+    {
+      "name": "gsh_stop",
+      "taskReferenceName": "gsh_stop_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "checkpointId": "${gsh_checkpoint_ref.output.checkpointId}",
+        "workerGroup": "${workflow.input.workerGroup}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "workerGroup": "${workflow.input.workerGroup}",
+    "drainedTasks": "${gsh_drain_ref.output.drainedCount}",
+    "completedInflight": "${gsh_inflight_ref.output.completedCount}",
+    "checkpointId": "${gsh_checkpoint_ref.output.checkpointId}",
+    "stopped": "${gsh_stop_ref.output.stopped}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,50 @@
+{
+  "name": "release_management_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "version",
+    "product"
+  ],
+  "tasks": [
+    {
+      "name": "rm_prepare",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "version": "${workflow.input.version}",
+        "product": "${workflow.input.product}"
+      }
+    },
+    {
+      "name": "rm_approve",
+      "taskReferenceName": "approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "approveData": "${prepare_ref.output}"
+      }
+    },
+    {
+      "name": "rm_deploy",
+      "taskReferenceName": "deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deployData": "${approve_ref.output}"
+      }
+    },
+    {
+      "name": "rm_announce",
+      "taskReferenceName": "announce_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "announceData": "${deploy_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "prepareResult": "${prepare_ref.output}",
+    "announceResult": "${announce_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 3600
+}

@@ -1,0 +1,63 @@
+{
+  "name": "environmental_monitoring_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "stationId",
+    "region",
+    "monitoringType"
+  ],
+  "tasks": [
+    {
+      "name": "env_collect_data",
+      "taskReferenceName": "env_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stationId": "${workflow.input.stationId}",
+        "region": "${workflow.input.region}",
+        "monitoringType": "${workflow.input.monitoringType}"
+      }
+    },
+    {
+      "name": "env_check_thresholds",
+      "taskReferenceName": "env_threshold_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stationId": "${workflow.input.stationId}",
+        "readings": "${env_collect_ref.output.readings}",
+        "monitoringType": "${workflow.input.monitoringType}"
+      }
+    },
+    {
+      "name": "env_trigger_alert",
+      "taskReferenceName": "env_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stationId": "${workflow.input.stationId}",
+        "region": "${workflow.input.region}",
+        "breaches": "${env_threshold_ref.output.breaches}",
+        "overallStatus": "${env_threshold_ref.output.overallStatus}"
+      }
+    },
+    {
+      "name": "env_generate_report",
+      "taskReferenceName": "env_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "stationId": "${workflow.input.stationId}",
+        "region": "${workflow.input.region}",
+        "readings": "${env_collect_ref.output.readings}",
+        "breaches": "${env_threshold_ref.output.breaches}",
+        "alertsSent": "${env_alert_ref.output.alertsSent}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "stationId": "${workflow.input.stationId}",
+    "overallStatus": "${env_threshold_ref.output.overallStatus}",
+    "breachCount": "${env_threshold_ref.output.breachCount}",
+    "reportId": "${env_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

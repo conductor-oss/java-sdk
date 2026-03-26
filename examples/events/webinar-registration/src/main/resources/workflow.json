@@ -1,0 +1,19 @@
+{
+  "name": "wbr_webinar_registration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["attendeeName", "email", "webinarId"],
+  "tasks": [
+    { "name": "wbr_register", "taskReferenceName": "wbr_register_ref", "type": "SIMPLE", "inputParameters": { "name": "${workflow.input.attendeeName}", "email": "${workflow.input.email}", "webinarId": "${workflow.input.webinarId}" } },
+    { "name": "wbr_confirm", "taskReferenceName": "wbr_confirm_ref", "type": "SIMPLE", "inputParameters": { "registrationId": "${wbr_register_ref.output.registrationId}", "email": "${workflow.input.email}" } },
+    { "name": "wbr_remind", "taskReferenceName": "wbr_remind_ref", "type": "SIMPLE", "inputParameters": { "registrationId": "${wbr_register_ref.output.registrationId}", "email": "${workflow.input.email}", "joinLink": "${wbr_register_ref.output.joinLink}" } },
+    { "name": "wbr_followup", "taskReferenceName": "wbr_followup_ref", "type": "SIMPLE", "inputParameters": { "registrationId": "${wbr_register_ref.output.registrationId}", "email": "${workflow.input.email}" } }
+  ],
+  "outputParameters": {
+    "registrationId": "${wbr_register_ref.output.registrationId}",
+    "joinLink": "${wbr_register_ref.output.joinLink}",
+    "followUpSent": "${wbr_followup_ref.output.sent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

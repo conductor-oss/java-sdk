@@ -1,0 +1,47 @@
+{
+  "name": "prompt_templates_workflow",
+  "description": "Resolve a versioned prompt template, call an LLM, and collect the result",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["templateId", "templateVersion", "variables", "model"],
+  "tasks": [
+    {
+      "name": "pt_resolve_template",
+      "taskReferenceName": "resolve_template_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "templateId": "${workflow.input.templateId}",
+        "templateVersion": "${workflow.input.templateVersion}",
+        "variables": "${workflow.input.variables}"
+      }
+    },
+    {
+      "name": "pt_call_llm",
+      "taskReferenceName": "call_llm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "prompt": "${resolve_template_ref.output.resolvedPrompt}",
+        "model": "${workflow.input.model}"
+      }
+    },
+    {
+      "name": "pt_collect",
+      "taskReferenceName": "collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "templateId": "${workflow.input.templateId}",
+        "version": "${workflow.input.templateVersion}",
+        "response": "${call_llm_ref.output.response}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "resolvedPrompt": "${resolve_template_ref.output.resolvedPrompt}",
+    "templateKey": "${resolve_template_ref.output.templateKey}",
+    "response": "${call_llm_ref.output.response}",
+    "tokens": "${call_llm_ref.output.tokens}",
+    "logged": "${collect_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

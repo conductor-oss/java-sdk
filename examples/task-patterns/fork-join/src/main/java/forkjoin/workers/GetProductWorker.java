@@ -31,27 +31,27 @@ public class GetProductWorker implements Worker {
     public TaskResult execute(Task task) {
         String productId = (String) task.getInputData().get("productId");
         if (productId == null || productId.isBlank()) {
-            productId = "UNKNOWN";
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'productId' is required and must not be blank");
+            return fail;
         }
 
         System.out.println("  [fj_get_product] Fetching product details for: " + productId);
 
+        Map<String, Object> catalogEntry = CATALOG.get(productId);
+        if (catalogEntry == null) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Product not found in catalog: " + productId);
+            return fail;
+        }
+
         Map<String, Object> product = new LinkedHashMap<>();
         product.put("id", productId);
-
-        Map<String, Object> catalogEntry = CATALOG.get(productId);
-        if (catalogEntry != null) {
-            product.put("name", catalogEntry.get("name"));
-            product.put("price", catalogEntry.get("price"));
-            product.put("category", catalogEntry.get("category"));
-        } else {
-            // Deterministic fallback based on product ID hash
-            int hash = Math.abs(productId.hashCode());
-            double price = 10.0 + (hash % 990);
-            product.put("name", "Product " + productId);
-            product.put("price", price);
-            product.put("category", "General");
-        }
+        product.put("name", catalogEntry.get("name"));
+        product.put("price", catalogEntry.get("price"));
+        product.put("category", catalogEntry.get("category"));
 
         TaskResult result = new TaskResult(task);
         result.setStatus(TaskResult.Status.COMPLETED);

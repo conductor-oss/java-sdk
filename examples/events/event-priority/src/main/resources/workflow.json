@@ -1,0 +1,82 @@
+{
+  "name": "event_priority_wf",
+  "description": "Event priority workflow that classifies events by priority and routes to the appropriate processing lane via a SWITCH task, then records the result.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType"
+  ],
+  "tasks": [
+    {
+      "name": "pr_classify_priority",
+      "taskReferenceName": "classify_priority_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}"
+      }
+    },
+    {
+      "name": "route_by_priority",
+      "taskReferenceName": "priority_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${classify_priority_ref.output.priority}"
+      },
+      "decisionCases": {
+        "high": [
+          {
+            "name": "pr_process_urgent",
+            "taskReferenceName": "process_urgent_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${classify_priority_ref.output.eventType}"
+            }
+          }
+        ],
+        "medium": [
+          {
+            "name": "pr_process_normal",
+            "taskReferenceName": "process_normal_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${workflow.input.eventId}",
+              "payload": "${classify_priority_ref.output.eventType}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "pr_process_batch",
+          "taskReferenceName": "process_batch_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "eventId": "${workflow.input.eventId}",
+            "payload": "${classify_priority_ref.output.eventType}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pr_record_processing",
+      "taskReferenceName": "record_processing_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "priority": "${classify_priority_ref.output.priority}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "priority": "${classify_priority_ref.output.priority}",
+    "recorded": "${record_processing_ref.output.recorded}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

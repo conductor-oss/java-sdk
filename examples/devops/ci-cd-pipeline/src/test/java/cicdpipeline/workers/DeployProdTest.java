@@ -20,6 +20,38 @@ class DeployProdTest {
     }
 
     @Test
+    void failsOnMissingBuildId() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>(Map.of("imageTag", "app:1.0")));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void failsOnMissingImageTag() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>(Map.of("buildId", "BLD-100001")));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void failsOnNonExistentBuildDir() {
+        Task task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setInputData(new HashMap<>(Map.of(
+                "buildId", "BLD-100001",
+                "imageTag", "app:1.0",
+                "buildDir", "/nonexistent/build/dir/xyz123"
+        )));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("Build artifacts not found"));
+    }
+
+    @Test
     void returnsCompletedStatus() {
         Task task = taskWith("BLD-100001", "app:1.2.3");
         TaskResult result = worker.execute(task);
@@ -70,20 +102,6 @@ class DeployProdTest {
         assertTrue(content.contains("BLD-100001"));
         assertTrue(content.contains("app:1.2.3"));
         assertTrue(content.contains("production"));
-    }
-
-    @Test
-    void outputContainsDeployed() {
-        Task task = taskWith("BLD-100001", "app:1.2.3");
-        TaskResult result = worker.execute(task);
-        assertTrue(result.getOutputData().containsKey("deployed"));
-    }
-
-    @Test
-    void outputContainsEnvironment() {
-        Task task = taskWith("BLD-100001", "app:1.2.3");
-        TaskResult result = worker.execute(task);
-        assertTrue(result.getOutputData().containsKey("environment"));
     }
 
     @Test

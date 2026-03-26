@@ -1,0 +1,59 @@
+{
+  "name": "tpv_telecom_provisioning",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "serviceType", "planId"],
+  "tasks": [
+    {
+      "name": "tpv_order",
+      "taskReferenceName": "tpv_order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "serviceType": "${workflow.input.serviceType}"
+      }
+    },
+    {
+      "name": "tpv_validate",
+      "taskReferenceName": "tpv_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${tpv_order_ref.output.orderId}",
+        "planId": "${workflow.input.planId}"
+      }
+    },
+    {
+      "name": "tpv_configure",
+      "taskReferenceName": "tpv_config_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${tpv_order_ref.output.orderId}",
+        "serviceType": "${workflow.input.serviceType}"
+      }
+    },
+    {
+      "name": "tpv_activate",
+      "taskReferenceName": "tpv_activate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "configId": "${tpv_config_ref.output.configId}"
+      }
+    },
+    {
+      "name": "tpv_confirm",
+      "taskReferenceName": "tpv_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "customerId": "${workflow.input.customerId}",
+        "serviceId": "${tpv_activate_ref.output.serviceId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${tpv_order_ref.output.orderId}",
+    "serviceId": "${tpv_activate_ref.output.serviceId}",
+    "status": "${tpv_confirm_ref.output.provisionStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

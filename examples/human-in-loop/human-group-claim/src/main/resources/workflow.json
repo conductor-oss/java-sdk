@@ -1,0 +1,42 @@
+{
+  "name": "human_group_claim",
+  "description": "Group Assignment with Claim — intake, wait for human group claim, resolve",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "hgc_intake",
+      "taskReferenceName": "intake_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "assignedGroup": "${workflow.input.assignedGroup}"
+      }
+    },
+    {
+      "name": "group_assigned_wait",
+      "taskReferenceName": "group_assigned_ref",
+      "type": "WAIT",
+      "inputParameters": {
+        "assignedGroup": "${workflow.input.assignedGroup}",
+        "ticketId": "${workflow.input.ticketId}",
+        "instructions": "${workflow.input.instructions}"
+      }
+    },
+    {
+      "name": "hgc_resolve",
+      "taskReferenceName": "resolve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "ticketId": "${workflow.input.ticketId}",
+        "claimedBy": "${group_assigned_ref.output.claimedBy}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "ticketId": "${workflow.input.ticketId}",
+    "queued": "${intake_ref.output.queued}",
+    "closed": "${resolve_ref.output.closed}"
+  }
+}

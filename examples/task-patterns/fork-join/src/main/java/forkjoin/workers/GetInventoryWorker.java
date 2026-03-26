@@ -27,7 +27,10 @@ public class GetInventoryWorker implements Worker {
     public TaskResult execute(Task task) {
         String productId = (String) task.getInputData().get("productId");
         if (productId == null || productId.isBlank()) {
-            productId = "UNKNOWN";
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'productId' is required and must not be blank");
+            return fail;
         }
 
         System.out.println("  [fj_get_inventory] Checking inventory for: " + productId);

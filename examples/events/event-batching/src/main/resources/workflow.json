@@ -1,0 +1,50 @@
+{
+  "name": "event_batching",
+  "description": "Event Batching — collects events, creates batches, then processes each batch in a DO_WHILE loop.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["events", "batchSize"],
+  "tasks": [
+    {
+      "name": "eb_collect_events",
+      "taskReferenceName": "collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${workflow.input.events}"
+      }
+    },
+    {
+      "name": "eb_create_batches",
+      "taskReferenceName": "create_batches_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${collect_ref.output.events}",
+        "batchSize": "${workflow.input.batchSize}"
+      }
+    },
+    {
+      "name": "batch_loop",
+      "taskReferenceName": "batch_loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.batch_loop_ref['iteration'] < 2) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "eb_process_batch",
+          "taskReferenceName": "process_batch_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "batches": "${create_batches_ref.output.batches}",
+            "iteration": "${batch_loop_ref.output.iteration}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "totalEvents": "${collect_ref.output.totalCount}",
+    "totalBatches": "${create_batches_ref.output.batchCount}",
+    "processedBatches": 2
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

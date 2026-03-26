@@ -1,0 +1,50 @@
+{
+  "name": "post_mortem_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "incidentId",
+    "severity"
+  ],
+  "tasks": [
+    {
+      "name": "pm_gather_timeline",
+      "taskReferenceName": "gather_timeline_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "incidentId": "${workflow.input.incidentId}",
+        "severity": "${workflow.input.severity}"
+      }
+    },
+    {
+      "name": "pm_collect_metrics",
+      "taskReferenceName": "collect_metrics_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "collect_metricsData": "${gather_timeline_ref.output}"
+      }
+    },
+    {
+      "name": "pm_draft_document",
+      "taskReferenceName": "draft_document_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "draft_documentData": "${collect_metrics_ref.output}"
+      }
+    },
+    {
+      "name": "pm_schedule_review",
+      "taskReferenceName": "schedule_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "schedule_reviewData": "${draft_document_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "gather_timelineResult": "${gather_timeline_ref.output}",
+    "schedule_reviewResult": "${schedule_review_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

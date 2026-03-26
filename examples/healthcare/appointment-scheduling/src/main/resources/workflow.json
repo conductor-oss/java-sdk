@@ -1,0 +1,59 @@
+{
+  "name": "appointment_scheduling_workflow",
+  "description": "Healthcare appointment scheduling: check availability, book, confirm, remind",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "patientId",
+    "providerId",
+    "preferredDate",
+    "visitType"
+  ],
+  "tasks": [
+    {
+      "name": "apt_check_availability",
+      "taskReferenceName": "check_availability_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "providerId": "${workflow.input.providerId}",
+        "preferredDate": "${workflow.input.preferredDate}",
+        "visitType": "${workflow.input.visitType}"
+      }
+    },
+    {
+      "name": "apt_book",
+      "taskReferenceName": "book_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "providerId": "${workflow.input.providerId}",
+        "availableSlot": "${check_availability_ref.output.availableSlot}"
+      }
+    },
+    {
+      "name": "apt_confirm",
+      "taskReferenceName": "confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appointmentId": "${book_ref.output.appointmentId}",
+        "patientId": "${workflow.input.patientId}"
+      }
+    },
+    {
+      "name": "apt_remind",
+      "taskReferenceName": "remind_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "appointmentId": "${book_ref.output.appointmentId}",
+        "patientId": "${workflow.input.patientId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "appointmentId": "${book_ref.output.appointmentId}",
+    "confirmed": "${confirm_ref.output.confirmed}",
+    "reminderSent": "${remind_ref.output.reminderSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

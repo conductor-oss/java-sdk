@@ -1,0 +1,50 @@
+{
+  "name": "devsecops_pipeline_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "repository",
+    "commitSha"
+  ],
+  "tasks": [
+    {
+      "name": "dso_sast_scan",
+      "taskReferenceName": "sast_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "repository": "${workflow.input.repository}",
+        "commitSha": "${workflow.input.commitSha}"
+      }
+    },
+    {
+      "name": "dso_sca_scan",
+      "taskReferenceName": "sca_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "sca_scanData": "${sast_scan_ref.output}"
+      }
+    },
+    {
+      "name": "dso_container_scan",
+      "taskReferenceName": "container_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "container_scanData": "${sca_scan_ref.output}"
+      }
+    },
+    {
+      "name": "dso_security_gate",
+      "taskReferenceName": "security_gate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "security_gateData": "${container_scan_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "sast_scanResult": "${sast_scan_ref.output}",
+    "security_gateResult": "${security_gate_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

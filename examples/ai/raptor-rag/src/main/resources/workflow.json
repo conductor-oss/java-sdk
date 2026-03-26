@@ -1,0 +1,62 @@
+{
+  "name": "raptor_rag_workflow",
+  "version": 1,
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "documentText",
+    "question"
+  ],
+  "tasks": [
+    {
+      "name": "rp_chunk_docs",
+      "taskReferenceName": "chunk_docs_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "documentText": "${workflow.input.documentText}"
+      }
+    },
+    {
+      "name": "rp_leaf_summaries",
+      "taskReferenceName": "leaf_summaries_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "chunks": "${chunk_docs_ref.output.chunks}"
+      }
+    },
+    {
+      "name": "rp_cluster_summaries",
+      "taskReferenceName": "cluster_summaries_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "leafSummaries": "${leaf_summaries_ref.output.leafSummaries}"
+      }
+    },
+    {
+      "name": "rp_tree_search",
+      "taskReferenceName": "tree_search_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "leafSummaries": "${leaf_summaries_ref.output.leafSummaries}",
+        "clusterSummaries": "${cluster_summaries_ref.output.clusterSummaries}",
+        "treeSummary": "${cluster_summaries_ref.output.treeSummary}"
+      }
+    },
+    {
+      "name": "rp_generate",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "question": "${workflow.input.question}",
+        "multiLevelContext": "${tree_search_ref.output.multiLevelContext}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${generate_ref.output.answer}",
+    "multiLevelContext": "${tree_search_ref.output.multiLevelContext}",
+    "chunks": "${chunk_docs_ref.output.chunks}"
+  }
+}

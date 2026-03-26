@@ -1,0 +1,74 @@
+{
+  "name": "ab_testing_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "testId",
+    "testName",
+    "variantA",
+    "variantB",
+    "sampleSize"
+  ],
+  "tasks": [
+    {
+      "name": "abt_define_variants",
+      "taskReferenceName": "abt_define_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testId": "${workflow.input.testId}",
+        "testName": "${workflow.input.testName}",
+        "variantA": "${workflow.input.variantA}",
+        "variantB": "${workflow.input.variantB}"
+      }
+    },
+    {
+      "name": "abt_assign_users",
+      "taskReferenceName": "abt_assign_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testId": "${workflow.input.testId}",
+        "sampleSize": "${workflow.input.sampleSize}",
+        "variants": "${abt_define_ref.output.variants}"
+      }
+    },
+    {
+      "name": "abt_collect_data",
+      "taskReferenceName": "abt_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testId": "${workflow.input.testId}",
+        "assignedGroupA": "${abt_assign_ref.output.groupASize}",
+        "assignedGroupB": "${abt_assign_ref.output.groupBSize}"
+      }
+    },
+    {
+      "name": "abt_analyze_results",
+      "taskReferenceName": "abt_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testId": "${workflow.input.testId}",
+        "metricsA": "${abt_collect_ref.output.metricsA}",
+        "metricsB": "${abt_collect_ref.output.metricsB}"
+      }
+    },
+    {
+      "name": "abt_decide_winner",
+      "taskReferenceName": "abt_decide_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "testId": "${workflow.input.testId}",
+        "pValue": "${abt_analyze_ref.output.pValue}",
+        "uplift": "${abt_analyze_ref.output.uplift}",
+        "confidence": "${abt_analyze_ref.output.confidence}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "testId": "${workflow.input.testId}",
+    "winner": "${abt_decide_ref.output.winner}",
+    "uplift": "${abt_analyze_ref.output.uplift}",
+    "confidence": "${abt_analyze_ref.output.confidence}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

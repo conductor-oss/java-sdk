@@ -1,0 +1,62 @@
+{
+  "name": "act_actuarial_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "lineOfBusiness",
+    "analysisYear",
+    "modelType"
+  ],
+  "tasks": [
+    {
+      "name": "act_collect_data",
+      "taskReferenceName": "act_collect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "lineOfBusiness": "${workflow.input.lineOfBusiness}",
+        "analysisYear": "${workflow.input.analysisYear}"
+      }
+    },
+    {
+      "name": "act_model",
+      "taskReferenceName": "act_model_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataSet": "${act_collect_ref.output.dataSet}",
+        "modelType": "${workflow.input.modelType}"
+      }
+    },
+    {
+      "name": "act_run_analysis",
+      "taskReferenceName": "act_sim_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelId": "${act_model_ref.output.modelId}",
+        "iterations": 10000
+      }
+    },
+    {
+      "name": "act_analyze",
+      "taskReferenceName": "act_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analysisResults": "${act_sim_ref.output.results}"
+      }
+    },
+    {
+      "name": "act_report",
+      "taskReferenceName": "act_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analysis": "${act_analyze_ref.output.analysis}",
+        "lineOfBusiness": "${workflow.input.lineOfBusiness}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "expectedLoss": "${act_analyze_ref.output.analysis}",
+    "reportId": "${act_report_ref.output.reportId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

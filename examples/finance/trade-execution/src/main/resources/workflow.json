@@ -1,0 +1,83 @@
+{
+  "name": "trade_execution_workflow",
+  "description": "Trade execution workflow that validates orders, checks compliance, routes to optimal exchange, executes, and confirms.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId",
+    "accountId",
+    "symbol",
+    "side",
+    "quantity",
+    "orderType"
+  ],
+  "tasks": [
+    {
+      "name": "trd_validate_order",
+      "taskReferenceName": "trd_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "accountId": "${workflow.input.accountId}",
+        "symbol": "${workflow.input.symbol}",
+        "side": "${workflow.input.side}",
+        "quantity": "${workflow.input.quantity}",
+        "orderType": "${workflow.input.orderType}"
+      }
+    },
+    {
+      "name": "trd_check_compliance",
+      "taskReferenceName": "trd_compliance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "accountId": "${workflow.input.accountId}",
+        "symbol": "${workflow.input.symbol}",
+        "quantity": "${workflow.input.quantity}"
+      }
+    },
+    {
+      "name": "trd_route",
+      "taskReferenceName": "trd_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "symbol": "${workflow.input.symbol}",
+        "side": "${workflow.input.side}",
+        "quantity": "${workflow.input.quantity}",
+        "orderType": "${workflow.input.orderType}"
+      }
+    },
+    {
+      "name": "trd_execute",
+      "taskReferenceName": "trd_execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "symbol": "${workflow.input.symbol}",
+        "side": "${workflow.input.side}",
+        "quantity": "${workflow.input.quantity}",
+        "exchange": "${trd_route_ref.output.exchange}"
+      }
+    },
+    {
+      "name": "trd_confirm",
+      "taskReferenceName": "trd_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}",
+        "accountId": "${workflow.input.accountId}",
+        "executionId": "${trd_execute_ref.output.executionId}",
+        "fillPrice": "${trd_execute_ref.output.fillPrice}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "orderId": "${workflow.input.orderId}",
+    "fillPrice": "${trd_execute_ref.output.fillPrice}",
+    "exchange": "${trd_route_ref.output.exchange}",
+    "confirmed": "${trd_confirm_ref.output.confirmed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

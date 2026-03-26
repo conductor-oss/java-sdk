@@ -1,0 +1,68 @@
+{
+  "name": "content_recommendation_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "userId",
+    "contentType",
+    "maxResults"
+  ],
+  "tasks": [
+    {
+      "name": "crm_analyze_history",
+      "taskReferenceName": "crm_history_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "contentType": "${workflow.input.contentType}"
+      }
+    },
+    {
+      "name": "crm_compute_similarity",
+      "taskReferenceName": "crm_similarity_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "viewedItems": "${crm_history_ref.output.viewedItems}",
+        "likedItems": "${crm_history_ref.output.likedItems}"
+      }
+    },
+    {
+      "name": "crm_rank_results",
+      "taskReferenceName": "crm_rank_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "similarItems": "${crm_similarity_ref.output.similarItems}",
+        "maxResults": "${workflow.input.maxResults}"
+      }
+    },
+    {
+      "name": "crm_apply_filters",
+      "taskReferenceName": "crm_filter_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "rankedItems": "${crm_rank_ref.output.rankedItems}",
+        "viewedItems": "${crm_history_ref.output.viewedItems}"
+      }
+    },
+    {
+      "name": "crm_serve_recommendations",
+      "taskReferenceName": "crm_serve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "filteredItems": "${crm_filter_ref.output.filteredItems}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "userId": "${workflow.input.userId}",
+    "recommendations": "${crm_serve_ref.output.recommendations}",
+    "totalCandidates": "${crm_similarity_ref.output.totalCandidates}",
+    "servedCount": "${crm_serve_ref.output.servedCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

@@ -1,0 +1,48 @@
+{
+  "name": "multi_region_deploy_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["service", "version", "regions"],
+  "tasks": [
+    {
+      "name": "mrd_deploy_primary",
+      "taskReferenceName": "deploy_primary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "version": "${workflow.input.version}",
+        "regions": "${workflow.input.regions}"
+      }
+    },
+    {
+      "name": "mrd_verify_primary",
+      "taskReferenceName": "verify_primary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_primaryData": "${deploy_primary_ref.output}"
+      }
+    },
+    {
+      "name": "mrd_deploy_secondary",
+      "taskReferenceName": "deploy_secondary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deploy_secondaryData": "${verify_primary_ref.output}"
+      }
+    },
+    {
+      "name": "mrd_verify_global",
+      "taskReferenceName": "verify_global_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "verify_globalData": "${deploy_secondary_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "deploy_primaryResult": "${deploy_primary_ref.output}",
+    "verify_globalResult": "${verify_global_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

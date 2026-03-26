@@ -1,0 +1,63 @@
+{
+  "name": "lvm_leave_management",
+  "description": "Leave management workflow: request, check balance, approve, update, notify.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["employeeId", "leaveType", "startDate", "days"],
+  "tasks": [
+    {
+      "name": "lvm_request",
+      "taskReferenceName": "lvm_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "leaveType": "${workflow.input.leaveType}",
+        "days": "${workflow.input.days}"
+      }
+    },
+    {
+      "name": "lvm_check_balance",
+      "taskReferenceName": "lvm_balance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "leaveType": "${workflow.input.leaveType}",
+        "requested": "${workflow.input.days}"
+      }
+    },
+    {
+      "name": "lvm_approve",
+      "taskReferenceName": "lvm_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${lvm_request_ref.output.requestId}",
+        "sufficient": "${lvm_balance_ref.output.sufficient}"
+      }
+    },
+    {
+      "name": "lvm_update",
+      "taskReferenceName": "lvm_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "days": "${workflow.input.days}"
+      }
+    },
+    {
+      "name": "lvm_notify",
+      "taskReferenceName": "lvm_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "approved": "${lvm_approve_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "requestId": "${lvm_request_ref.output.requestId}",
+    "approved": "${lvm_approve_ref.output.approved}",
+    "remainingBalance": "${lvm_update_ref.output.remainingBalance}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

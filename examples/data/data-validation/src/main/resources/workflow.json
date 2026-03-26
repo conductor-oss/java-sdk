@@ -1,0 +1,69 @@
+{
+  "name": "data_validation",
+  "description": "Sequential data validation workflow: load records, check required fields, check data types, check value ranges, and generate a validation report.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "records",
+    "schema"
+  ],
+  "tasks": [
+    {
+      "name": "vd_load_records",
+      "taskReferenceName": "load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${workflow.input.records}"
+      }
+    },
+    {
+      "name": "vd_check_required",
+      "taskReferenceName": "required_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${load_ref.output.records}",
+        "schema": "${workflow.input.schema}"
+      }
+    },
+    {
+      "name": "vd_check_types",
+      "taskReferenceName": "types_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${required_ref.output.passedRecords}",
+        "schema": "${workflow.input.schema}"
+      }
+    },
+    {
+      "name": "vd_check_ranges",
+      "taskReferenceName": "ranges_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "records": "${types_ref.output.passedRecords}",
+        "schema": "${workflow.input.schema}"
+      }
+    },
+    {
+      "name": "vd_generate_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "totalRecords": "${load_ref.output.count}",
+        "requiredErrors": "${required_ref.output.errorCount}",
+        "typeErrors": "${types_ref.output.errorCount}",
+        "rangeErrors": "${ranges_ref.output.errorCount}",
+        "validRecords": "${ranges_ref.output.passedCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "totalRecords": "${load_ref.output.count}",
+    "requiredErrors": "${required_ref.output.errorCount}",
+    "typeErrors": "${types_ref.output.errorCount}",
+    "rangeErrors": "${ranges_ref.output.errorCount}",
+    "validRecords": "${ranges_ref.output.passedCount}",
+    "reportSummary": "${report_ref.output.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

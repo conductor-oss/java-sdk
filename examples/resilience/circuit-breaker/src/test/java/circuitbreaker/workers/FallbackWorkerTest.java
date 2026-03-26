@@ -18,6 +18,14 @@ class FallbackWorkerTest {
     }
 
     @Test
+    void failsOnMissingServiceName() {
+        FallbackWorker worker = new FallbackWorker();
+        Task task = taskWith(Map.of());
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
     void returnsFallbackData() {
         FallbackWorker worker = new FallbackWorker();
         Task task = taskWith(Map.of("serviceName", "payment-api"));
@@ -27,18 +35,6 @@ class FallbackWorkerTest {
         assertEquals("Fallback data for payment-api", result.getOutputData().get("result"));
         assertEquals("cache", result.getOutputData().get("source"));
         assertEquals("payment-api", result.getOutputData().get("serviceName"));
-    }
-
-    @Test
-    void usesDefaultServiceNameWhenNotProvided() {
-        FallbackWorker worker = new FallbackWorker();
-        Task task = taskWith(Map.of());
-        TaskResult result = worker.execute(task);
-
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        assertEquals("Fallback data for default-service", result.getOutputData().get("result"));
-        assertEquals("cache", result.getOutputData().get("source"));
-        assertEquals("default-service", result.getOutputData().get("serviceName"));
     }
 
     @Test

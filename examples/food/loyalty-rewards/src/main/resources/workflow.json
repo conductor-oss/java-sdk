@@ -1,0 +1,19 @@
+{
+  "name": "loyalty_rewards_737",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["customerId", "orderTotal", "redeemPoints"],
+  "tasks": [
+    { "name": "lyr_earn_points", "taskReferenceName": "earn_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "orderTotal": "${workflow.input.orderTotal}" } },
+    { "name": "lyr_check_tier", "taskReferenceName": "tier_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "totalPoints": "${earn_ref.output.totalPoints}" } },
+    { "name": "lyr_redeem", "taskReferenceName": "redeem_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "redeemPoints": "${workflow.input.redeemPoints}", "tier": "${tier_ref.output.tier}" } },
+    { "name": "lyr_track", "taskReferenceName": "track_ref", "type": "SIMPLE",
+      "inputParameters": { "customerId": "${workflow.input.customerId}", "earned": "${earn_ref.output.earned}", "redeemed": "${redeem_ref.output.redeemed}" } }
+  ],
+  "outputParameters": { "loyalty": "${track_ref.output.loyalty}" },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

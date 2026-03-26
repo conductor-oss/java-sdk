@@ -1,0 +1,50 @@
+{
+  "name": "sla_monitoring_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "sloTarget"
+  ],
+  "tasks": [
+    {
+      "name": "sla_collect_slis",
+      "taskReferenceName": "collect_slis_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "sloTarget": "${workflow.input.sloTarget}"
+      }
+    },
+    {
+      "name": "sla_calculate_budget",
+      "taskReferenceName": "calculate_budget_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "calculate_budgetData": "${collect_slis_ref.output}"
+      }
+    },
+    {
+      "name": "sla_evaluate_compliance",
+      "taskReferenceName": "evaluate_compliance_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "evaluate_complianceData": "${calculate_budget_ref.output}"
+      }
+    },
+    {
+      "name": "sla_report",
+      "taskReferenceName": "report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "reportData": "${evaluate_compliance_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "collect_slisResult": "${collect_slis_ref.output}",
+    "reportResult": "${report_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

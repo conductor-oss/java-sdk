@@ -1,0 +1,49 @@
+{
+  "name": "input_templates_demo",
+  "description": "Shows reusable parameter mapping patterns",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "action", "metadata"],
+  "tasks": [
+    {
+      "name": "tpl_lookup_user",
+      "taskReferenceName": "user_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "tpl_build_context",
+      "taskReferenceName": "context_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestContext": {
+          "user": "${user_ref.output.user}",
+          "action": "${workflow.input.action}",
+          "metadata": "${workflow.input.metadata}",
+          "environment": "production",
+          "apiVersion": "v2",
+          "timestamp": "${user_ref.output.timestamp}"
+        }
+      }
+    },
+    {
+      "name": "tpl_execute_action",
+      "taskReferenceName": "action_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userName": "${user_ref.output.user.name}",
+        "userRole": "${user_ref.output.user.role}",
+        "action": "${workflow.input.action}",
+        "context": "${context_ref.output.enrichedContext}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${action_ref.output.result}",
+    "auditLog": "${action_ref.output.auditLog}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

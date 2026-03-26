@@ -1,0 +1,25 @@
+{
+  "name": "flash_sale_workflow",
+  "description": "Flash sale: prepare inventory, open sale, process orders, close, report",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["saleId", "saleName", "durationMinutes"],
+  "tasks": [
+    { "name": "fls_prepare_inventory", "taskReferenceName": "fls_prepare_ref", "type": "SIMPLE",
+      "inputParameters": { "saleId": "${workflow.input.saleId}", "saleName": "${workflow.input.saleName}" } },
+    { "name": "fls_open_sale", "taskReferenceName": "fls_open_ref", "type": "SIMPLE",
+      "inputParameters": { "saleId": "${workflow.input.saleId}", "inventory": "${fls_prepare_ref.output.inventory}", "durationMinutes": "${workflow.input.durationMinutes}" } },
+    { "name": "fls_process_orders", "taskReferenceName": "fls_orders_ref", "type": "SIMPLE",
+      "inputParameters": { "saleId": "${workflow.input.saleId}", "availableStock": "${fls_prepare_ref.output.totalStock}" } },
+    { "name": "fls_close_sale", "taskReferenceName": "fls_close_ref", "type": "SIMPLE",
+      "inputParameters": { "saleId": "${workflow.input.saleId}", "ordersFilled": "${fls_orders_ref.output.ordersFilled}" } },
+    { "name": "fls_report", "taskReferenceName": "fls_report_ref", "type": "SIMPLE",
+      "inputParameters": { "saleId": "${workflow.input.saleId}", "saleName": "${workflow.input.saleName}", "ordersFilled": "${fls_orders_ref.output.ordersFilled}", "revenue": "${fls_orders_ref.output.revenue}", "remainingStock": "${fls_orders_ref.output.remainingStock}" } }
+  ],
+  "outputParameters": {
+    "saleId": "${workflow.input.saleId}",
+    "ordersFilled": "${fls_orders_ref.output.ordersFilled}",
+    "revenue": "${fls_orders_ref.output.revenue}",
+    "soldOutPercent": "${fls_report_ref.output.soldOutPercent}"
+  },
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

@@ -1,206 +1,43 @@
-# Fan-Out/Fan-In in Java with Conductor
+# Fan-Out/Fan-In
 
-Fan-Out/Fan-In. scatter-gather image processing using FORK_JOIN_DYNAMIC. Splits a variable-length image list into parallel processing tasks, compresses each independently, then aggregates results into a manifest with total savings. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers, you write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A batch of images needs parallel processing. The prepare worker converts the image list into dynamic tasks, `FORK_JOIN_DYNAMIC` processes each image in parallel, and the aggregate worker combines results. This is the image-processing variant of the dynamic fork pattern.
 
-## The Problem
-
-You need to process a batch of images in parallel: resizing, generating thumbnails, extracting metadata, or running object detection, where the number of images varies per request. A user uploads 5 images or 500, and each one must be processed independently at the same time. After every image is processed, the results must be aggregated into a single manifest with processed count, total size, and per-image metadata.
-
-Without orchestration, you'd build a thread pool, submit each image as a task, manage futures for each one, wait for all completions with a barrier, and merge results manually. If processing crashes after 47 of 50 images complete, you lose the 47 already-processed results and start over. There is no way to see which images are still in flight, which have completed, or which failed. You get either all results or nothing.
-
-## The Solution
-
-**You just write the image preparation, processing, and aggregation workers. Conductor handles fanning out to N parallel branches via FORK_JOIN_DYNAMIC and joining the results.**
-
-This example demonstrates the scatter-gather pattern using Conductor's FORK_JOIN_DYNAMIC. The PrepareWorker inspects the input image list and generates one `fo_process_image` task per image, each with a unique reference name (img_0_ref, img_1_ref...). Conductor fans out to N parallel branches. where N equals the number of images submitted. Each ProcessImageWorker processes its assigned image independently, compressing to 1/3 of original size and converting to WebP format. A JOIN task waits until every branch completes, then the AggregateWorker collects all per-image results from the join output into a unified manifest with processed count, total original and processed sizes, and savings percentage. If one image fails to process, Conductor retries just that branch, the other images are unaffected.
-
-### What You Write: Workers
-
-Three workers implement scatter-gather: PrepareWorker generates one task per image at runtime, ProcessImageWorker compresses each image independently in its own parallel branch, and AggregateWorker assembles a manifest with total savings after the join.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **PrepareWorker** | `fo_prepare` | Takes an images list and generates dynamicTasks (one fo_process_image SIMPLE task per image with reference names img_0_ref, img_1_ref, etc.) and dynamicTasksInput (per-task input map with image data and index). Returns empty lists for null/empty input. | Simulated |
-| **ProcessImageWorker** | `fo_process_image` | Processes a single image: compresses to processedSize = originalSize / 3, converts to WebP format, and computes a deterministic processingTime based on name length and index. Returns name, originalSize, processedSize, format, and processingTime. | Simulated |
-| **AggregateWorker** | `fo_aggregate` | Collects all per-image results from the JOIN output, sorted by reference name. Computes processedCount, totalOriginal, totalProcessed, and savings percentage. Ignores non-image keys in the join output. | Simulated |
-
-Workers simulate their processing steps so you can see the pattern in action without external services. Replace the simulation with real processing logic, the task pattern and Conductor orchestration remain unchanged.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Dynamic parallelism** | FORK_JOIN_DYNAMIC creates parallel branches at runtime based on input data |
-| **Automatic joining** | JOIN waits for all dynamically forked tasks to complete |
-
-### The Workflow
+## Workflow
 
 ```
-fo_prepare
-    │
-    ▼
-FORK_JOIN_DYNAMIC (parallel, determined at runtime)
-    │
-    ▼
-JOIN (wait for all branches)
-fo_aggregate
+fo_prepare ──> FORK_JOIN_DYNAMIC ──> JOIN ──> fo_aggregate
 ```
 
-## Running It
+Workflow `fan_out_fan_in_demo` accepts `images`. Times out after `120` seconds.
 
-### Prerequisites
+## Workers
 
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+**PrepareWorker** (`fo_prepare`) -- converts the `images` list into dynamic task definitions. Reports preparing N dynamic tasks.
 
-### Option 1: Docker Compose (everything included)
+**ProcessImageWorker** (`fo_process_image`) -- processes a single image by index. Reports processing image #N.
 
-```bash
-docker compose up --build
-```
+**AggregateWorker** (`fo_aggregate`) -- combines all processed image results into a single output.
 
-Starts Conductor on port 8080 and runs the example automatically.
+## Workflow Output
 
-If port 8080 is already taken:
+The workflow produces `processedCount`, `totalSize`, `results` as output parameters, capturing the result of each pipeline stage for downstream consumers and observability.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
+## Task Configuration
 
-### Option 2: Run locally
+- `fo_prepare`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `fo_process_image`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
+- `fo_aggregate`: retryCount=2, retryLogic=FIXED, retryDelaySeconds=?, timeoutSeconds=60, responseTimeoutSeconds=30
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/fan-out-fan-in-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/fan-out-fan-in-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow fan_out_fan_in_demo \
-  --version 1 \
-  --input '{"images": [{"name": "hero.jpg", "size": 2400}, {"name": "banner.png", "size": 3600}, {"name": "thumb.jpg", "size": 800}]}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w fan_out_fan_in_demo -s COMPLETED -c 5
-```
-
-## Example Output
-
-```
-=== Fan-Out/Fan-In: Parallel Image Processing ===
-
-Step 1: Registering task definitions...
-  Registered: fo_prepare, fo_process_image, fo_aggregate
-
-Step 2: Registering workflow 'fan_out_fan_in_demo'...
-  Workflow registered.
-
-Step 3: Starting workers...
-  3 workers polling.
-
-Step 4: Starting workflow...
-
-  Workflow ID: 7c2d4e5f-...
-
-Step 5: Waiting for completion...
-  [fo_prepare] Preparing 3 dynamic tasks
-  [fo_process_image] Processing image #0: hero.jpg
-  [fo_process_image] Processing image #1: banner.png
-  [fo_process_image] Processing image #2: thumb.jpg
-  [fo_aggregate] Aggregated 3 results, savings=66.7%
-  Status: COMPLETED
-  Output: {processedCount=3, totalSize=3, results=Sample results}
-
-Result: PASSED
-```
-
-## How to Extend
-
-Replace the image compression stub with real processing (ImageMagick, Thumbnailator, AWS Rekognition), and the scatter-gather parallelism works unchanged.
-
-- **PrepareWorker** (`fo_prepare`): query a database or S3 bucket for the list of images to process, filter by format or size, and generate the dynamic task definitions with per-image configuration (target resolution, output format, quality settings)
-- **ProcessImageWorker** (`fo_process_image`): perform real image processing using ImageMagick, Thumbnailator, or a cloud vision API (AWS Rekognition, Google Vision); resize, generate thumbnails, extract EXIF metadata, run object detection, or apply watermarks
-- **AggregateWorker** (`fo_aggregate`): merge all per-image results into a processing manifest, compute statistics (total bytes saved, success/failure rate, average processing time), upload the manifest to S3, and update the image catalog database
-
-Replacing the simulated compression with real image processing does not change the scatter-gather workflow, as long as each branch returns the expected name, size, and format fields.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
+These settings are declared in `task-defs.json` and apply independently to each task, controlling retry behavior, timeout detection, and backoff strategy without any changes to worker code.
 
 ## Project Structure
 
-```
-fan-out-fan-in/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/fanoutfanin/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── FanOutFanInExample.java      # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── AggregateWorker.java
-│       ├── PrepareWorker.java
-│       └── ProcessImageWorker.java
-└── src/test/java/fanoutfanin/workers/
-    ├── AggregateWorkerTest.java     # 7 tests
-    ├── PrepareWorkerTest.java       # 6 tests
-    └── ProcessImageWorkerTest.java  # 8 tests
-```
+This example contains 3 worker implementations in `src/main/java/*/workers/`, the workflow definition in `src/main/resources/workflow.json`, and integration tests in `src/test/`. The workflow `fan_out_fan_in_demo` defines 4 tasks with input parameters `images` and a timeout of `120` seconds.
+
+## Tests
+
+8 tests verify dynamic task preparation, parallel image processing, result aggregation, and correct handling of varying image list sizes.
+
+## Running
+
+See [RUNNING.md](../../RUNNING.md) for setup and execution instructions.

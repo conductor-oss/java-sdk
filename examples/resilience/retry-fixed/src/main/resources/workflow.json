@@ -1,0 +1,23 @@
+{
+  "name": "retry_fixed_demo",
+  "description": "FIXED retry strategy demo -- retries retry_fixed_task with constant 1s delay between attempts.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["failCount"],
+  "tasks": [
+    {
+      "name": "retry_fixed_task",
+      "taskReferenceName": "retry_fixed_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "failCount": "${workflow.input.failCount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "attempts": "${retry_fixed_ref.output.attempts}",
+    "result": "${retry_fixed_ref.output.result}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

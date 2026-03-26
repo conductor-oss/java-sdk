@@ -1,0 +1,91 @@
+{
+  "name": "data_export",
+  "description": "Export data in multiple formats (CSV, JSON, Excel) in parallel using FORK_JOIN, then bundle the exports.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "query",
+    "formats",
+    "destination"
+  ],
+  "tasks": [
+    {
+      "name": "dx_prepare_data",
+      "taskReferenceName": "prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}"
+      }
+    },
+    {
+      "name": "export_fork",
+      "taskReferenceName": "fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "dx_export_csv",
+            "taskReferenceName": "csv_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "data": "${prepare_ref.output.data}",
+              "headers": "${prepare_ref.output.headers}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "dx_export_json",
+            "taskReferenceName": "json_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "data": "${prepare_ref.output.data}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "dx_export_excel",
+            "taskReferenceName": "excel_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "data": "${prepare_ref.output.data}",
+              "headers": "${prepare_ref.output.headers}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "export_join",
+      "taskReferenceName": "join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "csv_ref",
+        "json_ref",
+        "excel_ref"
+      ]
+    },
+    {
+      "name": "dx_bundle_exports",
+      "taskReferenceName": "bundle_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "csvFile": "${csv_ref.output.file}",
+        "jsonFile": "${json_ref.output.file}",
+        "excelFile": "${excel_ref.output.file}",
+        "destination": "${workflow.input.destination}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "recordCount": "${prepare_ref.output.recordCount}",
+    "csvSize": "${csv_ref.output.fileSize}",
+    "jsonSize": "${json_ref.output.fileSize}",
+    "excelSize": "${excel_ref.output.fileSize}",
+    "bundleUrl": "${bundle_ref.output.bundleUrl}",
+    "totalExports": "${bundle_ref.output.exportCount}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

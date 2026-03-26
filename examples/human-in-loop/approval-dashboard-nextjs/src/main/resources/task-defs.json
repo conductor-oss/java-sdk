@@ -1,0 +1,9 @@
+[
+  {
+    "name": "nxt_process",
+    "retryCount": 0,
+    "timeoutSeconds": 60,
+    "responseTimeoutSeconds": 30,
+    "ownerEmail": "examples@orkes.io"
+  }
+]

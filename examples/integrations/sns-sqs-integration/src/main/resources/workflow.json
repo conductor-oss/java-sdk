@@ -1,0 +1,55 @@
+{
+  "name": "sns_sqs_integration_448",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "topicArn",
+    "queueUrl",
+    "messageBody"
+  ],
+  "tasks": [
+    {
+      "name": "sns_publish",
+      "taskReferenceName": "publish_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topicArn": "${workflow.input.topicArn}",
+        "message": "${workflow.input.messageBody}"
+      }
+    },
+    {
+      "name": "sns_subscribe_queue",
+      "taskReferenceName": "subscribe_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "topicArn": "${workflow.input.topicArn}",
+        "queueUrl": "${workflow.input.queueUrl}"
+      }
+    },
+    {
+      "name": "sns_receive_message",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "queueUrl": "${workflow.input.queueUrl}",
+        "messageId": "${publish_ref.output.messageId}"
+      }
+    },
+    {
+      "name": "sns_process_message",
+      "taskReferenceName": "process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageBody": "${receive_ref.output.body}",
+        "receiptHandle": "${receive_ref.output.receiptHandle}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "snsMessageId": "${publish_ref.output.messageId}",
+    "subscriptionArn": "${subscribe_ref.output.subscriptionArn}",
+    "processed": "${process_ref.output.processed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

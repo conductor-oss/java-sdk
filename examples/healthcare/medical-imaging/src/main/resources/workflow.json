@@ -1,0 +1,68 @@
+{
+  "name": "medical_imaging_workflow",
+  "description": "Medical Imaging: acquire, process, analyze, report, store to PACS",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studyId", "patientId", "modality", "bodyPart"],
+  "tasks": [
+    {
+      "name": "img_acquire",
+      "taskReferenceName": "img_acquire_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studyId": "${workflow.input.studyId}",
+        "patientId": "${workflow.input.patientId}",
+        "modality": "${workflow.input.modality}",
+        "bodyPart": "${workflow.input.bodyPart}"
+      }
+    },
+    {
+      "name": "img_process",
+      "taskReferenceName": "img_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studyId": "${workflow.input.studyId}",
+        "imageId": "${img_acquire_ref.output.imageId}",
+        "modality": "${workflow.input.modality}"
+      }
+    },
+    {
+      "name": "img_analyze",
+      "taskReferenceName": "img_analyze_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studyId": "${workflow.input.studyId}",
+        "processedImageId": "${img_process_ref.output.processedImageId}",
+        "bodyPart": "${workflow.input.bodyPart}"
+      }
+    },
+    {
+      "name": "img_report",
+      "taskReferenceName": "img_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studyId": "${workflow.input.studyId}",
+        "patientId": "${workflow.input.patientId}",
+        "findings": "${img_analyze_ref.output.findings}"
+      }
+    },
+    {
+      "name": "img_store",
+      "taskReferenceName": "img_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studyId": "${workflow.input.studyId}",
+        "imageId": "${img_acquire_ref.output.imageId}",
+        "reportId": "${img_report_ref.output.reportId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "studyId": "${workflow.input.studyId}",
+    "findings": "${img_analyze_ref.output.findings}",
+    "reportId": "${img_report_ref.output.reportId}",
+    "archived": "${img_store_ref.output.archived}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

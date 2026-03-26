@@ -1,0 +1,90 @@
+{
+  "name": "competitive_agents_demo",
+  "description": "Competitive Agents — three solvers propose solutions in parallel, a judge scores them, and a winner is selected.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["problem", "criteria"],
+  "tasks": [
+    {
+      "name": "fork_solvers",
+      "taskReferenceName": "fork_solvers_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "comp_solver_1",
+            "taskReferenceName": "comp_solver_1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${workflow.input.problem}",
+              "criteria": "${workflow.input.criteria}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "comp_solver_2",
+            "taskReferenceName": "comp_solver_2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${workflow.input.problem}",
+              "criteria": "${workflow.input.criteria}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "comp_solver_3",
+            "taskReferenceName": "comp_solver_3_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "problem": "${workflow.input.problem}",
+              "criteria": "${workflow.input.criteria}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "join_solvers",
+      "taskReferenceName": "join_solvers_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "comp_solver_1_ref",
+        "comp_solver_2_ref",
+        "comp_solver_3_ref"
+      ]
+    },
+    {
+      "name": "comp_judge_agent",
+      "taskReferenceName": "comp_judge_agent_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "problem": "${workflow.input.problem}",
+        "criteria": "${workflow.input.criteria}",
+        "solution1": "${comp_solver_1_ref.output.solution}",
+        "solution2": "${comp_solver_2_ref.output.solution}",
+        "solution3": "${comp_solver_3_ref.output.solution}"
+      }
+    },
+    {
+      "name": "comp_select_winner",
+      "taskReferenceName": "comp_select_winner_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "judgment": "${comp_judge_agent_ref.output.judgment}",
+        "allSolutions": {
+          "solution1": "${comp_solver_1_ref.output.solution}",
+          "solution2": "${comp_solver_2_ref.output.solution}",
+          "solution3": "${comp_solver_3_ref.output.solution}"
+        }
+      }
+    }
+  ],
+  "outputParameters": {
+    "winner": "${comp_select_winner_ref.output.winner}",
+    "rankings": "${comp_select_winner_ref.output.rankings}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

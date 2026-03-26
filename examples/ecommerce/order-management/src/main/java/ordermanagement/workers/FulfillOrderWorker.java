@@ -13,8 +13,9 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * Real fulfillment logic:
  *   - Validates the order is in CONFIRMED state
+ *   - Validates item availability (each item must have sku, qty > 0)
  *   - Generates a fulfillment ID with warehouse prefix
- *   - Performs pick & pack by processing each item
+ *   - Performs pick and pack by processing each item
  *   - Transitions order state via state machine
  *   - Records fulfillment timestamps
  *
@@ -36,15 +37,50 @@ public class FulfillOrderWorker implements Worker {
         TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
-        String orderId = task.getInputData().get("orderId") != null
-                ? task.getInputData().get("orderId").toString() : "UNKNOWN";
-        String warehouseId = task.getInputData().get("warehouseId") != null
-                ? task.getInputData().get("warehouseId").toString() : "WH-EAST-01";
+        // --- Validate required inputs ---
+        String orderId = (String) task.getInputData().get("orderId");
+        if (orderId == null || orderId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: orderId");
+            return result;
+        }
 
-        List<Map<String, Object>> items = new ArrayList<>();
+        String warehouseId = (String) task.getInputData().get("warehouseId");
+        if (warehouseId == null || warehouseId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: warehouseId");
+            return result;
+        }
+
         Object itemsObj = task.getInputData().get("items");
-        if (itemsObj instanceof List) {
-            items = (List<Map<String, Object>>) itemsObj;
+        if (itemsObj == null || !(itemsObj instanceof List)) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing or invalid required input: items (must be a list)");
+            return result;
+        }
+        List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
+
+        if (items.isEmpty()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Cannot fulfill order with empty items list");
+            return result;
+        }
+
+        // Validate each item has sku and positive qty
+        for (int i = 0; i < items.size(); i++) {
+            Map<String, Object> item = items.get(i);
+            String sku = item.get("sku") != null ? item.get("sku").toString() : null;
+            if (sku == null || sku.isBlank()) {
+                result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+                result.setReasonForIncompletion("Item " + (i + 1) + " has no SKU");
+                return result;
+            }
+            int qty = item.get("qty") instanceof Number ? ((Number) item.get("qty")).intValue() : 0;
+            if (qty <= 0) {
+                result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+                result.setReasonForIncompletion("Item " + sku + " has invalid quantity: " + qty);
+                return result;
+            }
         }
 
         // Validate state transition
@@ -70,8 +106,8 @@ public class FulfillOrderWorker implements Worker {
         List<Map<String, Object>> fulfilledItems = new ArrayList<>();
         int totalUnits = 0;
         for (Map<String, Object> item : items) {
-            String sku = item.get("sku") != null ? item.get("sku").toString() : "UNKNOWN";
-            int qty = item.get("qty") instanceof Number ? ((Number) item.get("qty")).intValue() : 0;
+            String sku = item.get("sku").toString();
+            int qty = ((Number) item.get("qty")).intValue();
             totalUnits += qty;
 
             Map<String, Object> fulfilled = new LinkedHashMap<>();

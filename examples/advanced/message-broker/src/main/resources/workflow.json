@@ -1,0 +1,70 @@
+{
+  "name": "mbr_message_broker",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "message",
+    "topic",
+    "priority"
+  ],
+  "tasks": [
+    {
+      "name": "mbr_receive",
+      "taskReferenceName": "mbr_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "message": "${workflow.input.message}",
+        "topic": "${workflow.input.topic}"
+      }
+    },
+    {
+      "name": "mbr_route",
+      "taskReferenceName": "mbr_route_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${mbr_receive_ref.output.messageId}",
+        "topic": "${workflow.input.topic}",
+        "priority": "${workflow.input.priority}"
+      }
+    },
+    {
+      "name": "mbr_deliver",
+      "taskReferenceName": "mbr_deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${mbr_receive_ref.output.messageId}",
+        "destination": "${mbr_route_ref.output.destination}",
+        "message": "${workflow.input.message}"
+      }
+    },
+    {
+      "name": "mbr_acknowledge",
+      "taskReferenceName": "mbr_ack_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${mbr_receive_ref.output.messageId}",
+        "delivered": "${mbr_deliver_ref.output.delivered}"
+      }
+    },
+    {
+      "name": "mbr_log",
+      "taskReferenceName": "mbr_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "messageId": "${mbr_receive_ref.output.messageId}",
+        "topic": "${workflow.input.topic}",
+        "destination": "${mbr_route_ref.output.destination}",
+        "acknowledged": "${mbr_ack_ref.output.acknowledged}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "messageId": "${mbr_receive_ref.output.messageId}",
+    "destination": "${mbr_route_ref.output.destination}",
+    "delivered": "${mbr_deliver_ref.output.delivered}",
+    "acknowledged": "${mbr_ack_ref.output.acknowledged}",
+    "logId": "${mbr_log_ref.output.logId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

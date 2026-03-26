@@ -1,0 +1,24 @@
+{
+  "name": "main_with_failure_handler",
+  "description": "Main workflow with failure handler. When this workflow fails, error_handler_wf runs automatically.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["shouldFail"],
+  "failureWorkflow": "error_handler_wf",
+  "tasks": [
+    {
+      "name": "fw_process",
+      "taskReferenceName": "fw_process_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shouldFail": "${workflow.input.shouldFail}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "status": "${fw_process_ref.output.status}",
+    "message": "${fw_process_ref.output.message}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

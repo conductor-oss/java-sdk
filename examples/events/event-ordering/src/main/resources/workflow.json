@@ -1,0 +1,49 @@
+{
+  "name": "event_ordering",
+  "description": "Event Ordering — buffers incoming events, sorts them by sequence number, and processes each in order using a DO_WHILE loop.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["events"],
+  "tasks": [
+    {
+      "name": "oo_buffer_events",
+      "taskReferenceName": "buffer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "events": "${workflow.input.events}"
+      }
+    },
+    {
+      "name": "oo_sort_events",
+      "taskReferenceName": "sort_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "buffered": "${buffer_ref.output.buffered}"
+      }
+    },
+    {
+      "name": "process_loop",
+      "taskReferenceName": "process_loop_ref",
+      "type": "DO_WHILE",
+      "loopCondition": "if ($.process_loop_ref['iteration'] < 3) { true; } else { false; }",
+      "loopOver": [
+        {
+          "name": "oo_process_next",
+          "taskReferenceName": "process_next_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "sortedEvents": "${sort_ref.output.sorted}",
+            "iteration": "${process_loop_ref.output.iteration}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "totalBuffered": "${buffer_ref.output.count}",
+    "processedCount": "${process_loop_ref.output.iteration}",
+    "sortOrder": "${sort_ref.output.sortField}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

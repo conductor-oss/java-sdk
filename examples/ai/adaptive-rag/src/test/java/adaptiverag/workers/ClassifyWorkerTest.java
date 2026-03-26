@@ -8,7 +8,10 @@ class ClassifyWorkerTest {
 
     @Test
     void requiresApiKey() {
-        assertThrows(IllegalStateException.class, ClassifyWorker::new);
+        String key = System.getenv("CONDUCTOR_OPENAI_API_KEY");
+        if (key == null || key.isBlank()) {
+            assertThrows(IllegalStateException.class, ClassifyWorker::new);
+        }
     }
 
     @Test

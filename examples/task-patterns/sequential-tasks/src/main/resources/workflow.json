@@ -1,0 +1,41 @@
+{
+  "name": "sequential_etl",
+  "description": "Sequential ETL pipeline — extract, transform, load. Three workers process data in order.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["source", "format"],
+  "tasks": [
+    {
+      "name": "seq_extract",
+      "taskReferenceName": "seq_extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "source": "${workflow.input.source}"
+      }
+    },
+    {
+      "name": "seq_transform",
+      "taskReferenceName": "seq_transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawData": "${seq_extract_ref.output.rawData}",
+        "format": "${workflow.input.format}"
+      }
+    },
+    {
+      "name": "seq_load",
+      "taskReferenceName": "seq_load_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedData": "${seq_transform_ref.output.transformedData}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "loaded": "${seq_load_ref.output.loaded}",
+    "totalRecords": "${seq_load_ref.output.totalRecords}",
+    "source": "${seq_extract_ref.output.source}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

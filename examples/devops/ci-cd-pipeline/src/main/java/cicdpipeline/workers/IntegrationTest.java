@@ -17,13 +17,9 @@ import java.util.stream.Collectors;
 
 /**
  * Runs integration tests by performing real connectivity checks.
- * Verifies that common infrastructure endpoints are reachable (DNS resolution,
- * HTTP connectivity) to run the integration test phase of a CI/CD pipeline.
- *
- * Also runs a real "java -version" command to verify the toolchain.
  *
  * Input:
- *   - buildId (String): build identifier for correlation
+ *   - buildId (String, required): build identifier for correlation
  *
  * Output:
  *   - passed (int): number of integration checks that passed
@@ -46,12 +42,18 @@ public class IntegrationTest implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String buildId = (String) task.getInputData().get("buildId");
+        TaskResult result = new TaskResult(task);
+
+        String buildId = getRequiredString(task, "buildId");
+        if (buildId == null || buildId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: buildId");
+            return result;
+        }
+
         System.out.println("[cicd_integration_test] Running integration tests for build " + buildId);
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
-
         long startMs = System.currentTimeMillis();
         int passed = 0;
         int failed = 0;
@@ -122,5 +124,11 @@ public class IntegrationTest implements Worker {
         result.setStatus(TaskResult.Status.COMPLETED);
         result.setOutputData(output);
         return result;
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

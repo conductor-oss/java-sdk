@@ -1,0 +1,52 @@
+{
+  "name": "feature_engineering",
+  "description": "ML feature engineering: extract raw features, transform, normalize, and validate.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["rawData", "featureConfig"],
+  "tasks": [
+    {
+      "name": "fe_extract_features",
+      "taskReferenceName": "extract_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "rawData": "${workflow.input.rawData}",
+        "featureConfig": "${workflow.input.featureConfig}"
+      }
+    },
+    {
+      "name": "fe_transform_features",
+      "taskReferenceName": "transform_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "features": "${extract_ref.output.features}"
+      }
+    },
+    {
+      "name": "fe_normalize_features",
+      "taskReferenceName": "normalize_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "transformedFeatures": "${transform_ref.output.transformed}"
+      }
+    },
+    {
+      "name": "fe_validate_features",
+      "taskReferenceName": "validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "normalizedFeatures": "${normalize_ref.output.normalized}",
+        "featureConfig": "${workflow.input.featureConfig}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "rawFeatureCount": "${extract_ref.output.featureCount}",
+    "transformedCount": "${transform_ref.output.transformedCount}",
+    "normalizedCount": "${normalize_ref.output.normalizedCount}",
+    "validationPassed": "${validate_ref.output.passed}",
+    "featureVector": "${validate_ref.output.featureVector}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

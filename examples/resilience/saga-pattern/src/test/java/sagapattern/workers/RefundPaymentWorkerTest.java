@@ -48,10 +48,17 @@ class RefundPaymentWorkerTest {
     }
 
     @Test
-    void statusIsAlwaysCompleted() {
-        Task task = taskWith(Map.of("tripId", "TRIP-X"));
+    void failsOnMissingTripId() {
+        Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void recordsActionInLog() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100"));
+        worker.execute(task);
+        assertTrue(BookingStore.getActionLog().contains("REFUND_PAYMENT:TXN-TRIP-100"));
     }
 
     private Task taskWith(Map<String, Object> input) {

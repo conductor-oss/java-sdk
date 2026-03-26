@@ -1,0 +1,42 @@
+{
+  "name": "per_task_retry_demo",
+  "version": 1,
+  "description": "Demonstrates per-task retry configuration — each task has its own retry count, retry logic (FIXED or EXPONENTIAL_BACKOFF), and retry delay.",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "orderId"
+  ],
+  "tasks": [
+    {
+      "name": "ptr_validate",
+      "taskReferenceName": "ptr_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    },
+    {
+      "name": "ptr_payment",
+      "taskReferenceName": "ptr_payment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    },
+    {
+      "name": "ptr_notify",
+      "taskReferenceName": "ptr_notify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "orderId": "${workflow.input.orderId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "validation": "${ptr_validate_ref.output}",
+    "payment": "${ptr_payment_ref.output}",
+    "notification": "${ptr_notify_ref.output}"
+  }
+}

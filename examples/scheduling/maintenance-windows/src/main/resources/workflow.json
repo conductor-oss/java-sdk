@@ -1,0 +1,19 @@
+{
+  "name": "maintenance_windows_408", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["system", "maintenanceType", "currentTime"],
+  "tasks": [
+    {"name": "mnw_check_window", "taskReferenceName": "mnw_check_ref", "type": "SIMPLE",
+     "inputParameters": {"system": "${workflow.input.system}", "currentTime": "${workflow.input.currentTime}"}},
+    {"name": "mnw_window_switch", "taskReferenceName": "mnw_switch_ref", "type": "SWITCH",
+     "evaluatorType": "value-param", "expression": "switchCaseValue",
+     "inputParameters": {"switchCaseValue": "${mnw_check_ref.output.windowStatus}"},
+     "decisionCases": {
+       "in_window": [{"name": "mnw_execute_maintenance", "taskReferenceName": "mnw_execute_ref", "type": "SIMPLE",
+         "inputParameters": {"system": "${workflow.input.system}", "maintenanceType": "${workflow.input.maintenanceType}", "windowEnd": "${mnw_check_ref.output.windowEnd}"}}]
+     },
+     "defaultCase": [{"name": "mnw_defer_maintenance", "taskReferenceName": "mnw_defer_ref", "type": "SIMPLE",
+       "inputParameters": {"system": "${workflow.input.system}", "maintenanceType": "${workflow.input.maintenanceType}", "nextWindow": "${mnw_check_ref.output.nextWindowStart}"}}]}
+  ],
+  "outputParameters": {"windowStatus": "${mnw_check_ref.output.windowStatus}", "windowEnd": "${mnw_check_ref.output.windowEnd}", "action": "${mnw_check_ref.output.windowStatus}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

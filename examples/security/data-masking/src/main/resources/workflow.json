@@ -1,0 +1,56 @@
+{
+  "name": "data_masking_workflow",
+  "description": "Data masking: identify sensitive fields, select strategy, apply masking, validate output",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "dataSource",
+    "purpose"
+  ],
+  "tasks": [
+    {
+      "name": "dm_identify_fields",
+      "taskReferenceName": "identify_fields_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "dataSource": "${workflow.input.dataSource}",
+        "purpose": "${workflow.input.purpose}"
+      }
+    },
+    {
+      "name": "dm_select_strategy",
+      "taskReferenceName": "select_strategy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fields": "${identify_fields_ref.output.fields}",
+        "purpose": "${workflow.input.purpose}"
+      }
+    },
+    {
+      "name": "dm_apply_masking",
+      "taskReferenceName": "apply_masking_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "fields": "${identify_fields_ref.output.fields}",
+        "strategy": "${select_strategy_ref.output.strategy}"
+      }
+    },
+    {
+      "name": "dm_validate_output",
+      "taskReferenceName": "validate_output_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "maskedData": "${apply_masking_ref.output}",
+        "purpose": "${workflow.input.purpose}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "fieldsIdentified": "${identify_fields_ref.output}",
+    "strategySelected": "${select_strategy_ref.output}",
+    "maskingApplied": "${apply_masking_ref.output}",
+    "validated": "${validate_output_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

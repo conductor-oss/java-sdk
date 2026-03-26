@@ -1,0 +1,12 @@
+{
+  "name": "io_inventory_optimization", "description": "Inventory optimization: analyze stock, calculate reorder, optimize, execute.", "version": 1, "schemaVersion": 2,
+  "inputParameters": ["warehouse", "skuList"],
+  "tasks": [
+    {"name":"io_analyze_stock","taskReferenceName":"io_analyze_ref","type":"SIMPLE","inputParameters":{"warehouse":"${workflow.input.warehouse}","skuList":"${workflow.input.skuList}"}},
+    {"name":"io_calculate_reorder","taskReferenceName":"io_reorder_ref","type":"SIMPLE","inputParameters":{"stockLevels":"${io_analyze_ref.output.stockLevels}"}},
+    {"name":"io_optimize","taskReferenceName":"io_optimize_ref","type":"SIMPLE","inputParameters":{"reorderPlan":"${io_reorder_ref.output.reorderPlan}"}},
+    {"name":"io_execute","taskReferenceName":"io_execute_ref","type":"SIMPLE","inputParameters":{"optimizedPlan":"${io_optimize_ref.output.optimizedPlan}"}}
+  ],
+  "outputParameters": {"skusAnalyzed":"${io_analyze_ref.output.skuCount}","reorderNeeded":"${io_reorder_ref.output.reorderCount}","costSavings":"${io_optimize_ref.output.costSavings}","ordersPlaced":"${io_execute_ref.output.ordersPlaced}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

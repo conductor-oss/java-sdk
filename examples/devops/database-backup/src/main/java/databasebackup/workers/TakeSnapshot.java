@@ -189,7 +189,7 @@ public class TakeSnapshot implements Worker {
     }
 
     /**
-     * Returns a simulated snapshot result when the required database credentials are not available.
+     * Returns a demo snapshot result when the required database credentials are not available.
      */
     private TaskResult mockSnapshot(Task task, String databaseType, String databaseName,
                                     String databaseHost, String tool, String extension,
@@ -217,7 +217,7 @@ public class TakeSnapshot implements Worker {
         result.getOutputData().put("timestamp", now.toString());
         result.getOutputData().put("durationMs", 0);
         result.getOutputData().put("compressed", false);
-        result.getOutputData().put("simulated", true);
+        result.getOutputData().put("demoMode", true);
         return result;
     }
 

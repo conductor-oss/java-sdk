@@ -1,0 +1,70 @@
+{
+  "name": "rate_limiter_workflow",
+  "description": "Distributed rate limiting workflow that checks quotas, processes or rejects requests, and updates counters per client.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "clientId",
+    "endpoint",
+    "request"
+  ],
+  "tasks": [
+    {
+      "name": "rl_check_quota",
+      "taskReferenceName": "quota_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "clientId": "${workflow.input.clientId}",
+        "endpoint": "${workflow.input.endpoint}"
+      }
+    },
+    {
+      "name": "quota_decision",
+      "taskReferenceName": "decision_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${quota_ref.output.allowed}"
+      },
+      "decisionCases": {
+        "false": [
+          {
+            "name": "rl_reject_request",
+            "taskReferenceName": "reject_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "clientId": "${workflow.input.clientId}",
+              "retryAfter": "${quota_ref.output.retryAfter}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "rl_process_request",
+          "taskReferenceName": "process_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "request": "${workflow.input.request}"
+          }
+        },
+        {
+          "name": "rl_update_counter",
+          "taskReferenceName": "counter_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "clientId": "${workflow.input.clientId}",
+            "endpoint": "${workflow.input.endpoint}"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "allowed": "${quota_ref.output.allowed}",
+    "remaining": "${quota_ref.output.remaining}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

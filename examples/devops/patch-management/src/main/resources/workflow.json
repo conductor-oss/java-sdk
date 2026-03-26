@@ -1,0 +1,54 @@
+{
+  "name": "patch_management_workflow",
+  "description": "Automated security patch deployment: scan vulnerabilities, test, deploy, verify",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "patchId",
+    "severity"
+  ],
+  "tasks": [
+    {
+      "name": "pm_scan_vulnerabilities",
+      "taskReferenceName": "pm_scan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patchId": "${workflow.input.patchId}",
+        "severity": "${workflow.input.severity}"
+      }
+    },
+    {
+      "name": "pm_test_patch",
+      "taskReferenceName": "pm_test_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patchId": "${workflow.input.patchId}",
+        "vulnerabilities": "${pm_scan_ref.output}"
+      }
+    },
+    {
+      "name": "pm_deploy_patch",
+      "taskReferenceName": "pm_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patchId": "${workflow.input.patchId}",
+        "testResult": "${pm_test_ref.output}"
+      }
+    },
+    {
+      "name": "pm_verify_patch",
+      "taskReferenceName": "pm_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patchId": "${workflow.input.patchId}",
+        "deployResult": "${pm_deploy_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "scanResult": "${pm_scan_ref.output}",
+    "verifyResult": "${pm_verify_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

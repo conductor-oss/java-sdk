@@ -1,0 +1,55 @@
+{
+  "name": "system_tasks_demo",
+  "description": "Demonstrates INLINE and JSON_JQ_TRANSFORM system tasks — no workers needed",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId"],
+  "tasks": [
+    {
+      "name": "lookup_user",
+      "taskReferenceName": "lookup_user_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { var users = { 'user-1': { name: 'Alice Johnson', department: 'Engineering', baseSalary: 95000, performanceRating: 4.5 }, 'user-2': { name: 'Bob Smith', department: 'Marketing', baseSalary: 78000, performanceRating: 3.8 }, 'user-3': { name: 'Carol Williams', department: 'Engineering', baseSalary: 110000, performanceRating: 4.9 } }; var user = users[$.userId]; if (!user) { return { error: 'User not found: ' + $.userId }; } return user; })()",
+        "userId": "${workflow.input.userId}"
+      }
+    },
+    {
+      "name": "calculate_bonus",
+      "taskReferenceName": "calculate_bonus_ref",
+      "type": "INLINE",
+      "inputParameters": {
+        "evaluatorType": "graaljs",
+        "expression": "(function() { var salary = $.baseSalary; var rating = $.performanceRating; var bonusPercent = 0; if (rating >= 4.5) { bonusPercent = 15; } else if (rating >= 4.0) { bonusPercent = 10; } else if (rating >= 3.0) { bonusPercent = 5; } else { bonusPercent = 0; } var bonusAmount = Math.round(salary * bonusPercent / 100); return { bonusPercent: bonusPercent, bonusAmount: bonusAmount, totalCompensation: salary + bonusAmount, tier: bonusPercent >= 15 ? 'Gold' : bonusPercent >= 10 ? 'Silver' : 'Bronze' }; })()",
+        "baseSalary": "${lookup_user_ref.output.result.baseSalary}",
+        "performanceRating": "${lookup_user_ref.output.result.performanceRating}"
+      }
+    },
+    {
+      "name": "format_output",
+      "taskReferenceName": "format_output_ref",
+      "type": "JSON_JQ_TRANSFORM",
+      "inputParameters": {
+        "queryExpression": "{ summary: { employee: .user.name, department: .user.department, compensation: { base: .user.baseSalary, bonus: .bonus.bonusAmount, total: .bonus.totalCompensation }, performance: { rating: .user.performanceRating, bonusTier: .bonus.tier, bonusPercent: .bonus.bonusPercent } } }",
+        "user": {
+          "name": "${lookup_user_ref.output.result.name}",
+          "department": "${lookup_user_ref.output.result.department}",
+          "baseSalary": "${lookup_user_ref.output.result.baseSalary}",
+          "performanceRating": "${lookup_user_ref.output.result.performanceRating}"
+        },
+        "bonus": {
+          "bonusPercent": "${calculate_bonus_ref.output.result.bonusPercent}",
+          "bonusAmount": "${calculate_bonus_ref.output.result.bonusAmount}",
+          "totalCompensation": "${calculate_bonus_ref.output.result.totalCompensation}",
+          "tier": "${calculate_bonus_ref.output.result.tier}"
+        }
+      }
+    }
+  ],
+  "outputParameters": {
+    "summary": "${format_output_ref.output.result.summary}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

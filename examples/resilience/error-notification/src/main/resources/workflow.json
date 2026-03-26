@@ -1,0 +1,23 @@
+{
+  "name": "order_with_alerts",
+  "description": "Order processing workflow with failure alerts -- triggers error_notification workflow on failure.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["shouldFail"],
+  "tasks": [
+    {
+      "name": "en_process_order",
+      "taskReferenceName": "en_process_order_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shouldFail": "${workflow.input.shouldFail}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${en_process_order_ref.output.result}"
+  },
+  "failureWorkflow": "error_notification",
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

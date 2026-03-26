@@ -1,0 +1,70 @@
+{
+  "name": "model_registry_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "modelName",
+    "modelArtifact",
+    "metrics"
+  ],
+  "tasks": [
+    {
+      "name": "mrg_register",
+      "taskReferenceName": "mrg_register_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "modelArtifact": "${workflow.input.modelArtifact}"
+      }
+    },
+    {
+      "name": "mrg_version",
+      "taskReferenceName": "mrg_version_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "registryId": "${mrg_register_ref.output.registryId}"
+      }
+    },
+    {
+      "name": "mrg_validate",
+      "taskReferenceName": "mrg_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "version": "${mrg_version_ref.output.version}",
+        "metrics": "${workflow.input.metrics}"
+      }
+    },
+    {
+      "name": "mrg_approve",
+      "taskReferenceName": "mrg_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "version": "${mrg_version_ref.output.version}",
+        "validationResult": "${mrg_validate_ref.output.validationResult}"
+      }
+    },
+    {
+      "name": "mrg_deploy",
+      "taskReferenceName": "mrg_deploy_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "modelName": "${workflow.input.modelName}",
+        "version": "${mrg_version_ref.output.version}",
+        "approved": "${mrg_approve_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "modelName": "${workflow.input.modelName}",
+    "version": "${mrg_version_ref.output.version}",
+    "registryId": "${mrg_register_ref.output.registryId}",
+    "validated": "${mrg_validate_ref.output.validationResult}",
+    "approved": "${mrg_approve_ref.output.approved}",
+    "deployed": "${mrg_deploy_ref.output.deployed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

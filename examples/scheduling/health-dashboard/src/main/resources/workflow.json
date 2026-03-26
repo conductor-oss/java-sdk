@@ -1,0 +1,9 @@
+{"name":"health_dashboard_417","version":1,"schemaVersion":2,"inputParameters":["environment"],
+"tasks":[
+ {"name":"hd_fork_checks","taskReferenceName":"hd_fork_ref","type":"FORK_JOIN","forkTasks":[
+  [{"name":"hd_check_api","taskReferenceName":"hd_api_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","component":"api"}}],
+  [{"name":"hd_check_db","taskReferenceName":"hd_db_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","component":"database"}}],
+  [{"name":"hd_check_cache","taskReferenceName":"hd_cache_ref","type":"SIMPLE","inputParameters":{"environment":"${workflow.input.environment}","component":"cache"}}]]},
+ {"name":"hd_join_checks","taskReferenceName":"hd_join_ref","type":"JOIN","joinOn":["hd_api_ref","hd_db_ref","hd_cache_ref"]},
+ {"name":"hd_render_dashboard","taskReferenceName":"hd_render_ref","type":"SIMPLE","inputParameters":{"apiStatus":"${hd_api_ref.output.status}","dbStatus":"${hd_db_ref.output.status}","cacheStatus":"${hd_cache_ref.output.status}","environment":"${workflow.input.environment}"}}
+],"outputParameters":{"apiStatus":"${hd_api_ref.output.status}","dbStatus":"${hd_db_ref.output.status}","cacheStatus":"${hd_cache_ref.output.status}","overallHealth":"${hd_render_ref.output.overallHealth}"},"ownerEmail":"examples@orkes.io","timeoutSeconds":60}

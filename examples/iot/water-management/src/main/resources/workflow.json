@@ -1,0 +1,58 @@
+{
+  "name": "water_management_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "zoneId",
+    "sensorGroup"
+  ],
+  "tasks": [
+    {
+      "name": "wtr_monitor_levels",
+      "taskReferenceName": "wtr_levels_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "zoneId": "${workflow.input.zoneId}",
+        "sensorGroup": "${workflow.input.sensorGroup}"
+      }
+    },
+    {
+      "name": "wtr_analyze_quality",
+      "taskReferenceName": "wtr_quality_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "zoneId": "${workflow.input.zoneId}",
+        "waterLevel": "${wtr_levels_ref.output.level}"
+      }
+    },
+    {
+      "name": "wtr_detect_leaks",
+      "taskReferenceName": "wtr_leaks_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "zoneId": "${workflow.input.zoneId}",
+        "flowRate": "${wtr_levels_ref.output.flowRate}",
+        "pressure": "${wtr_levels_ref.output.pressure}"
+      }
+    },
+    {
+      "name": "wtr_alert",
+      "taskReferenceName": "wtr_alert_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "zoneId": "${workflow.input.zoneId}",
+        "qualityOk": "${wtr_quality_ref.output.qualityOk}",
+        "leakDetected": "${wtr_leaks_ref.output.leakDetected}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "zoneId": "${workflow.input.zoneId}",
+    "waterLevel": "${wtr_levels_ref.output.level}",
+    "qualityOk": "${wtr_quality_ref.output.qualityOk}",
+    "leakDetected": "${wtr_leaks_ref.output.leakDetected}",
+    "alertSent": "${wtr_alert_ref.output.alertSent}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

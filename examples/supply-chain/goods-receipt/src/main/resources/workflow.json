@@ -1,0 +1,61 @@
+{
+  "name": "grc_goods_receipt",
+  "description": "Goods receipt: receive shipment, inspect, match to PO, store, and update inventory.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["shipmentId", "poNumber", "items"],
+  "tasks": [
+    {
+      "name": "grc_receive",
+      "taskReferenceName": "grc_receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shipmentId": "${workflow.input.shipmentId}",
+        "items": "${workflow.input.items}"
+      }
+    },
+    {
+      "name": "grc_inspect",
+      "taskReferenceName": "grc_inspect_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "receivedItems": "${grc_receive_ref.output.receivedItems}"
+      }
+    },
+    {
+      "name": "grc_match_po",
+      "taskReferenceName": "grc_match_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "receivedItems": "${grc_receive_ref.output.receivedItems}",
+        "poNumber": "${workflow.input.poNumber}"
+      }
+    },
+    {
+      "name": "grc_store",
+      "taskReferenceName": "grc_store_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "inspectedItems": "${grc_inspect_ref.output.inspectedItems}",
+        "matched": "${grc_match_ref.output.matched}"
+      }
+    },
+    {
+      "name": "grc_update_inventory",
+      "taskReferenceName": "grc_update_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "storedItems": "${grc_store_ref.output.storedItems}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "receiptId": "${grc_receive_ref.output.receiptId}",
+    "inspectionPassed": "${grc_inspect_ref.output.passed}",
+    "poMatched": "${grc_match_ref.output.matched}",
+    "location": "${grc_store_ref.output.location}",
+    "inventoryUpdated": "${grc_update_ref.output.updated}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

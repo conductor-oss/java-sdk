@@ -1,0 +1,20 @@
+{
+  "name": "task_def_test",
+  "description": "Task definitions test — runs td_fast_task to verify task definition configuration.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [],
+  "tasks": [
+    {
+      "name": "td_fast_task",
+      "taskReferenceName": "fast_ref",
+      "type": "SIMPLE",
+      "inputParameters": {}
+    }
+  ],
+  "outputParameters": {
+    "done": "${fast_ref.output.done}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 30
+}

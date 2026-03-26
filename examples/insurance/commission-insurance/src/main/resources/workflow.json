@@ -1,0 +1,65 @@
+{
+  "name": "cin_commission_insurance",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "agentId",
+    "policyId",
+    "premiumAmount"
+  ],
+  "tasks": [
+    {
+      "name": "cin_calculate",
+      "taskReferenceName": "cin_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "premiumAmount": "${workflow.input.premiumAmount}"
+      }
+    },
+    {
+      "name": "cin_validate",
+      "taskReferenceName": "cin_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "commission": "${cin_calc_ref.output.commission}",
+        "agentId": "${workflow.input.agentId}"
+      }
+    },
+    {
+      "name": "cin_deduct_advances",
+      "taskReferenceName": "cin_deduct_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "grossCommission": "${cin_calc_ref.output.commission}"
+      }
+    },
+    {
+      "name": "cin_pay",
+      "taskReferenceName": "cin_pay_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "netCommission": "${cin_deduct_ref.output.netCommission}"
+      }
+    },
+    {
+      "name": "cin_report",
+      "taskReferenceName": "cin_report_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "agentId": "${workflow.input.agentId}",
+        "policyId": "${workflow.input.policyId}",
+        "paid": "${cin_pay_ref.output.paid}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "grossCommission": "${cin_calc_ref.output.commission}",
+    "netCommission": "${cin_deduct_ref.output.netCommission}",
+    "paymentId": "${cin_pay_ref.output.paymentId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

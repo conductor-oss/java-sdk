@@ -1,0 +1,38 @@
+{
+  "name": "escalation_timer_demo",
+  "description": "Escalation timer demo -- auto-approve after timeout using a WAIT task and external escalation checker.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "autoApproveAfterMs"],
+  "tasks": [
+    {
+      "name": "et_submit",
+      "taskReferenceName": "submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}"
+      }
+    },
+    {
+      "name": "approval_wait",
+      "taskReferenceName": "wait_ref",
+      "type": "WAIT",
+      "inputParameters": {}
+    },
+    {
+      "name": "et_process",
+      "taskReferenceName": "proc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "decision": "${wait_ref.output.decision}",
+        "method": "${wait_ref.output.method}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "decision": "${wait_ref.output.decision}",
+    "method": "${wait_ref.output.method}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 300
+}

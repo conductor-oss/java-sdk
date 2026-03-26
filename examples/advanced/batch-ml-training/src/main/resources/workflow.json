@@ -1,0 +1,85 @@
+{
+  "name": "batch_ml_training_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "datasetId",
+    "experimentName"
+  ],
+  "tasks": [
+    {
+      "name": "bml_prepare_data",
+      "taskReferenceName": "bml_prep_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "datasetId": "${workflow.input.datasetId}",
+        "experimentName": "${workflow.input.experimentName}"
+      }
+    },
+    {
+      "name": "bml_split_data",
+      "taskReferenceName": "bml_split_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "preparedData": "${bml_prep_ref.output.dataPath}",
+        "trainRatio": 0.8
+      }
+    },
+    {
+      "name": "bml_fork_train",
+      "taskReferenceName": "bml_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "bml_train_model_1",
+            "taskReferenceName": "bml_m1_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "modelType": "random_forest",
+              "trainData": "${bml_split_ref.output.trainPath}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "bml_train_model_2",
+            "taskReferenceName": "bml_m2_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "modelType": "gradient_boost",
+              "trainData": "${bml_split_ref.output.trainPath}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "bml_join_train",
+      "taskReferenceName": "bml_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "bml_m1_ref",
+        "bml_m2_ref"
+      ]
+    },
+    {
+      "name": "bml_evaluate",
+      "taskReferenceName": "bml_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "model1Accuracy": "${bml_m1_ref.output.accuracy}",
+        "model2Accuracy": "${bml_m2_ref.output.accuracy}",
+        "testData": "${bml_split_ref.output.testPath}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "experimentName": "${workflow.input.experimentName}",
+    "model1Accuracy": "${bml_m1_ref.output.accuracy}",
+    "model2Accuracy": "${bml_m2_ref.output.accuracy}",
+    "bestModel": "${bml_eval_ref.output.bestModel}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

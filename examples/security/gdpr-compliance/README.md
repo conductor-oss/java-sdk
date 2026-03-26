@@ -1,195 +1,91 @@
-# Implementing GDPR Compliance in Java with Conductor: Identity Verification, Data Location, Request Processing, and Completion Confirmation
+# GDPR Compliance: Regex-Based PII Detection, Data Source Scanning, and Auditable Erasure
 
-A customer emailed asking you to delete all their data. Legal forwarded it to engineering, who found records in the CRM. The billing team deleted their payment history. Analytics still had their event stream but didn't hear about the request until week three. The marketing team's third-party enrichment vendor? Nobody even thought to check. Day 29: the customer filed a complaint with the Data Protection Authority. You have no audit trail proving what was deleted, what was missed, or when each system was actually processed, and now you're explaining to regulators why three of seven data stores were never touched. This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate GDPR data subject requests end-to-end: verify identity, locate data across every system, process the request, and confirm completion, with a regulator-ready audit trail proving every step.
+Under GDPR Article 17, when a user requests data erasure, you have 30 days to find and remove their personal data from every system. Not just your primary database -- also billing, analytics, logs, and third-party vendors. Miss one, and you face regulatory fines. This example implements a GDPR data subject request pipeline using [Conductor](https://github.com/conductor-oss/conductor) that verifies identity, scans real data structures for subject matches, detects and masks PII using four regex patterns (email, SSN, phone, credit card), and produces an auditable completion report with a unique `GDPR-` report ID.
 
-## The Problem
-
-Under GDPR, data subjects can request access to their data, erasure ("right to be forgotten"), or portability. You have 30 days to comply. Each request requires verifying the requester's identity (prevent unauthorized data access), locating their data across all systems (databases, backups, SaaS tools, logs), processing the specific request type, and confirming completion back to the requester.
-
-Without orchestration, GDPR requests are tracked in a spreadsheet. Someone manually searches each database, emails each SaaS vendor, and hopes they found everything before the 30-day deadline. If they miss a system, the organization faces regulatory fines. There's no audit trail proving the request was fully processed.
-
-## The Solution
-
-**You just write the data location queries and erasure operations. Conductor handles the mandated sequence from identity verification through completion, retries when data systems are unavailable, and a regulators-ready audit trail proving every step of the request was fulfilled.**
-
-Each GDPR step is an independent worker: identity verification, data location, request processing, and completion confirmation. Conductor runs them in sequence: verify identity, locate all personal data, process the request, then confirm. Every request is tracked with full audit trail, when it was received, what data was found, what action was taken, and when it was completed, proving compliance to regulators. You get all of that for free, without writing a single line of orchestration code.
-
-### What You Write: Workers
-
-Four workers handle GDPR requests end-to-end: VerifyIdentityWorker confirms the requester is who they claim, LocateDataWorker finds their personal data across all systems, ProcessRequestWorker executes the erasure or export, and ConfirmCompletionWorker notifies the subject within the 30-day deadline.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ConfirmCompletionWorker** | `gdpr_confirm_completion` | Sends a completion confirmation to the data subject within the 30-day deadline | Simulated |
-| **LocateDataWorker** | `gdpr_locate_data` | Locates the subject's personal data across all systems (e.g., CRM, billing, analytics, logs) | Simulated |
-| **ProcessRequestWorker** | `gdpr_process_request` | Executes the requested right (erasure, export, rectification) across all identified systems | Simulated |
-| **VerifyIdentityWorker** | `gdpr_verify_identity` | Verifies the identity of the data subject making the GDPR request | Simulated |
-
-Workers simulate security checks and remediation actions with realistic findings so you can see the response flow without live security tools. Replace with real scanner and SIEM integrations, the workflow logic stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
-### The Workflow
+## The Pipeline
 
 ```
-gdpr_verify_identity
-    │
-    ▼
-gdpr_locate_data
-    │
-    ▼
-gdpr_process_request
-    │
-    ▼
-gdpr_confirm_completion
+gdpr_verify_identity  -->  gdpr_locate_data  -->  gdpr_process_request  -->  gdpr_confirm_completion
 ```
 
-## Example Output
+The workflow accepts `subjectId` and `requestType`. Each worker produces an `auditLog` map with `timestamp`, `action`, `actor`, `result`, and `detail` -- creating a regulator-ready chain of evidence.
 
-```
-=== Example 357: GDPR Compliance ===
+## Identity Verification
 
-Step 1: Registering task definitions...
-  Registered: gdpr_verify_identity, gdpr_locate_data, gdpr_process_request, gdpr_confirm_completion
+`VerifyIdentityWorker` requires `requestorId` and `email`. Email validation checks for both `@` and `.` characters. On failure, the audit log captures the specific failure reason (e.g., `"Invalid email format"`) with the requestor ID as the actor. This prevents unauthorized data access requests -- a critical GDPR requirement.
 
-Step 2: Registering workflow 'gdpr_compliance_workflow'...
-  Workflow registered.
+## Data Location: Real Record Scanning
 
-Step 3: Starting workers...
-  4 workers polling.
+`LocateDataWorker` is the most complex worker. It accepts a `subjectId` and a `dataSources` list -- each entry is a map with `system`, `table`, `fields`, and `records`. The worker scans every field of every record in every data source, checking if the value contains the subject ID:
 
-Step 4: Starting workflow...
-  Workflow ID: bd3bdc2b-9822-ffa6-7be8-21a4f8b067c5
-
-  [confirm] Confirmation sent to data subject within 30-day deadline
-  [locate] Data found in 4 systems: CRM, billing, analytics, logs
-  [process] right-to-erasure: data exported/deleted from 4 systems
-  [identity] Subject EU-USER-12345: identity verified
-
-  Status: COMPLETED
-
-Result: PASSED
+```java
+for (Map.Entry<String, Object> entry : record.entrySet()) {
+    if (entry.getValue() != null && entry.getValue().toString().contains(subjectId)) {
+        if (!matchedFields.contains(entry.getKey())) {
+            matchedFields.add(entry.getKey());
+        }
+    }
+}
 ```
 
-## Running It
+The output includes `dataLocations` (which systems contained the subject's data), `systemsScanned` (total systems checked), and `fieldsMatched` (total fields containing the subject's data). In the integration test, scanning `USER-42` across a `user_db.profiles` table and a `billing_db.payments` table correctly identifies matches in both systems.
 
-### Prerequisites
+## PII Detection and Masking
 
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+`ProcessRequestWorker` supports four request types: `access`, `erasure`, `anonymize`, `portability`. It scans raw text data against four compiled regex patterns:
 
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
+```java
+static final Pattern EMAIL_PATTERN       = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+static final Pattern SSN_PATTERN         = Pattern.compile("\\b\\d{3}-\\d{2}-\\d{4}\\b");
+static final Pattern PHONE_PATTERN       = Pattern.compile("\\b(\\+?\\d{1,3}[-.]?)?\\(?\\d{3}\\)?[-.]?\\d{3}[-.]?\\d{4}\\b");
+static final Pattern CREDIT_CARD_PATTERN = Pattern.compile("\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b");
 ```
 
-Starts Conductor on port 8080 and runs the example automatically.
+The phone pattern handles US formats (`555-123-4567`), parenthesized area codes (`(555)123-4567`), and international prefixes (`+44.207.123.4567`).
 
-If port 8080 is already taken:
+For `access` and `portability` requests, the original data is returned unchanged -- but all PII is still detected and reported. For `erasure` and `anonymize` requests, PII is replaced with tokens: `[EMAIL_REDACTED]`, `[SSN_REDACTED]`, `[PHONE_REDACTED]`, `[CC_REDACTED]`.
 
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
+Individual PII items are reported with their type, a masked value (first 2 and last 2 characters visible, middle replaced with `*`), and the character position where they were found.
+
+## Completion Confirmation
+
+`ConfirmCompletionWorker` generates a unique report ID: `"GDPR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase()`. It records the request type, PII items processed count, and completion timestamp. The `piiCount` must be a non-negative integer -- negative values are rejected with a terminal error. The `piiCount` input supports both `Number` and `String` types, parsing strings with `Integer.parseInt()` and rejecting non-numeric strings with a specific error message.
+
+## Audit Log Structure
+
+Every worker outputs an `auditLog` map using the shared `VerifyIdentityWorker.auditLog()` static method. This ensures consistent structure across the pipeline:
+
+```java
+static Map<String, String> auditLog(String action, String actor, String resultStatus, String detail) {
+    Map<String, String> log = new LinkedHashMap<>();
+    log.put("timestamp", Instant.now().toString());
+    log.put("action", action);
+    log.put("actor", actor);
+    log.put("result", resultStatus);
+    log.put("detail", detail);
+    return log;
+}
 ```
 
-### Option 2: Run locally
+The `action` field identifies the step (`gdpr_verify_identity`, `gdpr_locate_data`, etc.). The `actor` is the requestor ID on success or `"SYSTEM"` on validation failures. The `result` is `"SUCCESS"` or `"FAILED"`. The `detail` provides human-readable context like `"erasure completed, 3 PII items processed, report: GDPR-A1B2C3D4"`. Even failed steps produce audit logs, so you can prove to regulators that a request was received and rejected for a valid reason (e.g., invalid email format).
 
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+## Test Coverage
 
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
+**MainExampleTest** (30 tests):
+- PII detection: email, SSN, US phone, international phone (`+44.207.123.4567`), credit card, multiple PII types in one string, clean data returns zero, partial SSN not detected
+- Masking: erasure replaces PII with redaction tokens, anonymize masks data, access preserves original
+- Input validation: missing/invalid request type, missing data, audit log structure
+- Identity: successful verification, missing requestor ID, missing email, invalid email format
+- Data location: missing subject ID, missing data sources, real record scanning, no-match returns empty
+- Completion: success with report ID prefix check, missing request type/subject ID/PII count, negative PII count
 
-# Build and run
-mvn package -DskipTests
-java -jar target/gdpr-compliance-1.0.0.jar
-```
+**GdprIntegrationTest** (3 tests):
+- Full erasure pipeline: verify -> locate across 2 databases -> process with 3+ PII elements detected -> confirm with report ID
+- Pipeline stops on verification failure
+- Access request preserves original data while still detecting PII
 
-### Option 3: Use the run script
+**33 tests total** with the workflow timeout set to 86,400 seconds (24 hours) to accommodate the 30-day GDPR compliance window.
 
-```bash
-./run.sh
+---
 
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-```bash
-conductor workflow start \
-  --workflow gdpr_compliance_workflow \
-  --version 1 \
-  --input '{"subjectId": "EU-USER-12345", "requestType": "right-to-erasure"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w gdpr_compliance_workflow -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker handles one GDPR step. Connect LocateDataWorker to query your CRM, billing, and analytics databases, ProcessRequestWorker to execute erasure or export operations, and the verify-locate-process-confirm workflow stays the same.
-
-- **ConfirmCompletionWorker** (`gdpr_confirm_completion`): send completion notice to the data subject, record the processing in your GDPR compliance log
-- **LocateDataWorker** (`gdpr_locate_data`): search for personal data across databases, SaaS applications (via SCIM/API), backups, and log stores
-- **ProcessRequestWorker** (`gdpr_process_request`): execute the request. Export data for access/portability requests, delete/anonymize for erasure requests
-
-Point the data location and processing workers at your real databases and SaaS apps, and the GDPR compliance flow operates without workflow changes.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client</artifactId>
-    <version>5.0.1</version>
-</dependency>
-```
-
-## Project Structure
-
-```
-gdpr-compliance-gdpr-compliance/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/gdprcompliance/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── MainExample.java          # Main entry point
-│   └── workers/
-│       ├── ConfirmCompletionWorker.java
-│       ├── LocateDataWorker.java
-│       ├── ProcessRequestWorker.java
-│       └── VerifyIdentityWorker.java
-└── src/test/java/gdprcompliance/
-    └── MainExampleTest.java        # 2 tests. Workflow resource loading, worker instantiation
-```
+> **How to run:** See [RUNNING.md](../../RUNNING.md) | **Production guidance:** See [PRODUCTION.md](PRODUCTION.md)

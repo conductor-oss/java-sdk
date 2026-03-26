@@ -92,6 +92,18 @@ public class DiscoverWorker implements Worker {
                 result.addOutputData("expiringSoon", expiringSoon);
                 return result;
             }
+        } catch (java.net.UnknownHostException e) {
+            System.err.println("  [discover] DNS resolution failed for " + domain + ": " + e.getMessage());
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("DNS resolution failed for " + domain + ": " + e.getMessage());
+            return fail;
+        } catch (java.net.ConnectException | java.net.SocketTimeoutException e) {
+            System.err.println("  [discover] Network error connecting to " + domain + ": " + e.getMessage());
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED);
+            fail.setReasonForIncompletion("Retryable network error connecting to " + domain + ":" + port + ": " + e.getMessage());
+            return fail;
         } catch (Exception e) {
             System.err.println("  [discover] Failed to check " + domain + ": " + e.getMessage());
             TaskResult fail = new TaskResult(task);

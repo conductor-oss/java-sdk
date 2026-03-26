@@ -1,0 +1,41 @@
+{
+  "name": "mistral_ai_workflow",
+  "description": "Mistral AI chat completion workflow - composes request, calls API, extracts answer",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "examples@orkes.io",
+  "tasks": [
+    {
+      "name": "mistral_compose_request",
+      "taskReferenceName": "compose_request_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "document": "${workflow.input.document}",
+        "question": "${workflow.input.question}",
+        "model": "${workflow.input.model}",
+        "temperature": "${workflow.input.temperature}",
+        "maxTokens": "${workflow.input.maxTokens}",
+        "safePrompt": "${workflow.input.safePrompt}"
+      }
+    },
+    {
+      "name": "mistral_chat",
+      "taskReferenceName": "chat_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestBody": "${compose_request_ref.output.requestBody}"
+      }
+    },
+    {
+      "name": "mistral_extract_answer",
+      "taskReferenceName": "extract_answer_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "chatResponse": "${chat_ref.output.chatResponse}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "answer": "${extract_answer_ref.output.answer}"
+  }
+}

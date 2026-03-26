@@ -1,0 +1,74 @@
+{
+  "name": "supply_chain_iot_demo",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "shipmentId",
+    "origin",
+    "destination"
+  ],
+  "tasks": [
+    {
+      "name": "sci_track_shipment",
+      "taskReferenceName": "sci_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shipmentId": "${workflow.input.shipmentId}",
+        "origin": "${workflow.input.origin}",
+        "destination": "${workflow.input.destination}"
+      }
+    },
+    {
+      "name": "sci_monitor_conditions",
+      "taskReferenceName": "sci_cond_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "shipmentId": "${workflow.input.shipmentId}",
+        "location": "${sci_track_ref.output.currentLocation}"
+      }
+    },
+    {
+      "name": "sci_route_condition",
+      "taskReferenceName": "sci_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "inputParameters": {
+        "switchCaseValue": "${sci_cond_ref.output.conditionStatus}"
+      },
+      "expression": "switchCaseValue",
+      "decisionCases": {
+        "ok": [
+          {
+            "name": "sci_handle_ok",
+            "taskReferenceName": "sci_ok_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "shipmentId": "${workflow.input.shipmentId}",
+              "message": "All conditions nominal"
+            }
+          }
+        ],
+        "alert": [
+          {
+            "name": "sci_handle_alert",
+            "taskReferenceName": "sci_alert_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "shipmentId": "${workflow.input.shipmentId}",
+              "temperature": "${sci_cond_ref.output.temperature}",
+              "humidity": "${sci_cond_ref.output.humidity}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "shipmentId": "${workflow.input.shipmentId}",
+    "location": "${sci_track_ref.output.currentLocation}",
+    "conditionStatus": "${sci_cond_ref.output.conditionStatus}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

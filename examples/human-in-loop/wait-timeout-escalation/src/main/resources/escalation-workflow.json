@@ -1,0 +1,24 @@
+{
+  "name": "wait_timeout_escalation_escalate",
+  "description": "Escalation workflow -- triggered when the WAIT task times out, notifies a manager.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["requestId", "reason"],
+  "tasks": [
+    {
+      "name": "wte_escalate",
+      "taskReferenceName": "wte_escalate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "requestId": "${workflow.input.requestId}",
+        "reason": "${workflow.input.reason}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "escalated": "${wte_escalate_ref.output.escalated}",
+    "escalatedTo": "${wte_escalate_ref.output.escalatedTo}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

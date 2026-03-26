@@ -38,13 +38,29 @@ class GenerateWorkerTest {
     }
 
     @Test
-    void defaultsToLocalhostWhenNoDomain() {
+    void failsWhenNoDomainProvided() {
         Task task = taskWith(Map.of());
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
-        assertEquals("localhost", result.getOutputData().get("domain"));
-        assertNotNull(result.getOutputData().get("certPem"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("domain"));
+    }
+
+    @Test
+    void failsWhenDomainIsBlank() {
+        Task task = taskWith(Map.of("generateData", Map.of("domain", "   ")));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("domain"));
+    }
+
+    @Test
+    void failsWhenGenerateDataMissesDomainKey() {
+        Task task = taskWith(Map.of("generateData", Map.of("other", "value")));
+        TaskResult result = worker.execute(task);
+
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
     }
 
     private Task taskWith(Map<String, Object> input) {

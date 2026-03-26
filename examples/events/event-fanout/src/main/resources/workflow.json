@@ -1,0 +1,90 @@
+{
+  "name": "event_fanout_wf",
+  "description": "Event fan-out workflow that receives an event, fans out to analytics, storage, and notification processing in parallel via FORK_JOIN, then aggregates the results.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "eventId",
+    "eventType",
+    "payload"
+  ],
+  "tasks": [
+    {
+      "name": "fo_receive_event",
+      "taskReferenceName": "receive_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "eventId": "${workflow.input.eventId}",
+        "eventType": "${workflow.input.eventType}",
+        "payload": "${workflow.input.payload}"
+      }
+    },
+    {
+      "name": "fanout_fork",
+      "taskReferenceName": "fanout_fork_ref",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "fo_analytics",
+            "taskReferenceName": "analytics_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${receive_ref.output.eventId}",
+              "payload": "${receive_ref.output.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "fo_storage",
+            "taskReferenceName": "storage_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${receive_ref.output.eventId}",
+              "payload": "${receive_ref.output.payload}"
+            }
+          }
+        ],
+        [
+          {
+            "name": "fo_notification",
+            "taskReferenceName": "notify_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "eventId": "${receive_ref.output.eventId}",
+              "eventType": "${receive_ref.output.eventType}"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "fanout_join",
+      "taskReferenceName": "fanout_join_ref",
+      "type": "JOIN",
+      "joinOn": [
+        "analytics_ref",
+        "storage_ref",
+        "notify_ref"
+      ]
+    },
+    {
+      "name": "fo_aggregate",
+      "taskReferenceName": "aggregate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "analyticsResult": "${analytics_ref.output.result}",
+        "storageResult": "${storage_ref.output.result}",
+        "notifyResult": "${notify_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "eventId": "${workflow.input.eventId}",
+    "status": "${aggregate_ref.output.status}",
+    "processorResults": "${aggregate_ref.output.processorResults}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

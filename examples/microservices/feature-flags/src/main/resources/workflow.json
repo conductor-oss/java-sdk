@@ -1,0 +1,80 @@
+{
+  "name": "feature_flags_298",
+  "description": "Route execution based on feature flag status",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userId", "featureName"],
+  "tasks": [
+    {
+      "name": "ff_check_flag",
+      "taskReferenceName": "ff_check_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "featureName": "${workflow.input.featureName}"
+      }
+    },
+    {
+      "name": "ff_route_by_flag",
+      "taskReferenceName": "ff_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${ff_check_ref.output.flagStatus}"
+      },
+      "decisionCases": {
+        "enabled": [
+          {
+            "name": "ff_new_feature",
+            "taskReferenceName": "ff_new_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "userId": "${workflow.input.userId}",
+              "feature": "${workflow.input.featureName}"
+            }
+          }
+        ],
+        "disabled": [
+          {
+            "name": "ff_legacy_path",
+            "taskReferenceName": "ff_legacy_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "userId": "${workflow.input.userId}",
+              "feature": "${workflow.input.featureName}"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "ff_default_path",
+          "taskReferenceName": "ff_default_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "userId": "${workflow.input.userId}",
+            "feature": "${workflow.input.featureName}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ff_log_usage",
+      "taskReferenceName": "ff_log_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userId": "${workflow.input.userId}",
+        "feature": "${workflow.input.featureName}",
+        "flagStatus": "${ff_check_ref.output.flagStatus}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "featureName": "${workflow.input.featureName}",
+    "flagStatus": "${ff_check_ref.output.flagStatus}",
+    "logged": "${ff_log_ref.output.logged}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

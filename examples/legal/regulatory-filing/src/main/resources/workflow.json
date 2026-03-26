@@ -1,0 +1,60 @@
+{
+  "name": "rgf_regulatory_filing",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["filingType", "entityName", "jurisdiction"],
+  "tasks": [
+    {
+      "name": "rgf_prepare",
+      "taskReferenceName": "rgf_prepare_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filingType": "${workflow.input.filingType}",
+        "entityName": "${workflow.input.entityName}",
+        "jurisdiction": "${workflow.input.jurisdiction}"
+      }
+    },
+    {
+      "name": "rgf_validate",
+      "taskReferenceName": "rgf_validate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filingPackage": "${rgf_prepare_ref.output.filingPackage}"
+      }
+    },
+    {
+      "name": "rgf_submit",
+      "taskReferenceName": "rgf_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "filingPackage": "${rgf_prepare_ref.output.filingPackage}",
+        "validated": "${rgf_validate_ref.output.validated}"
+      }
+    },
+    {
+      "name": "rgf_track",
+      "taskReferenceName": "rgf_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${rgf_submit_ref.output.submissionId}"
+      }
+    },
+    {
+      "name": "rgf_confirm",
+      "taskReferenceName": "rgf_confirm_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "submissionId": "${rgf_submit_ref.output.submissionId}",
+        "trackingStatus": "${rgf_track_ref.output.trackingStatus}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "filingId": "${rgf_prepare_ref.output.filingId}",
+    "validated": "${rgf_validate_ref.output.validated}",
+    "submissionId": "${rgf_submit_ref.output.submissionId}",
+    "confirmationNumber": "${rgf_confirm_ref.output.confirmationNumber}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

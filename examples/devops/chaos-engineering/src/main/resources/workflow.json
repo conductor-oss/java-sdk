@@ -1,0 +1,50 @@
+{
+  "name": "chaos_engineering_workflow",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "service",
+    "faultType"
+  ],
+  "tasks": [
+    {
+      "name": "ce_define_experiment",
+      "taskReferenceName": "define_experiment_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "service": "${workflow.input.service}",
+        "faultType": "${workflow.input.faultType}"
+      }
+    },
+    {
+      "name": "ce_inject_failure",
+      "taskReferenceName": "inject_failure_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "inject_failureData": "${define_experiment_ref.output}"
+      }
+    },
+    {
+      "name": "ce_observe",
+      "taskReferenceName": "observe_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "observeData": "${inject_failure_ref.output}"
+      }
+    },
+    {
+      "name": "ce_recover",
+      "taskReferenceName": "recover_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "recoverData": "${observe_ref.output}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "define_experimentResult": "${define_experiment_ref.output}",
+    "recoverResult": "${recover_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 600
+}

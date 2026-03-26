@@ -1,0 +1,62 @@
+{
+  "name": "edu_enrollment",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["studentName", "program", "gpa"],
+  "tasks": [
+    {
+      "name": "edu_apply",
+      "taskReferenceName": "edu_apply_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentName": "${workflow.input.studentName}",
+        "program": "${workflow.input.program}",
+        "gpa": "${workflow.input.gpa}"
+      }
+    },
+    {
+      "name": "edu_review",
+      "taskReferenceName": "edu_review_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${edu_apply_ref.output.applicationId}",
+        "gpa": "${workflow.input.gpa}"
+      }
+    },
+    {
+      "name": "edu_admit",
+      "taskReferenceName": "edu_admit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "applicationId": "${edu_apply_ref.output.applicationId}",
+        "reviewScore": "${edu_review_ref.output.score}"
+      }
+    },
+    {
+      "name": "edu_enroll",
+      "taskReferenceName": "edu_enroll_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${edu_admit_ref.output.studentId}",
+        "program": "${workflow.input.program}"
+      }
+    },
+    {
+      "name": "edu_orient",
+      "taskReferenceName": "edu_orient_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "studentId": "${edu_admit_ref.output.studentId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "applicationId": "${edu_apply_ref.output.applicationId}",
+    "admitted": "${edu_admit_ref.output.admitted}",
+    "studentId": "${edu_admit_ref.output.studentId}",
+    "enrolled": "${edu_enroll_ref.output.enrolled}",
+    "orientationDate": "${edu_orient_ref.output.orientationDate}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

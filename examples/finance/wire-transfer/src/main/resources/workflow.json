@@ -1,0 +1,15 @@
+{
+  "name": "wire_transfer_workflow",
+  "description": "Wire transfer workflow: validate, verify sender, compliance check, execute, and confirm.",
+  "version": 1, "schemaVersion": 2,
+  "inputParameters": ["transferId", "senderAccount", "recipientAccount", "amount", "currency"],
+  "tasks": [
+    {"name": "wir_validate", "taskReferenceName": "wir_validate_ref", "type": "SIMPLE", "inputParameters": {"transferId": "${workflow.input.transferId}", "senderAccount": "${workflow.input.senderAccount}", "recipientAccount": "${workflow.input.recipientAccount}", "amount": "${workflow.input.amount}", "currency": "${workflow.input.currency}"}},
+    {"name": "wir_verify_sender", "taskReferenceName": "wir_sender_ref", "type": "SIMPLE", "inputParameters": {"transferId": "${workflow.input.transferId}", "senderAccount": "${workflow.input.senderAccount}", "amount": "${workflow.input.amount}"}},
+    {"name": "wir_compliance_check", "taskReferenceName": "wir_compliance_ref", "type": "SIMPLE", "inputParameters": {"transferId": "${workflow.input.transferId}", "senderAccount": "${workflow.input.senderAccount}", "recipientAccount": "${workflow.input.recipientAccount}", "amount": "${workflow.input.amount}"}},
+    {"name": "wir_execute", "taskReferenceName": "wir_execute_ref", "type": "SIMPLE", "inputParameters": {"transferId": "${workflow.input.transferId}", "senderAccount": "${workflow.input.senderAccount}", "recipientAccount": "${workflow.input.recipientAccount}", "amount": "${workflow.input.amount}", "currency": "${workflow.input.currency}"}},
+    {"name": "wir_confirm", "taskReferenceName": "wir_confirm_ref", "type": "SIMPLE", "inputParameters": {"transferId": "${workflow.input.transferId}", "transactionRef": "${wir_execute_ref.output.transactionRef}", "amount": "${workflow.input.amount}", "currency": "${workflow.input.currency}"}}
+  ],
+  "outputParameters": {"transferId": "${workflow.input.transferId}", "transactionRef": "${wir_execute_ref.output.transactionRef}", "amount": "${workflow.input.amount}", "confirmed": "${wir_confirm_ref.output.confirmed}"},
+  "ownerEmail": "examples@orkes.io", "timeoutSeconds": 60
+}

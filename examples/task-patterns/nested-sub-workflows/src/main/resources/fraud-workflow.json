@@ -1,0 +1,24 @@
+{
+  "name": "nested_fraud_check",
+  "description": "Level 3 (deepest) — Fraud checking sub-workflow. Evaluates fraud risk for a transaction.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["email", "amount"],
+  "tasks": [
+    {
+      "name": "nest_check_fraud",
+      "taskReferenceName": "nest_check_fraud_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "email": "${workflow.input.email}",
+        "amount": "${workflow.input.amount}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "riskScore": "${nest_check_fraud_ref.output.riskScore}",
+    "approved": "${nest_check_fraud_ref.output.approved}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

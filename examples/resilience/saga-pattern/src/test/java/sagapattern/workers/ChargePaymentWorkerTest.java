@@ -36,11 +36,11 @@ class ChargePaymentWorkerTest {
     }
 
     @Test
-    void failedPaymentDoesNotCreateTransaction() {
+    void failedPaymentReturnsTerminalError() {
         Task task = taskWith(Map.of("tripId", "TRIP-200", "shouldFail", true));
         TaskResult result = worker.execute(task);
 
-        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
         assertEquals("failed", result.getOutputData().get("status"));
         assertNull(result.getOutputData().get("transactionId"));
         assertFalse(BookingStore.PAYMENT_TRANSACTIONS.containsKey("TXN-TRIP-200"));
@@ -50,16 +50,50 @@ class ChargePaymentWorkerTest {
     void shouldFailAsStringTrue() {
         Task task = taskWith(Map.of("tripId", "TRIP-300", "shouldFail", "true"));
         TaskResult result = worker.execute(task);
-        assertEquals("failed", result.getOutputData().get("status"));
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
     }
 
     @Test
-    void statusIsAlwaysCompleted() {
-        Task task1 = taskWith(Map.of("tripId", "TRIP-A", "shouldFail", true));
-        Task task2 = taskWith(Map.of("tripId", "TRIP-B", "shouldFail", false));
+    void failsOnMissingTripId() {
+        Task task = taskWith(Map.of());
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
 
-        assertEquals(TaskResult.Status.COMPLETED, worker.execute(task1).getStatus());
-        assertEquals(TaskResult.Status.COMPLETED, worker.execute(task2).getStatus());
+    @Test
+    void failsOnNegativeAmount() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100", "amount", -50.0));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+        assertTrue(result.getReasonForIncompletion().contains("positive"));
+    }
+
+    @Test
+    void failsOnZeroAmount() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100", "amount", 0));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void failsOnNonNumericAmount() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100", "amount", "not-a-number"));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, result.getStatus());
+    }
+
+    @Test
+    void acceptsValidPositiveAmount() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100", "amount", 250.00));
+        TaskResult result = worker.execute(task);
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+    }
+
+    @Test
+    void recordsActionInLog() {
+        Task task = taskWith(Map.of("tripId", "TRIP-100"));
+        worker.execute(task);
+        assertTrue(BookingStore.getActionLog().contains("CHARGE_PAYMENT:TXN-TRIP-100"));
     }
 
     private Task taskWith(Map<String, Object> input) {

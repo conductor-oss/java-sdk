@@ -74,7 +74,7 @@ public class ReconcileWorker implements Worker {
             output.put("settlementDate", settlementDate);
             output.put("merchantId", merchantId);
             output.put("reconciledAt", Instant.now().toString());
-            output.put("simulated", true);
+            output.put("demoMode", true);
             result.setOutputData(output);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;

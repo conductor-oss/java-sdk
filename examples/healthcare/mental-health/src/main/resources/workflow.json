@@ -1,0 +1,56 @@
+{
+  "name": "mental_health_workflow",
+  "description": "Mental Health: intake, assess, treatment plan, track progress",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["patientId", "referralReason", "provider"],
+  "tasks": [
+    {
+      "name": "mh_intake",
+      "taskReferenceName": "mh_intake_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "referralReason": "${workflow.input.referralReason}"
+      }
+    },
+    {
+      "name": "mh_assess",
+      "taskReferenceName": "mh_assess_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "intakeData": "${mh_intake_ref.output.intakeData}"
+      }
+    },
+    {
+      "name": "mh_treatment_plan",
+      "taskReferenceName": "mh_plan_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "diagnosis": "${mh_assess_ref.output.diagnosis}",
+        "severity": "${mh_assess_ref.output.severity}",
+        "provider": "${workflow.input.provider}"
+      }
+    },
+    {
+      "name": "mh_track_progress",
+      "taskReferenceName": "mh_track_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "patientId": "${workflow.input.patientId}",
+        "treatmentPlan": "${mh_plan_ref.output.treatmentPlan}",
+        "baselineScore": "${mh_assess_ref.output.phq9Score}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "patientId": "${workflow.input.patientId}",
+    "diagnosis": "${mh_assess_ref.output.diagnosis}",
+    "treatmentPlan": "${mh_plan_ref.output.treatmentPlan}",
+    "trackingActive": "${mh_track_ref.output.trackingActive}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

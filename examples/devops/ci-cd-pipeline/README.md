@@ -1,206 +1,103 @@
-# CI/CD Pipeline in Java with Conductor: Build, Parallel Tests, Deploy Staging, Deploy Production
+# Orchestrating a Real CI/CD Pipeline with ProcessBuilder, Security Scanning, and Deployment Validation
 
-Someone pushed to main. Seven CI jobs kicked off in three different systems. The unit tests passed, but the integration test job silently timed out and reported "success" because the exit code wasn't checked. The security scan found a critical vulnerability in a transitive dependency, but it posted to a Slack channel nobody monitors. Meanwhile, the deploy job grabbed a stale artifact from the previous run because two builds wrote to the same S3 path. Production is now running code that failed integration tests, with a known CVE, and the deploy log says "all green." This workflow uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate the full CI/CD pipeline: build, parallel tests, staging deploy, production promotion, as a single traceable execution where every failure halts the line.
+A developer pushes to `main`. The pipeline needs to clone the repo, run unit tests, scan for hardcoded secrets, perform integration checks, deploy to staging, and promote to production -- and the testing stages should run in parallel to cut wall-clock time in half. If a hardcoded API key is found, production deployment must be blocked before it happens.
 
-## From Git Commit to Production in One Pipeline
+This example builds a CI/CD pipeline where every stage executes real system commands via `ProcessBuilder`, scans real source files with regex-based vulnerability detection, and creates actual deployment artifacts on disk.
 
-A developer pushes a commit to the main branch. The CI/CD pipeline must build the project from that commit SHA, run unit tests and integration tests in parallel (cutting test time in half), deploy to staging if tests pass, run smoke tests against staging, and deploy to production if staging is healthy. Each step depends on the previous one's success, and any failure should halt the pipeline with clear reporting.
+## Pipeline Architecture
 
-The pipeline must be idempotent: re-running it with the same commit SHA should produce the same build. Tests should run in parallel to minimize pipeline time. The staging deployment must be verified before production deployment begins. And every pipeline run needs a complete audit trail. What was built, what tests ran, what was deployed, and when.
+```
+cicd_build  (git clone --depth 1, extract HEAD SHA)
+     |
+     v
+ FORK_JOIN ─┬─ cicd_unit_test        (mvn test / gradle test / java -version)
+            ├─ cicd_integration_test  (HTTP connectivity to github.com, google.com, httpbin.org)
+            └─ cicd_security_scan     (regex scan for secrets, sensitive files, insecure HTTP)
+     |
+     JOIN (wait for all three)
+     |
+     v
+cicd_deploy_staging  (create manifest.json + VERSION + health.json)
+     |
+     v
+cicd_deploy_prod     (validate build artifacts exist, then deploy)
+```
 
-## The Solution
+## Worker: Build (`cicd_build`)
 
-**You write the build and deploy logic. Conductor handles parallel test execution, staging-before-production gating, and full pipeline traceability.**
+Executes a real `git clone --depth 1 --branch {branch}` via `ProcessBuilder` into a temp directory. The process has a 120-second timeout with `destroyForcibly()` on expiration. After cloning, a second `ProcessBuilder` runs `git rev-parse --short HEAD` inside the clone to extract the actual commit SHA for image tagging.
 
-`BuildWorker` checks out the specified commit, compiles the code, and produces build artifacts. `FORK_JOIN` dispatches unit tests and integration tests to run in parallel. After `JOIN` collects both results, `DeployStagingWorker` deploys the build to the staging environment and runs smoke tests. `DeployProdWorker` promotes the verified build to production. Conductor runs tests in parallel, tracks the full pipeline execution, and records build-to-deploy traceability.
+```java
+ProcessBuilder pb = new ProcessBuilder(
+    "git", "clone", "--depth", "1", "--branch", branch, repoUrl, cloneTarget.toString());
+pb.redirectErrorStream(true);
+Process proc = pb.start();
+boolean completed = proc.waitFor(120, java.util.concurrent.TimeUnit.SECONDS);
+```
 
-### What You Write: Workers
+Build IDs are deterministic: `BLD-{hash(repoUrl + branch + shortSha) % 900000 + 100000}`. Image tags follow `{repoName}:{branch}-{shortSha}`. The repo name is extracted by stripping `.git` and everything before the last `/`.
 
-Four workers run the CI/CD pipeline. Building from a commit, running tests in parallel, deploying to staging, and promoting to production.
+## Worker: UnitTest (`cicd_unit_test`)
 
-| Worker | Task | What It Does | Real / Simulated |
+Auto-detects the build tool by checking for `pom.xml` (Maven) or `build.gradle` (Gradle) in the build directory. Falls back to `java -version` when no build file exists. Parses Maven's `Tests run: X, Failures: Y, Errors: Z, Skipped: W` output with a compiled regex to extract structured test counts. Output is truncated to the last 2000 characters to avoid flooding Conductor's task output storage.
+
+## Worker: SecurityScan (`cicd_security_scan`)
+
+Walks the build directory up to 10 levels deep, skipping `.git/`, `node_modules/`, and `target/`. Three detection layers:
+
+**Hardcoded secrets (CRITICAL):** Regex `(?i)(password|secret|api[_-]?key|token|credential)\s*[=:]\s*["']?[A-Za-z0-9_+/=\-]{8,}` -- matches `password = "supersecret"` but not `password = ""`.
+
+**Sensitive files (HIGH):** Exact filename match against `.env`, `.env.local`, `.env.production`, `credentials.json`, `id_rsa`, `id_ed25519`, `.pem`, `secret`, `keystore.jks`.
+
+**Insecure HTTP (LOW):** `http://` URLs excluding localhost variants (`127.0.0.1`, `0.0.0.0`, `[::1]`).
+
+The `blockDeploy` flag is set to `true` when `critical > 0`, providing a machine-readable gate for downstream deployment decisions.
+
+## Worker: DeployProd (`cicd_deploy_prod`)
+
+Before creating deployment artifacts, validates that the build directory exists on disk:
+
+```java
+if (buildDir != null && !buildDir.isBlank()) {
+    Path buildPath = Path.of(buildDir);
+    if (!Files.exists(buildPath)) {
+        result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+        result.setReasonForIncompletion("Build artifacts not found at: " + buildDir);
+        return result;
+    }
+}
+```
+
+Both staging and production deployments create a real directory under `java.io.tmpdir` containing `manifest.json` (with buildId, imageTag, environment, timestamp, and `promotedFrom: "staging"` for prod), a `VERSION` file, and a `health.json` endpoint stub.
+
+## Error Handling
+
+| Scenario | Worker | Status | Retryable? |
 |---|---|---|---|
-| **Build** | `cicd_build` | Builds the application from the specified repo, branch, and commit. | Simulated |
-| **DeployProd** | `cicd_deploy_prod` | Deploys the build to production environment. | Simulated |
-| **DeployStaging** | `cicd_deploy_staging` | Deploys the build to staging environment. | Simulated |
-| **SecurityScan** | `cicd_security_scan` | Runs security scan for the build. | Simulated |
+| Missing repoUrl or branch | Build | `FAILED_WITH_TERMINAL_ERROR` | No |
+| Git clone timeout (>120s) | Build | `COMPLETED` with `cloneError` | Worker completes, but output signals failure |
+| Build dir missing on deploy | DeployProd | `FAILED_WITH_TERMINAL_ERROR` | No |
+| Critical secret found | SecurityScan | `COMPLETED` with `blockDeploy=true` | N/A -- gate, not failure |
+| Test execution exception | UnitTest | `COMPLETED` with `failed=1, tool="error"` | Worker completes with error data |
 
-Workers simulate infrastructure operations with realistic output so you can see the automation flow without affecting real systems. Replace with real infrastructure API calls, the workflow and rollback logic stay the same.
+## Test Coverage
 
-### What Conductor Gives You For Free
+5 test classes, 32 tests total:
 
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-| **Parallel execution** | FORK_JOIN runs multiple tasks simultaneously and waits for all to complete |
+**BuildTest (13 tests):** Missing/blank repoUrl, missing branch, deterministic buildId, null commitSha handling, repo name extraction from URL (`.git` suffix, no suffix, null).
 
-### The Workflow
+**SecurityScanTest (10 tests):** Empty directory produces zero findings, `.env` file detection, hardcoded API key detection, critical finding sets `blockDeploy=true`, clean Java file does not block.
 
-```
-cicd_build
-    │
-    ▼
-FORK_JOIN
-    ├── cicd_unit_test
-    ├── cicd_integration_test
-    └── cicd_security_scan
-    │
-    ▼
-JOIN (wait for all branches)
-cicd_deploy_staging
-    │
-    ▼
-cicd_deploy_prod
-```
+**DeployProdTest (9 tests):** Missing buildId/imageTag, nonexistent build directory rejection, real directory creation, manifest content validation (contains buildId, imageTag, "production").
 
-## Example Output
+**CiCdIntegrationTest (3 tests):** Full pipeline data flow (Build -> UnitTest -> SecurityScan -> DeployProd), security scan blocking deploy on critical finding, deploy failure on nonexistent artifacts.
 
-```
-=== CI/CD Pipeline Demo ===
+---
 
-Step 1: Registering task definitions...
-  Registered: cicd_build, cicd_deploy_prod, cicd_deploy_staging, cicd_integration_test, cicd_security_scan, cicd_unit_test
+## Production Notes
 
-Step 2: Registering workflow 'cicd_pipeline_workflow'...
-  Workflow registered.
+See [PRODUCTION.md](PRODUCTION.md) for deployment guidance, monitoring expectations, and security considerations.
 
-Step 3: Starting workers...
-  6 workers polling.
+---
 
-Step 4: Starting workflow...
-  Workflow ID: 5f3cd542-8bcc-6e5f-04f3-90d44546cb8f
-
-[cicd_build] Building main@...
-[cicd_unit_test] 342 tests passed
-[cicd_integration_test] 28 tests passed
-[cicd_security_scan] No vulnerabilities found
-[cicd_deploy_staging] Deployed app:1.2.3 to staging
-[cicd_deploy_prod] Deployed app:1.2.3 to production
-
-  Status: COMPLETED
-  Output: {buildId=BLD-100001, deployed=true}
-
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/ci-cd-pipeline-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/ci-cd-pipeline-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow cicd_pipeline_workflow \
-  --version 1 \
-  --input '{"repoUrl": "github.com/acme/api", "branch": "main", "commitSha": "abc1234def5678"}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w cicd_pipeline_workflow -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker owns one pipeline stage. Replace the simulated build and deploy calls with Jenkins, GitHub Actions, or ArgoCD, and the CI/CD pipeline runs unchanged.
-
-- **Build** (`cicd_build`): integrate with Maven/Gradle for Java builds, Docker for container image building, and push artifacts to ECR/Docker Hub/Artifactory
-- **SecurityScan** (`cicd_security_scan`): run Snyk, Trivy, or OWASP Dependency-Check for vulnerability scanning, with configurable severity thresholds to gate deployment
-- **DeployStaging** (`cicd_deploy_staging`): deploy to a staging environment via Helm upgrade, Kubernetes apply, or AWS ECS service update for pre-production validation
-- **DeployProd** (`cicd_deploy_prod`): deploy via ArgoCD GitOps sync, AWS CodeDeploy, or Kubernetes rolling update with canary analysis before full rollout
-
-Wire in your real build system and deployment targets; the CI/CD pipeline preserves the same stage-gate contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-## Project Structure
-
-```
-ci-cd-pipeline/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/cicdpipeline/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── CiCdPipelineExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── Build.java
-│       ├── DeployProd.java
-│       ├── DeployStaging.java
-│       └── SecurityScan.java
-└── src/test/java/cicdpipeline/workers/
-    ├── BuildTest.java        # 7 tests
-    ├── DeployProdTest.java        # 7 tests
-    ├── SecurityScanTest.java        # 7 tests
-    └── UnitTestTest.java        # 7 tests
-```
+> **How to run this example:** See [RUNNING.md](../../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.

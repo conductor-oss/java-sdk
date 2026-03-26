@@ -1,0 +1,65 @@
+{
+  "name": "npt_number_porting",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "phoneNumber",
+    "fromCarrier",
+    "toCarrier"
+  ],
+  "tasks": [
+    {
+      "name": "npt_request",
+      "taskReferenceName": "npt_req_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phoneNumber": "${workflow.input.phoneNumber}",
+        "toCarrier": "${workflow.input.toCarrier}"
+      }
+    },
+    {
+      "name": "npt_validate",
+      "taskReferenceName": "npt_val_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phoneNumber": "${workflow.input.phoneNumber}",
+        "fromCarrier": "${workflow.input.fromCarrier}"
+      }
+    },
+    {
+      "name": "npt_coordinate",
+      "taskReferenceName": "npt_coord_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "portId": "${npt_req_ref.output.portId}",
+        "fromCarrier": "${workflow.input.fromCarrier}",
+        "toCarrier": "${workflow.input.toCarrier}"
+      }
+    },
+    {
+      "name": "npt_port",
+      "taskReferenceName": "npt_port_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "portId": "${npt_req_ref.output.portId}",
+        "phoneNumber": "${workflow.input.phoneNumber}"
+      }
+    },
+    {
+      "name": "npt_verify",
+      "taskReferenceName": "npt_verify_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "phoneNumber": "${workflow.input.phoneNumber}",
+        "toCarrier": "${workflow.input.toCarrier}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "portId": "${npt_req_ref.output.portId}",
+    "ported": "${npt_port_ref.output.ported}",
+    "verified": "${npt_verify_ref.output.verified}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

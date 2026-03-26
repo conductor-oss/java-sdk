@@ -1,0 +1,66 @@
+{
+  "name": "tool_use_validation",
+  "description": "Tool Use Validation — generate tool call, validate input, execute tool, validate output, and deliver results through a sequential pipeline.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["userRequest", "toolName"],
+  "tasks": [
+    {
+      "name": "tv_generate_tool_call",
+      "taskReferenceName": "generate_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "toolName": "${workflow.input.toolName}"
+      }
+    },
+    {
+      "name": "tv_validate_input",
+      "taskReferenceName": "validate_in_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "toolArgs": "${generate_ref.output.toolArgs}",
+        "schema": "${generate_ref.output.inputSchema}"
+      }
+    },
+    {
+      "name": "tv_execute_tool",
+      "taskReferenceName": "execute_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "validatedArgs": "${validate_in_ref.output.validatedArgs}"
+      }
+    },
+    {
+      "name": "tv_validate_output",
+      "taskReferenceName": "validate_out_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "toolName": "${workflow.input.toolName}",
+        "rawOutput": "${execute_ref.output.rawOutput}",
+        "outputSchema": "${generate_ref.output.outputSchema}"
+      }
+    },
+    {
+      "name": "tv_deliver",
+      "taskReferenceName": "deliver_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "userRequest": "${workflow.input.userRequest}",
+        "validatedOutput": "${validate_out_ref.output.validatedOutput}",
+        "validationReport": "${validate_out_ref.output.validationReport}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "formattedResult": "${deliver_ref.output.formattedResult}",
+    "validationSummary": "${deliver_ref.output.validationSummary}",
+    "toolName": "${workflow.input.toolName}",
+    "inputValid": "${validate_in_ref.output.isValid}",
+    "outputValid": "${validate_out_ref.output.isValid}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}

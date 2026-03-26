@@ -9,6 +9,10 @@ import apigateway.workers.SendResponseWorker;
 
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * API Gateway Pattern Demo
@@ -49,8 +53,19 @@ public class ApiGatewayExample {
         Thread.sleep(2000);
 
         System.out.println("Step 4: Starting workflow...");
+        
+        // Store secret via Conductor Secrets API
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        HttpClient http = HttpClient.newHttpClient();
+        http.send(HttpRequest.newBuilder()
+                .uri(URI.create(conductorUrl + "/secrets/gateway_api_key"))
+                .PUT(HttpRequest.BodyPublishers.ofString("\"sk-test-gateway-key\""))
+                .header("Content-Type", "application/json")
+                .build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println("  Secret \'gateway_api_key\' stored via Conductor Secrets API");
+
         String workflowId = client.startWorkflow("api_gateway_292", 1,
-                Map.of("apiKey", "ak-premium-xyz789", "endpoint", "/api/v1/users", "method", "GET", "payload", Map.of()));
+                Map.of("endpoint", "/api/v1/users", "method", "GET", "payload", Map.of()));
 
         System.out.println("Step 5: Waiting for completion...");
         Workflow workflow = client.waitForWorkflow(workflowId, "COMPLETED", 60000);

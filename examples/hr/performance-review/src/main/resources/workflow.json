@@ -1,0 +1,51 @@
+{
+  "name": "pfr_performance_review",
+  "description": "Performance review workflow: self-eval, manager eval, calibrate, finalize.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["employeeId", "reviewPeriod", "managerId"],
+  "tasks": [
+    {
+      "name": "pfr_self_eval",
+      "taskReferenceName": "pfr_self_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "reviewPeriod": "${workflow.input.reviewPeriod}"
+      }
+    },
+    {
+      "name": "pfr_manager_eval",
+      "taskReferenceName": "pfr_mgr_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "employeeId": "${workflow.input.employeeId}",
+        "managerId": "${workflow.input.managerId}"
+      }
+    },
+    {
+      "name": "pfr_calibrate",
+      "taskReferenceName": "pfr_cal_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "selfRating": "${pfr_self_ref.output.rating}",
+        "managerRating": "${pfr_mgr_ref.output.rating}"
+      }
+    },
+    {
+      "name": "pfr_finalize",
+      "taskReferenceName": "pfr_final_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "calibratedRating": "${pfr_cal_ref.output.finalRating}",
+        "employeeId": "${workflow.input.employeeId}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "finalRating": "${pfr_cal_ref.output.finalRating}",
+    "reviewId": "${pfr_final_ref.output.reviewId}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

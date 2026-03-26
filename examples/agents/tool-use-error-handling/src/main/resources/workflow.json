@@ -1,0 +1,76 @@
+{
+  "name": "tool_use_error_handling",
+  "description": "Tool Use Error Handling — tries a primary tool and falls back to an alternative tool on failure via a SWITCH task.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["query", "primaryTool", "fallbackTool"],
+  "tasks": [
+    {
+      "name": "te_try_primary_tool",
+      "taskReferenceName": "primary_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "query": "${workflow.input.query}",
+        "toolName": "${workflow.input.primaryTool}"
+      }
+    },
+    {
+      "name": "route_on_status",
+      "taskReferenceName": "route_on_status_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${primary_ref.output.toolStatus}"
+      },
+      "decisionCases": {
+        "success": [
+          {
+            "name": "te_format_success",
+            "taskReferenceName": "format_success_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "result": "${primary_ref.output.result}",
+              "toolName": "${workflow.input.primaryTool}",
+              "source": "primary"
+            }
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "te_try_fallback_tool",
+          "taskReferenceName": "fallback_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "query": "${workflow.input.query}",
+            "toolName": "${workflow.input.fallbackTool}",
+            "primaryError": "${primary_ref.output.error}"
+          }
+        },
+        {
+          "name": "te_format_fallback",
+          "taskReferenceName": "format_fallback_ref",
+          "type": "SIMPLE",
+          "inputParameters": {
+            "result": "${fallback_ref.output.result}",
+            "toolName": "${workflow.input.fallbackTool}",
+            "source": "fallback"
+          }
+        }
+      ]
+    }
+  ],
+  "outputParameters": {
+    "query": "${workflow.input.query}",
+    "primaryTool": "${workflow.input.primaryTool}",
+    "fallbackTool": "${workflow.input.fallbackTool}",
+    "primaryStatus": "${primary_ref.output.toolStatus}",
+    "formatted": "${format_fallback_ref.output.formatted}",
+    "source": "${format_fallback_ref.output.source}",
+    "reliable": "${format_fallback_ref.output.reliable}",
+    "fallbackUsed": "${format_fallback_ref.output.fallbackUsed}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

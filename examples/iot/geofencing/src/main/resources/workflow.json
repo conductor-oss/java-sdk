@@ -1,0 +1,76 @@
+{
+  "name": "geofencing_demo",
+  "description": "Geofencing workflow that checks device location, evaluates geofence boundaries, and routes alerts via SWITCH based on zone status.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "deviceId",
+    "latitude",
+    "longitude"
+  ],
+  "tasks": [
+    {
+      "name": "geo_check_location",
+      "taskReferenceName": "geo_loc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "latitude": "${workflow.input.latitude}",
+        "longitude": "${workflow.input.longitude}"
+      }
+    },
+    {
+      "name": "geo_evaluate_boundaries",
+      "taskReferenceName": "geo_eval_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "deviceId": "${workflow.input.deviceId}",
+        "latitude": "${geo_loc_ref.output.latitude}",
+        "longitude": "${geo_loc_ref.output.longitude}"
+      }
+    },
+    {
+      "name": "geo_route_decision",
+      "taskReferenceName": "geo_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${geo_eval_ref.output.zoneStatus}"
+      },
+      "decisionCases": {
+        "inside": [
+          {
+            "name": "geo_alert_inside",
+            "taskReferenceName": "geo_inside_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "deviceId": "${workflow.input.deviceId}",
+              "zone": "${geo_eval_ref.output.zoneName}"
+            }
+          }
+        ],
+        "outside": [
+          {
+            "name": "geo_alert_outside",
+            "taskReferenceName": "geo_outside_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "deviceId": "${workflow.input.deviceId}",
+              "zone": "${geo_eval_ref.output.zoneName}",
+              "distance": "${geo_eval_ref.output.distanceFromBoundary}"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "deviceId": "${workflow.input.deviceId}",
+    "zoneStatus": "${geo_eval_ref.output.zoneStatus}",
+    "zoneName": "${geo_eval_ref.output.zoneName}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

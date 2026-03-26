@@ -25,27 +25,38 @@ public class MergeResultsWorker implements Worker {
         Map<String, Object> inventory = (Map<String, Object>) task.getInputData().get("inventory");
         Map<String, Object> reviews = (Map<String, Object>) task.getInputData().get("reviews");
 
-        String name = product != null ? (String) product.get("name") : "Unknown Product";
-        Object priceObj = product != null ? product.get("price") : 0.0;
+        if (product == null) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'product' is required — the product fork branch must complete successfully");
+            return fail;
+        }
+        if (inventory == null) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'inventory' is required — the inventory fork branch must complete successfully");
+            return fail;
+        }
+        if (reviews == null) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'reviews' is required — the reviews fork branch must complete successfully");
+            return fail;
+        }
+
+        String name = (String) product.get("name");
+        Object priceObj = product.get("price");
         double price = priceObj instanceof Number ? ((Number) priceObj).doubleValue() : 0.0;
 
-        boolean available = false;
-        int stock = 0;
-        if (inventory != null) {
-            Object inStockObj = inventory.get("inStock");
-            available = inStockObj instanceof Boolean && (Boolean) inStockObj;
-            Object qtyObj = inventory.get("quantity");
-            stock = qtyObj instanceof Number ? ((Number) qtyObj).intValue() : 0;
-        }
+        Object inStockObj = inventory.get("inStock");
+        boolean available = inStockObj instanceof Boolean && (Boolean) inStockObj;
+        Object qtyObj = inventory.get("quantity");
+        int stock = qtyObj instanceof Number ? ((Number) qtyObj).intValue() : 0;
 
-        double rating = 0.0;
-        int reviewCount = 0;
-        if (reviews != null) {
-            Object ratingObj = reviews.get("averageRating");
-            rating = ratingObj instanceof Number ? ((Number) ratingObj).doubleValue() : 0.0;
-            Object countObj = reviews.get("totalReviews");
-            reviewCount = countObj instanceof Number ? ((Number) countObj).intValue() : 0;
-        }
+        Object ratingObj = reviews.get("averageRating");
+        double rating = ratingObj instanceof Number ? ((Number) ratingObj).doubleValue() : 0.0;
+        Object countObj = reviews.get("totalReviews");
+        int reviewCount = countObj instanceof Number ? ((Number) countObj).intValue() : 0;
 
         System.out.println("  [fj_merge_results] Building product page:");
         System.out.println("    -> " + name + " | $" + price + " | " +

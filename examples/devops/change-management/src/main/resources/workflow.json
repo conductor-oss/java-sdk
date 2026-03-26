@@ -1,0 +1,56 @@
+{
+  "name": "change_management_workflow",
+  "description": "ITIL-compliant change management: submit, assess risk, approve, implement",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": [
+    "changeType",
+    "description",
+    "system"
+  ],
+  "tasks": [
+    {
+      "name": "cm_submit",
+      "taskReferenceName": "cm_submit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changeType": "${workflow.input.changeType}",
+        "description": "${workflow.input.description}",
+        "system": "${workflow.input.system}"
+      }
+    },
+    {
+      "name": "cm_assess_risk",
+      "taskReferenceName": "cm_assess_risk_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changeId": "${cm_submit_ref.output.changeId}",
+        "system": "${workflow.input.system}"
+      }
+    },
+    {
+      "name": "cm_approve",
+      "taskReferenceName": "cm_approve_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changeId": "${cm_submit_ref.output.changeId}",
+        "riskLevel": "${cm_assess_risk_ref.output.riskLevel}"
+      }
+    },
+    {
+      "name": "cm_implement",
+      "taskReferenceName": "cm_implement_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "changeId": "${cm_submit_ref.output.changeId}",
+        "approved": "${cm_approve_ref.output.approved}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "submitResult": "${cm_submit_ref.output}",
+    "implementResult": "${cm_implement_ref.output}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 1800
+}

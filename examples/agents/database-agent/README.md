@@ -1,207 +1,29 @@
-# Database Agent in Java Using Conductor: Natural Language to SQL with Validation and Execution
+# Database Agent: Natural Language to SQL with Validation
 
-The support engineer needs to know which departments have the highest revenue. The data is in the database. They don't know SQL. So they Slack the developer, who is in a meeting for the next two hours. The developer eventually runs the query, pastes the results in a thread, and the support engineer squints at raw column output trying to figure out what "dept_id 7" means. Multiply this by every team that needs data but doesn't have database access. This example builds a natural-language-to-SQL pipeline with Conductor: parse the question, generate the query, validate it for safety (no DROP, no unbounded scans), execute it, and format the results into a human-readable answer. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers. You write the business logic, Conductor handles retries, failure routing, durability, and observability for free.
+A user asks a question about employees or sales. The agent parses it to extract entities and identify relevant tables (`["employees", "sales", "departments"]`), generates SQL, validates it (4 checks including syntax and safety), executes it using a `ConcurrentHashMap`-backed store with regex parsing, and formats the result.
 
-## Users Shouldn't Need SQL to Query Their Data
-
-A product manager asks "Which customers churned last quarter?" and expects an answer, not a SQL tutorial. A database agent translates this into `SELECT customer_id, churn_date FROM customers WHERE churn_date BETWEEN '2025-07-01' AND '2025-09-30'`; but there are critical safety steps between the question and the result.
-
-The generated SQL must be validated: no destructive operations (DROP, DELETE, TRUNCATE), no full table scans on billion-row tables, proper JOIN conditions to avoid cartesian products, and parameterized queries to prevent injection. Only after validation should the query execute. And the raw query results (rows and columns) need to be formatted into a human-readable answer ("47 customers churned last quarter, with the highest concentration in August").
-
-## The Solution
-
-**You write the NL parsing, SQL generation, validation, and execution logic. Conductor handles the query pipeline, safety gating, and full audit of every generated query.**
-
-`ParseQuestionWorker` extracts the intent (aggregation, lookup, comparison), entities (customers, dates, metrics), and constraints from the natural language question. `GenerateQueryWorker` produces a SQL query using the database schema and parsed intent. `ValidateQueryWorker` checks the query for safety (no destructive DDL, no unbounded scans, proper WHERE clauses), correctness (valid table/column references, proper JOINs), and performance (estimated cost). `ExecuteQueryWorker` runs the validated query and returns the result set. `FormatWorker` converts the raw results into a natural language answer with key insights. Conductor chains these five steps and records the generated SQL alongside the results for audit.
-
-### What You Write: Workers
-
-Five workers form the text-to-SQL pipeline. Parsing the question, generating SQL, validating for safety, executing the query, and formatting results into natural language.
-
-| Worker | Task | What It Does | Real / Simulated |
-|---|---|---|---|
-| **ExecuteQueryWorker** | `db_execute_query` | Simulates executing a validated SQL query against the database. Returns 5 department rows with department name, emplo... | Simulated |
-| **FormatWorker** | `db_format` | Formats the raw query results into a human-readable answer and summary. Produces a natural-language answer string alo... | Simulated |
-| **GenerateQueryWorker** | `db_generate_query` | Generates a SQL query from the parsed intent and entities. Produces a multi-line SELECT statement with JOIN, GROUP BY... | Simulated |
-| **ParseQuestionWorker** | `db_parse_question` | Parses a natural-language question against a database schema. Extracts the user's intent, relevant entities (metric, ... | Simulated |
-| **ValidateQueryWorker** | `db_validate_query` | Validates a generated SQL query for safety and correctness. Runs five validation checks (syntax, tables exist, no mut... | Simulated |
-
-Workers simulate agent decisions and tool calls with realistic outputs so you can see the routing and handoff patterns without live LLM calls. Add your API keys to switch to live mode, the agent workflow stays the same.
-
-### What Conductor Gives You For Free
-
-| Capability | How It Works |
-|---|---|
-| **Retries with backoff** | If a worker fails, Conductor retries automatically. Configurable per task |
-| **Durability** | If the process crashes mid-execution, Conductor resumes from exactly where it left off |
-| **Observability** | Every task execution is tracked with inputs, outputs, timing, and status.; no logging code needed |
-| **Timeout management** | Per-task timeouts prevent hung workers from blocking the pipeline |
-
-### The Workflow
+## Workflow
 
 ```
-db_parse_question
-    │
-    ▼
-db_generate_query
-    │
-    ▼
-db_validate_query
-    │
-    ▼
-db_execute_query
-    │
-    ▼
-db_format
+question, databaseSchema -> db_parse_question -> db_generate_query -> db_validate_query -> db_execute_query -> db_format
 ```
 
-## Example Output
+## Workers
 
-```
-=== Database Agent Demo ===
+**ParseQuestionWorker** (`db_parse_question`) -- Extracts entities and `relevantTables: ["employees", "sales", "departments"]`.
 
-Step 1: Registering task definitions...
-  Registered: db_parse_question, db_generate_query, db_validate_query, db_execute_query, db_format
+**GenerateQueryWorker** (`db_generate_query`) -- Produces SQL using `tablesUsed: ["departments", "employees", "sales"]`.
 
-Step 2: Registering workflow 'database_agent'...
-  Workflow registered.
+**ValidateQueryWorker** (`db_validate_query`) -- Runs 4 validation checks: `syntax_valid`, and more.
 
-Step 3: Starting workers...
-  5 workers polling.
+**ExecuteQueryWorker** (`db_execute_query`) -- Uses `ConcurrentHashMap` and `Pattern`/`Matcher` for execution.
 
-Step 4: Starting workflow...
-  Workflow ID: 08e0f87b-31f7-cd37-d679-0c6a4e19cff6
+**FormatWorker** (`db_format`) -- Produces human-readable `answer` from the summary.
 
-  [db_parse_question] Parsing question against database: unknown
-  [db_generate_query] Generating SQL for intent: aggregate_query
-  [db_validate_query] Validating SELECT query
-  [db_execute_query] Executing query (readOnly=true)
-  [db_format] Formatting 5 result rows
+## Tests
 
+53 tests extensively cover parsing, generation, validation, execution, and formatting.
 
-  Status: COMPLETED
-  Output: {answer=The top 5 departments by total revenue are: , summary={totalRevenue=9850000, topDepartment=Engineering, departments=5}, query=SELECT d.name AS department,\n, rowCount=5, executionTimeMs=23}
+## Further Reading
 
-Result: PASSED
-```
-## Running It
-
-### Prerequisites
-
-- **Java 21+**: verify with `java -version`
-- **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
-
-### Option 1: Docker Compose (everything included)
-
-```bash
-docker compose up --build
-```
-
-Starts Conductor on port 8080 and runs the example automatically.
-
-If port 8080 is already taken:
-
-```bash
-CONDUCTOR_PORT=9090 docker compose up --build
-```
-
-### Option 2: Run locally
-
-```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
-
-# Wait for Conductor to be ready
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done
-
-# Build and run
-mvn package -DskipTests
-java -jar target/database-agent-1.0.0.jar
-```
-
-### Option 3: Use the run script
-
-```bash
-./run.sh
-
-# Or on a custom port:
-CONDUCTOR_PORT=9090 ./run.sh
-
-# Or pointing at an existing Conductor:
-CONDUCTOR_BASE_URL=http://localhost:9090/api ./run.sh
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
-| `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
-
-## Using the Conductor CLI
-
-Start the app in **worker-only mode** so workers keep polling while you use the CLI:
-
-```bash
-java -jar target/database-agent-1.0.0.jar --workers
-```
-
-Then in a separate terminal:
-
-```bash
-conductor workflow start \
-  --workflow database_agent \
-  --version 1 \
-  --input '{"question": "What are the top 5 departments by total revenue, including employee count and average sale?", "databaseSchema": {"database": "company_analytics", "tables": [{"name": "employees", "columns": ["id", "name", "department_id", "hire_date", "salary"]}, {"name": "departments", "columns": ["id", "name", "location", "budget"]}, {"name": "sales", "columns": ["id", "employee_id", "amount", "sale_date", "product_id"]}, {"name": "products", "columns": ["id", "name", "category", "price"]}]}}'
-```
-
-### Check workflow status
-
-```bash
-conductor workflow status <workflow_id>
-conductor workflow get-execution <workflow_id> -c
-conductor workflow search -w database_agent -s COMPLETED -c 5
-```
-
-## How to Extend
-
-Each worker owns one stage of the text-to-SQL pipeline. Plug in an LLM (GPT-4, SQLCoder) for query generation, a real SQL parser (JSqlParser) for validation, and JDBC for execution against live databases, and the parse-generate-validate-execute-format workflow runs unchanged.
-
-- **GenerateQueryWorker** (`db_generate_query`): use GPT-4 with the database schema as context and few-shot examples of question-to-SQL mappings, or use specialized text-to-SQL models like SQLCoder
-- **ValidateQueryWorker** (`db_validate_query`): integrate with a SQL parser (JSqlParser) for AST-level validation, EXPLAIN plan analysis for performance checks, and a blocklist of dangerous patterns
-- **ExecuteQueryWorker** (`db_execute_query`): connect to real databases via JDBC with read-only credentials, query timeout limits, and result set size caps to prevent runaway queries
-
-Wire in a real database and LLM for SQL generation; the query pipeline maintains the same parse-generate-validate-execute contract.
-
-## SDK
-
-Uses [conductor-oss Java SDK v5](https://github.com/conductor-oss/java-sdk):
-
-
-## Project Structure
-
-```
-database-agent/
-├── pom.xml                          # Maven build (Java 21, conductor-client 5.0.1)
-├── Dockerfile                       # Multi-stage build
-├── docker-compose.yml               # Conductor + workers
-├── run.sh                           # Smart launcher
-├── src/main/resources/
-│   └── workflow.json                # Workflow definition
-├── src/main/java/databaseagent/
-│   ├── ConductorClientHelper.java   # SDK v5 client setup
-│   ├── DatabaseAgentExample.java          # Main entry point (supports --workers mode)
-│   └── workers/
-│       ├── ExecuteQueryWorker.java
-│       ├── FormatWorker.java
-│       ├── GenerateQueryWorker.java
-│       ├── ParseQuestionWorker.java
-│       └── ValidateQueryWorker.java
-└── src/test/java/databaseagent/workers/
-    ├── ExecuteQueryWorkerTest.java        # 9 tests
-    ├── FormatWorkerTest.java        # 9 tests
-    ├── GenerateQueryWorkerTest.java        # 9 tests
-    ├── ParseQuestionWorkerTest.java        # 9 tests
-    └── ValidateQueryWorkerTest.java        # 9 tests
-```
+- [RUNNING.md](../../RUNNING.md) -- how to build and run this example

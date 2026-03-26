@@ -47,7 +47,7 @@ public class GenerateWorker implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String domain = "localhost";
+        String domain = null;
         Object generateData = task.getInputData().get("generateData");
         if (generateData instanceof java.util.Map) {
             @SuppressWarnings("unchecked")
@@ -55,6 +55,12 @@ public class GenerateWorker implements Worker {
             if (data.get("domain") != null) {
                 domain = data.get("domain").toString();
             }
+        }
+        if (domain == null || domain.isBlank()) {
+            TaskResult fail = new TaskResult(task);
+            fail.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            fail.setReasonForIncompletion("Input 'generateData.domain' is required and must not be blank");
+            return fail;
         }
 
         try {

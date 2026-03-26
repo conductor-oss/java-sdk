@@ -1,0 +1,39 @@
+{
+  "name": "versioned_workflow",
+  "description": "Versioned workflow V3 — calculation + bonus + audit. Returns (value * 2) + 10, audited.",
+  "version": 3,
+  "schemaVersion": 2,
+  "inputParameters": ["value"],
+  "tasks": [
+    {
+      "name": "ver_calc",
+      "taskReferenceName": "ver_calc_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "value": "${workflow.input.value}"
+      }
+    },
+    {
+      "name": "ver_bonus",
+      "taskReferenceName": "ver_bonus_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "baseResult": "${ver_calc_ref.output.result}"
+      }
+    },
+    {
+      "name": "ver_audit",
+      "taskReferenceName": "ver_audit_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "finalResult": "${ver_bonus_ref.output.result}"
+      }
+    }
+  ],
+  "outputParameters": {
+    "result": "${ver_audit_ref.output.result}",
+    "audited": "${ver_audit_ref.output.audited}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

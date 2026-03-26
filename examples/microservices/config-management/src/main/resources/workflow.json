@@ -1,0 +1,24 @@
+{
+  "name": "config_management_299",
+  "description": "Load, validate, deploy, and verify configuration",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["configSource", "environment", "configData"],
+  "tasks": [
+    {"name": "cf_load_config", "taskReferenceName": "cf_load_ref", "type": "SIMPLE",
+      "inputParameters": {"configSource": "${workflow.input.configSource}", "environment": "${workflow.input.environment}"}},
+    {"name": "cf_validate_config", "taskReferenceName": "cf_validate_ref", "type": "SIMPLE",
+      "inputParameters": {"config": "${cf_load_ref.output.config}", "schema": "${cf_load_ref.output.schema}"}},
+    {"name": "cf_deploy_config", "taskReferenceName": "cf_deploy_ref", "type": "SIMPLE",
+      "inputParameters": {"config": "${cf_load_ref.output.config}", "environment": "${workflow.input.environment}", "validationResult": "${cf_validate_ref.output.valid}"}},
+    {"name": "cf_verify_config", "taskReferenceName": "cf_verify_ref", "type": "SIMPLE",
+      "inputParameters": {"environment": "${workflow.input.environment}", "deploymentId": "${cf_deploy_ref.output.deploymentId}"}}
+  ],
+  "outputParameters": {
+    "status": "${cf_verify_ref.output.status}",
+    "deploymentId": "${cf_deploy_ref.output.deploymentId}",
+    "environment": "${workflow.input.environment}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 60
+}

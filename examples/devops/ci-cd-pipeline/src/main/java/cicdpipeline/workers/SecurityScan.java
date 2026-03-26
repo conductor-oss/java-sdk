@@ -22,16 +22,11 @@ import java.util.stream.Stream;
  * common security issues:
  *   - Hardcoded secrets (passwords, API keys, tokens in source files)
  *   - Sensitive file patterns (.env, credentials, private keys)
- *   - Known insecure patterns (eval, exec with user input, HTTP URLs
- *     where HTTPS should be used)
- *
- * If no build directory is provided, performs a scan of the system's
- * environment for common security misconfigurations (world-readable
- * SSH keys, open ports).
+ *   - Known insecure patterns (HTTP URLs where HTTPS should be used)
  *
  * Input:
- *   - buildId (String): build identifier
- *   - buildDir (String): optional path to source code to scan
+ *   - buildId (String, required): build identifier
+ *   - buildDir (String, required): path to source code to scan
  *
  * Output:
  *   - vulnerabilities (int): total findings count
@@ -41,6 +36,7 @@ import java.util.stream.Stream;
  *   - low (int): low severity findings
  *   - findings (List): detailed vulnerability descriptions
  *   - durationMs (long): scan duration
+ *   - blockDeploy (boolean): true if critical > 0
  */
 public class SecurityScan implements Worker {
 
@@ -66,12 +62,19 @@ public class SecurityScan implements Worker {
 
     @Override
     public TaskResult execute(Task task) {
-        String buildId = (String) task.getInputData().get("buildId");
-        String buildDir = (String) task.getInputData().get("buildDir");
+        TaskResult result = new TaskResult(task);
+
+        String buildId = getRequiredString(task, "buildId");
+        if (buildId == null || buildId.isBlank()) {
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            result.setReasonForIncompletion("Missing required input: buildId");
+            return result;
+        }
+
+        String buildDir = getRequiredString(task, "buildDir");
 
         System.out.println("[cicd_security_scan] Running security scan for build " + buildId);
 
-        TaskResult result = new TaskResult(task);
         Map<String, Object> output = new LinkedHashMap<>();
 
         long startMs = System.currentTimeMillis();
@@ -139,7 +142,6 @@ public class SecurityScan implements Worker {
 
         // System-level security checks
         try {
-            // Check for world-readable SSH keys
             Path sshDir = Path.of(System.getProperty("user.home"), ".ssh");
             if (Files.exists(sshDir)) {
                 ProcessBuilder pb = new ProcessBuilder("find", sshDir.toString(), "-name", "id_*", "-not", "-name", "*.pub", "-perm", "+044");
@@ -164,39 +166,15 @@ public class SecurityScan implements Worker {
             // Skip if find command not available or fails
         }
 
-        // Check for commonly exposed ports using known commands
-        try {
-            ProcessBuilder pb;
-            String os = System.getProperty("os.name", "").toLowerCase();
-            if (os.contains("mac") || os.contains("darwin")) {
-                pb = new ProcessBuilder("lsof", "-iTCP", "-sTCP:LISTEN", "-P", "-n");
-            } else {
-                pb = new ProcessBuilder("ss", "-tlnp");
-            }
-            pb.redirectErrorStream(true);
-            Process proc = pb.start();
-            String portOutput;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-                portOutput = reader.lines().collect(Collectors.joining("\n"));
-            }
-            boolean done = proc.waitFor(5, TimeUnit.SECONDS);
-            if (done && proc.exitValue() == 0 && !portOutput.isBlank()) {
-                long listeningPorts = portOutput.lines().filter(l -> !l.isBlank()).count() - 1; // minus header
-                if (listeningPorts > 0) {
-                    output.put("listeningPorts", listeningPorts);
-                    System.out.println("  Found " + listeningPorts + " listening ports");
-                }
-            }
-        } catch (Exception e) {
-            // Not critical if port scan fails
-        }
-
         long durationMs = System.currentTimeMillis() - startMs;
 
         int totalVulnerabilities = critical + high + medium + low;
+        boolean blockDeploy = critical > 0;
+
         System.out.println("  Findings: " + totalVulnerabilities
                 + " (critical=" + critical + " high=" + high
-                + " medium=" + medium + " low=" + low + ")");
+                + " medium=" + medium + " low=" + low + ")"
+                + (blockDeploy ? " BLOCKING DEPLOY" : ""));
 
         output.put("vulnerabilities", totalVulnerabilities);
         output.put("critical", critical);
@@ -206,6 +184,7 @@ public class SecurityScan implements Worker {
         output.put("findings", findings);
         output.put("durationMs", durationMs);
         output.put("buildId", buildId);
+        output.put("blockDeploy", blockDeploy);
 
         result.setStatus(TaskResult.Status.COMPLETED);
         result.setOutputData(output);
@@ -223,5 +202,11 @@ public class SecurityScan implements Worker {
                 || lower.endsWith(".env") || lower.endsWith(".toml") || lower.endsWith(".ini")
                 || lower.endsWith(".html") || lower.endsWith(".css") || lower.endsWith(".sql")
                 || lower.endsWith(".gradle") || lower.endsWith(".kts") || lower.endsWith(".kt");
+    }
+
+    private String getRequiredString(Task task, String key) {
+        Object value = task.getInputData().get(key);
+        if (value == null) return null;
+        return value.toString();
     }
 }

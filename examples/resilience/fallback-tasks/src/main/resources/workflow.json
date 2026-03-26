@@ -1,0 +1,53 @@
+{
+  "name": "fallback_tasks_demo",
+  "description": "Fallback tasks demo -- primary API with SWITCH-based fallback to secondary API or cache lookup.",
+  "version": 1,
+  "schemaVersion": 2,
+  "inputParameters": ["available"],
+  "tasks": [
+    {
+      "name": "fb_primary_api",
+      "taskReferenceName": "primary_api_ref",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "available": "${workflow.input.available}"
+      }
+    },
+    {
+      "name": "fallback_switch",
+      "taskReferenceName": "fallback_switch_ref",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "switchCaseValue",
+      "inputParameters": {
+        "switchCaseValue": "${primary_api_ref.output.apiStatus}"
+      },
+      "decisionCases": {
+        "unavailable": [
+          {
+            "name": "fb_secondary_api",
+            "taskReferenceName": "secondary_api_ref",
+            "type": "SIMPLE",
+            "inputParameters": {}
+          }
+        ],
+        "error": [
+          {
+            "name": "fb_cache_lookup",
+            "taskReferenceName": "cache_lookup_ref",
+            "type": "SIMPLE",
+            "inputParameters": {}
+          }
+        ]
+      },
+      "defaultCase": []
+    }
+  ],
+  "outputParameters": {
+    "apiStatus": "${primary_api_ref.output.apiStatus}",
+    "data": "${primary_api_ref.output.data}",
+    "source": "${primary_api_ref.output.source}"
+  },
+  "ownerEmail": "examples@orkes.io",
+  "timeoutSeconds": 120
+}
