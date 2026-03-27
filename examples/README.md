@@ -20,9 +20,13 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 - Maven 3.8+
 - Conductor server (local Docker or [Orkes Cloud](https://orkes.io))
 
+## Which Example Should I Use?
+
+Start with [**WHEN_TO_USE.md**](WHEN_TO_USE.md) — it maps common problem patterns (parallel execution, distributed transactions, human approvals, retry handling, event processing, AI/LLM pipelines) to specific examples.
+
 ## Machine-Readable Metadata
 
-See [`manifest.json`](manifest.json) for per-example metadata: category, workflow name, task types, required API keys, difficulty level, and Conductor primitives used.
+See [`manifest.json`](manifest.json) for per-example metadata: category, workflow name, task types, required API keys, difficulty level, keywords, and Conductor primitives used.
 
 ---
 
