@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'io.orkes.conductor.harness.HarnessMain'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':conductor-client')
+    implementation project(':orkes-client')
+    implementation "ch.qos.logback:logback-classic:1.5.6"
+}
