@@ -183,12 +183,14 @@ public final class ApiClient extends ConductorClient {
 
             String conductorAuthKey = System.getenv("CONDUCTOR_AUTH_KEY");
             if (conductorAuthKey == null) {
-                conductorAuthKey = System.getenv("CONDUCTOR_SERVER_AUTH_KEY").trim(); // for backwards compatibility
+                String legacyKey = System.getenv("CONDUCTOR_SERVER_AUTH_KEY"); // for backwards compatibility
+                conductorAuthKey = legacyKey != null ? legacyKey.trim() : null;
             }
 
             String conductorAuthSecret = System.getenv("CONDUCTOR_AUTH_SECRET");
             if (conductorAuthSecret == null) {
-                conductorAuthSecret = System.getenv("CONDUCTOR_SERVER_AUTH_SECRET").trim(); // for backwards compatibility
+                String legacySecret = System.getenv("CONDUCTOR_SERVER_AUTH_SECRET"); // for backwards compatibility
+                conductorAuthSecret = legacySecret != null ? legacySecret.trim() : null;
             }
 
             if (conductorAuthKey != null && conductorAuthSecret != null) {
