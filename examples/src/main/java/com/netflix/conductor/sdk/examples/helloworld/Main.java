@@ -16,15 +16,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.sdk.examples.helloworld.workflowdef.GreetingsWorkflow;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
-
-import io.orkes.conductor.sdk.examples.util.ClientUtil;
 
 public class Main {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
-        var workflowExecutor = new WorkflowExecutor(ClientUtil.getClient(), 10);
+        String serverUrl = System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
+        var workflowExecutor = new WorkflowExecutor(new ConductorClient(serverUrl), 10);
         workflowExecutor.initWorkers("com.netflix.conductor.sdk.examples.helloworld.workers");
         var workflowCreator = new GreetingsWorkflow(workflowExecutor);
         var simpleWorkflow = workflowCreator.create();

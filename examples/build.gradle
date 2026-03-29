@@ -1,5 +1,10 @@
 plugins {
     id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = project.findProperty('mainClass') ?: 'com.netflix.conductor.sdk.examples.helloworld.Main'
 }
 
 repositories {
