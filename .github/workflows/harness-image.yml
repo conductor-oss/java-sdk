@@ -2,7 +2,7 @@ name: Harness Worker Image
 
 on:
   push:
-    branches: [main, certification-worker, TOOL-33-test-worker]
+    branches: [main, TOOL-33-test-worker]
     paths:
       - "harness/**"
       - "build.gradle"
@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
