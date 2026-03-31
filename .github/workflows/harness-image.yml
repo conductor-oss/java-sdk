@@ -48,26 +48,11 @@ jobs:
             type=raw,value=latest
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
-      # TODO: restore real build once GHCR permissions are sorted out
-      # - name: Build and push
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-      #     file: ./harness/Dockerfile
-      #     platforms: linux/amd64,linux/arm64
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Create stub Dockerfile
-        run: |
-          echo 'FROM alpine:3.20' > Dockerfile.stub
-          echo 'LABEL org.opencontainers.image.source=https://github.com/conductor-oss/java-sdk' >> Dockerfile.stub
-
-      - name: Build and push (stub for permissions testing)
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.stub
+          file: ./harness/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
