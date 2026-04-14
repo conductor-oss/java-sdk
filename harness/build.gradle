@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     implementation project(':conductor-client')
+    implementation project(':conductor-client-metrics')
     implementation project(':orkes-client')
     implementation "ch.qos.logback:logback-classic:1.5.6"
 }
