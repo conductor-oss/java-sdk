@@ -12,6 +12,8 @@
  */
 package io.orkes.conductor.client;
 
+import org.conductoross.conductor.client.FileClient;
+
 import com.netflix.conductor.client.http.ConductorClient;
 
 import io.orkes.conductor.client.http.*;
@@ -74,5 +76,9 @@ public class OrkesClients {
 
     public OrkesSchemaClient getSchemaClient() {
         return new OrkesSchemaClient(client);
+    }
+
+    public FileClient getFileClient() {
+        return new FileClient(client);
     }
 }

@@ -1,0 +1,62 @@
+{
+    "name": "media_transcode",
+    "version": 1,
+    "tasks": [
+        {
+            "name": "upload_primary_video",
+            "taskReferenceName": "upload_primary_video_ref",
+            "type": "SIMPLE",
+            "inputParameters": {}
+        },
+        {
+            "name": "fork_processing",
+            "taskReferenceName": "fork_ref",
+            "type": "FORK_JOIN",
+            "forkTasks": [
+                [
+                    {
+                        "name": "transcode_video",
+                        "taskReferenceName": "transcode_ref",
+                        "type": "SIMPLE",
+                        "inputParameters": {
+                            "primary_video": "${upload_primary_video_ref.output.primary_video}",
+                            "resolution": "720p"
+                        }
+                    }
+                ],
+                [
+                    {
+                        "name": "extract_thumbnail",
+                        "taskReferenceName": "thumbnail_ref",
+                        "type": "SIMPLE",
+                        "inputParameters": {
+                            "primary_video": "${upload_primary_video_ref.output.primary_video}"
+                        }
+                    }
+                ]
+            ]
+        },
+        {
+            "name": "join_processing",
+            "taskReferenceName": "join_ref",
+            "type": "JOIN",
+            "joinOn": ["transcode_ref", "thumbnail_ref"]
+        },
+        {
+            "name": "create_manifest",
+            "taskReferenceName": "manifest_ref",
+            "type": "SIMPLE",
+            "inputParameters": {
+                "transcoded_video": "${transcode_ref.output.output_file}",
+                "thumbnail": "${thumbnail_ref.output.output_file}"
+            }
+        }
+    ],
+    "inputParameters": [],
+    "outputParameters": {
+        "primary_video": "${upload_primary_video_ref.output.primary_video}",
+        "manifest": "${manifest_ref.output.output_file}",
+        "transcoded_video": "${transcode_ref.output.output_file}",
+        "thumbnail": "${thumbnail_ref.output.output_file}"
+    }
+}

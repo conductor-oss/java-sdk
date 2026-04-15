@@ -12,6 +12,7 @@
  */
 package com.netflix.conductor.sdk.workflow.executor.task;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +20,11 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+
+import org.conductoross.conductor.sdk.file.FileHandler;
+import org.conductoross.conductor.sdk.file.FileHandlerDeserializer;
+import org.conductoross.conductor.sdk.file.FileStorageException;
+import org.conductoross.conductor.sdk.file.ManagedFileHandler;
 
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
@@ -31,7 +37,9 @@ import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -111,9 +119,9 @@ public class AnnotatedWorker implements Worker {
         Parameter[] parameters = workerMethod.getParameters();
 
         if (parameterTypes.length == 1 && parameterTypes[0].equals(Task.class)) {
-            return new Object[] {task};
+            return new Object[]{task};
         } else if (parameterTypes.length == 1 && parameterTypes[0].equals(Map.class)) {
-            return new Object[] {task.getInputData()};
+            return new Object[]{task.getInputData()};
         }
 
         return getParameters(task, parameterTypes, parameters);
@@ -124,7 +132,7 @@ public class AnnotatedWorker implements Worker {
         Object[] values = new Object[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             Annotation[] paramAnnotation = parameterAnnotations[i];
-            if(containsWorkflowInstanceIdInputParamAnnotation(paramAnnotation)) {
+            if (containsWorkflowInstanceIdInputParamAnnotation(paramAnnotation)) {
                 validateParameterForWorkflowInstanceId(parameters[i]);
                 values[i] = task.getWorkflowInstanceId();
             } else if (paramAnnotation.length > 0) {
@@ -132,7 +140,7 @@ public class AnnotatedWorker implements Worker {
                 Class<?> parameterType = parameterTypes[i];
                 values[i] = getInputValue(task, parameterType, type, paramAnnotation);
             } else {
-                values[i] = om.convertValue(task.getInputData(), parameterTypes[i]);
+                values[i] = convertWithContext(task.getInputData(), parameterTypes[i], task);
             }
         }
 
@@ -146,7 +154,7 @@ public class AnnotatedWorker implements Worker {
     }
 
     private void validateParameterForWorkflowInstanceId(Parameter parameter) {
-        if(!parameter.getType().equals(String.class)) {
+        if (!parameter.getType().equals(String.class)) {
             throw new IllegalArgumentException(
                     "Parameter " + parameter + " is annotated with " + WorkflowInstanceIdInputParam.class.getSimpleName() +
                             " but is not of type " + String.class.getSimpleName() + ".");
@@ -158,13 +166,23 @@ public class AnnotatedWorker implements Worker {
         InputParam ip = findInputParamAnnotation(paramAnnotation);
 
         if (ip == null) {
-            return om.convertValue(task.getInputData(), parameterType);
+            return convertWithContext(task.getInputData(), parameterType, task);
         }
 
         final String name = ip.value();
         final Object value = task.getInputData().get(name);
         if (value == null) {
             return null;
+        }
+
+        if (parameterType == FileHandler.class) {
+            String fileHandleId = FileHandler.extractFileHandleId(value);
+            if (FileHandler.isFileHandleId(fileHandleId)) {
+                return new ManagedFileHandler(fileHandleId, task.getWorkflowFileClient());
+            }
+            throw new FileStorageException(
+                    "Expected " + FileHandler.PREFIX
+                            + " reference for param '" + name + "', got: " + value);
         }
 
         if (List.class.isAssignableFrom(parameterType)) {
@@ -174,7 +192,7 @@ public class AnnotatedWorker implements Worker {
                 Class<?> typeOfParameter = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                 List<Object> parameterizedList = new ArrayList<>();
                 for (Object item : list) {
-                    parameterizedList.add(om.convertValue(item, typeOfParameter));
+                    parameterizedList.add(convertWithContext(item, typeOfParameter, task));
                 }
 
                 return parameterizedList;
@@ -182,7 +200,20 @@ public class AnnotatedWorker implements Worker {
                 return list;
             }
         } else {
-            return om.convertValue(value, parameterType);
+            return convertWithContext(value, parameterType, task);
+        }
+    }
+
+    private Object convertWithContext(Object source, Class<?> targetType, Task task) {
+        JsonNode tree = om.valueToTree(source);
+        try (JsonParser parser = tree.traverse(om)) {
+            return om.readerFor(targetType)
+                    .withAttribute(
+                            FileHandlerDeserializer.WORKFLOW_FILE_CLIENT_ATTR,
+                            task.getWorkflowFileClient())
+                    .readValue(parser);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to bind task input to " + targetType.getName(), e);
         }
     }
 
@@ -197,6 +228,15 @@ public class AnnotatedWorker implements Worker {
     private TaskResult setValue(Object invocationResult, TaskResult result) {
 
         if (invocationResult == null) {
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        }
+
+        if (invocationResult instanceof FileHandler fh) {
+            OutputParam opAnn =
+                    workerMethod.getAnnotatedReturnType().getAnnotation(OutputParam.class);
+            String key = opAnn != null ? opAnn.value() : "result";
+            result.getOutputData().put(key, fh);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;
         }

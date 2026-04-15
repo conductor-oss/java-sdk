@@ -1,0 +1,160 @@
+version: v2beta1
+name: conductor-file-storage-e2e
+
+vars:
+  CONDUCTOR_SERVER_URL:
+    default: "http://localhost:8080/api"
+  MINIO_ENDPOINT:
+    default: "http://localhost:9000"
+  MINIO_CONSOLE:
+    default: "http://localhost:9001"
+  MINIO_USER:
+    default: "minioadmin"
+  MINIO_PASSWORD:
+    default: "minioadmin"
+  S3_BUCKET:
+    default: "conductor-files"
+  S3_REGION:
+    default: "us-east-1"
+  NAMESPACE:
+    default: "conductor-file-storage"
+  CONDUCTOR_WORKTREE:
+    default: "../file-storage-conductor"
+  RUNS:
+    default: "3"
+
+images:
+  media-transcoder:
+    image: media-transcoder
+    dockerfile: examples/file-storage/media-transcoder/Dockerfile
+    context: examples/file-storage/media-transcoder
+
+deployments:
+  minio:
+    kubectl:
+      manifests:
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/namespace.yaml
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/minio.yaml
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/minio-bucket-init.yaml
+
+  conductor-server:
+    kubectl:
+      manifests:
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/postgres.yaml
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/conductor-config.yaml
+        - ${CONDUCTOR_WORKTREE}/deploy/k8s/conductor-server.yaml
+
+  media-transcoder:
+    kubectl:
+      manifests:
+        - examples/file-storage/media-transcoder/k8s/deployment.yaml
+
+dev:
+  media-transcoder:
+    imageSelector: media-transcoder
+    sync:
+      - path: ./examples/file-storage/media-transcoder/src
+        containerPath: /app/src
+    ports:
+      - port: "5005:5005"
+    terminal: {}
+
+commands:
+  test-local:
+    description: "Deploy MinIO, start Conductor locally, run media-transcoder N times"
+    command: |
+      set -e
+      PASS=0; FAIL=0
+
+      echo "=== Deploy MinIO ==="
+      devspace deploy --deployments minio
+      kubectl -n ${NAMESPACE} wait --for=condition=ready pod -l app=minio --timeout=60s
+      kubectl -n ${NAMESPACE} wait --for=condition=complete job/minio-bucket-init --timeout=60s 2>/dev/null || true
+      kubectl -n ${NAMESPACE} port-forward svc/minio 9000:9000 9001:9001 > /dev/null 2>&1 &
+      PF_PID=$!
+      sleep 2
+      echo "MinIO ready at ${MINIO_ENDPOINT}"
+
+      echo ""
+      echo "=== Build + Start Conductor ==="
+      cd ${CONDUCTOR_WORKTREE}
+      ./gradlew build -x test -x spotlessCheck -x shadowJar --no-daemon -q
+      AWS_ACCESS_KEY_ID=${MINIO_USER} AWS_SECRET_ACCESS_KEY=${MINIO_PASSWORD} \
+      nohup ./gradlew :conductor-server:bootRun \
+        --args="--conductor.file-storage.enabled=true \
+                --conductor.file-storage.type=s3 \
+                --conductor.file-storage.s3.bucket-name=${S3_BUCKET} \
+                --conductor.file-storage.s3.region=${S3_REGION} \
+                --conductor.file-storage.s3.endpoint=${MINIO_ENDPOINT}" \
+        --no-daemon > /tmp/conductor-server.log 2>&1 &
+      SERVER_PID=$!
+      cd -
+
+      echo "Waiting for health..."
+      for i in $(seq 1 90); do
+        curl -sf http://localhost:8080/health > /dev/null 2>&1 && echo "Conductor UP" && break
+        [ "$i" -eq 90 ] && echo "ERROR: Conductor did not start" && tail -10 /tmp/conductor-server.log && kill $PF_PID $SERVER_PID 2>/dev/null && exit 1
+        sleep 2
+      done
+
+      echo ""
+      echo "=== Run media-transcoder (${RUNS} times) ==="
+      for run in $(seq 1 ${RUNS}); do
+        echo ""
+        echo "--- Run $run of ${RUNS} ---"
+        LOG="/tmp/media-transcoder-run${run}.log"
+        CONDUCTOR_SERVER_URL=${CONDUCTOR_SERVER_URL} \
+        AWS_S3_ENDPOINT=${MINIO_ENDPOINT} \
+        AWS_ACCESS_KEY_ID=${MINIO_USER} \
+        AWS_SECRET_ACCESS_KEY=${MINIO_PASSWORD} \
+        mvn -f examples/file-storage/media-transcoder/pom.xml -q exec:java -Dexec.mainClass=io.conductor.example.mediatranscoder.MediaTranscoderApp > "$LOG" 2>&1 || true
+
+        if grep -q "Workflow COMPLETED!" "$LOG"; then
+          echo "Run $run: PASS"
+          grep "Output:" "$LOG" | tail -1
+          PASS=$((PASS + 1))
+        else
+          echo "Run $run: FAIL"
+          grep -a "FAILED\|Exception" "$LOG" | grep -v "warning:\|already exists\|Gradle\|deprecated" | tail -3
+          FAIL=$((FAIL + 1))
+        fi
+      done
+
+      echo ""
+      echo "=== Cleanup ==="
+      kill $SERVER_PID 2>/dev/null && echo "Stopped Conductor" || true
+      kill $PF_PID 2>/dev/null && echo "Stopped port-forward" || true
+
+      echo ""
+      echo "==============================="
+      echo "  Results: $PASS PASS / $FAIL FAIL (out of ${RUNS})"
+      echo "==============================="
+      [ "$FAIL" -gt 0 ] && exit 1 || exit 0
+
+  deploy-minio:
+    description: "Deploy MinIO only + port-forward"
+    command: |
+      devspace deploy --deployments minio
+      kubectl -n ${NAMESPACE} wait --for=condition=ready pod -l app=minio --timeout=60s
+      kubectl -n ${NAMESPACE} wait --for=condition=complete job/minio-bucket-init --timeout=60s 2>/dev/null || true
+      echo "MinIO S3: ${MINIO_ENDPOINT}"
+      echo "MinIO Console: ${MINIO_CONSOLE} (${MINIO_USER}/${MINIO_PASSWORD})"
+      kubectl -n ${NAMESPACE} port-forward svc/minio 9000:9000 9001:9001
+
+  teardown:
+    description: "Delete namespace and all resources"
+    command: |
+      echo "Deleting namespace ${NAMESPACE}..."
+      kubectl delete namespace ${NAMESPACE} --ignore-not-found
+
+profiles:
+  - name: local
+    description: "MinIO on K8s, Conductor + media-transcoder run locally"
+    patches:
+      - op: remove
+        path: deployments.conductor-server
+      - op: remove
+        path: deployments.media-transcoder
+
+  - name: full-k8s
+    description: "Everything on K8s: MinIO + Conductor + media-transcoder"

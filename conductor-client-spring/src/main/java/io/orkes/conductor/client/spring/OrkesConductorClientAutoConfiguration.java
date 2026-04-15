@@ -13,6 +13,7 @@
 package io.orkes.conductor.client.spring;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conductoross.conductor.client.FileClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -128,4 +129,10 @@ public class OrkesConductorClientAutoConfiguration {
         return clients.getSecretClient();
     }
 
+    @Bean
+    @ConditionalOnBean(ApiClient.class)
+    @ConditionalOnMissingBean
+    public FileClient fileClient(ApiClient client) {
+        return new FileClient(client);
+    }
 }

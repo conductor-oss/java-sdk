@@ -18,10 +18,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conductoross.conductor.client.FileClient;
+import org.conductoross.conductor.client.FileClientProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
@@ -121,5 +124,19 @@ public class ConductorClientAutoConfiguration {
     @ConditionalOnMissingBean
     public WorkflowClient workflowClient(ConductorClient client) {
         return new WorkflowClient(client);
+    }
+
+    @Bean
+    @ConfigurationProperties("conductor.file-client")
+    @ConditionalOnMissingBean
+    public FileClientProperties fileClientProperties() {
+        return new FileClientProperties();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConductorClient.class)
+    @ConditionalOnMissingBean
+    public FileClient fileClient(ConductorClient client, FileClientProperties fileClientProperties) {
+        return new FileClient(client, fileClientProperties, null);
     }
 }

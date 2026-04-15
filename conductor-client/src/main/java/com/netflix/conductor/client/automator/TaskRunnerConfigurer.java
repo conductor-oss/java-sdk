@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.conductoross.conductor.client.FileClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ public class TaskRunnerConfigurer {
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final boolean useVirtualThreads;
+    private final FileClient fileClient;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -75,6 +77,7 @@ public class TaskRunnerConfigurer {
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
         this.useVirtualThreads = builder.useVirtualThreads;
+        this.fileClient = builder.fileClient;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -173,7 +176,8 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                useVirtualThreads);
+                useVirtualThreads,
+                fileClient);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -206,6 +210,7 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
+        private FileClient fileClient;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
@@ -350,6 +355,11 @@ public class TaskRunnerConfigurer {
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {
             this.useVirtualThreads = useVirtualThreads;
+            return this;
+        }
+
+        public Builder withFileClient(FileClient fileClient) {
+            this.fileClient = fileClient;
             return this;
         }
     }
