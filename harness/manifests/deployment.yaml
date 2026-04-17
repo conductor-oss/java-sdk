@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: harness
-        image: ghcr.io/conductor-oss/java-sdk/harness-worker:latest
+        image: ghcr.io/conductor-oss/java-sdk/harness-worker:tool-33-test-worker-latest
         imagePullPolicy: Always
         env:
         # === CONDUCTOR CONNECTION (from per-cloud ConfigMap) ===
