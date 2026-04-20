@@ -25,6 +25,7 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskType;
@@ -47,7 +48,7 @@ public class HarnessMain {
         {"java_worker_4", "deepcrawl", "5"},
     };
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         ConductorClient client = ApiClient.builder().useEnvVariables(true).readTimeout(10_000).connectTimeout(10_000)
                 .writeTimeout(10_000).build();
 
@@ -56,6 +57,11 @@ public class HarnessMain {
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
 
         registerMetadata(client);
+
+        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+        int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
+        metricsCollector.startServer(metricsPort, "/metrics");
+        log.info("Prometheus metrics server started on port {}", metricsPort);
 
         List<Worker> workers = new ArrayList<>();
         for (String[] entry : SIMULATED_WORKERS) {
@@ -68,7 +74,10 @@ public class HarnessMain {
                 workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
 
         TaskRunnerConfigurer configurer =
-                new TaskRunnerConfigurer.Builder(taskClient, workers).withTaskThreadCount(threadCounts).build();
+                new TaskRunnerConfigurer.Builder(taskClient, workers)
+                        .withTaskThreadCount(threadCounts)
+                        .withMetricsCollector(metricsCollector)
+                        .build();
         configurer.init();
 
         WorkflowClient workflowClient = new WorkflowClient(client);
