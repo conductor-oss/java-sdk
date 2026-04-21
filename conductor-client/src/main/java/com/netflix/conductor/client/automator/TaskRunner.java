@@ -45,6 +45,10 @@ import com.netflix.conductor.client.events.taskrunner.PollStarted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskPaused;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
+import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.worker.Worker;
@@ -122,6 +126,11 @@ class TaskRunner {
         }
         this.errorAt = errorInterval;
         LOGGER.info("Polling errors will be sampled at every {} error (after the first 100 errors) for taskType {}", this.errorAt, taskType);
+        // Initialize uncaughtExceptionHandler AFTER taskType/eventDispatcher
+        // are set, otherwise the blank-final analyzer flags the reference
+        // through the lambda (the lambda is only invoked later, but ECJ's
+        // definite-assignment analysis is conservative about capture).
+        this.uncaughtExceptionHandler = this::onUncaughtException;
         ThreadFactory threadFactory = null;
         if(useVirtualThreads) {
             threadFactory = Thread.ofVirtual().name(workerNamePrefix).uncaughtExceptionHandler(uncaughtExceptionHandler).factory();
@@ -228,6 +237,7 @@ class TaskRunner {
 
         if (worker.paused()) {
             LOGGER.trace("Worker {} has been paused. Not polling anymore!", worker.getClass());
+            eventDispatcher.publish(new TaskPaused(taskType));
             return List.of();
         }
 
@@ -306,11 +316,18 @@ class TaskRunner {
     }
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler =
-            (thread, error) -> {
-                // JVM may be in unstable state, try to send metrics then exit
-                LOGGER.error("Uncaught exception. Thread {} will exit now", thread, error);
-            };
+    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+
+    private void onUncaughtException(Thread thread, Throwable error) {
+        // JVM may be in unstable state, try to send metrics then exit
+        LOGGER.error("Uncaught exception. Thread {} will exit now", thread, error);
+        try {
+            eventDispatcher.publish(new ThreadUncaughtException(taskType, error));
+        } catch (Throwable t) {
+            // Never let metric publishing hide the original failure.
+            LOGGER.debug("Failed to publish ThreadUncaughtException event", t);
+        }
+    }
 
     private Task processTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
@@ -408,6 +425,7 @@ class TaskRunner {
     }
 
     private void updateTaskResult(int count, Task task, TaskResult result, Worker worker) {
+        Stopwatch updateStopwatch = Stopwatch.createStarted();
         try {
             // upload if necessary
             Optional<String> optionalExternalStorageLocation =
@@ -443,7 +461,24 @@ class TaskRunner {
                         "updateTask");
             }
 
+            updateStopwatch.stop();
+            eventDispatcher.publish(new TaskUpdateCompleted(
+                    taskType,
+                    task.getTaskId(),
+                    worker.getIdentity(),
+                    task.getWorkflowInstanceId(),
+                    updateStopwatch.elapsed(TimeUnit.MILLISECONDS)));
         } catch (Exception e) {
+            if (updateStopwatch.isRunning()) {
+                updateStopwatch.stop();
+            }
+            eventDispatcher.publish(new TaskUpdateFailure(
+                    taskType,
+                    task.getTaskId(),
+                    worker.getIdentity(),
+                    task.getWorkflowInstanceId(),
+                    e,
+                    updateStopwatch.elapsed(TimeUnit.MILLISECONDS)));
             worker.onErrorUpdate(task);
             LOGGER.error(
                     String.format(

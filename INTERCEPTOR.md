@@ -14,6 +14,8 @@
 
 The Conductor Java SDK implements a flexible, event-driven metrics collection system that allows developers to observe and measure task and workflow execution at runtime. The design follows the **Observer pattern** with asynchronous event publishing, providing a non-blocking, extensible architecture for metrics collection and monitoring.
 
+> **Cross-SDK metrics harmonization.** The event catalog documented on this page is also the source of truth for the Java side of the cross-SDK metrics harmonization described in [`longrunning-wfstest/sdk-metrics-harmonization.md`](../longrunning-wfstest/sdk-metrics-harmonization.md). `PrometheusMetricsCollector` emits the canonical cross-SDK metric names alongside the legacy Java names, and an `ApiClientMetricsInterceptor` is shipped for the canonical `http_api_client_request_seconds` Histogram. See [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md) for the full list.
+
 ### Key Design Goals
 
 1. **Non-intrusive**: Metrics collection should not impact task execution performance
@@ -91,11 +93,38 @@ ConductorClientEvent (abstract)
 │   │   • String workerId
 │   │   • Duration duration
 │   │
-│   └── TaskExecutionFailure
-│       • String taskId
-│       • String workerId
+│   ├── TaskExecutionFailure
+│   │   • String taskId
+│   │   • String workerId
+│   │   • Throwable cause
+│   │   • Duration duration
+│   │
+│   ├── TaskUpdateCompleted                ← added by metrics harmonization
+│   │   • String taskId
+│   │   • String workerId
+│   │   • String workflowInstanceId
+│   │   • Duration duration
+│   │
+│   ├── TaskUpdateFailure                  ← added by metrics harmonization
+│   │   • String taskId
+│   │   • String workerId
+│   │   • String workflowInstanceId
+│   │   • Throwable cause
+│   │   • Duration duration
+│   │
+│   ├── TaskAckFailure                     ← added by metrics harmonization
+│   │   • String taskId
+│   │
+│   ├── TaskAckError                       ← added by metrics harmonization
+│   │   • String taskId
+│   │   • Throwable cause
+│   │
+│   ├── TaskExecutionQueueFull             ← added by metrics harmonization
+│   │
+│   ├── TaskPaused                         ← added by metrics harmonization
+│   │
+│   └── ThreadUncaughtException            ← added by metrics harmonization
 │       • Throwable cause
-│       • Duration duration
 │
 ├── WorkflowClientEvent (abstract)
 │   │   • String name
@@ -167,6 +196,16 @@ public interface TaskRunnerEventsListener {
     void consume(TaskExecutionStarted e);
     void consume(TaskExecutionCompleted e);
     void consume(TaskExecutionFailure e);
+
+    // Added during the cross-SDK metrics harmonization. Default no-op
+    // implementations so existing listener impls compile unchanged.
+    default void consume(TaskUpdateCompleted e) {}
+    default void consume(TaskUpdateFailure e) {}
+    default void consume(TaskAckFailure e) {}
+    default void consume(TaskAckError e) {}
+    default void consume(TaskExecutionQueueFull e) {}
+    default void consume(TaskPaused e) {}
+    default void consume(ThreadUncaughtException e) {}
 }
 ```
 
@@ -253,13 +292,33 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 - Records counters for poll started and task execution started
 - All metrics tagged with task type
 
-**Metrics Exposed**:
+**Metrics Exposed** (legacy + canonical, emitted simultaneously during the
+harmonization deprecation window):
+
+Legacy (pre-harmonization; use `type` label):
 - `poll_failure` (timer) - Duration of failed polls
 - `poll_success` (timer) - Duration of successful polls
 - `poll_started` (counter) - Count of poll attempts
 - `task_execution_started` (counter) - Count of task executions started
 - `task_execution_completed` (timer) - Duration of completed task executions
 - `task_execution_failure` (timer) - Duration of failed task executions
+
+Canonical (cross-SDK harmonized names; use `taskType` / `workflowType` label):
+- `task_poll_total`, `task_poll_error_total`, `task_execution_started_total`,
+  `task_execute_error_total`, `task_update_error_total`,
+  `task_ack_error_total`, `task_ack_failed_total`,
+  `task_execution_queue_full_total`, `task_paused_total`,
+  `thread_uncaught_exceptions_total`, `external_payload_used_total`,
+  `workflow_start_error_total` (counters)
+- `task_poll_time_seconds`, `task_execute_time_seconds`,
+  `task_update_time_seconds` (histograms, `status=SUCCESS|FAILURE`)
+- `task_result_size_bytes`, `workflow_input_size_bytes` (gauges)
+- `http_api_client_request_seconds` (histogram, emitted only when the
+  bundled `ApiClientMetricsInterceptor` is installed — see
+  [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md))
+
+All histograms share the cross-SDK canonical bucket set so that dashboards
+can span Python, Go, Java, Ruby, and Rust workers on the same `le` axis.
 
 ## Event Lifecycle
 
