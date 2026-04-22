@@ -13,8 +13,16 @@ plugins {
 //apply plugin: 'publish-config'
 
 dependencies {
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.1'
+    // Exposed via PrometheusMetricsCollector#getRegistry() and
+    // PrometheusApiClientMetrics(PrometheusMeterRegistry), which downstream
+    // modules (e.g. harness) need to reference — use `api` so the type is
+    // visible on the compile classpath of consumers.
+    api 'io.micrometer:micrometer-registry-prometheus:1.15.1'
     implementation project(":conductor-client")
+    // OkHttp is part of this module's public API because ApiClientMetricsInterceptor
+    // implements okhttp3.Interceptor. conductor-client pulls okhttp in as
+    // 'implementation', so it isn't exposed transitively — declare it directly here.
+    api "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
     testImplementation 'org.mockito:mockito-core:5.4.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'

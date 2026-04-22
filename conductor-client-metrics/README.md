@@ -64,7 +64,7 @@ rollout.
 | Name | Type | Labels |
 |---|---|---|
 | `task_poll_total` | Counter | `taskType` |
-| `task_execution_started_total` | Counter | `taskType` |
+| `task_execution_started_total` | Counter | `type, taskType` (see note below) |
 | `task_poll_error_total` | Counter | `taskType, exception` |
 | `task_execute_error_total` | Counter | `taskType, exception` |
 | `task_update_error_total` | Counter | `taskType, exception` |
@@ -112,6 +112,17 @@ Label conventions:
 
 The legacy names use a `type` label; the canonical names use `taskType`.
 Both are emitted simultaneously so existing dashboards keep working.
+
+**Exception:** `task_execution_started` / `task_execution_started_total`
+cannot be dual-registered as separate meters because Micrometer's Prometheus
+exporter auto-appends `_total` to Counter names, which would cause both
+meters to resolve to the same Prometheus metric family with incompatible
+label sets. Instead, this SDK emits a single counter carrying **both** `type`
+and `taskType` labels with identical values; legacy queries on
+`{type=...}` and canonical queries on `{taskType=...}` both resolve to the
+same time series. See
+[`longrunning-wfstest/sdk-metrics-harmonization.md`](../../longrunning-wfstest/sdk-metrics-harmonization.md)
+§3.3 and §4 for the full rationale.
 
 See the harmonization doc for the full catalog and rollout schedule.
 

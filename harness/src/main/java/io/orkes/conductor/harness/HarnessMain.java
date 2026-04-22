@@ -25,6 +25,8 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
@@ -49,19 +51,26 @@ public class HarnessMain {
     };
 
     public static void main(String[] args) throws Exception {
-        ConductorClient client = ApiClient.builder().useEnvVariables(true).readTimeout(10_000).connectTimeout(10_000)
-                .writeTimeout(10_000).build();
+        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+        int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
+        metricsCollector.startServer(metricsPort, "/metrics");
+        log.info("Prometheus metrics server started on port {}", metricsPort);
+
+        PrometheusApiClientMetrics apiClientMetrics = new PrometheusApiClientMetrics(metricsCollector.getRegistry());
+
+        ConductorClient client = ApiClient.builder()
+                .useEnvVariables(true)
+                .readTimeout(10_000)
+                .connectTimeout(10_000)
+                .writeTimeout(10_000)
+                .configureOkHttp(b -> b.addInterceptor(new ApiClientMetricsInterceptor(apiClientMetrics)))
+                .build();
 
         int workflowsPerSec = envInt("HARNESS_WORKFLOWS_PER_SEC", 2);
         int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
 
         registerMetadata(client);
-
-        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-        int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
-        metricsCollector.startServer(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {}", metricsPort);
 
         List<Worker> workers = new ArrayList<>();
         for (String[] entry : SIMULATED_WORKERS) {
@@ -70,6 +79,8 @@ public class HarnessMain {
         }
 
         TaskClient taskClient = new TaskClient(client);
+        taskClient.registerListener(metricsCollector);
+        taskClient.registerTaskRunnerListener(metricsCollector);
         Map<String, Integer> threadCounts =
                 workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
 
@@ -81,6 +92,7 @@ public class HarnessMain {
         configurer.init();
 
         WorkflowClient workflowClient = new WorkflowClient(client);
+        workflowClient.registerListener(metricsCollector);
         WorkflowGovernor governor = new WorkflowGovernor(workflowClient, WORKFLOW_NAME, workflowsPerSec);
         governor.start();
 

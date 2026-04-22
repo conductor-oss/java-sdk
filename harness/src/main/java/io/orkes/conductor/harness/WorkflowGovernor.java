@@ -64,6 +64,12 @@ public class WorkflowGovernor {
             for (int i = 0; i < workflowsPerSecond; i++) {
                 StartWorkflowRequest request = new StartWorkflowRequest();
                 request.setName(workflowName);
+                // Mirror python-sdk/harness/main.py and
+                // go-sdk/harness/workflow_governor.go which both pin
+                // version=1 so that `workflow_input_size_bytes{version=...}`
+                // scrape samples are directly comparable across the three
+                // SDK harnesses.
+                request.setVersion(1);
                 workflowClient.startWorkflow(request);
             }
             log.info("Governor: started {} workflow(s)", workflowsPerSecond);

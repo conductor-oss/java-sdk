@@ -299,7 +299,11 @@ Legacy (pre-harmonization; use `type` label):
 - `poll_failure` (timer) - Duration of failed polls
 - `poll_success` (timer) - Duration of successful polls
 - `poll_started` (counter) - Count of poll attempts
-- `task_execution_started` (counter) - Count of task executions started
+- `task_execution_started` (counter) - Count of task executions started.
+  Carries **both** `type` and `taskType` labels with identical values; see
+  `conductor-client-metrics/README.md` and
+  `longrunning-wfstest/sdk-metrics-harmonization.md` §3.3/§4 for why this
+  counter is not dual-registered.
 - `task_execution_completed` (timer) - Duration of completed task executions
 - `task_execution_failure` (timer) - Duration of failed task executions
 

@@ -40,6 +40,7 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.metrics.MetricsCollector;
 
 import com.sun.net.httpserver.HttpServer;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -87,6 +88,65 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAILURE = "FAILURE";
 
+    // ---------------------------------------------------------------------
+    // Prometheus HELP text. Wording mirrors the Python and Go SDKs so the
+    // three scrape surfaces carry identical descriptions for identical
+    // canonical metric names; see `longrunning-wfstest/sdk-metrics-
+    // harmonization.md` §2.
+    // ---------------------------------------------------------------------
+
+    // Legacy (Phase 1 dual-emit) names.
+    private static final String POLL_STARTED_DOC =
+            "Incremented each time polling is done (legacy; see task_poll_total)";
+    private static final String POLL_SUCCESS_DOC =
+            "Time to poll for a batch of tasks on success (legacy Timer; see task_poll_time_seconds histogram)";
+    private static final String POLL_FAILURE_DOC =
+            "Time to poll for a batch of tasks on failure (legacy Timer; see task_poll_time_seconds histogram)";
+    private static final String TASK_EXECUTION_STARTED_LEGACY_DOC =
+            "Incremented each time a polled task is dispatched to the worker function (carries both {type} and {taskType} for dual-dashboard compatibility)";
+    private static final String TASK_EXECUTION_COMPLETED_DOC =
+            "Time to execute a task on success (legacy Timer; see task_execute_time_seconds histogram)";
+    private static final String TASK_EXECUTION_FAILURE_DOC =
+            "Time to execute a task on failure (legacy Timer; see task_execute_time_seconds histogram)";
+
+    // Canonical counters.
+    private static final String TASK_POLL_TOTAL_DOC =
+            "Incremented each time polling is done";
+    private static final String TASK_POLL_ERROR_TOTAL_DOC =
+            "Client error when polling for a task queue";
+    private static final String TASK_EXECUTE_ERROR_TOTAL_DOC =
+            "Execution error";
+    private static final String TASK_UPDATE_ERROR_TOTAL_DOC =
+            "Task status cannot be updated back to server";
+    private static final String TASK_ACK_ERROR_TOTAL_DOC =
+            "Task ack has encountered an exception";
+    private static final String TASK_ACK_FAILED_TOTAL_DOC =
+            "Task ack failed";
+    private static final String TASK_EXECUTION_QUEUE_FULL_TOTAL_DOC =
+            "Counter to record execution queue has saturated";
+    private static final String TASK_PAUSED_TOTAL_DOC =
+            "Counter for number of times the task has been polled, when the worker has been paused";
+    private static final String THREAD_UNCAUGHT_EXCEPTIONS_TOTAL_DOC =
+            "Uncaught exceptions raised inside worker threads";
+    private static final String EXTERNAL_PAYLOAD_USED_TOTAL_DOC =
+            "Incremented each time external payload storage is used";
+    private static final String WORKFLOW_START_ERROR_TOTAL_DOC =
+            "Counter for workflow start errors";
+
+    // Canonical histograms.
+    private static final String TASK_POLL_TIME_SECONDS_DOC =
+            "Task poll latency in seconds";
+    private static final String TASK_EXECUTE_TIME_SECONDS_DOC =
+            "Task execution latency in seconds";
+    private static final String TASK_UPDATE_TIME_SECONDS_DOC =
+            "Task update (result-report) latency in seconds";
+
+    // Canonical size gauges.
+    private static final String TASK_RESULT_SIZE_BYTES_DOC =
+            "Records output payload size of a task in bytes";
+    private static final String WORKFLOW_INPUT_SIZE_BYTES_DOC =
+            "Records input payload size of a workflow in bytes";
+
     /**
      * Holds the backing {@link AtomicLong}s for last-value size gauges. The
      * Micrometer {@code Gauge} API requires a stable reference to a number
@@ -120,15 +180,15 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     @Override
     public void consume(PollStarted e) {
         // Legacy
-        prometheusRegistry.counter("poll_started", "type", e.getTaskType()).increment();
+        counter("poll_started", POLL_STARTED_DOC, "type", e.getTaskType()).increment();
         // Canonical: every poll issued, regardless of outcome.
-        prometheusRegistry.counter("task_poll_total", "taskType", e.getTaskType()).increment();
+        counter("task_poll_total", TASK_POLL_TOTAL_DOC, "taskType", e.getTaskType()).increment();
     }
 
     @Override
     public void consume(PollCompleted e) {
         // Legacy
-        prometheusRegistry.timer("poll_success", "type", e.getTaskType())
+        legacyTimer("poll_success", POLL_SUCCESS_DOC, "type", e.getTaskType())
                 .record(e.getDuration());
         // Canonical
         canonicalPollTimer(e.getTaskType(), STATUS_SUCCESS).record(e.getDuration());
@@ -137,13 +197,14 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     @Override
     public void consume(PollFailure e) {
         // Legacy
-        prometheusRegistry.timer("poll_failure", "type", e.getTaskType())
+        legacyTimer("poll_failure", POLL_FAILURE_DOC, "type", e.getTaskType())
                 .record(e.getDuration());
         // Canonical histogram
         canonicalPollTimer(e.getTaskType(), STATUS_FAILURE).record(e.getDuration());
         // Canonical error counter
-        prometheusRegistry.counter(
+        counter(
                 "task_poll_error_total",
+                TASK_POLL_ERROR_TOTAL_DOC,
                 "taskType", e.getTaskType(),
                 "exception", exceptionLabel(e.getCause())
         ).increment();
@@ -155,17 +216,30 @@ public class PrometheusMetricsCollector implements MetricsCollector {
 
     @Override
     public void consume(TaskExecutionStarted e) {
-        // Legacy
-        prometheusRegistry.counter("task_execution_started", "type", e.getTaskType()).increment();
-        // Canonical
-        prometheusRegistry.counter("task_execution_started_total", "taskType", e.getTaskType())
-                .increment();
+        // Single emission carrying both label keys. Micrometer's Prometheus
+        // exporter auto-suffixes Counter names with `_total`, so a Micrometer
+        // counter named "task_execution_started" and one named
+        // "task_execution_started_total" both resolve to the same Prometheus
+        // metric family (`task_execution_started_total`). Prometheus allows
+        // only one label set per family, so we cannot dual-register with
+        // {type} and {taskType} separately. Instead we emit a single counter
+        // that carries both tag keys with identical values — legacy
+        // dashboards querying `{type=...}` and canonical dashboards querying
+        // `{taskType=...}` both resolve to the same time series. See
+        // `longrunning-wfstest/sdk-metrics-harmonization.md` §3.3 for the
+        // documented exception to the dual-emit pattern.
+        counter(
+                "task_execution_started",
+                TASK_EXECUTION_STARTED_LEGACY_DOC,
+                "type", e.getTaskType(),
+                "taskType", e.getTaskType()
+        ).increment();
     }
 
     @Override
     public void consume(TaskExecutionCompleted e) {
         // Legacy
-        prometheusRegistry.timer("task_execution_completed", "type", e.getTaskType())
+        legacyTimer("task_execution_completed", TASK_EXECUTION_COMPLETED_DOC, "type", e.getTaskType())
                 .record(e.getDuration());
         // Canonical
         canonicalExecuteTimer(e.getTaskType(), STATUS_SUCCESS).record(e.getDuration());
@@ -174,13 +248,14 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     @Override
     public void consume(TaskExecutionFailure e) {
         // Legacy
-        prometheusRegistry.timer("task_execution_failure", "type", e.getTaskType())
+        legacyTimer("task_execution_failure", TASK_EXECUTION_FAILURE_DOC, "type", e.getTaskType())
                 .record(e.getDuration());
         // Canonical histogram
         canonicalExecuteTimer(e.getTaskType(), STATUS_FAILURE).record(e.getDuration());
         // Canonical error counter
-        prometheusRegistry.counter(
+        counter(
                 "task_execute_error_total",
+                TASK_EXECUTE_ERROR_TOTAL_DOC,
                 "taskType", e.getTaskType(),
                 "exception", exceptionLabel(e.getCause())
         ).increment();
@@ -198,8 +273,9 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     @Override
     public void consume(TaskUpdateFailure e) {
         canonicalUpdateTimer(e.getTaskType(), STATUS_FAILURE).record(e.getDuration());
-        prometheusRegistry.counter(
+        counter(
                 "task_update_error_total",
+                TASK_UPDATE_ERROR_TOTAL_DOC,
                 "taskType", e.getTaskType(),
                 "exception", exceptionLabel(e.getCause())
         ).increment();
@@ -211,14 +287,15 @@ public class PrometheusMetricsCollector implements MetricsCollector {
 
     @Override
     public void consume(TaskAckFailure e) {
-        prometheusRegistry.counter("task_ack_failed_total", "taskType", e.getTaskType())
+        counter("task_ack_failed_total", TASK_ACK_FAILED_TOTAL_DOC, "taskType", e.getTaskType())
                 .increment();
     }
 
     @Override
     public void consume(TaskAckError e) {
-        prometheusRegistry.counter(
+        counter(
                 "task_ack_error_total",
+                TASK_ACK_ERROR_TOTAL_DOC,
                 "taskType", e.getTaskType(),
                 "exception", exceptionLabel(e.getCause())
         ).increment();
@@ -226,20 +303,21 @@ public class PrometheusMetricsCollector implements MetricsCollector {
 
     @Override
     public void consume(TaskExecutionQueueFull e) {
-        prometheusRegistry.counter("task_execution_queue_full_total", "taskType", e.getTaskType())
+        counter("task_execution_queue_full_total", TASK_EXECUTION_QUEUE_FULL_TOTAL_DOC, "taskType", e.getTaskType())
                 .increment();
     }
 
     @Override
     public void consume(TaskPaused e) {
-        prometheusRegistry.counter("task_paused_total", "taskType", e.getTaskType())
+        counter("task_paused_total", TASK_PAUSED_TOTAL_DOC, "taskType", e.getTaskType())
                 .increment();
     }
 
     @Override
     public void consume(ThreadUncaughtException e) {
-        prometheusRegistry.counter(
+        counter(
                 "thread_uncaught_exceptions_total",
+                THREAD_UNCAUGHT_EXCEPTIONS_TOTAL_DOC,
                 "exception", exceptionLabel(e.getCause())
         ).increment();
     }
@@ -253,8 +331,9 @@ public class PrometheusMetricsCollector implements MetricsCollector {
         // Canonical: external payload read/write. TaskPayloadUsedEvent covers
         // task input/output. operation ∈ READ|WRITE, payload_type derived
         // from the event.
-        prometheusRegistry.counter(
+        counter(
                 "external_payload_used_total",
+                EXTERNAL_PAYLOAD_USED_TOTAL_DOC,
                 "entityName", nullToEmpty(e.getTaskType()),
                 "operation", nullToEmpty(e.getOperation()),
                 "payload_type", nullToEmpty(e.getPayloadType())
@@ -265,6 +344,7 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     public void consume(TaskResultPayloadSizeEvent e) {
         updateSizeGauge(
                 "task_result_size_bytes",
+                TASK_RESULT_SIZE_BYTES_DOC,
                 Tags.of("taskType", nullToEmpty(e.getTaskType())),
                 e.getSize()
         );
@@ -272,8 +352,9 @@ public class PrometheusMetricsCollector implements MetricsCollector {
 
     @Override
     public void consume(WorkflowPayloadUsedEvent event) {
-        prometheusRegistry.counter(
+        counter(
                 "external_payload_used_total",
+                EXTERNAL_PAYLOAD_USED_TOTAL_DOC,
                 "entityName", nullToEmpty(event.getName()),
                 "operation", nullToEmpty(event.getOperation()),
                 "payload_type", nullToEmpty(event.getPayloadType())
@@ -284,6 +365,7 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     public void consume(WorkflowInputPayloadSizeEvent event) {
         updateSizeGauge(
                 "workflow_input_size_bytes",
+                WORKFLOW_INPUT_SIZE_BYTES_DOC,
                 Tags.of(
                         "workflowType", nullToEmpty(event.getName()),
                         "version", versionLabel(event.getVersion())
@@ -297,8 +379,9 @@ public class PrometheusMetricsCollector implements MetricsCollector {
         if (event.isSuccess()) {
             return;
         }
-        prometheusRegistry.counter(
+        counter(
                 "workflow_start_error_total",
+                WORKFLOW_START_ERROR_TOTAL_DOC,
                 "workflowType", nullToEmpty(event.getName()),
                 "exception", exceptionLabel(event.getThrowable())
         ).increment();
@@ -318,19 +401,20 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     }
 
     private static Timer canonicalPollTimer(String taskType, String status) {
-        return canonicalTaskTimer("task_poll_time_seconds", taskType, status);
+        return canonicalTaskTimer("task_poll_time_seconds", TASK_POLL_TIME_SECONDS_DOC, taskType, status);
     }
 
     private static Timer canonicalExecuteTimer(String taskType, String status) {
-        return canonicalTaskTimer("task_execute_time_seconds", taskType, status);
+        return canonicalTaskTimer("task_execute_time_seconds", TASK_EXECUTE_TIME_SECONDS_DOC, taskType, status);
     }
 
     private static Timer canonicalUpdateTimer(String taskType, String status) {
-        return canonicalTaskTimer("task_update_time_seconds", taskType, status);
+        return canonicalTaskTimer("task_update_time_seconds", TASK_UPDATE_TIME_SECONDS_DOC, taskType, status);
     }
 
-    private static Timer canonicalTaskTimer(String name, String taskType, String status) {
+    private static Timer canonicalTaskTimer(String name, String description, String taskType, String status) {
         return Timer.builder(name)
+                .description(description)
                 .tag("taskType", nullToEmpty(taskType))
                 .tag("status", status)
                 .publishPercentileHistogram(false)
@@ -339,15 +423,42 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     }
 
     /**
+     * Builder-style Counter registration that carries HELP text through to
+     * the Prometheus scrape. Micrometer's {@code MeterRegistry#counter}
+     * shorthand does not accept a description, so every canonical counter
+     * in this collector goes through this helper instead.
+     */
+    private static Counter counter(String name, String description, String... tagKv) {
+        return Counter.builder(name)
+                .description(description)
+                .tags(tagKv)
+                .register(prometheusRegistry);
+    }
+
+    /**
+     * Builder-style Timer registration for legacy (non-canonical) timers
+     * that should not carry the canonical histogram bucket set. Kept
+     * separate from {@link #canonicalTaskTimer} so the bucket strategy
+     * for legacy vs canonical timers is explicit at the call site.
+     */
+    private static Timer legacyTimer(String name, String description, String... tagKv) {
+        return Timer.builder(name)
+                .description(description)
+                .tags(tagKv)
+                .register(prometheusRegistry);
+    }
+
+    /**
      * Register-or-update a last-value size gauge. Micrometer's gauge API
      * requires the caller to hold a stable number reference that it samples;
      * we do so via {@link AtomicLong} kept alive in {@link #SIZE_GAUGES}.
      */
-    private static void updateSizeGauge(String name, Tags tags, long value) {
+    private static void updateSizeGauge(String name, String description, Tags tags, long value) {
         String key = gaugeKey(name, tags);
         AtomicLong holder = SIZE_GAUGES.computeIfAbsent(key, k -> {
             AtomicLong created = new AtomicLong();
             Gauge.builder(name, created, AtomicLong::doubleValue)
+                    .description(description)
                     .tags(tags)
                     .register(prometheusRegistry);
             return created;

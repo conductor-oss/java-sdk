@@ -183,9 +183,12 @@ public class WorkflowClient implements AutoCloseable {
                 StringUtils.isBlank(startWorkflowRequest.getExternalInputPayloadStoragePath()),
                 "External Storage Path must not be set");
 
-        if (conductorClientConfiguration.isEnforceThresholds()) {
-            checkAndUploadToExternalStorage(startWorkflowRequest);
-        }
+        // `checkAndUploadToExternalStorage` always publishes the
+        // `WorkflowInputPayloadSizeEvent` so the canonical
+        // `workflow_input_size_bytes` gauge is emitted regardless of whether
+        // external-payload enforcement is enabled. The threshold/upload
+        // branch inside the method remains gated on `isEnforceThresholds`.
+        checkAndUploadToExternalStorage(startWorkflowRequest);
 
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
@@ -205,8 +208,14 @@ public class WorkflowClient implements AutoCloseable {
             objectMapper.writeValue(byteArrayOutputStream, startWorkflowRequest.getInput());
             byte[] workflowInputBytes = byteArrayOutputStream.toByteArray();
             long workflowInputSize = workflowInputBytes.length;
+            // Always publish so `workflow_input_size_bytes` is emitted
+            // regardless of whether external-payload enforcement is enabled.
             eventDispatcher.publish(new WorkflowInputPayloadSizeEvent(startWorkflowRequest.getName(),
                     startWorkflowRequest.getVersion(), workflowInputSize));
+
+            if (!conductorClientConfiguration.isEnforceThresholds()) {
+                return;
+            }
 
             if (workflowInputSize > conductorClientConfiguration.getWorkflowInputPayloadThresholdKB() * 1024L) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() ||

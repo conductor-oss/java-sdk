@@ -44,6 +44,7 @@ import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskExecutionQueueFull;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
 import com.netflix.conductor.client.events.taskrunner.TaskPaused;
 import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
@@ -180,7 +181,15 @@ class TaskRunner {
                     stopwatch = null;
                 }
                 tasks.forEach(task -> {
-                    Future<Task> taskFuture = this.executorService.submit(() -> this.processTask(task));
+                    Future<Task> taskFuture;
+                    try {
+                        taskFuture = this.executorService.submit(() -> this.processTask(task));
+                    } catch (java.util.concurrent.RejectedExecutionException e) {
+                        LOGGER.error("Task executor queue full; dropping task {} of type {}", task.getTaskId(), taskType, e);
+                        eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
+                        permits.release();
+                        return;
+                    }
 
                     if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
                         ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());

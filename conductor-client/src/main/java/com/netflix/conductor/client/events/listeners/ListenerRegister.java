@@ -19,10 +19,17 @@ import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskAckError;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskExecutionQueueFull;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskPaused;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
+import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.events.workflow.WorkflowClientEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
@@ -37,6 +44,13 @@ public class ListenerRegister {
         dispatcher.register(TaskExecutionStarted.class, listener::consume);
         dispatcher.register(TaskExecutionCompleted.class, listener::consume);
         dispatcher.register(TaskExecutionFailure.class, listener::consume);
+        dispatcher.register(TaskUpdateCompleted.class, listener::consume);
+        dispatcher.register(TaskUpdateFailure.class, listener::consume);
+        dispatcher.register(TaskAckFailure.class, listener::consume);
+        dispatcher.register(TaskAckError.class, listener::consume);
+        dispatcher.register(TaskExecutionQueueFull.class, listener::consume);
+        dispatcher.register(TaskPaused.class, listener::consume);
+        dispatcher.register(ThreadUncaughtException.class, listener::consume);
     }
 
     public static void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
