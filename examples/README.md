@@ -1053,4 +1053,4 @@ All examples support `--workers` flag for worker-only mode.
 
 ## Legacy Examples
 
-The original Gradle-based examples are preserved in [old/](old/).
+The original Gradle-based examples are preserved in [old/](old/). See [old/README.md](old/README.md) for which examples are OSS-compatible and which require Orkes Cloud credentials.
