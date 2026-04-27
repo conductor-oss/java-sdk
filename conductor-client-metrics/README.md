@@ -4,7 +4,7 @@
 
 Provides Prometheus-format metrics for the Conductor Java client. Once wired
 in, the SDK exposes the cross-SDK canonical worker-telemetry set described in
-[`longrunning-wfstest/sdk-metrics-harmonization.md`](../../longrunning-wfstest/sdk-metrics-harmonization.md)
+[`sdk-metrics-harmonization.md`](https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md)
 alongside the legacy Java metric names (so dashboards built against either
 naming scheme keep working during the deprecation window).
 
@@ -121,7 +121,7 @@ label sets. Instead, this SDK emits a single counter carrying **both** `type`
 and `taskType` labels with identical values; legacy queries on
 `{type=...}` and canonical queries on `{taskType=...}` both resolve to the
 same time series. See
-[`longrunning-wfstest/sdk-metrics-harmonization.md`](../../longrunning-wfstest/sdk-metrics-harmonization.md)
+[`sdk-metrics-harmonization.md`](https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md)
 §3.3 and §4 for the full rationale.
 
 See the harmonization doc for the full catalog and rollout schedule.

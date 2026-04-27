@@ -31,7 +31,7 @@ public final class PrometheusApiClientMetrics implements ApiClientMetrics {
 
     /**
      * Canonical bucket set — kept in sync with
-     * {@code longrunning-wfstest/sdk-metrics-harmonization.md} and the
+     * <a href="https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md">sdk-metrics-harmonization.md</a> and the
      * Python / Go / Ruby / Rust SDKs.
      */
     private static final Duration[] CANONICAL_BUCKETS = new Duration[] {

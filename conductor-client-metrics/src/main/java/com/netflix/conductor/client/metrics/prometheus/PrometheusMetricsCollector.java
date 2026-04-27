@@ -51,7 +51,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
  * Prometheus {@link MetricsCollector} implementation.
  *
  * <p>Canonical metric names from
- * {@code longrunning-wfstest/sdk-metrics-harmonization.md} are emitted
+ * <a href="https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md">sdk-metrics-harmonization.md</a> are emitted
  * <em>alongside</em> the legacy Java metric names (e.g. {@code poll_started},
  * {@code task_execution_completed}) so that dashboards built against either
  * naming scheme continue to work during the deprecation window. Legacy names
@@ -91,8 +91,8 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     // ---------------------------------------------------------------------
     // Prometheus HELP text. Wording mirrors the Python and Go SDKs so the
     // three scrape surfaces carry identical descriptions for identical
-    // canonical metric names; see `longrunning-wfstest/sdk-metrics-
-    // harmonization.md` §2.
+    // canonical metric names; see sdk-metrics-harmonization.md §2:
+    // https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md
     // ---------------------------------------------------------------------
 
     // Legacy (Phase 1 dual-emit) names.
@@ -226,7 +226,7 @@ public class PrometheusMetricsCollector implements MetricsCollector {
         // that carries both tag keys with identical values — legacy
         // dashboards querying `{type=...}` and canonical dashboards querying
         // `{taskType=...}` both resolve to the same time series. See
-        // `longrunning-wfstest/sdk-metrics-harmonization.md` §3.3 for the
+        // sdk-metrics-harmonization.md §3.3 for the
         // documented exception to the dual-emit pattern.
         counter(
                 "task_execution_started",

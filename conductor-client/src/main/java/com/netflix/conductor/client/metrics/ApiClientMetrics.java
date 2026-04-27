@@ -22,8 +22,8 @@ import java.time.Duration;
  * <pre>
  *   http_api_client_request_seconds{method, uri, status}  (Histogram)
  * </pre>
- * See {@code longrunning-wfstest/sdk-metrics-harmonization.md} for the
- * cross-SDK contract.
+ * See <a href="https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md">sdk-metrics-harmonization.md</a>
+ * for the cross-SDK contract.
  *
  * <p>Keeping this as an interface (rather than wiring directly to any
  * particular metrics backend) lets {@code conductor-client} stay free of a

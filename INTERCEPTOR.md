@@ -14,7 +14,7 @@
 
 The Conductor Java SDK implements a flexible, event-driven metrics collection system that allows developers to observe and measure task and workflow execution at runtime. The design follows the **Observer pattern** with asynchronous event publishing, providing a non-blocking, extensible architecture for metrics collection and monitoring.
 
-> **Cross-SDK metrics harmonization.** The event catalog documented on this page is also the source of truth for the Java side of the cross-SDK metrics harmonization described in [`longrunning-wfstest/sdk-metrics-harmonization.md`](../longrunning-wfstest/sdk-metrics-harmonization.md). `PrometheusMetricsCollector` emits the canonical cross-SDK metric names alongside the legacy Java names, and an `ApiClientMetricsInterceptor` is shipped for the canonical `http_api_client_request_seconds` Histogram. See [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md) for the full list.
+> **Cross-SDK metrics harmonization.** The event catalog documented on this page is also the source of truth for the Java side of the cross-SDK metrics harmonization described in [`sdk-metrics-harmonization.md`](https://github.com/orkes-io/certification-cloud-util/blob/main/sdk-metrics-harmonization.md). `PrometheusMetricsCollector` emits the canonical cross-SDK metric names alongside the legacy Java names, and an `ApiClientMetricsInterceptor` is shipped for the canonical `http_api_client_request_seconds` Histogram. See [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md) for the full list.
 
 ### Key Design Goals
 
@@ -302,7 +302,7 @@ Legacy (pre-harmonization; use `type` label):
 - `task_execution_started` (counter) - Count of task executions started.
   Carries **both** `type` and `taskType` labels with identical values; see
   `conductor-client-metrics/README.md` and
-  `longrunning-wfstest/sdk-metrics-harmonization.md` §3.3/§4 for why this
+  `sdk-metrics-harmonization.md` §3.3/§4 for why this
   counter is not dual-registered.
 - `task_execution_completed` (timer) - Duration of completed task executions
 - `task_execution_failure` (timer) - Duration of failed task executions
