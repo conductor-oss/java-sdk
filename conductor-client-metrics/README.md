@@ -73,7 +73,7 @@ rollout.
 | `task_execution_queue_full_total` | Counter | `taskType` |
 | `task_paused_total` | Counter | `taskType` |
 | `thread_uncaught_exceptions_total` | Counter | `exception` |
-| `external_payload_used_total` | Counter | `entityName, operation, payload_type` |
+| `external_payload_used_total` | Counter | `entityName, operation, payloadType, payload_type` |
 | `workflow_start_error_total` | Counter | `workflowType, exception` |
 | `task_poll_time_seconds` | Histogram | `taskType, status` |
 | `task_execute_time_seconds` | Histogram | `taskType, status` |

@@ -328,14 +328,12 @@ public class PrometheusMetricsCollector implements MetricsCollector {
 
     @Override
     public void consume(TaskPayloadUsedEvent e) {
-        // Canonical: external payload read/write. TaskPayloadUsedEvent covers
-        // task input/output. operation ∈ READ|WRITE, payload_type derived
-        // from the event.
         counter(
                 "external_payload_used_total",
                 EXTERNAL_PAYLOAD_USED_TOTAL_DOC,
                 "entityName", nullToEmpty(e.getTaskType()),
                 "operation", nullToEmpty(e.getOperation()),
+                "payloadType", nullToEmpty(e.getPayloadType()),
                 "payload_type", nullToEmpty(e.getPayloadType())
         ).increment();
     }
@@ -357,6 +355,7 @@ public class PrometheusMetricsCollector implements MetricsCollector {
                 EXTERNAL_PAYLOAD_USED_TOTAL_DOC,
                 "entityName", nullToEmpty(event.getName()),
                 "operation", nullToEmpty(event.getOperation()),
+                "payloadType", nullToEmpty(event.getPayloadType()),
                 "payload_type", nullToEmpty(event.getPayloadType())
         ).increment();
     }
