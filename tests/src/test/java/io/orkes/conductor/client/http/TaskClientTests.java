@@ -318,10 +318,10 @@ public class TaskClientTests {
 
     // Simple helper to complete workflow
     private void completeWorkflow(String workflowId) throws Exception {
-        // Signal twice to complete
-        taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal1"));
+        // Signal twice to complete; retry on 423 (server lock contention) with backoff
+        TestUtil.retryMethodCall(() -> taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal1")));
         Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(200));
-        taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal2"));
+        TestUtil.retryMethodCall(() -> taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "signal2")));
 
         // Wait for completion
         var finalWorkflow = TestUtil.waitForWorkflowStatus(workflowClient, workflowId,
@@ -447,7 +447,8 @@ public class TaskClientTests {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
 
         // Don't specify return strategy - should default to TARGET_WORKFLOW
-        var response = taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
+        var response = (SignalResponse) TestUtil.retryMethodCall(
+                () -> taskClient.signal(workflowId, Task.Status.COMPLETED, Map.of("result", "test")));
 
         validateSignalResponse(response, ReturnStrategy.TARGET_WORKFLOW);
         assertTrue(response.isTargetWorkflow());
