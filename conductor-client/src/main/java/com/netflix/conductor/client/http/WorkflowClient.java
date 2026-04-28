@@ -183,9 +183,7 @@ public class WorkflowClient implements AutoCloseable {
                 StringUtils.isBlank(startWorkflowRequest.getExternalInputPayloadStoragePath()),
                 "External Storage Path must not be set");
 
-        if (conductorClientConfiguration.isEnforceThresholds()) {
-            checkAndUploadToExternalStorage(startWorkflowRequest);
-        }
+        checkAndUploadToExternalStorage(startWorkflowRequest);
 
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
@@ -207,6 +205,10 @@ public class WorkflowClient implements AutoCloseable {
             long workflowInputSize = workflowInputBytes.length;
             eventDispatcher.publish(new WorkflowInputPayloadSizeEvent(startWorkflowRequest.getName(),
                     startWorkflowRequest.getVersion(), workflowInputSize));
+
+            if (!conductorClientConfiguration.isEnforceThresholds()) {
+                return;
+            }
 
             if (workflowInputSize > conductorClientConfiguration.getWorkflowInputPayloadThresholdKB() * 1024L) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() ||

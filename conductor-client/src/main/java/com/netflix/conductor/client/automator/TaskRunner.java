@@ -44,8 +44,13 @@ import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskExecutionQueueFull;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskPaused;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
+import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -122,6 +127,7 @@ class TaskRunner {
         }
         this.errorAt = errorInterval;
         LOGGER.info("Polling errors will be sampled at every {} error (after the first 100 errors) for taskType {}", this.errorAt, taskType);
+        this.uncaughtExceptionHandler = this::onUncaughtException;
         ThreadFactory threadFactory = null;
         if(useVirtualThreads) {
             threadFactory = Thread.ofVirtual().name(workerNamePrefix).uncaughtExceptionHandler(uncaughtExceptionHandler).factory();
@@ -171,7 +177,15 @@ class TaskRunner {
                     stopwatch = null;
                 }
                 tasks.forEach(task -> {
-                    Future<Task> taskFuture = this.executorService.submit(() -> this.processTask(task));
+                    Future<Task> taskFuture;
+                    try {
+                        taskFuture = this.executorService.submit(() -> this.processTask(task));
+                    } catch (java.util.concurrent.RejectedExecutionException e) {
+                        LOGGER.error("Task executor queue full; dropping task {} of type {}", task.getTaskId(), taskType, e);
+                        eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
+                        permits.release();
+                        return;
+                    }
 
                     if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
                         ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
@@ -228,6 +242,7 @@ class TaskRunner {
 
         if (worker.paused()) {
             LOGGER.trace("Worker {} has been paused. Not polling anymore!", worker.getClass());
+            eventDispatcher.publish(new TaskPaused(taskType));
             return List.of();
         }
 
@@ -306,11 +321,16 @@ class TaskRunner {
     }
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler =
-            (thread, error) -> {
-                // JVM may be in unstable state, try to send metrics then exit
-                LOGGER.error("Uncaught exception. Thread {} will exit now", thread, error);
-            };
+    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+
+    private void onUncaughtException(Thread thread, Throwable error) {
+        LOGGER.error("Uncaught exception. Thread {} will exit now", thread, error);
+        try {
+            eventDispatcher.publish(new ThreadUncaughtException(taskType, error));
+        } catch (Throwable t) {
+            LOGGER.debug("Failed to publish ThreadUncaughtException event", t);
+        }
+    }
 
     private Task processTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
@@ -398,16 +418,11 @@ class TaskRunner {
                 worker.getClass().getSimpleName(),
                 worker.getIdentity(),
                 result.getStatus());
-        Stopwatch updateStopWatch = Stopwatch.createStarted();
         updateTaskResult(updateRetryCount, task, result, worker);
-        updateStopWatch.stop();
-        LOGGER.trace(
-                "Time taken to update the {} {} ms",
-                task.getTaskType(),
-                updateStopWatch.elapsed(TimeUnit.MILLISECONDS));
     }
 
     private void updateTaskResult(int count, Task task, TaskResult result, Worker worker) {
+        Stopwatch updateStopwatch = Stopwatch.createStarted();
         try {
             // upload if necessary
             Optional<String> optionalExternalStorageLocation =
@@ -443,7 +458,24 @@ class TaskRunner {
                         "updateTask");
             }
 
+            updateStopwatch.stop();
+            eventDispatcher.publish(new TaskUpdateCompleted(
+                    taskType,
+                    task.getTaskId(),
+                    worker.getIdentity(),
+                    task.getWorkflowInstanceId(),
+                    updateStopwatch.elapsed(TimeUnit.MILLISECONDS)));
         } catch (Exception e) {
+            if (updateStopwatch.isRunning()) {
+                updateStopwatch.stop();
+            }
+            eventDispatcher.publish(new TaskUpdateFailure(
+                    taskType,
+                    task.getTaskId(),
+                    worker.getIdentity(),
+                    task.getWorkflowInstanceId(),
+                    e,
+                    updateStopwatch.elapsed(TimeUnit.MILLISECONDS)));
             worker.onErrorUpdate(task);
             LOGGER.error(
                     String.format(

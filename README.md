@@ -311,7 +311,7 @@ dependencies {
 // Configure metrics with Prometheus
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
-    .withMetricsCollector(new PrometheusMetricsCollector())
+    .withMetricsCollector(MetricsCollectorFactory.create())
     .build();
 ```
 

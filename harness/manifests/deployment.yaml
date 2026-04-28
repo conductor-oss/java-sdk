@@ -52,6 +52,11 @@ spec:
         - name: HARNESS_POLL_INTERVAL_MS
           value: "100"
 
+        # === METRICS IMPLEMENTATION SELECTION ===
+
+        - name: WORKER_CANONICAL_METRICS
+          value: "true"
+
         ports:
         - name: metrics
           containerPort: 9991
