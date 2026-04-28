@@ -33,9 +33,13 @@ import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.TaskClientListener;
+import com.netflix.conductor.client.events.listeners.TaskRunnerEventsListener;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.TaskAckError;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
@@ -93,6 +97,8 @@ public class TaskClient {
 
     private final EventDispatcher<TaskClientEvent> eventDispatcher = new EventDispatcher<>();
 
+    private final EventDispatcher<TaskRunnerEvent> taskRunnerEventDispatcher = new EventDispatcher<>();
+
     private PayloadStorage payloadStorage;
 
     protected ConductorClient client;
@@ -136,6 +142,15 @@ public class TaskClient {
 
     public void registerListener(TaskClientListener listener) {
         ListenerRegister.register(listener, eventDispatcher);
+    }
+
+    /**
+     * Register a {@link TaskRunnerEventsListener} with this {@code TaskClient}.
+     * Used for canonical task-runner events (e.g. {@code TaskAckFailure}/
+     * {@code TaskAckError}) emitted from within {@code TaskClient} itself.
+     */
+    public void registerTaskRunnerListener(TaskRunnerEventsListener listener) {
+        ListenerRegister.register(listener, taskRunnerEventDispatcher);
     }
 
     /**
@@ -256,15 +271,14 @@ public class TaskClient {
     }
 
     public Optional<String> evaluateAndUploadLargePayload(Map<String, Object> taskOutputData, String taskType) {
-        if (!conductorClientConfiguration.isEnforceThresholds()) {
-            return Optional.empty();
-        }
-
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             objectMapper.writeValue(byteArrayOutputStream, taskOutputData);
             byte[] taskOutputBytes = byteArrayOutputStream.toByteArray();
             long taskResultSize = taskOutputBytes.length;
             eventDispatcher.publish(new TaskResultPayloadSizeEvent(taskType, taskResultSize));
+            if (!conductorClientConfiguration.isEnforceThresholds()) {
+                return Optional.empty();
+            }
             long payloadSizeThreshold = conductorClientConfiguration.getTaskOutputPayloadThresholdKB() * 1024L;
             if (taskResultSize > payloadSizeThreshold) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()
@@ -294,8 +308,19 @@ public class TaskClient {
      * @return true if the task was found with the given ID and acknowledged. False
      *         otherwise. If
      *         the server returns false, the client should NOT attempt to ack again.
+     * @deprecated Prefer {@link #ack(String, String, String)} which also emits
+     *             canonical task-runner metrics.
      */
+    @Deprecated
     public Boolean ack(String taskId, String workerId) {
+        return ack(null, taskId, workerId);
+    }
+
+    /**
+     * Ack variant that emits canonical task-runner metrics ({@code TaskAckFailure}
+     * / {@code TaskAckError}) when {@code taskType} is known.
+     */
+    public Boolean ack(String taskType, String taskId, String workerId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
@@ -304,9 +329,19 @@ public class TaskClient {
                 .addQueryParam("workerid", workerId)
                 .build();
 
-        ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
-
-        return response.getData();
+        try {
+            ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
+            Boolean acked = response.getData();
+            if (taskType != null && !Boolean.TRUE.equals(acked)) {
+                taskRunnerEventDispatcher.publish(new TaskAckFailure(taskType, taskId));
+            }
+            return acked;
+        } catch (Throwable t) {
+            if (taskType != null) {
+                taskRunnerEventDispatcher.publish(new TaskAckError(taskType, taskId, t));
+            }
+            throw t;
+        }
     }
 
     /**

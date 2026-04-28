@@ -240,9 +240,9 @@ public class ListenerRegister {
 }
 ```
 
-### 4. PrometheusMetricsCollector
+### 4. MetricsCollectorFactory / LegacyPrometheusMetricsCollector / CanonicalPrometheusMetricsCollector
 
-**Location**: `conductor-client-metrics/src/main/java/com/netflix/conductor/client/metrics/prometheus/PrometheusMetricsCollector.java`
+**Location**: `conductor-client-metrics/src/main/java/com/netflix/conductor/client/metrics/prometheus/`
 
 Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
@@ -338,13 +338,14 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 ```java
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
-import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
 
 // 1. Create TaskClient
 TaskClient taskClient = new TaskClient("http://conductor-server:8080");
 
 // 2. Create and start PrometheusMetricsCollector
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
 metricsCollector.startServer(); // Starts HTTP server on port 9991
 
 // 3. Configure TaskRunner with metrics
@@ -361,7 +362,7 @@ configurer.init();
 
 ```java
 // Start Prometheus server on custom port and endpoint
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
 metricsCollector.startServer(8080, "/custom-metrics");
 ```
 
@@ -834,7 +835,7 @@ public class CloudWatchMetricsCollector implements MetricsCollector {
 
 ```java
 // Create multiple collectors
-PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
+AbstractPrometheusMetricsCollector prometheus = MetricsCollectorFactory.create();
 prometheus.startServer(9991, "/metrics");
 
 DatadogMetricsCollector datadog = new DatadogMetricsCollector(
@@ -1194,7 +1195,8 @@ package com.example.conductor;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.worker.Worker;
-import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
 import java.util.List;
 
 public class ConductorMonitoringSetup {
@@ -1210,7 +1212,7 @@ public class ConductorMonitoringSetup {
         );
 
         // 3. Setup Prometheus metrics
-        PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
+        AbstractPrometheusMetricsCollector prometheus = MetricsCollectorFactory.create();
         prometheus.startServer(9991, "/metrics");
 
         // 4. Setup custom monitoring
