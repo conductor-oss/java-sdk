@@ -12,6 +12,8 @@
  */
 package com.netflix.conductor.client.metrics.prometheus;
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +47,13 @@ public final class MetricsCollectorFactory {
         return new LegacyPrometheusMetricsCollector();
     }
 
+    private static final Set<String> TRUTHY_VALUES = Set.of("true", "1", "yes");
+
     private static boolean envBool(String name, boolean defaultValue) {
         String value = System.getenv(name);
         if (value == null || value.isBlank()) {
             return defaultValue;
         }
-        return Boolean.parseBoolean(value.trim());
+        return TRUTHY_VALUES.contains(value.trim().toLowerCase());
     }
 }
