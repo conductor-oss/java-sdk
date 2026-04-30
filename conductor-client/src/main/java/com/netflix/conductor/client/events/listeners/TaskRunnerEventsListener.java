@@ -12,6 +12,7 @@
  */
 package com.netflix.conductor.client.events.listeners;
 
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -53,5 +54,7 @@ public interface TaskRunnerEventsListener {
     default void consume(TaskPaused e) {}
 
     default void consume(ThreadUncaughtException e) {}
+
+    default void consume(ActiveWorkersChanged e) {}
 
 }

@@ -22,6 +22,7 @@ import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -75,6 +76,49 @@ class ListenerRegisterTest {
         assertTrue(latch.await(2, TimeUnit.SECONDS), "Listener should have received PollStarted event");
         assertSame(event, received.get());
         assertEquals("test_task", received.get().getTaskType());
+    }
+
+    @Test
+    void testRegisterActiveWorkersChangedListener() throws InterruptedException {
+        EventDispatcher<TaskRunnerEvent> dispatcher = new EventDispatcher<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<ActiveWorkersChanged> received = new AtomicReference<>();
+
+        TaskRunnerEventsListener listener = new TaskRunnerEventsListener() {
+            @Override
+            public void consume(PollStarted e) {}
+
+            @Override
+            public void consume(PollCompleted e) {}
+
+            @Override
+            public void consume(PollFailure e) {}
+
+            @Override
+            public void consume(TaskExecutionStarted e) {}
+
+            @Override
+            public void consume(TaskExecutionCompleted e) {}
+
+            @Override
+            public void consume(TaskExecutionFailure e) {}
+
+            @Override
+            public void consume(ActiveWorkersChanged e) {
+                received.set(e);
+                latch.countDown();
+            }
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+
+        ActiveWorkersChanged event = new ActiveWorkersChanged("test_task", 5);
+        dispatcher.publish(event);
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS), "Listener should have received ActiveWorkersChanged event");
+        assertSame(event, received.get());
+        assertEquals("test_task", received.get().getTaskType());
+        assertEquals(5, received.get().getCount());
     }
 
     @Test
