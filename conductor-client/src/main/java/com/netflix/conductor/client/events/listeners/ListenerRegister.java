@@ -16,6 +16,7 @@ import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -51,6 +52,7 @@ public class ListenerRegister {
         dispatcher.register(TaskExecutionQueueFull.class, listener::consume);
         dispatcher.register(TaskPaused.class, listener::consume);
         dispatcher.register(ThreadUncaughtException.class, listener::consume);
+        dispatcher.register(ActiveWorkersChanged.class, listener::consume);
     }
 
     public static void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {

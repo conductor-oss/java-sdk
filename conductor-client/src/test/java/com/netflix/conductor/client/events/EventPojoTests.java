@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -93,6 +94,15 @@ class EventPojoTests {
         assertEquals("worker-3", event.getWorkerId());
         assertSame(cause, event.getCause());
         assertEquals(Duration.ofMillis(999), event.getDuration());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testActiveWorkersChanged() {
+        ActiveWorkersChanged event = new ActiveWorkersChanged("SIMPLE", 3);
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertEquals(3, event.getCount());
         assertNotNull(event.getTime());
     }
 

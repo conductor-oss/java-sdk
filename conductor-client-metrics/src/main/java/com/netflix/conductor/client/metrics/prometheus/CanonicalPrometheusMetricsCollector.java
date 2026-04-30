@@ -13,9 +13,12 @@
 package com.netflix.conductor.client.metrics.prometheus;
 
 import java.time.Duration;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -36,6 +39,7 @@ import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Timer;
 
 /**
@@ -70,6 +74,7 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
     private static final String STATUS_FAILURE = "FAILURE";
 
     private final PrometheusApiClientMetrics apiClientMetrics;
+    private final ConcurrentHashMap<String, AtomicInteger> activeWorkerGauges = new ConcurrentHashMap<>();
 
     public CanonicalPrometheusMetricsCollector() {
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
@@ -127,6 +132,22 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
         counter("task_execute_error_total", "Execution error",
                 "taskType", e.getTaskType(),
                 "exception", exceptionLabel(e.getCause())).increment();
+    }
+
+    // ----- Active workers gauge -----
+
+    @Override
+    public void consume(ActiveWorkersChanged e) {
+        activeWorkerGauges
+                .computeIfAbsent(e.getTaskType(), t -> {
+                    AtomicInteger val = new AtomicInteger(0);
+                    Gauge.builder("active_workers", val, AtomicInteger::doubleValue)
+                            .description("Current number of worker threads actively executing a task")
+                            .tag("taskType", t)
+                            .register(registry);
+                    return val;
+                })
+                .set(Math.max(0, e.getCount()));
     }
 
     // ----- Task update -----

@@ -64,6 +64,7 @@ public class WorkflowGovernor {
             for (int i = 0; i < workflowsPerSecond; i++) {
                 StartWorkflowRequest request = new StartWorkflowRequest();
                 request.setName(workflowName);
+                request.setVersion(1);
                 workflowClient.startWorkflow(request);
             }
             log.info("Governor: started {} workflow(s)", workflowsPerSecond);

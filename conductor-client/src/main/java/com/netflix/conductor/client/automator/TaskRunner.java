@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.netflix.conductor.client.automator.filters.PollFilter;
 import com.netflix.conductor.client.config.PropertyFactory;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -82,6 +84,7 @@ class TaskRunner {
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
     private final ScheduledExecutorService leaseExtendExecutorService;
     private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
+    private final AtomicInteger activeWorkerCount = new AtomicInteger(0);
 
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -334,6 +337,7 @@ class TaskRunner {
 
     private Task processTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
+        eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.incrementAndGet()));
 
         // record execution start time for a task
         task.getExecutionMetadata().setExecutionStartTime(System.currentTimeMillis());
@@ -356,6 +360,7 @@ class TaskRunner {
         } finally {
             cancelLeaseExtension(task.getTaskId());
             permits.release();
+            eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
         }
         return task;
     }
