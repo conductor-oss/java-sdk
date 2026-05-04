@@ -13,6 +13,7 @@
 package com.netflix.conductor.client.metrics.prometheus;
 
 import java.util.Set;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,11 @@ public final class MetricsCollectorFactory {
      * Create the metrics collector selected by environment variables.
      */
     public static AbstractPrometheusMetricsCollector create() {
-        if (envBool("WORKER_CANONICAL_METRICS", false)) {
+        return create(System::getenv);
+    }
+
+    static AbstractPrometheusMetricsCollector create(Function<String, String> envReader) {
+        if (envBool("WORKER_CANONICAL_METRICS", false, envReader)) {
             log.info("WORKER_CANONICAL_METRICS is true — using CanonicalPrometheusMetricsCollector");
             return new CanonicalPrometheusMetricsCollector();
         }
@@ -49,8 +54,8 @@ public final class MetricsCollectorFactory {
 
     private static final Set<String> TRUTHY_VALUES = Set.of("true", "1", "yes");
 
-    private static boolean envBool(String name, boolean defaultValue) {
-        String value = System.getenv(name);
+    static boolean envBool(String name, boolean defaultValue, Function<String, String> envReader) {
+        String value = envReader.apply(name);
         if (value == null || value.isBlank()) {
             return defaultValue;
         }

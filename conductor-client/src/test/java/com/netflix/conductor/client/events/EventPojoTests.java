@@ -22,9 +22,16 @@ import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskAckError;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskExecutionQueueFull;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskPaused;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
+import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
@@ -159,6 +166,90 @@ class EventPojoTests {
 
         assertEquals("HTTP_TASK", event.getTaskType());
         assertEquals(2048L, event.getSize());
+        assertNotNull(event.getTime());
+    }
+
+    // --- taskrunner package (continued: new event types) ---
+
+    @Test
+    void testTaskUpdateCompleted() {
+        TaskUpdateCompleted event = new TaskUpdateCompleted("SIMPLE", "task-100", "worker-1", "wf-abc", 750L);
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertEquals("task-100", event.getTaskId());
+        assertEquals("worker-1", event.getWorkerId());
+        assertEquals("wf-abc", event.getWorkflowInstanceId());
+        assertEquals(Duration.ofMillis(750), event.getDuration());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testTaskUpdateFailure() {
+        Throwable cause = new RuntimeException("update failed");
+        TaskUpdateFailure event = new TaskUpdateFailure("SIMPLE", "task-101", "worker-2", "wf-def", cause, 800L);
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertEquals("task-101", event.getTaskId());
+        assertEquals("worker-2", event.getWorkerId());
+        assertEquals("wf-def", event.getWorkflowInstanceId());
+        assertSame(cause, event.getCause());
+        assertEquals(Duration.ofMillis(800), event.getDuration());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testTaskAckFailure() {
+        TaskAckFailure event = new TaskAckFailure("HTTP_TASK", "task-200");
+
+        assertEquals("HTTP_TASK", event.getTaskType());
+        assertEquals("task-200", event.getTaskId());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testTaskAckError() {
+        Throwable cause = new RuntimeException("network error");
+        TaskAckError event = new TaskAckError("HTTP_TASK", "task-201", cause);
+
+        assertEquals("HTTP_TASK", event.getTaskType());
+        assertEquals("task-201", event.getTaskId());
+        assertSame(cause, event.getCause());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testTaskExecutionQueueFull() {
+        TaskExecutionQueueFull event = new TaskExecutionQueueFull("SIMPLE");
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testTaskPaused() {
+        TaskPaused event = new TaskPaused("SIMPLE");
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testThreadUncaughtExceptionWithTaskType() {
+        Throwable cause = new OutOfMemoryError("heap space");
+        ThreadUncaughtException event = new ThreadUncaughtException("SIMPLE", cause);
+
+        assertEquals("SIMPLE", event.getTaskType());
+        assertSame(cause, event.getCause());
+        assertNotNull(event.getTime());
+    }
+
+    @Test
+    void testThreadUncaughtExceptionWithoutTaskType() {
+        Throwable cause = new RuntimeException("unexpected");
+        ThreadUncaughtException event = new ThreadUncaughtException(cause);
+
+        assertEquals("", event.getTaskType());
+        assertSame(cause, event.getCause());
         assertNotNull(event.getTime());
     }
 
