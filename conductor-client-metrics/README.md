@@ -165,6 +165,22 @@ Size metrics use these service-level objective buckets, in bytes:
 |---|---|---|
 | `active_workers` | `taskType` | Current number of worker threads actively executing tasks. |
 
+## Labels
+
+| Label | Used by | Values |
+|---|---|---|
+| `type` | Legacy worker metrics | Task definition name. Replaced by `taskType` in canonical mode. |
+| `taskType` | Canonical worker metrics | Task definition name. |
+| `workflowType` | Workflow metrics | Workflow definition name. |
+| `version` | `workflow_input_size_bytes` | Workflow version as a string. Empty string when the version is absent. |
+| `status` | Task time metrics | `SUCCESS` or `FAILURE`. For `http_api_client_request_seconds`, the HTTP status code as a string, or `0` when no response status is available. |
+| `exception` | Canonical error counters | Exception type name, such as `SocketTimeoutException`. |
+| `entityName` | `external_payload_used_total` | Task type or workflow name associated with the external payload. |
+| `operation` | `external_payload_used_total` | External payload operation, such as `READ` or `WRITE`. |
+| `payloadType` | `external_payload_used_total` | Payload type, such as `TASK_INPUT`, `TASK_OUTPUT`, `WORKFLOW_INPUT`, or `WORKFLOW_OUTPUT`. |
+| `method` | HTTP metrics | HTTP verb. |
+| `uri` | HTTP metrics | Request path from the Java HTTP client. May contain interpolated identifiers. |
+
 ## Migration from Legacy to Canonical
 
 Switching to canonical metrics is an explicit metrics-surface cutover. Enable `WORKER_CANONICAL_METRICS=true` in a lower environment first, then update dashboards, recording rules, and alerts before enabling it in production.
@@ -188,3 +204,23 @@ Common legacy-to-canonical replacements:
 | `task_execution_started{type}` | `task_execution_started_total{taskType}` |
 | `task_execution_completed{type}` | `task_execute_time_seconds{taskType,status="SUCCESS"}` |
 | `task_execution_failure{type}` | `task_execute_time_seconds{taskType,status="FAILURE"}` and `task_execute_error_total{taskType,exception}` |
+
+## Troubleshooting
+
+### Metrics Are Empty
+
+- Verify that `MetricsCollectorFactory.create()` is called and the collector is wired into `TaskRunnerConfigurer`, `TaskClient`, and `WorkflowClient` as shown in the Usage section.
+- Verify workers have polled or executed tasks. Metrics are created lazily when the relevant event occurs.
+- Confirm the scrape endpoint is reachable at the expected host and port.
+
+### Missing HTTP or Workflow Metrics
+
+- `http_api_client_request_seconds` requires adding `ApiClientMetricsInterceptor` to the `ConductorClient` OkHttp builder. Legacy mode returns `ApiClientMetrics.NOOP`, so the interceptor is skipped and no HTTP metrics are emitted.
+- `workflow_input_size_bytes`, `workflow_start_error_total`, and workflow-side `external_payload_used_total` require `workflowClient.registerListener(metricsCollector)`.
+- `task_ack_failed_total` and `task_ack_error_total` require `taskClient.registerTaskRunnerListener(metricsCollector)`.
+
+### High Cardinality
+
+- Watch the `uri` label on `http_api_client_request_seconds`. The Java HTTP client may include interpolated path identifiers in the request path.
+- Prefer canonical mode for bounded `exception` labels. Legacy mode does not emit exception-labeled error counters.
+- Avoid embedding user identifiers or unbounded values in task type, workflow type, or external payload labels.
