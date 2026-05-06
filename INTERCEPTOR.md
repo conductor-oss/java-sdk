@@ -248,18 +248,12 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
 **Features**:
 - Exposes HTTP endpoint for Prometheus scraping (default: `localhost:9991/metrics`)
-- Records timers for poll duration (success/failure)
-- Records timers for task execution duration (completed/failure)
-- Records counters for poll started and task execution started
-- All metrics tagged with task type
+- Selects either the legacy or canonical Prometheus collector at startup
+- Records worker, task client, and workflow client metrics through the event listener system
+- Records HTTP API client metrics through an OkHttp interceptor
+- Keeps the metrics backend separated from task and workflow business logic
 
-**Metrics Exposed**:
-- `poll_failure` (timer) - Duration of failed polls
-- `poll_success` (timer) - Duration of successful polls
-- `poll_started` (counter) - Count of poll attempts
-- `task_execution_started` (counter) - Count of task executions started
-- `task_execution_completed` (timer) - Duration of completed task executions
-- `task_execution_failure` (timer) - Duration of failed task executions
+For setup instructions, environment-variable selection, the complete legacy and canonical metric catalogs, and migration guidance, see [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md).
 
 ## Event Lifecycle
 
@@ -336,19 +330,34 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 ### Basic Setup with Prometheus Metrics
 
 ```java
-import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
-import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.TaskClient;
+import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
+import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
+import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
 
-// 1. Create TaskClient
-TaskClient taskClient = new TaskClient("http://conductor-server:8080");
-
-// 2. Create and start PrometheusMetricsCollector
+// 1. Create and start PrometheusMetricsCollector
 AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
 metricsCollector.startServer(); // Starts HTTP server on port 9991
 
-// 3. Configure TaskRunner with metrics
+// 2. Create ConductorClient and install HTTP API metrics when supported
+ApiClientMetrics apiClientMetrics = metricsCollector.getApiClientMetrics();
+ConductorClient.Builder<?> clientBuilder = ConductorClient.builder()
+    .basePath("http://conductor-server:8080/api");
+if (apiClientMetrics != ApiClientMetrics.NOOP) {
+    clientBuilder.configureOkHttp(builder ->
+        builder.addInterceptor(new ApiClientMetricsInterceptor(apiClientMetrics)));
+}
+ConductorClient client = clientBuilder.build();
+
+// 3. Register task-client events and configure TaskRunner with metrics
+TaskClient taskClient = new TaskClient(client);
+taskClient.registerListener(metricsCollector);
+taskClient.registerTaskRunnerListener(metricsCollector);
+
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
     .withMetricsCollector(metricsCollector)
@@ -356,6 +365,10 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
 
 // 4. Start polling
 configurer.init();
+
+// 5. Register workflow-client events before using WorkflowClient
+WorkflowClient workflowClient = new WorkflowClient(client);
+workflowClient.registerListener(metricsCollector);
 ```
 
 ### Custom Metrics Endpoint
@@ -510,8 +523,11 @@ ListenerRegister.register(new TaskMonitor(), dispatcher);
 ### Workflow and Task Client Event Listeners
 
 ```java
-WorkflowClient workflowClient = new WorkflowClient("http://conductor-server:8080");
-TaskClient taskClient = new TaskClient("http://conductor-server:8080");
+ConductorClient client = ConductorClient.builder()
+    .basePath("http://conductor-server:8080/api")
+    .build();
+WorkflowClient workflowClient = new WorkflowClient(client);
+TaskClient taskClient = new TaskClient(client);
 
 // Register workflow listener
 workflowClient.registerListener(new WorkflowClientListener() {
@@ -1193,6 +1209,7 @@ public class MetricsOverheadMonitor implements TaskRunnerEventsListener {
 package com.example.conductor;
 
 import com.netflix.conductor.client.http.TaskClient;
+import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
@@ -1203,7 +1220,10 @@ public class ConductorMonitoringSetup {
 
     public static void main(String[] args) throws Exception {
         // 1. Create clients
-        TaskClient taskClient = new TaskClient("http://conductor-server:8080");
+        ConductorClient client = ConductorClient.builder()
+            .basePath("http://conductor-server:8080/api")
+            .build();
+        TaskClient taskClient = new TaskClient(client);
 
         // 2. Create workers
         List<Worker> workers = List.of(

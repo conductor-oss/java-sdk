@@ -298,9 +298,9 @@ executor.initWorkers("com.mycompany.workers");  // Package to scan for @WorkerTa
 
 ## Monitoring Workers
 
-Enable metrics collection for monitoring workers:
+Enable Prometheus metrics collection for monitoring workers:
 
-```java
+```groovy
 // Using conductor-client-metrics module
 dependencies {
     implementation 'org.conductoross:conductor-client-metrics:4.0.1'
@@ -308,14 +308,17 @@ dependencies {
 ```
 
 ```java
-// Configure metrics with Prometheus
+import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
     .withMetricsCollector(MetricsCollectorFactory.create())
     .build();
 ```
 
-See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for full metrics documentation.
+`MetricsCollectorFactory.create()` uses the legacy Java SDK metric names by default. Set `WORKER_CANONICAL_METRICS=true` to opt in to the canonical cross-SDK metric names.
+
+See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for setup details, the complete legacy and canonical metric catalogs, and migration guidance.
 
 ## Workflows
 
