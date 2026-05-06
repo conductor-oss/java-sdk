@@ -50,6 +50,8 @@ public abstract class AbstractPrometheusMetricsCollector implements MetricsColle
         server.start();
     }
 
+    public abstract String collectorName();
+
     public PrometheusMeterRegistry getRegistry() {
         return registry;
     }

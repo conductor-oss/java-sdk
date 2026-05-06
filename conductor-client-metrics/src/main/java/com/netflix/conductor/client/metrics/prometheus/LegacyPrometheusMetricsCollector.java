@@ -43,6 +43,11 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 public class LegacyPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
 
     @Override
+    public String collectorName() {
+        return "legacy";
+    }
+
+    @Override
     public void consume(PollStarted e) {
         registry.counter("poll_started", "type", e.getTaskType()).increment();
     }

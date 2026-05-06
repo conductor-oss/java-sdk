@@ -65,6 +65,24 @@ class MetricsCollectorFactoryTest {
         assertInstanceOf(CanonicalPrometheusMetricsCollector.class, collector);
     }
 
+    // --- collectorName() ---
+
+    @Test
+    void legacyCollectorNameReturnsLegacy() {
+        Map<String, String> env = Map.of();
+        var collector = MetricsCollectorFactory.create(env::get);
+
+        assertEquals("legacy", collector.collectorName());
+    }
+
+    @Test
+    void canonicalCollectorNameReturnsCanonical() {
+        Map<String, String> env = Map.of("WORKER_CANONICAL_METRICS", "true");
+        var collector = MetricsCollectorFactory.create(env::get);
+
+        assertEquals("canonical", collector.collectorName());
+    }
+
     // --- Env var truthiness ---
 
     @Test

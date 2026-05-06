@@ -55,7 +55,7 @@ public class HarnessMain {
         AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
         metricsCollector.startServer(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {}", metricsPort);
+        log.info("Prometheus metrics server started on port {} ({} metrics)", metricsPort, metricsCollector.collectorName());
 
         ApiClientMetrics apiClientMetrics = metricsCollector.getApiClientMetrics();
         ApiClientMetricsInterceptor interceptor = apiClientMetrics != ApiClientMetrics.NOOP

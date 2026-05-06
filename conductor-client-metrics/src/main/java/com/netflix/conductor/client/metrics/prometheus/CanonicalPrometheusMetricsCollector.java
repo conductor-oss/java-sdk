@@ -51,6 +51,11 @@ import io.micrometer.core.instrument.Timer;
  */
 public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
 
+    @Override
+    public String collectorName() {
+        return "canonical";
+    }
+
     private static final Duration[] CANONICAL_TIME_BUCKETS = {
             Duration.ofMillis(1),
             Duration.ofMillis(5),
