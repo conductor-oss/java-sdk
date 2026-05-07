@@ -18,13 +18,40 @@ dependencies {
 
 ## Usage
 
-Create a Prometheus collector, start its scrape endpoint, and wire the collector into the clients and task runner:
+The Java SDK offers two ways to wire metrics: automatic wiring (recommended) and manual wiring. Both produce the same metrics output.
+
+### Automatic Wiring
+
+Use `MetricsBundle` to create the collector and start the scrape server, then pass the collector to `ConductorClient.Builder`. All downstream clients and the task runner auto-register themselves as listeners.
 
 ```java
-import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
-import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.TaskClient;
-import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
+
+MetricsBundle bundle = MetricsBundle.create(); // port 9991, /metrics
+
+ConductorClient client = ConductorClient.builder()
+        .basePath("http://conductor-server:8080/api")
+        .withMetricsCollector(bundle.getCollector())
+        .build();
+
+TaskClient taskClient = new TaskClient(client);
+WorkflowClient workflowClient = new WorkflowClient(client);
+
+TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
+        .withThreadCount(10)
+        .build();
+configurer.init();
+```
+
+`MetricsBundle.create()` also accepts `(port)` and `(port, endpoint)` overloads for custom scrape configurations. The client builder accepts the usual timeouts, SSL, authentication, and other options alongside `withMetricsCollector` -- none of them change how metrics wiring works.
+
+In canonical mode, the `ConductorClient` automatically installs an OkHttp interceptor that records `http_api_client_request_seconds`. In legacy mode the interceptor is skipped entirely since there is nothing to record.
+
+### Manual Wiring
+
+For advanced use cases where you need fine-grained control over which listeners are registered where, or you want to mix the metrics collector with custom event listeners, you can wire everything explicitly:
+
+```java
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
 import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
@@ -57,23 +84,20 @@ WorkflowClient workflowClient = new WorkflowClient(client);
 workflowClient.registerListener(metricsCollector);
 ```
 
-To expose metrics on a custom port or path:
+All listener registrations are explicit and no auto-detection occurs because the `ConductorClient` is built without `withMetricsCollector`. Use this approach when you need to register the metrics collector on some clients but not others, or when mixing in custom event listeners alongside the metrics collector.
 
-```java
-AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
-metricsCollector.startServer(8080, "/custom-metrics");
-```
+### How Auto-Registration Works
+
+When a `MetricsCollector` is passed to `ConductorClient.Builder.withMetricsCollector()`:
+
+1. The `ConductorClient` installs an OkHttp interceptor that records `http_api_client_request_seconds`. In legacy mode the interceptor is not installed because `getApiClientMetrics()` returns `ApiClientMetrics.NOOP`.
+2. `TaskClient` detects the collector from the `ConductorClient` it receives and calls `registerListener` and `registerTaskRunnerListener` on itself.
+3. `WorkflowClient` detects the collector from the `ConductorClient` it receives and calls `registerListener` on itself.
+4. `TaskRunnerConfigurer.Builder.build()` detects the collector from the `TaskClient`'s `ConductorClient` and registers task-runner events automatically, unless `withMetricsCollector` was called explicitly on the builder.
+
+All registrations are idempotent. If you call both `withMetricsCollector` on the builder and `registerListener` manually with the same collector, events are not duplicated.
 
 The collector exposes Prometheus text format from the embedded HTTP server. Metrics are created lazily, so a metric family appears after the corresponding worker or client event has occurred.
-
-`withMetricsCollector(metricsCollector)` registers task-runner events for worker polling, task execution, task result update, queue saturation, paused workers, uncaught worker thread exceptions, and active worker counts.
-
-The additional registrations complete the canonical metrics surface:
-
-- `ApiClientMetricsInterceptor` records every HTTP request made through the `ConductorClient` as `http_api_client_request_seconds`. Canonical mode returns a Prometheus-backed `ApiClientMetrics`; legacy mode returns `ApiClientMetrics.NOOP`, so the interceptor is skipped when there is nothing to record.
-- `taskClient.registerListener(metricsCollector)` registers task-client events for task payload metrics, including `task_result_size_bytes` and task-side `external_payload_used_total`.
-- `taskClient.registerTaskRunnerListener(metricsCollector)` registers task-runner events emitted by `TaskClient` itself, currently explicit task ack failure/error events for `task_ack_failed_total` and `task_ack_error_total` when a task type is known.
-- `workflowClient.registerListener(metricsCollector)` registers workflow-client events for `workflow_input_size_bytes`, workflow-side `external_payload_used_total`, and `workflow_start_error_total`.
 
 ## Legacy and Canonical Modes
 
@@ -209,15 +233,15 @@ Common legacy-to-canonical replacements:
 
 ### Metrics Are Empty
 
-- Verify that `MetricsCollectorFactory.create()` is called and the collector is wired into `TaskRunnerConfigurer`, `TaskClient`, and `WorkflowClient` as shown in the Usage section.
+- Verify that the collector is wired into the client. The simplest check: was `withMetricsCollector` called on `ConductorClient.Builder`, or was `MetricsCollectorFactory.create()` called and registered manually?
 - Verify workers have polled or executed tasks. Metrics are created lazily when the relevant event occurs.
 - Confirm the scrape endpoint is reachable at the expected host and port.
 
 ### Missing HTTP or Workflow Metrics
 
-- `http_api_client_request_seconds` requires adding `ApiClientMetricsInterceptor` to the `ConductorClient` OkHttp builder. Legacy mode returns `ApiClientMetrics.NOOP`, so the interceptor is skipped and no HTTP metrics are emitted.
-- `workflow_input_size_bytes`, `workflow_start_error_total`, and workflow-side `external_payload_used_total` require `workflowClient.registerListener(metricsCollector)`.
-- `task_ack_failed_total` and `task_ack_error_total` require `taskClient.registerTaskRunnerListener(metricsCollector)`.
+- `http_api_client_request_seconds` requires the HTTP interceptor. When using `withMetricsCollector` on the builder, the interceptor is installed automatically in canonical mode and skipped in legacy mode. When wiring manually, add `ApiClientMetricsInterceptor` to the OkHttp builder only if `getApiClientMetrics()` does not return `ApiClientMetrics.NOOP`.
+- `workflow_input_size_bytes`, `workflow_start_error_total`, and workflow-side `external_payload_used_total` require `workflowClient.registerListener(metricsCollector)`. This is automatic when using `withMetricsCollector` on the builder.
+- `task_ack_failed_total` and `task_ack_error_total` require `taskClient.registerTaskRunnerListener(metricsCollector)`. This is automatic when using `withMetricsCollector` on the builder.
 
 ### High Cardinality
 

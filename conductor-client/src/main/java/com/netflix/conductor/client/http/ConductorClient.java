@@ -48,6 +48,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.client.metrics.ApiClientMetrics;
+import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,6 +77,7 @@ public class ConductorClient {
     private final InputStream sslCaCert;
     private final KeyManager[] keyManagers;
     private final List<HeaderSupplier> headerSuppliers;
+    private final MetricsCollector metricsCollector;
 
     public static Builder<?> builder() {
         return new Builder<>();
@@ -90,6 +93,14 @@ public class ConductorClient {
         this.sslCaCert = builder.sslCaCert;
         this.keyManagers = builder.keyManagers;
         this.headerSuppliers = builder.headerSupplier();
+        this.metricsCollector = builder.metricsCollector;
+
+        if (this.metricsCollector != null) {
+            ApiClientMetrics apiClientMetrics = this.metricsCollector.getApiClientMetrics();
+            if (apiClientMetrics != ApiClientMetrics.NOOP) {
+                okHttpBuilder.addInterceptor(new ApiClientMetricsOkHttpInterceptor(apiClientMetrics));
+            }
+        }
 
         if (builder.connectTimeout > -1) {
             okHttpBuilder.connectTimeout(builder.connectTimeout, TimeUnit.MILLISECONDS);
@@ -141,6 +152,16 @@ public class ConductorClient {
 
     public String getBasePath() {
         return basePath;
+    }
+
+    /**
+     * Returns the {@link MetricsCollector} associated with this client, or
+     * {@code null} if none was set at build time. Downstream clients
+     * ({@code TaskClient}, {@code WorkflowClient}) use this to auto-register
+     * themselves as listeners when metrics are wired through the builder.
+     */
+    public MetricsCollector getMetricsCollector() {
+        return metricsCollector;
     }
 
     public void shutdown() {
@@ -564,6 +585,7 @@ public class ConductorClient {
         private ConnectionPoolConfig connectionPoolConfig;
         private Supplier<ObjectMapper> objectMapperSupplier = () -> new ObjectMapperProvider().getObjectMapper();
         private final List<HeaderSupplier> headerSuppliers = new ArrayList<>();
+        MetricsCollector metricsCollector;
 
         private boolean useEnvVariables = false;
 
@@ -650,6 +672,18 @@ public class ConductorClient {
             return self();
         }
 
+        /**
+         * Attach a {@link MetricsCollector} to the client. The collector's
+         * {@link ApiClientMetrics} will be wired as an OkHttp interceptor
+         * automatically, and downstream clients ({@code TaskClient},
+         * {@code WorkflowClient}, {@code TaskRunnerConfigurer}) will
+         * auto-register as listeners when constructed with this client.
+         */
+        public T withMetricsCollector(MetricsCollector metricsCollector) {
+            this.metricsCollector = metricsCollector;
+            return self();
+        }
+
         protected List<HeaderSupplier> headerSupplier() {
             return headerSuppliers;
         }
@@ -686,6 +720,46 @@ public class ConductorClient {
                 this.basePath(conductorServerUrl.trim());
             } else {
                 throw new RuntimeException("env variable CONDUCTOR_SERVER_URL is not set");
+            }
+        }
+    }
+
+    /**
+     * Lightweight OkHttp interceptor that delegates to {@link ApiClientMetrics}.
+     * Lives in {@code conductor-client} so we don't need a dependency on the
+     * {@code conductor-client-metrics} module just for the builder integration.
+     * Safe to use with {@link ApiClientMetrics#NOOP}.
+     */
+    private static final class ApiClientMetricsOkHttpInterceptor implements okhttp3.Interceptor {
+        private final ApiClientMetrics metrics;
+
+        ApiClientMetricsOkHttpInterceptor(ApiClientMetrics metrics) {
+            this.metrics = metrics == null ? ApiClientMetrics.NOOP : metrics;
+        }
+
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Request request = chain.request();
+            long startNanos = System.nanoTime();
+            IOException ioError = null;
+            Response response = null;
+            try {
+                response = chain.proceed(request);
+                return response;
+            } catch (IOException e) {
+                ioError = e;
+                throw e;
+            } finally {
+                long elapsedNanos = System.nanoTime() - startNanos;
+                try {
+                    String method = request.method();
+                    String uri = request.url().encodedPath();
+                    int status = response != null ? response.code()
+                            : (ioError != null ? -1 : 0);
+                    metrics.recordRequest(method, uri, status,
+                            java.time.Duration.ofNanos(elapsedNanos));
+                } catch (Throwable ignored) {
+                }
             }
         }
     }

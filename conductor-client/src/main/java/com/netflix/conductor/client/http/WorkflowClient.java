@@ -45,6 +45,7 @@ import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.WorkflowClientListener;
+import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.events.workflow.WorkflowClientEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
@@ -139,6 +140,13 @@ public class WorkflowClient implements AutoCloseable {
             this.executorService = Executors.newCachedThreadPool(factory);
         } else {
             this.executorService = Executors.newFixedThreadPool(executorThreadCount, factory);
+        }
+
+        if (client != null) {
+            MetricsCollector mc = client.getMetricsCollector();
+            if (mc != null) {
+                registerListener(mc);
+            }
         }
     }
 

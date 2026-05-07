@@ -207,6 +207,8 @@ public class TaskRunnerConfigurer {
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
 
+        private boolean metricsCollectorExplicitlySet;
+
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
             Preconditions.checkNotNull(workers, "Workers cannot be null");
@@ -317,6 +319,15 @@ public class TaskRunnerConfigurer {
          * @return Builder instance
          */
         public TaskRunnerConfigurer build() {
+            if (!metricsCollectorExplicitlySet) {
+                var conductorClient = taskClient.getConductorClient();
+                if (conductorClient != null) {
+                    MetricsCollector mc = conductorClient.getMetricsCollector();
+                    if (mc != null) {
+                        ListenerRegister.register(mc, eventDispatcher);
+                    }
+                }
+            }
             return new TaskRunnerConfigurer(this);
         }
 
@@ -345,6 +356,7 @@ public class TaskRunnerConfigurer {
 
         public Builder withMetricsCollector(MetricsCollector metricsCollector) {
             ListenerRegister.register(metricsCollector, eventDispatcher);
+            this.metricsCollectorExplicitlySet = true;
             return this;
         }
 

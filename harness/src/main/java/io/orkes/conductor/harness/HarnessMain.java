@@ -28,6 +28,7 @@ import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
 import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
+import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
 import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
@@ -52,8 +53,82 @@ public class HarnessMain {
     };
 
     public static void main(String[] args) throws Exception {
-        AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
+        int workflowsPerSec = envInt("HARNESS_WORKFLOWS_PER_SEC", 2);
+        int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
+        int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
+        String wiringMode = envString("METRICS_WIRING", "auto");
+
+        List<Worker> workers = new ArrayList<>();
+        for (String[] entry : SIMULATED_WORKERS) {
+            workers.add(new SimulatedTaskWorker(entry[0], entry[1], Integer.parseInt(entry[2]), batchSize,
+                    pollIntervalMs));
+        }
+        Map<String, Integer> threadCounts =
+                workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
+
+        WiringResult wiring = switch (wiringMode.toLowerCase().trim()) {
+            case "manual" -> wireManual(metricsPort, workers, threadCounts);
+            default -> wireAuto(metricsPort, workers, threadCounts);
+        };
+
+        registerMetadata(wiring.client);
+
+        wiring.configurer.init();
+
+        WorkflowGovernor governor = new WorkflowGovernor(wiring.workflowClient, WORKFLOW_NAME, workflowsPerSec);
+        governor.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Shutting down harness...");
+            governor.shutdown();
+            wiring.configurer.shutdown();
+        }));
+
+        Thread.currentThread().join();
+    }
+
+    // -------------------------------------------------------------------------
+    // METRICS_WIRING=auto — MetricsBundle + withMetricsCollector on builder;
+    // all listener registration is automatic
+    // -------------------------------------------------------------------------
+    private static WiringResult wireAuto(int metricsPort, List<Worker> workers,
+            Map<String, Integer> threadCounts) throws Exception {
+        log.info("=== METRICS_WIRING=auto — automatic wiring via MetricsBundle ===");
+
+        // MetricsBundle.create() defaults to port 9991 and /metrics if called with no args
+        MetricsBundle bundle = MetricsBundle.create(metricsPort, "/metrics");
+        log.info("Prometheus metrics server started on port {} ({} metrics)",
+                bundle.getPort(), bundle.getCollector().collectorName());
+
+        ConductorClient client = ApiClient.builder()
+                .useEnvVariables(true)
+                .readTimeout(10_000)    // optional — OkHttp default applies if omitted
+                .connectTimeout(10_000) // optional — OkHttp default applies if omitted
+                .writeTimeout(10_000)   // optional — OkHttp default applies if omitted
+                .withMetricsCollector(bundle.getCollector())
+                .build();
+
+        TaskClient taskClient = new TaskClient(client);
+        WorkflowClient workflowClient = new WorkflowClient(client);
+
+        TaskRunnerConfigurer configurer =
+                new TaskRunnerConfigurer.Builder(taskClient, workers)
+                        .withTaskThreadCount(threadCounts)
+                        .build();
+
+        return new WiringResult(client, workflowClient, configurer);
+    }
+
+    // -------------------------------------------------------------------------
+    // METRICS_WIRING=manual — explicit registration of every listener and
+    // the OkHttp interceptor; no auto-detection
+    // -------------------------------------------------------------------------
+    private static WiringResult wireManual(int metricsPort, List<Worker> workers,
+            Map<String, Integer> threadCounts) throws Exception {
+        log.info("=== METRICS_WIRING=manual — full manual wiring ===");
+
+        AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
         metricsCollector.startServer(metricsPort, "/metrics");
         log.info("Prometheus metrics server started on port {} ({} metrics)", metricsPort, metricsCollector.collectorName());
 
@@ -62,7 +137,7 @@ public class HarnessMain {
                 ? new ApiClientMetricsInterceptor(apiClientMetrics)
                 : null;
 
-        io.orkes.conductor.client.ApiClient.ApiClientBuilder clientBuilder = ApiClient.builder()
+        ApiClient.ApiClientBuilder clientBuilder = ApiClient.builder()
                 .useEnvVariables(true)
                 .readTimeout(10_000)
                 .connectTimeout(10_000)
@@ -74,44 +149,26 @@ public class HarnessMain {
 
         ConductorClient client = clientBuilder.build();
 
-        int workflowsPerSec = envInt("HARNESS_WORKFLOWS_PER_SEC", 2);
-        int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
-        int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
-
-        registerMetadata(client);
-
-        List<Worker> workers = new ArrayList<>();
-        for (String[] entry : SIMULATED_WORKERS) {
-            workers.add(new SimulatedTaskWorker(entry[0], entry[1], Integer.parseInt(entry[2]), batchSize,
-                    pollIntervalMs));
-        }
-
         TaskClient taskClient = new TaskClient(client);
         taskClient.registerListener(metricsCollector);
         taskClient.registerTaskRunnerListener(metricsCollector);
-        Map<String, Integer> threadCounts =
-                workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
 
         TaskRunnerConfigurer configurer =
                 new TaskRunnerConfigurer.Builder(taskClient, workers)
                         .withTaskThreadCount(threadCounts)
                         .withMetricsCollector(metricsCollector)
                         .build();
-        configurer.init();
 
         WorkflowClient workflowClient = new WorkflowClient(client);
         workflowClient.registerListener(metricsCollector);
-        WorkflowGovernor governor = new WorkflowGovernor(workflowClient, WORKFLOW_NAME, workflowsPerSec);
-        governor.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("Shutting down harness...");
-            governor.shutdown();
-            configurer.shutdown();
-        }));
-
-        Thread.currentThread().join();
+        return new WiringResult(client, workflowClient, configurer);
     }
+
+    private record WiringResult(ConductorClient client, WorkflowClient workflowClient,
+            TaskRunnerConfigurer configurer) { }
+
+    // -------------------------------------------------------------------------
 
     private static void registerMetadata(ConductorClient client) {
         MetadataClient metadataClient = new MetadataClient(client);
@@ -163,5 +220,13 @@ public class HarnessMain {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    private static String envString(String name, String defaultValue) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return value.trim();
     }
 }

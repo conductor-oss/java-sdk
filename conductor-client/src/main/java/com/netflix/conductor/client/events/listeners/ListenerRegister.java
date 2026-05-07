@@ -38,7 +38,13 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 
 public class ListenerRegister {
 
+    private static final java.util.Set<RegistrationKey> registered =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
     public static void register(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
+        if (!registered.add(new RegistrationKey(listener, dispatcher))) {
+            return;
+        }
         dispatcher.register(PollFailure.class, listener::consume);
         dispatcher.register(PollCompleted.class, listener::consume);
         dispatcher.register(PollStarted.class, listener::consume);
@@ -56,13 +62,21 @@ public class ListenerRegister {
     }
 
     public static void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
+        if (!registered.add(new RegistrationKey(listener, dispatcher))) {
+            return;
+        }
         dispatcher.register(TaskResultPayloadSizeEvent.class, listener::consume);
         dispatcher.register(TaskPayloadUsedEvent.class, listener::consume);
     }
 
     public static void register(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
+        if (!registered.add(new RegistrationKey(listener, dispatcher))) {
+            return;
+        }
         dispatcher.register(WorkflowStartedEvent.class, listener::consume);
         dispatcher.register(WorkflowInputPayloadSizeEvent.class, listener::consume);
         dispatcher.register(WorkflowPayloadUsedEvent.class, listener::consume);
     }
+
+    private record RegistrationKey(Object listener, Object dispatcher) { }
 }

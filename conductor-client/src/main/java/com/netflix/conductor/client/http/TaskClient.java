@@ -34,6 +34,7 @@ import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.TaskClientListener;
 import com.netflix.conductor.client.events.listeners.TaskRunnerEventsListener;
+import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
@@ -124,6 +125,13 @@ public class TaskClient {
         this.client = client;
         this.payloadStorage = new PayloadStorage(client);
         this.conductorClientConfiguration = config;
+        if (client != null) {
+            MetricsCollector mc = client.getMetricsCollector();
+            if (mc != null) {
+                registerListener(mc);
+                registerTaskRunnerListener(mc);
+            }
+        }
     }
 
     /**
@@ -138,6 +146,10 @@ public class TaskClient {
         }
         client = new ConductorClient(rootUri);
         payloadStorage = new PayloadStorage(client);
+    }
+
+    public ConductorClient getConductorClient() {
+        return client;
     }
 
     public void registerListener(TaskClientListener listener) {
