@@ -79,6 +79,13 @@ public class SimulatedTaskWorker implements Worker {
     public TaskResult execute(Task task) {
         Map<String, Object> input = task.getInputData() != null ? task.getInputData() : new HashMap<>();
         String taskId = task.getTaskId();
+        // Stretch goal: feed taskId into a TaskStatusProbe (sibling of
+        // WorkflowStatusProbe) so it can periodically call
+        // TaskClient.getTaskDetails(taskId), which hits /api/tasks/<taskId>.
+        // That exercises the UUID-bearing task path the v4 batch-poll-as-ack
+        // flow normally hides. Plumb it via a Consumer<String> taskIdSink
+        // through this worker's constructor; default to a no-op so the
+        // probe stays opt-in.
         int taskIndex = getOrDefault(input, "taskIndex", -1);
 
         log.info("[{}] Starting simulated task [id={}, index={}, codename={}]", taskName, taskId, taskIndex, codename);

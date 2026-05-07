@@ -318,6 +318,8 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
 
 `MetricsCollectorFactory.create()` uses the legacy Java SDK metric names by default. Set `WORKER_CANONICAL_METRICS=true` to opt in to the canonical cross-SDK metric names.
 
+> Migrating from 4.0.x? `PrometheusMetricsCollector` still works — it is now a deprecated alias for `LegacyPrometheusMetricsCollector` and emits the same six legacy meter names byte-for-byte. New code should use `MetricsCollectorFactory.create()` (or `MetricsBundle.create()`) so it can opt into canonical metrics via `WORKER_CANONICAL_METRICS=true`.
+
 See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for setup details, the complete legacy and canonical metric catalogs, and migration guidance.
 
 ## Workflows

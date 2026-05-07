@@ -52,6 +52,13 @@ spec:
         - name: HARNESS_POLL_INTERVAL_MS
           value: "100"
 
+        # WorkflowStatusProbe rate (calls/sec) against /api/workflow/<id> and
+        # /api/workflow/<id>/status. 0 = disabled (default). Set to a small
+        # positive integer to surface UUID-bearing uri label values on the
+        # canonical http_api_client_request_seconds histogram.
+        - name: HARNESS_PROBE_RATE_PER_SEC
+          value: "0"
+
         # === METRICS IMPLEMENTATION SELECTION ===
 
         - name: WORKER_CANONICAL_METRICS

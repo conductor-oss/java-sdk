@@ -36,13 +36,13 @@ import com.netflix.conductor.client.events.listeners.TaskClientListener;
 import com.netflix.conductor.client.events.listeners.TaskRunnerEventsListener;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
-import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.TaskAckError;
 import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.PollData;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -252,11 +252,21 @@ public class TaskClient {
      * @param taskResult the {@link TaskResult} of the executed task to be updated.
      */
     public void updateTask(TaskResult taskResult) {
+        updateTask(taskResult, null);
+    }
+
+    /**
+     * Same as {@link #updateTask(TaskResult)} but propagates {@code taskType}
+     * to the canonical {@code task_result_size_bytes} histogram (since
+     * {@link TaskResult} does not carry the task definition name itself).
+     */
+    public void updateTask(TaskResult taskResult, String taskType) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks")
                 .body(taskResult)
+                .payloadKind(new PayloadKind.TaskResult(taskType))
                 .build();
 
         client.execute(request);
@@ -271,11 +281,21 @@ public class TaskClient {
      * @param taskResult the {@link TaskResult} of the executed task to be updated.
      */
     public Task updateTaskV2(TaskResult taskResult) {
+        return updateTaskV2(taskResult, null);
+    }
+
+    /**
+     * Same as {@link #updateTaskV2(TaskResult)} but propagates {@code taskType}
+     * to the canonical {@code task_result_size_bytes} histogram (since
+     * {@link TaskResult} does not carry the task definition name itself).
+     */
+    public Task updateTaskV2(TaskResult taskResult, String taskType) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks/update-v2")
                 .body(taskResult)
+                .payloadKind(new PayloadKind.TaskResult(taskType))
                 .build();
 
         ConductorClientResponse<Task> response = client.execute(request, TASK_TYPE);
@@ -283,14 +303,13 @@ public class TaskClient {
     }
 
     public Optional<String> evaluateAndUploadLargePayload(Map<String, Object> taskOutputData, String taskType) {
+        if (!conductorClientConfiguration.isEnforceThresholds()) {
+            return Optional.empty();
+        }
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             objectMapper.writeValue(byteArrayOutputStream, taskOutputData);
             byte[] taskOutputBytes = byteArrayOutputStream.toByteArray();
             long taskResultSize = taskOutputBytes.length;
-            eventDispatcher.publish(new TaskResultPayloadSizeEvent(taskType, taskResultSize));
-            if (!conductorClientConfiguration.isEnforceThresholds()) {
-                return Optional.empty();
-            }
             long payloadSizeThreshold = conductorClientConfiguration.getTaskOutputPayloadThresholdKB() * 1024L;
             if (taskResultSize > payloadSizeThreshold) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()

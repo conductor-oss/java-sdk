@@ -18,10 +18,18 @@ import java.time.Duration;
  * Hook for recording metrics about the HTTP calls made by the generated /
  * handwritten Conductor API clients.
  *
- * <p>Canonical metric emitted by implementations:
+ * <p>Canonical metrics emitted by implementations:
  * <pre>
- *   http_api_client_request_seconds{method, uri, status}  (Histogram)
+ *   http_api_client_request_seconds{method, uri, status}                 (Histogram)
+ *   task_result_size_bytes{taskType}                                     (Histogram)
+ *   workflow_input_size_bytes{workflowType, version}                     (Histogram)
  * </pre>
+ *
+ * <p>The size histograms are populated at wire time from the OkHttp
+ * {@code RequestBody.contentLength()} of bodies tagged with a
+ * {@link PayloadKind}; this avoids the previous double-JSON-serialization
+ * cost in {@code TaskClient}/{@code WorkflowClient}, and decouples
+ * payload-size observability from {@code isEnforceThresholds}.
  *
  * <p>Keeping this as an interface (rather than wiring directly to any
  * particular metrics backend) lets {@code conductor-client} stay free of a
@@ -44,6 +52,29 @@ public interface ApiClientMetrics {
      *                   received (or error raised). Never null.
      */
     void recordRequest(String method, String uri, int statusCode, Duration duration);
+
+    /**
+     * Record the serialized size of a task-result update body. Default no-op
+     * so existing implementations stay source- and binary-compatible.
+     *
+     * @param taskType  Task definition name. May be empty/null if unknown.
+     * @param sizeBytes Size of the JSON body in bytes (from
+     *                  {@code RequestBody.contentLength()}). Implementations
+     *                  should ignore negative values.
+     */
+    default void recordTaskResultSize(String taskType, long sizeBytes) { }
+
+    /**
+     * Record the serialized size of a workflow-start input body. Default no-op
+     * so existing implementations stay source- and binary-compatible.
+     *
+     * @param workflowType Workflow definition name. May be empty/null if unknown.
+     * @param version      Workflow version. May be null.
+     * @param sizeBytes    Size of the JSON body in bytes (from
+     *                     {@code RequestBody.contentLength()}). Implementations
+     *                     should ignore negative values.
+     */
+    default void recordWorkflowInputSize(String workflowType, Integer version, long sizeBytes) { }
 
     /**
      * No-op instance for callers that want a non-null default.

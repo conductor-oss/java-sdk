@@ -16,16 +16,19 @@ import java.time.Duration;
 
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
+import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
  * Prometheus-backed implementation of {@link ApiClientMetrics} that emits the
- * canonical {@code http_api_client_request_seconds} Histogram.
+ * canonical {@code http_api_client_request_seconds},
+ * {@code task_result_size_bytes}, and {@code workflow_input_size_bytes}
+ * histograms.
  */
 public final class PrometheusApiClientMetrics implements ApiClientMetrics {
 
-    private static final Duration[] CANONICAL_BUCKETS = {
+    private static final Duration[] CANONICAL_TIME_BUCKETS = {
             Duration.ofMillis(1),
             Duration.ofMillis(5),
             Duration.ofMillis(10),
@@ -38,6 +41,10 @@ public final class PrometheusApiClientMetrics implements ApiClientMetrics {
             Duration.ofMillis(2500),
             Duration.ofSeconds(5),
             Duration.ofSeconds(10),
+    };
+
+    private static final double[] CANONICAL_SIZE_BUCKETS = {
+            100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000
     };
 
     private final PrometheusMeterRegistry registry;
@@ -54,9 +61,36 @@ public final class PrometheusApiClientMetrics implements ApiClientMetrics {
                 .tag("uri", nullToEmpty(uri))
                 .tag("status", statusLabel)
                 .publishPercentileHistogram(false)
-                .serviceLevelObjectives(CANONICAL_BUCKETS)
+                .serviceLevelObjectives(CANONICAL_TIME_BUCKETS)
                 .register(registry)
                 .record(duration);
+    }
+
+    @Override
+    public void recordTaskResultSize(String taskType, long sizeBytes) {
+        if (sizeBytes < 0) {
+            return;
+        }
+        DistributionSummary.builder("task_result_size_bytes")
+                .description("Records output payload size of a task in bytes")
+                .tag("taskType", nullToEmpty(taskType))
+                .serviceLevelObjectives(CANONICAL_SIZE_BUCKETS)
+                .register(registry)
+                .record(sizeBytes);
+    }
+
+    @Override
+    public void recordWorkflowInputSize(String workflowType, Integer version, long sizeBytes) {
+        if (sizeBytes < 0) {
+            return;
+        }
+        DistributionSummary.builder("workflow_input_size_bytes")
+                .description("Records input payload size of a workflow in bytes")
+                .tag("workflowType", nullToEmpty(workflowType))
+                .tag("version", version == null ? "" : version.toString())
+                .serviceLevelObjectives(CANONICAL_SIZE_BUCKETS)
+                .register(registry)
+                .record(sizeBytes);
     }
 
     private static String nullToEmpty(String s) {

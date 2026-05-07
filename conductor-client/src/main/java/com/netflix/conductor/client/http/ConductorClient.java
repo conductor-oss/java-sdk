@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -255,7 +256,8 @@ public class ConductorClient {
                 pathParams,
                 queryParams,
                 headerParams,
-                req.getBody());
+                req.getBody(),
+                req.getPayloadKind());
 
         Call call = okHttpClient.newCall(request);
         if (typeReference == null) {
@@ -429,10 +431,24 @@ public class ConductorClient {
             List<Param> queryParams,
             Map<String, String> headers,
             Object body) {
+        return buildRequest(method, path, pathParams, queryParams, headers, body, null);
+    }
+
+    protected Request buildRequest(String method,
+            String path,
+            List<Param> pathParams,
+            List<Param> queryParams,
+            Map<String, String> headers,
+            Object body,
+            PayloadKind payloadKind) {
         final HttpUrl url = buildUrl(replacePathParams(path, pathParams), queryParams);
         final Request.Builder requestBuilder = new Request.Builder().url(url);
         processHeaderParams(requestBuilder, addHeadersFromProviders(method, path, headers));
         RequestBody reqBody = requestBody(method, getContentType(headers), body);
+        if (payloadKind != null) {
+            // Read by ApiClientMetricsOkHttpInterceptor at wire time.
+            requestBuilder.tag(PayloadKind.class, payloadKind);
+        }
         return requestBuilder.method(method, reqBody).build();
     }
 
@@ -758,9 +774,27 @@ public class ConductorClient {
                             : (ioError != null ? -1 : 0);
                     metrics.recordRequest(method, uri, status,
                             java.time.Duration.ofNanos(elapsedNanos));
+                    recordPayloadSizeIfTagged(request);
                 } catch (Throwable ignored) {
                 }
             }
+        }
+
+        private void recordPayloadSizeIfTagged(Request request) {
+            PayloadKind kind = request.tag(PayloadKind.class);
+            if (kind == null || request.body() == null) {
+                return;
+            }
+            long len;
+            try {
+                len = request.body().contentLength();
+            } catch (IOException e) {
+                return;
+            }
+            if (len < 0) {
+                return;
+            }
+            kind.recordSize(metrics, len);
         }
     }
 }

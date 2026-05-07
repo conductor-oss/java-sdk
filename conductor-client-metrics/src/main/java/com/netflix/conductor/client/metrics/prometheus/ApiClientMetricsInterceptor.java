@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
+import com.netflix.conductor.client.metrics.PayloadKind;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -57,8 +58,26 @@ public final class ApiClientMetricsInterceptor implements Interceptor {
                 int status = response != null ? response.code()
                         : (ioError != null ? -1 : 0);
                 metrics.recordRequest(method, uri, status, Duration.ofNanos(elapsedNanos));
+                recordPayloadSizeIfTagged(request);
             } catch (Throwable ignored) {
             }
         }
+    }
+
+    private void recordPayloadSizeIfTagged(Request request) {
+        PayloadKind kind = request.tag(PayloadKind.class);
+        if (kind == null || request.body() == null) {
+            return;
+        }
+        long len;
+        try {
+            len = request.body().contentLength();
+        } catch (IOException e) {
+            return;
+        }
+        if (len < 0) {
+            return;
+        }
+        kind.recordSize(metrics, len);
     }
 }

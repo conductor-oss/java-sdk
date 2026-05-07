@@ -448,14 +448,18 @@ class TaskRunner {
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
             if(enableUpdateV2) {
-                Task nextTask = retryOperation(taskClient::updateTaskV2, count, result, "updateTaskV2");
+                Task nextTask = retryOperation(
+                        (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
+                        count,
+                        result,
+                        "updateTaskV2");
                 if (nextTask != null) {
                     tasksTobeExecuted.add(nextTask);
                 }
             } else {
                 retryOperation(
                         (TaskResult taskResult) -> {
-                            taskClient.updateTask(taskResult);
+                            taskClient.updateTask(taskResult, taskType);
                             return null;
                         },
                         count,
@@ -568,7 +572,7 @@ class TaskRunner {
                 */
                 retryOperation(
                         (TaskResult taskResult) -> {
-                            taskClient.updateTask(taskResult);
+                            taskClient.updateTask(taskResult, task.getTaskDefName());
                             return null;
                         },
                         LEASE_EXTEND_RETRY_COUNT,

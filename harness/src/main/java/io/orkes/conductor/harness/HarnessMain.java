@@ -58,6 +58,12 @@ public class HarnessMain {
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
         String wiringMode = envString("METRICS_WIRING", "auto");
+        // Opt-in: when > 0, WorkflowStatusProbe periodically calls
+        // /api/workflow/<id> and /api/workflow/<id>/status so the canonical
+        // http_api_client_request_seconds histogram picks up UUID-bearing
+        // uri label values (the realistic high-cardinality case). Default 0
+        // = disabled, which keeps harness behavior unchanged.
+        int probeRatePerSec = envInt("HARNESS_PROBE_RATE_PER_SEC", 0);
 
         List<Worker> workers = new ArrayList<>();
         for (String[] entry : SIMULATED_WORKERS) {
@@ -76,12 +82,16 @@ public class HarnessMain {
 
         wiring.configurer.init();
 
-        WorkflowGovernor governor = new WorkflowGovernor(wiring.workflowClient, WORKFLOW_NAME, workflowsPerSec);
+        WorkflowStatusProbe probe = new WorkflowStatusProbe(wiring.workflowClient, probeRatePerSec);
+        WorkflowGovernor governor = new WorkflowGovernor(
+                wiring.workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
         governor.start();
+        probe.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("Shutting down harness...");
             governor.shutdown();
+            probe.shutdown();
             wiring.configurer.shutdown();
         }));
 

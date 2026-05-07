@@ -38,7 +38,6 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Timer;
 
@@ -69,10 +68,6 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
             Duration.ofMillis(2500),
             Duration.ofSeconds(5),
             Duration.ofSeconds(10),
-    };
-
-    private static final double[] CANONICAL_SIZE_BUCKETS = {
-            100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000
     };
 
     private static final String STATUS_SUCCESS = "SUCCESS";
@@ -221,10 +216,9 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
 
     @Override
     public void consume(TaskResultPayloadSizeEvent e) {
-        sizeHistogram("task_result_size_bytes",
-                "Records output payload size of a task in bytes",
-                "taskType", nullToEmpty(e.getTaskType()))
-                .record(e.getSize());
+        // Delegate to the same SPI used by the wire-time interceptor so the
+        // event publisher and the interceptor converge on the same series.
+        apiClientMetrics.recordTaskResultSize(e.getTaskType(), e.getSize());
     }
 
     @Override
@@ -238,11 +232,9 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
 
     @Override
     public void consume(WorkflowInputPayloadSizeEvent event) {
-        sizeHistogram("workflow_input_size_bytes",
-                "Records input payload size of a workflow in bytes",
-                "workflowType", nullToEmpty(event.getName()),
-                "version", versionLabel(event.getVersion()))
-                .record(event.getSize());
+        // Delegate to the same SPI used by the wire-time interceptor so the
+        // event publisher and the interceptor converge on the same series.
+        apiClientMetrics.recordWorkflowInputSize(event.getName(), event.getVersion(), event.getSize());
     }
 
     @Override
@@ -271,14 +263,6 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
                 .tag("status", status)
                 .publishPercentileHistogram(false)
                 .serviceLevelObjectives(CANONICAL_TIME_BUCKETS)
-                .register(registry);
-    }
-
-    private DistributionSummary sizeHistogram(String name, String description, String... tagKv) {
-        return DistributionSummary.builder(name)
-                .description(description)
-                .tags(tagKv)
-                .serviceLevelObjectives(CANONICAL_SIZE_BUCKETS)
                 .register(registry);
     }
 }

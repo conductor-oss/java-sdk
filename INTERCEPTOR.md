@@ -255,6 +255,17 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
 For setup instructions, environment-variable selection, the complete legacy and canonical metric catalogs, and migration guidance, see [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md).
 
+### Compatibility: `PrometheusMetricsCollector`
+
+`com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector` is retained as a deprecated alias for `LegacyPrometheusMetricsCollector`. Existing 4.0.x code that does:
+
+```java
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+metricsCollector.startServer(9991, "/metrics");
+```
+
+continues to compile and emit the same six legacy meter names (`poll_started`, `poll_success`, `poll_failure`, `task_execution_started`, `task_execution_completed`, `task_execution_failure`) byte-for-byte. The shim deliberately delegates to `LegacyPrometheusMetricsCollector`, **not** to `MetricsCollectorFactory.create()`, so an upgrader who already has `WORKER_CANONICAL_METRICS=true` in their environment is not silently flipped to the canonical surface. New code should use `MetricsCollectorFactory.create()` (or `MetricsBundle.create()`) to opt into env-var-driven selection.
+
 ## Event Lifecycle
 
 ### Task Runner Event Flow
@@ -302,21 +313,20 @@ For setup instructions, environment-variable selection, the complete legacy and 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ 1. Check payload size                                            │
+│ 1. Off-load oversized payload (only when                        │
+│    isEnforceThresholds() == true)                                │
 │    WorkflowClient.checkAndUploadToExternalStorage()            │
-│    └─→ eventDispatcher.publish(                                │
-│        new WorkflowInputPayloadSizeEvent(name, version, size)) │
+│    └─→ if size > threshold:                                    │
+│           eventDispatcher.publish(                              │
+│             new WorkflowPayloadUsedEvent(name, version,         │
+│                "WRITE", "WORKFLOW_INPUT"))                      │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 2. Upload to external storage (if needed)                       │
-│    └─→ eventDispatcher.publish(                                │
-│        new WorkflowPayloadUsedEvent(name, version,             │
-│            "WRITE", "WORKFLOW_INPUT"))                          │
-└─────────────────────────────────────────────────────────────────┘
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 3. Start workflow                                                │
+│ 2. Start workflow (POST /workflow tagged with                    │
+│    PayloadKind.WorkflowInput so the ApiClientMetrics             │
+│    OkHttp interceptor records workflow_input_size_bytes          │
+│    from RequestBody.contentLength() at wire time)                │
 │    WorkflowClient.startWorkflow()                               │
 │    • Success: eventDispatcher.publish(                          │
 │        new WorkflowStartedEvent(name, version))                 │
@@ -324,6 +334,14 @@ For setup instructions, environment-variable selection, the complete legacy and 
 │        new WorkflowStartedEvent(name, version, false, error))  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> Note: `WorkflowInputPayloadSizeEvent` is no longer published from
+> `WorkflowClient` — the canonical `workflow_input_size_bytes` histogram is
+> populated at wire time by `ApiClientMetrics`, which avoids serializing the
+> input twice. The event POJO and `consume(WorkflowInputPayloadSizeEvent)`
+> hook are retained for third-party publishers and route through the same
+> `PrometheusApiClientMetrics` helper. The same applies to
+> `TaskResultPayloadSizeEvent` and `task_result_size_bytes`.
 
 ## Usage Guide
 

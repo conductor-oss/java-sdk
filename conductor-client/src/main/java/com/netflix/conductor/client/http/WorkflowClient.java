@@ -46,12 +46,12 @@ import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.WorkflowClientListener;
 import com.netflix.conductor.client.events.workflow.WorkflowClientEvent;
-import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
@@ -191,12 +191,16 @@ public class WorkflowClient implements AutoCloseable {
                 StringUtils.isBlank(startWorkflowRequest.getExternalInputPayloadStoragePath()),
                 "External Storage Path must not be set");
 
-        checkAndUploadToExternalStorage(startWorkflowRequest);
+        if (conductorClientConfiguration.isEnforceThresholds()) {
+            checkAndUploadToExternalStorage(startWorkflowRequest);
+        }
 
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/workflow")
                 .body(startWorkflowRequest)
+                .payloadKind(new PayloadKind.WorkflowInput(
+                        startWorkflowRequest.getName(), startWorkflowRequest.getVersion()))
                 .build();
 
         ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
@@ -207,16 +211,13 @@ public class WorkflowClient implements AutoCloseable {
     }
 
     public void checkAndUploadToExternalStorage(StartWorkflowRequest startWorkflowRequest) {
+        if (!conductorClientConfiguration.isEnforceThresholds()) {
+            return;
+        }
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             objectMapper.writeValue(byteArrayOutputStream, startWorkflowRequest.getInput());
             byte[] workflowInputBytes = byteArrayOutputStream.toByteArray();
             long workflowInputSize = workflowInputBytes.length;
-            eventDispatcher.publish(new WorkflowInputPayloadSizeEvent(startWorkflowRequest.getName(),
-                    startWorkflowRequest.getVersion(), workflowInputSize));
-
-            if (!conductorClientConfiguration.isEnforceThresholds()) {
-                return;
-            }
 
             if (workflowInputSize > conductorClientConfiguration.getWorkflowInputPayloadThresholdKB() * 1024L) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() ||

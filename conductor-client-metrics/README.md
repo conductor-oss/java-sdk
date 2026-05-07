@@ -174,8 +174,10 @@ The `uri` label for `http_api_client_request_seconds` currently uses the request
 
 | Meter | Labels | Meaning |
 |---|---|---|
-| `task_result_size_bytes` | `taskType` | Serialized task result output size. |
-| `workflow_input_size_bytes` | `workflowType`, `version` | Serialized workflow input size. `version` is an empty string when the workflow version is absent. |
+| `task_result_size_bytes` | `taskType` | Serialized task result output size, captured from `RequestBody.contentLength()` of the outbound `POST /tasks` (or `POST /tasks/update-v2`) request. `taskType` is empty when the caller used the single-argument `TaskClient.updateTask(TaskResult)` overload. |
+| `workflow_input_size_bytes` | `workflowType`, `version` | Serialized workflow input size, captured from `RequestBody.contentLength()` of the outbound `POST /workflow` request. `version` is an empty string when the workflow version is absent. |
+
+Both histograms are populated at wire time by the `ApiClientMetrics` OkHttp interceptor, reading a `PayloadKind` tag attached by `TaskClient`/`WorkflowClient`. The byte count is read off the request body the HTTP layer is about to send, so no extra JSON serialization is needed.
 
 Size metrics use these service-level objective buckets, in bytes:
 
@@ -204,6 +206,18 @@ Size metrics use these service-level objective buckets, in bytes:
 | `payloadType` | `external_payload_used_total` | Payload type, such as `TASK_INPUT`, `TASK_OUTPUT`, `WORKFLOW_INPUT`, or `WORKFLOW_OUTPUT`. |
 | `method` | HTTP metrics | HTTP verb. |
 | `uri` | HTTP metrics | Request path from the Java HTTP client. May contain interpolated identifiers. |
+
+## Migration from 4.0.x
+
+The 4.0.x entry point `PrometheusMetricsCollector` is retained as a deprecated alias for `LegacyPrometheusMetricsCollector`, so existing code keeps compiling and emits the same six legacy meter names byte-for-byte. Use this table to decide what to do at upgrade time:
+
+| 4.0.x usage                                                | 4.x replacement                                                                                          |
+|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `new PrometheusMetricsCollector()`                         | `MetricsCollectorFactory.create()` (or `MetricsBundle.create()`) — env-var-selected legacy or canonical |
+| `new PrometheusMetricsCollector()` (force legacy names)    | `new LegacyPrometheusMetricsCollector()`                                                                 |
+| `metricsCollector.startServer(port, "/metrics")`           | unchanged — still on `AbstractPrometheusMetricsCollector`                                                |
+
+The shim is intentionally pinned to `LegacyPrometheusMetricsCollector` rather than `MetricsCollectorFactory.create()`, so an upgrader who already has `WORKER_CANONICAL_METRICS=true` set in their environment is not silently flipped to the canonical metric surface just by upgrading the SDK. Switch to `MetricsCollectorFactory.create()` when you are ready to opt into env-var-driven selection.
 
 ## Migration from Legacy to Canonical
 
@@ -240,7 +254,7 @@ Common legacy-to-canonical replacements:
 ### Missing HTTP or Workflow Metrics
 
 - `http_api_client_request_seconds` requires the HTTP interceptor. When using `withMetricsCollector` on the builder, the interceptor is installed automatically in canonical mode and skipped in legacy mode. When wiring manually, add `ApiClientMetricsInterceptor` to the OkHttp builder only if `getApiClientMetrics()` does not return `ApiClientMetrics.NOOP`.
-- `workflow_input_size_bytes`, `workflow_start_error_total`, and workflow-side `external_payload_used_total` require `workflowClient.registerListener(metricsCollector)`. This is automatic when using `withMetricsCollector` on the builder.
+- `task_result_size_bytes` and `workflow_input_size_bytes` likewise require the HTTP interceptor — they are recorded at wire time from `RequestBody.contentLength()` for requests tagged with a `PayloadKind`. If you wire OkHttp manually and skip `ApiClientMetricsInterceptor`, those histograms will be empty even when canonical mode is enabled. (`workflow_start_error_total` and workflow-side `external_payload_used_total` continue to flow through `workflowClient.registerListener(metricsCollector)`, which is automatic with `withMetricsCollector`.)
 - `task_ack_failed_total` and `task_ack_error_total` require `taskClient.registerTaskRunnerListener(metricsCollector)`. This is automatic when using `withMetricsCollector` on the builder.
 
 ### High Cardinality
