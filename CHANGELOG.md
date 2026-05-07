@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **Metrics harmonization** - canonical metric surface aligned with the cross-SDK catalog, opt-in via `WORKER_CANONICAL_METRICS=true`
+  - New `CanonicalPrometheusMetricsCollector` emits the harmonized cross-SDK catalog: `task_poll_total`, `task_poll_time_seconds{status}`, `task_poll_error_total{exception}`, `task_execution_started_total`, `task_execute_time_seconds{status}`, `task_execute_error_total{exception}`, `task_update_time_seconds{status}`, `task_update_error_total{exception}`, `task_ack_failed_total`, `task_ack_error_total{exception}`, `task_execution_queue_full_total`, `task_paused_total`, `thread_uncaught_exceptions_total{exception}`, `external_payload_used_total{entityName,operation,payloadType}`, `task_result_size_bytes`, `workflow_input_size_bytes{workflowType,version}`, `workflow_start_error_total{workflowType,exception}`, `active_workers` (gauge), and `http_api_client_request_seconds{method,uri,status}`. Time histograms use buckets `0.001…10s`; size histograms use `100…10_000_000` bytes.
+  - `MetricsCollectorFactory.create()` selects between `LegacyPrometheusMetricsCollector` (default) and `CanonicalPrometheusMetricsCollector` based on `WORKER_CANONICAL_METRICS` (truthy values: `true`, `1`, `yes`, case-insensitive). `WORKER_LEGACY_METRICS` is reserved for a future default-flip phase and is not currently read.
+  - `MetricsBundle.create(port)` convenience that builds the factory-selected collector and starts the Prometheus scrape server in one call.
+  - `ApiClientMetrics` SPI plus an `ApiClientMetricsInterceptor` (OkHttp) auto-installed by `ConductorClient.Builder.withMetricsCollector(...)` to record HTTP-client latency.
+  - `TaskClient` and `WorkflowClient` auto-register as event listeners when the underlying `ConductorClient` is built with a metrics collector. New event POJOs under `events/taskrunner/` and `events/listeners/` thread task-runner and workflow events into the metrics collector.
+  - Harness deployment manifest sets `WORKER_CANONICAL_METRICS=true` so certification runs exercise the canonical surface; `HarnessMain` logs which collector is active.
+
+### Changed
+
+- **Metrics harmonization** - defaults preserved; legacy metrics emit unchanged when `WORKER_CANONICAL_METRICS` is unset
+  - `conductor-client-metrics`: `micrometer-registry-prometheus` and `okhttp` are now `api` dependencies so consumers see them transitively.
+  - Default behavior is unchanged: with no env var set, `LegacyPrometheusMetricsCollector` emits the previously released six meters (`poll_started{type}`, `poll_success{type}`, `poll_failure{type}`, `task_execution_started{type}`, `task_execution_completed{type}`, `task_execution_failure{type}`) byte-for-byte identically.
+  - Rewrote `conductor-client-metrics/README.md` with full legacy and canonical catalogs, label conventions, a legacy → canonical migration table, and troubleshooting guidance.
+  - Updated `README.md` "Monitoring Workers" and `INTERCEPTOR.md` to use `MetricsCollectorFactory.create()` and reference the env var.
+
 ## [4.0.0] - 2024-10-09
 - New major release – [Read more](https://orkes.io/blog/conductor-java-client-v4/)
 
