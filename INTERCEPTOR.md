@@ -352,42 +352,31 @@ import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.metrics.ApiClientMetrics;
-import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
-import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
-import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
 
-// 1. Create and start PrometheusMetricsCollector
-AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
-metricsCollector.startServer(); // Starts HTTP server on port 9991
+// 1. Create and start metrics (factory-selected collector + Prometheus scrape server)
+MetricsBundle bundle = MetricsBundle.create(); // port 9991, /metrics
 
-// 2. Create ConductorClient and install HTTP API metrics when supported
-ApiClientMetrics apiClientMetrics = metricsCollector.getApiClientMetrics();
-ConductorClient.Builder<?> clientBuilder = ConductorClient.builder()
-    .basePath("http://conductor-server:8080/api");
-if (apiClientMetrics != ApiClientMetrics.NOOP) {
-    clientBuilder.configureOkHttp(builder ->
-        builder.addInterceptor(new ApiClientMetricsInterceptor(apiClientMetrics)));
-}
-ConductorClient client = clientBuilder.build();
+// 2. Create ConductorClient — withMetricsCollector installs the HTTP interceptor
+//    and enables automatic listener registration on downstream clients
+ConductorClient client = ConductorClient.builder()
+    .basePath("http://conductor-server:8080/api")
+    .withMetricsCollector(bundle.getCollector())
+    .build();
 
-// 3. Register task-client events and configure TaskRunner with metrics
+// 3. Downstream clients auto-register as listeners
 TaskClient taskClient = new TaskClient(client);
-taskClient.registerListener(metricsCollector);
-taskClient.registerTaskRunnerListener(metricsCollector);
+WorkflowClient workflowClient = new WorkflowClient(client);
 
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
-    .withMetricsCollector(metricsCollector)
     .build();
 
 // 4. Start polling
 configurer.init();
-
-// 5. Register workflow-client events before using WorkflowClient
-WorkflowClient workflowClient = new WorkflowClient(client);
-workflowClient.registerListener(metricsCollector);
 ```
+
+For fine-grained control over which listeners are registered, use `withHttpMetrics` instead of `withMetricsCollector`. This installs only the HTTP interceptor and leaves all listener registration to you. See the [Manual Wiring](conductor-client-metrics/README.md#manual-wiring) section in the metrics README.
 
 ### Custom Metrics Endpoint
 

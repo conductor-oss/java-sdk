@@ -25,9 +25,7 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
-import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
 import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
 import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
 import com.netflix.conductor.client.worker.Worker;
@@ -131,33 +129,24 @@ public class HarnessMain {
     }
 
     // -------------------------------------------------------------------------
-    // METRICS_WIRING=manual — explicit registration of every listener and
-    // the OkHttp interceptor; no auto-detection
+    // METRICS_WIRING=manual — withHttpMetrics installs only the OkHttp
+    // interceptor; all listener registration is explicit
     // -------------------------------------------------------------------------
     private static WiringResult wireManual(int metricsPort, List<Worker> workers,
             Map<String, Integer> threadCounts) throws Exception {
-        log.info("=== METRICS_WIRING=manual — full manual wiring ===");
+        log.info("=== METRICS_WIRING=manual — manual listener wiring ===");
 
         AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
         metricsCollector.startServer(metricsPort, "/metrics");
         log.info("Prometheus metrics server started on port {} ({} metrics)", metricsPort, metricsCollector.collectorName());
 
-        ApiClientMetrics apiClientMetrics = metricsCollector.getApiClientMetrics();
-        ApiClientMetricsInterceptor interceptor = apiClientMetrics != ApiClientMetrics.NOOP
-                ? new ApiClientMetricsInterceptor(apiClientMetrics)
-                : null;
-
-        ApiClient.ApiClientBuilder clientBuilder = ApiClient.builder()
+        ConductorClient client = ApiClient.builder()
                 .useEnvVariables(true)
                 .readTimeout(10_000)
                 .connectTimeout(10_000)
-                .writeTimeout(10_000);
-
-        if (interceptor != null) {
-            clientBuilder.configureOkHttp(b -> b.addInterceptor(interceptor));
-        }
-
-        ConductorClient client = clientBuilder.build();
+                .writeTimeout(10_000)
+                .withHttpMetrics(metricsCollector)
+                .build();
 
         TaskClient taskClient = new TaskClient(client);
         taskClient.registerListener(metricsCollector);

@@ -30,11 +30,11 @@ import okhttp3.Response;
  * on metric-recording failures -- the underlying HTTP call always goes
  * through unmodified.
  */
-public final class ApiClientMetricsInterceptor implements Interceptor {
+final class ApiClientMetricsInterceptor implements Interceptor {
 
     private final ApiClientMetrics metrics;
 
-    public ApiClientMetricsInterceptor(ApiClientMetrics metrics) {
+    ApiClientMetricsInterceptor(ApiClientMetrics metrics) {
         this.metrics = metrics == null ? ApiClientMetrics.NOOP : metrics;
     }
 

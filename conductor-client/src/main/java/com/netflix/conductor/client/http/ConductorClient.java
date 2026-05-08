@@ -96,11 +96,14 @@ public class ConductorClient {
         this.headerSuppliers = builder.headerSupplier();
         this.metricsCollector = builder.metricsCollector;
 
+        ApiClientMetrics apiClientMetrics = null;
         if (this.metricsCollector != null) {
-            ApiClientMetrics apiClientMetrics = this.metricsCollector.getApiClientMetrics();
-            if (apiClientMetrics != ApiClientMetrics.NOOP) {
-                okHttpBuilder.addInterceptor(new ApiClientMetricsOkHttpInterceptor(apiClientMetrics));
-            }
+            apiClientMetrics = this.metricsCollector.getApiClientMetrics();
+        } else if (builder.httpMetrics != null) {
+            apiClientMetrics = builder.httpMetrics;
+        }
+        if (apiClientMetrics != null && apiClientMetrics != ApiClientMetrics.NOOP) {
+            okHttpBuilder.addInterceptor(new ApiClientMetricsOkHttpInterceptor(apiClientMetrics));
         }
 
         if (builder.connectTimeout > -1) {
@@ -606,6 +609,7 @@ public class ConductorClient {
         private Supplier<ObjectMapper> objectMapperSupplier = () -> new ObjectMapperProvider().getObjectMapper();
         private final List<HeaderSupplier> headerSuppliers = new ArrayList<>();
         MetricsCollector metricsCollector;
+        private ApiClientMetrics httpMetrics;
 
         private boolean useEnvVariables = false;
 
@@ -701,6 +705,24 @@ public class ConductorClient {
          */
         public T withMetricsCollector(MetricsCollector metricsCollector) {
             this.metricsCollector = metricsCollector;
+            return self();
+        }
+
+        /**
+         * Install only the HTTP metrics interceptor without triggering
+         * automatic listener registration on downstream clients. Use this
+         * when you want {@code http_api_client_request_seconds},
+         * {@code task_result_size_bytes}, and
+         * {@code workflow_input_size_bytes} but prefer to wire event
+         * listeners explicitly via {@code registerListener} /
+         * {@code registerTaskRunnerListener}.
+         *
+         * <p>If {@link #withMetricsCollector} is also called, the full
+         * auto-registration takes effect and this method has no additional
+         * impact (the interceptor is installed either way).
+         */
+        public T withHttpMetrics(MetricsCollector metricsCollector) {
+            this.httpMetrics = metricsCollector != null ? metricsCollector.getApiClientMetrics() : null;
             return self();
         }
 

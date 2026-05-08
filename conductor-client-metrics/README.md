@@ -49,25 +49,19 @@ In canonical mode, the `ConductorClient` automatically installs an OkHttp interc
 
 ### Manual Wiring
 
-For advanced use cases where you need fine-grained control over which listeners are registered where, or you want to mix the metrics collector with custom event listeners, you can wire everything explicitly:
+For advanced use cases where you need fine-grained control over which listeners are registered where, or you want to mix the metrics collector with custom event listeners, use `withHttpMetrics` instead of `withMetricsCollector` on the builder. This installs only the HTTP interceptor (for `http_api_client_request_seconds`, `task_result_size_bytes`, `workflow_input_size_bytes`) without triggering automatic listener registration on downstream clients:
 
 ```java
-import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
-import com.netflix.conductor.client.metrics.prometheus.ApiClientMetricsInterceptor;
 import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
 
 AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
 metricsCollector.startServer(); // http://localhost:9991/metrics
 
-ApiClientMetrics apiClientMetrics = metricsCollector.getApiClientMetrics();
-ConductorClient.Builder<?> clientBuilder = ConductorClient.builder()
-        .basePath("http://conductor-server:8080/api");
-if (apiClientMetrics != ApiClientMetrics.NOOP) {
-    clientBuilder.configureOkHttp(builder ->
-            builder.addInterceptor(new ApiClientMetricsInterceptor(apiClientMetrics)));
-}
-ConductorClient client = clientBuilder.build();
+ConductorClient client = ConductorClient.builder()
+        .basePath("http://conductor-server:8080/api")
+        .withHttpMetrics(metricsCollector)
+        .build();
 
 TaskClient taskClient = new TaskClient(client);
 taskClient.registerListener(metricsCollector);
@@ -84,7 +78,7 @@ WorkflowClient workflowClient = new WorkflowClient(client);
 workflowClient.registerListener(metricsCollector);
 ```
 
-All listener registrations are explicit and no auto-detection occurs because the `ConductorClient` is built without `withMetricsCollector`. Use this approach when you need to register the metrics collector on some clients but not others, or when mixing in custom event listeners alongside the metrics collector.
+Use this approach when you need to register the metrics collector on some clients but not others, or when mixing in custom event listeners alongside the metrics collector. With `withHttpMetrics`, none of the listener registrations happen automatically -- you choose exactly which clients get which listeners.
 
 ### How Auto-Registration Works
 
@@ -96,6 +90,8 @@ When a `MetricsCollector` is passed to `ConductorClient.Builder.withMetricsColle
 4. `TaskRunnerConfigurer.Builder.build()` detects the collector from the `TaskClient`'s `ConductorClient` and registers task-runner events automatically, unless `withMetricsCollector` was called explicitly on the builder.
 
 All registrations are idempotent. If you call both `withMetricsCollector` on the builder and `registerListener` manually with the same collector, events are not duplicated.
+
+To install only the HTTP interceptor (step 1) without triggering automatic listener registration (steps 2-4), use `withHttpMetrics` instead of `withMetricsCollector` on the builder. See [Manual Wiring](#manual-wiring) above.
 
 The collector exposes Prometheus text format from the embedded HTTP server. Metrics are created lazily, so a metric family appears after the corresponding worker or client event has occurred.
 
@@ -253,12 +249,12 @@ Common legacy-to-canonical replacements:
 
 ### Missing HTTP or Workflow Metrics
 
-- `http_api_client_request_seconds` requires the HTTP interceptor. When using `withMetricsCollector` on the builder, the interceptor is installed automatically in canonical mode and skipped in legacy mode. When wiring manually, add `ApiClientMetricsInterceptor` to the OkHttp builder only if `getApiClientMetrics()` does not return `ApiClientMetrics.NOOP`.
-- `task_result_size_bytes` and `workflow_input_size_bytes` likewise require the HTTP interceptor — they are recorded at wire time from `RequestBody.contentLength()` for requests tagged with a `PayloadKind`. If you wire OkHttp manually and skip `ApiClientMetricsInterceptor`, those histograms will be empty even when canonical mode is enabled. (`workflow_start_error_total` and workflow-side `external_payload_used_total` continue to flow through `workflowClient.registerListener(metricsCollector)`, which is automatic with `withMetricsCollector`.)
+- `http_api_client_request_seconds` requires the HTTP interceptor, which is installed automatically when `withMetricsCollector` is called on the builder. In canonical mode the interceptor records request latency; in legacy mode it is skipped because `getApiClientMetrics()` returns `ApiClientMetrics.NOOP`.
+- `task_result_size_bytes` and `workflow_input_size_bytes` likewise require the HTTP interceptor — they are recorded at wire time from `RequestBody.contentLength()` for requests tagged with a `PayloadKind`. If the `ConductorClient` is built without `withMetricsCollector`, those histograms will be empty even when canonical mode is enabled. (`workflow_start_error_total` and workflow-side `external_payload_used_total` continue to flow through `workflowClient.registerListener(metricsCollector)`.)
 - `task_ack_failed_total` and `task_ack_error_total` require `taskClient.registerTaskRunnerListener(metricsCollector)`. This is automatic when using `withMetricsCollector` on the builder.
 
 ### High Cardinality
 
-- The `uri` label on `http_api_client_request_seconds` uses the path template, so it is bounded by the number of distinct API endpoints (not by request volume or unique IDs). If you add the `ApiClientMetricsInterceptor` to a non-`ConductorClient` OkHttp pipeline that does not tag requests with a template, the interceptor falls back to the resolved path, which may be unbounded.
+- The `uri` label on `http_api_client_request_seconds` uses the path template, so it is bounded by the number of distinct API endpoints (not by request volume or unique IDs). The interceptor falls back to the resolved path for requests that are not tagged with a template, which may be unbounded.
 - Prefer canonical mode for bounded `exception` labels. Legacy mode does not emit exception-labeled error counters.
 - Avoid embedding user identifiers or unbounded values in task type, workflow type, or external payload labels.
