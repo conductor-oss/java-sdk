@@ -143,7 +143,7 @@ Canonical mode emits the harmonized Java SDK metric surface. Time metrics use se
 | `task_update_error_total` | `taskType`, `exception` | Incremented when reporting a task result back to Conductor fails. |
 | `task_ack_failed_total` | `taskType` | Incremented when an explicit task ack response is unsuccessful. The internal task runner uses batch poll responses as ack and may not emit this during normal polling. |
 | `task_ack_error_total` | `taskType`, `exception` | Incremented when an explicit task ack call throws. The internal task runner uses batch poll responses as ack and may not emit this during normal polling. |
-| `task_execution_queue_full_total` | `taskType` | Incremented when the worker execution queue is saturated. |
+| `task_execution_queue_full_total` | `taskType` | Incremented when a poll cycle is skipped because all worker threads are busy (zero permits available). |
 | `task_paused_total` | `taskType` | Incremented when a worker is paused and skips acting on a poll. |
 | `thread_uncaught_exceptions_total` | `exception` | Incremented when a worker thread raises an uncaught exception. |
 | `external_payload_used_total` | `entityName`, `operation`, `payloadType` | Incremented when external payload storage is used for task or workflow payloads. |

@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
   - `conductor-client-metrics`: `micrometer-registry-prometheus` is now an `api` dependency so consumers see it transitively. `okhttp` is an `implementation` dependency (not leaked transitively).
   - Default behavior is unchanged: with no env var set, `LegacyPrometheusMetricsCollector` emits the previously released six meters (`poll_started{type}`, `poll_success{type}`, `poll_failure{type}`, `task_execution_started{type}`, `task_execution_completed{type}`, `task_execution_failure{type}`) byte-for-byte identically.
   - Rewrote `conductor-client-metrics/README.md` with full legacy and canonical catalogs, label conventions, a legacy → canonical migration table, and troubleshooting guidance.
+  - The Prometheus meter registry is now per-collector-instance rather than a JVM-wide `static final` singleton. This is a natural consequence of the split into legacy and canonical subclasses (a shared static registry would cause incompatible meter names to collide). Use `MetricsCollectorFactory.create()` or `MetricsBundle.create()` to obtain a single collector instance.
   - Updated `README.md` "Monitoring Workers" and `INTERCEPTOR.md` to use `MetricsCollectorFactory.create()` and reference the env var.
 
 ### Deprecated
