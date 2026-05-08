@@ -54,7 +54,10 @@ public final class ApiClientMetricsInterceptor implements Interceptor {
             long elapsedNanos = System.nanoTime() - startNanos;
             try {
                 String method = request.method();
-                String uri = request.url().encodedPath();
+                String uri = request.tag(String.class);
+                if (uri == null) {
+                    uri = request.url().encodedPath();
+                }
                 int status = response != null ? response.code()
                         : (ioError != null ? -1 : 0);
                 metrics.recordRequest(method, uri, status, Duration.ofNanos(elapsedNanos));

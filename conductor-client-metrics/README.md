@@ -168,7 +168,7 @@ Time metrics use these service-level objective buckets, in seconds:
 0.001, 0.005, 0.010, 0.025, 0.050, 0.100, 0.250, 0.500, 1, 2.5, 5, 10
 ```
 
-The `uri` label for `http_api_client_request_seconds` currently uses the request path available to the Java HTTP client. If the path contains interpolated identifiers, those values may appear in the label.
+The `uri` label for `http_api_client_request_seconds` uses the path template (e.g. `/workflow/{workflowId}`, `/tasks/poll/batch/{taskType}`) rather than the resolved path. This keeps the label space bounded regardless of how many unique workflow or task IDs are processed.
 
 ### Size Metrics
 
@@ -205,7 +205,7 @@ Size metrics use these service-level objective buckets, in bytes:
 | `operation` | `external_payload_used_total` | External payload operation, such as `READ` or `WRITE`. |
 | `payloadType` | `external_payload_used_total` | Payload type, such as `TASK_INPUT`, `TASK_OUTPUT`, `WORKFLOW_INPUT`, or `WORKFLOW_OUTPUT`. |
 | `method` | HTTP metrics | HTTP verb. |
-| `uri` | HTTP metrics | Request path from the Java HTTP client. May contain interpolated identifiers. |
+| `uri` | HTTP metrics | Path template from the Java HTTP client (e.g. `/workflow/{workflowId}`). Resolved identifiers are not included, keeping cardinality bounded. |
 
 ## Migration from 4.0.x
 
@@ -259,6 +259,6 @@ Common legacy-to-canonical replacements:
 
 ### High Cardinality
 
-- Watch the `uri` label on `http_api_client_request_seconds`. The Java HTTP client may include interpolated path identifiers in the request path.
+- The `uri` label on `http_api_client_request_seconds` uses the path template, so it is bounded by the number of distinct API endpoints (not by request volume or unique IDs). If you add the `ApiClientMetricsInterceptor` to a non-`ConductorClient` OkHttp pipeline that does not tag requests with a template, the interceptor falls back to the resolved path, which may be unbounded.
 - Prefer canonical mode for bounded `exception` labels. Legacy mode does not emit exception-labeled error counters.
 - Avoid embedding user identifiers or unbounded values in task type, workflow type, or external payload labels.

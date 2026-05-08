@@ -52,12 +52,30 @@ public class EventDispatcher<T extends ConductorClientEvent> {
             return;
         }
 
-        CompletableFuture.runAsync(() -> {
-            List<Consumer<? extends T>> eventListeners = getEventListeners(event);
-            for (Consumer<? extends T> listener : eventListeners) {
-                ((Consumer<T>) listener).accept(event);
-            }
-        });
+        CompletableFuture.runAsync(() -> dispatchToListeners(event));
+    }
+
+    /**
+     * Dispatches {@code event} to registered listeners on the <em>calling</em>
+     * thread. Use this instead of {@link #publish(ConductorClientEvent)} when
+     * the caller cannot tolerate heap allocation or thread-pool submission
+     * (e.g. inside an {@link Thread.UncaughtExceptionHandler} where the JVM
+     * may be in an unstable state).
+     */
+    public void publishSync(T event) {
+        if (noListeners(event)) {
+            return;
+        }
+
+        dispatchToListeners(event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void dispatchToListeners(T event) {
+        List<Consumer<? extends T>> eventListeners = getEventListeners(event);
+        for (Consumer<? extends T> listener : eventListeners) {
+            ((Consumer<T>) listener).accept(event);
+        }
     }
 
     private boolean noListeners(T event) {

@@ -102,6 +102,8 @@ public class TaskClient {
 
     private PayloadStorage payloadStorage;
 
+    private MetricsCollector metricsCollector;
+
     protected ConductorClient client;
 
     protected String localhost = "localhost";
@@ -128,6 +130,7 @@ public class TaskClient {
         if (client != null) {
             MetricsCollector mc = client.getMetricsCollector();
             if (mc != null) {
+                this.metricsCollector = mc;
                 registerListener(mc);
                 registerTaskRunnerListener(mc);
             }
@@ -163,6 +166,18 @@ public class TaskClient {
      */
     public void registerTaskRunnerListener(TaskRunnerEventsListener listener) {
         ListenerRegister.register(listener, taskRunnerEventDispatcher);
+    }
+
+    /**
+     * Detaches the auto-wired {@link MetricsCollector} (if any) from this
+     * client's dispatchers. Called during shutdown to release the entries from
+     * {@link ListenerRegister}'s static registry.
+     */
+    public void unregisterListeners() {
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
+            ListenerRegister.unregister(metricsCollector, taskRunnerEventDispatcher);
+        }
     }
 
     /**

@@ -53,6 +53,7 @@ public class TaskRunnerConfigurer {
     private ExecutorService scheduledExecutorService;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
+    private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
 
     /**
@@ -74,6 +75,7 @@ public class TaskRunnerConfigurer {
         this.threadCount = builder.threadCount;
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
+        this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
@@ -157,6 +159,9 @@ public class TaskRunnerConfigurer {
             }
         }
         scheduledExecutorService.shutdown();
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
+        }
     }
 
     private void startWorker(Worker worker) {
@@ -207,6 +212,7 @@ public class TaskRunnerConfigurer {
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
 
+        private MetricsCollector metricsCollector;
         private boolean metricsCollectorExplicitlySet;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
@@ -324,6 +330,7 @@ public class TaskRunnerConfigurer {
                 if (conductorClient != null) {
                     MetricsCollector mc = conductorClient.getMetricsCollector();
                     if (mc != null) {
+                        this.metricsCollector = mc;
                         ListenerRegister.register(mc, eventDispatcher);
                     }
                 }
@@ -355,6 +362,7 @@ public class TaskRunnerConfigurer {
         }
 
         public Builder withMetricsCollector(MetricsCollector metricsCollector) {
+            this.metricsCollector = metricsCollector;
             ListenerRegister.register(metricsCollector, eventDispatcher);
             this.metricsCollectorExplicitlySet = true;
             return this;

@@ -15,6 +15,7 @@ package com.netflix.conductor.client.events.listeners;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -273,5 +274,144 @@ class ListenerRegisterTest {
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "All 3 workflow client event types should be dispatched");
         assertEquals(3, received.size());
+    }
+
+    @Test
+    void testUnregisterTaskRunnerListenerStopsDelivery() throws InterruptedException {
+        EventDispatcher<TaskRunnerEvent> dispatcher = new EventDispatcher<>();
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        TaskRunnerEventsListener listener = new TaskRunnerEventsListener() {
+            @Override public void consume(PollStarted e) { called.set(true); }
+            @Override public void consume(PollCompleted e) {}
+            @Override public void consume(PollFailure e) {}
+            @Override public void consume(TaskExecutionStarted e) {}
+            @Override public void consume(TaskExecutionCompleted e) {}
+            @Override public void consume(TaskExecutionFailure e) {}
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+        ListenerRegister.unregister(listener, dispatcher);
+
+        dispatcher.publish(new PollStarted("test_task"));
+        Thread.sleep(300);
+
+        assertFalse(called.get(), "Listener should not receive events after unregister");
+    }
+
+    @Test
+    void testUnregisterAllowsReRegister() throws InterruptedException {
+        EventDispatcher<TaskRunnerEvent> dispatcher = new EventDispatcher<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        TaskRunnerEventsListener listener = new TaskRunnerEventsListener() {
+            @Override public void consume(PollStarted e) { latch.countDown(); }
+            @Override public void consume(PollCompleted e) {}
+            @Override public void consume(PollFailure e) {}
+            @Override public void consume(TaskExecutionStarted e) {}
+            @Override public void consume(TaskExecutionCompleted e) {}
+            @Override public void consume(TaskExecutionFailure e) {}
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+        ListenerRegister.unregister(listener, dispatcher);
+
+        // Re-register the same pair — should succeed since unregister cleared the key
+        ListenerRegister.register(listener, dispatcher);
+
+        dispatcher.publish(new PollStarted("test_task"));
+        assertTrue(latch.await(2, TimeUnit.SECONDS),
+                "Listener should receive events after re-registration");
+    }
+
+    @Test
+    void testUnregisterTaskClientListenerStopsDelivery() throws InterruptedException {
+        EventDispatcher<TaskClientEvent> dispatcher = new EventDispatcher<>();
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        TaskClientListener listener = new TaskClientListener() {
+            @Override public void consume(TaskPayloadUsedEvent e) { called.set(true); }
+            @Override public void consume(TaskResultPayloadSizeEvent e) { called.set(true); }
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+        ListenerRegister.unregister(listener, dispatcher);
+
+        dispatcher.publish(new TaskResultPayloadSizeEvent("t", 100L));
+        Thread.sleep(300);
+
+        assertFalse(called.get(), "TaskClientListener should not receive events after unregister");
+    }
+
+    @Test
+    void testUnregisterWorkflowClientListenerStopsDelivery() throws InterruptedException {
+        EventDispatcher<WorkflowClientEvent> dispatcher = new EventDispatcher<>();
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        WorkflowClientListener listener = new WorkflowClientListener() {
+            @Override public void consume(WorkflowStartedEvent event) { called.set(true); }
+            @Override public void consume(WorkflowInputPayloadSizeEvent event) { called.set(true); }
+            @Override public void consume(WorkflowPayloadUsedEvent event) { called.set(true); }
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+        ListenerRegister.unregister(listener, dispatcher);
+
+        dispatcher.publish(new WorkflowStartedEvent("wf", 1));
+        Thread.sleep(300);
+
+        assertFalse(called.get(), "WorkflowClientListener should not receive events after unregister");
+    }
+
+    @Test
+    void testUnregisterIsIdempotent() {
+        EventDispatcher<TaskRunnerEvent> dispatcher = new EventDispatcher<>();
+
+        TaskRunnerEventsListener listener = new TaskRunnerEventsListener() {
+            @Override public void consume(PollStarted e) {}
+            @Override public void consume(PollCompleted e) {}
+            @Override public void consume(PollFailure e) {}
+            @Override public void consume(TaskExecutionStarted e) {}
+            @Override public void consume(TaskExecutionCompleted e) {}
+            @Override public void consume(TaskExecutionFailure e) {}
+        };
+
+        ListenerRegister.register(listener, dispatcher);
+
+        // Double unregister should not throw
+        ListenerRegister.unregister(listener, dispatcher);
+        assertDoesNotThrow(() -> ListenerRegister.unregister(listener, dispatcher));
+    }
+
+    @Test
+    void testSameListenerOnDifferentDispatchersIsIndependent() throws InterruptedException {
+        EventDispatcher<TaskRunnerEvent> dispatcher1 = new EventDispatcher<>();
+        EventDispatcher<TaskRunnerEvent> dispatcher2 = new EventDispatcher<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicBoolean dispatcher1Called = new AtomicBoolean(false);
+
+        TaskRunnerEventsListener listener = new TaskRunnerEventsListener() {
+            @Override public void consume(PollStarted e) {
+                dispatcher1Called.set(true);
+                latch.countDown();
+            }
+            @Override public void consume(PollCompleted e) {}
+            @Override public void consume(PollFailure e) {}
+            @Override public void consume(TaskExecutionStarted e) {}
+            @Override public void consume(TaskExecutionCompleted e) {}
+            @Override public void consume(TaskExecutionFailure e) {}
+        };
+
+        ListenerRegister.register(listener, dispatcher1);
+        ListenerRegister.register(listener, dispatcher2);
+
+        // Unregister only from dispatcher2
+        ListenerRegister.unregister(listener, dispatcher2);
+
+        // dispatcher1 should still deliver
+        dispatcher1.publish(new PollStarted("test_task"));
+        assertTrue(latch.await(2, TimeUnit.SECONDS),
+                "Unregistering from one dispatcher must not affect the other");
+        assertTrue(dispatcher1Called.get());
     }
 }

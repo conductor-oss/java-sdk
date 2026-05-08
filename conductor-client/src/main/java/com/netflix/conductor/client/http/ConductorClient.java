@@ -445,6 +445,10 @@ public class ConductorClient {
         final Request.Builder requestBuilder = new Request.Builder().url(url);
         processHeaderParams(requestBuilder, addHeadersFromProviders(method, path, headers));
         RequestBody reqBody = requestBody(method, getContentType(headers), body);
+        // Preserve the un-resolved path template (e.g. "/workflow/{workflowId}")
+        // so the metrics interceptor can use it as a bounded uri label instead
+        // of the resolved path which contains per-request UUIDs.
+        requestBuilder.tag(String.class, path);
         if (payloadKind != null) {
             // Read by ApiClientMetricsOkHttpInterceptor at wire time.
             requestBuilder.tag(PayloadKind.class, payloadKind);
@@ -769,7 +773,10 @@ public class ConductorClient {
                 long elapsedNanos = System.nanoTime() - startNanos;
                 try {
                     String method = request.method();
-                    String uri = request.url().encodedPath();
+                    String uri = request.tag(String.class);
+                    if (uri == null) {
+                        uri = request.url().encodedPath();
+                    }
                     int status = response != null ? response.code()
                             : (ioError != null ? -1 : 0);
                     metrics.recordRequest(method, uri, status,

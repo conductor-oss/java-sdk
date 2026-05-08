@@ -103,6 +103,8 @@ public class WorkflowClient implements AutoCloseable {
 
     private final EventDispatcher<WorkflowClientEvent> eventDispatcher = new EventDispatcher<>();
 
+    private MetricsCollector metricsCollector;
+
     protected ConductorClient client;
 
     private PayloadStorage payloadStorage;
@@ -145,6 +147,7 @@ public class WorkflowClient implements AutoCloseable {
         if (client != null) {
             MetricsCollector mc = client.getMetricsCollector();
             if (mc != null) {
+                this.metricsCollector = mc;
                 registerListener(mc);
             }
         }
@@ -154,6 +157,9 @@ public class WorkflowClient implements AutoCloseable {
     public void close() {
         if (executorService != null) {
             executorService.shutdown();
+        }
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
         }
     }
 

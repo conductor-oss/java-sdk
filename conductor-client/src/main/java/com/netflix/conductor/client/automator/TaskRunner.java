@@ -327,9 +327,13 @@ class TaskRunner {
     private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
 
     private void onUncaughtException(Thread thread, Throwable error) {
+        // JVM may be in unstable state, try to send metrics then exit.
+        // Use publishSync (not publish) to avoid CompletableFuture.runAsync,
+        // which requires heap allocation and ForkJoinPool thread handoff --
+        // unsafe when the trigger may be OutOfMemoryError.
         LOGGER.error("Uncaught exception. Thread {} will exit now", thread, error);
         try {
-            eventDispatcher.publish(new ThreadUncaughtException(taskType, error));
+            eventDispatcher.publishSync(new ThreadUncaughtException(taskType, error));
         } catch (Throwable t) {
             LOGGER.debug("Failed to publish ThreadUncaughtException event", t);
         }

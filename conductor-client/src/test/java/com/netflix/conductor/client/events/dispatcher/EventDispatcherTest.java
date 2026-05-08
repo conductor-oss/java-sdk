@@ -115,4 +115,29 @@ class EventDispatcherTest {
         // Unregister from a type that was never registered - should not throw
         assertDoesNotThrow(() -> dispatcher.unregister(PollStarted.class, listener));
     }
+
+    @Test
+    void testPublishSyncRunsOnCallingThread() {
+        Thread callingThread = Thread.currentThread();
+        AtomicReference<Thread> listenerThread = new AtomicReference<>();
+        AtomicReference<PollStarted> received = new AtomicReference<>();
+
+        Consumer<PollStarted> listener = event -> {
+            listenerThread.set(Thread.currentThread());
+            received.set(event);
+        };
+
+        dispatcher.register(PollStarted.class, listener);
+        PollStarted event = new PollStarted("syncTask");
+        dispatcher.publishSync(event);
+
+        assertSame(callingThread, listenerThread.get(),
+                "publishSync must invoke listener on the calling thread");
+        assertSame(event, received.get());
+    }
+
+    @Test
+    void testPublishSyncNoListeners() {
+        assertDoesNotThrow(() -> dispatcher.publishSync(new PollStarted("orphanTask")));
+    }
 }
