@@ -217,9 +217,6 @@ public class WorkflowClient implements AutoCloseable {
     }
 
     public void checkAndUploadToExternalStorage(StartWorkflowRequest startWorkflowRequest) {
-        if (!conductorClientConfiguration.isEnforceThresholds()) {
-            return;
-        }
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             objectMapper.writeValue(byteArrayOutputStream, startWorkflowRequest.getInput());
             byte[] workflowInputBytes = byteArrayOutputStream.toByteArray();
