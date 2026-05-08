@@ -185,7 +185,7 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
     @Override
     public void consume(TaskExecutionQueueFull e) {
         counter("task_execution_queue_full_total",
-                "Counter to record execution queue has saturated",
+                "Incremented when a poll cycle is skipped because all worker threads are busy",
                 "taskType", e.getTaskType()).increment();
     }
 

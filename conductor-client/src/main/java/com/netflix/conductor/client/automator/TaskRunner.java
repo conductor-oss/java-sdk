@@ -184,8 +184,8 @@ class TaskRunner {
                     try {
                         taskFuture = this.executorService.submit(() -> this.processTask(task));
                     } catch (java.util.concurrent.RejectedExecutionException e) {
-                        LOGGER.error("Task executor queue full; dropping task {} of type {}", task.getTaskId(), taskType, e);
-                        eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
+                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                                task.getTaskId(), taskType, e);
                         permits.release();
                         return;
                     }
@@ -262,6 +262,7 @@ class TaskRunner {
         }
 
         if (pollCount == 0) {
+            eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
             return List.of();
         }
 

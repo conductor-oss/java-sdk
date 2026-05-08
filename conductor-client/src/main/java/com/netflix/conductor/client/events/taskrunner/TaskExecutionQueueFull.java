@@ -15,8 +15,9 @@ package com.netflix.conductor.client.events.taskrunner;
 import lombok.ToString;
 
 /**
- * Published when the worker's internal executor queue for a task type is
- * saturated and a freshly-polled task cannot be submitted.
+ * Published when a poll cycle finds zero available permits (all worker
+ * threads are busy), indicating the worker is at capacity for this
+ * task type.
  */
 @ToString
 public final class TaskExecutionQueueFull extends TaskRunnerEvent {
