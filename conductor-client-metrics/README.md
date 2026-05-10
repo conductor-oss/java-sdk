@@ -95,6 +95,40 @@ To install only the HTTP interceptor (step 1) without triggering automatic liste
 
 The collector exposes Prometheus text format from the embedded HTTP server. Metrics are created lazily, so a metric family appears after the corresponding worker or client event has occurred.
 
+## Tuning
+
+Canonical mode enables several hot-path behaviors that legacy mode leaves off by default to preserve zero-overhead backward compatibility. These can be toggled per-collector or overridden per-`TaskRunnerConfigurer`.
+
+### Collector-level flags
+
+Call these on `MetricsCollector` (or `AbstractPrometheusMetricsCollector`) before passing it to the builder:
+
+| Flag | Canonical default | Legacy default | Effect |
+|---|---|---|---|
+| `setAutoWiringEnabled(boolean)` | `true` | `false` | When `true`, `TaskClient` / `WorkflowClient` constructors auto-register the collector as an event listener. When `false`, callers must register manually. |
+| `setActiveWorkersTrackingEnabled(boolean)` | `true` | `false` | When `true`, `TaskRunner` publishes an `ActiveWorkersChanged` event on every task start and finish, driving the `active_workers` gauge. Adds two async event dispatches per task execution. |
+| `setDiagnosticEventsEnabled(boolean)` | `true` | `false` | When `true`, `TaskRunner` publishes `TaskPaused` and `TaskExecutionQueueFull` per poll cycle, and `TaskClient` publishes `TaskAckFailure` / `TaskAckError` on ack outcomes. |
+
+### TaskRunnerConfigurer overrides
+
+These builder methods override the collector defaults for a single configurer instance:
+
+| Builder method | Overrides |
+|---|---|
+| `withActiveWorkersTracking(boolean)` | `MetricsCollector.isActiveWorkersTrackingEnabled()` |
+| `withDiagnosticEvents(boolean)` | `MetricsCollector.isDiagnosticEventsEnabled()` |
+
+Example: opt a legacy-mode deployment into active-worker tracking without switching to canonical metrics:
+
+```java
+MetricsCollector collector = new LegacyPrometheusMetricsCollector();
+collector.setAutoWiringEnabled(true);
+
+TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
+        .withActiveWorkersTracking(true)
+        .build();
+```
+
 ## Legacy and Canonical Modes
 
 The Java SDK currently supports two mutually exclusive metric surfaces:

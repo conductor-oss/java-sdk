@@ -346,7 +346,7 @@ class TaskRunner {
         try {
             eventDispatcher.publishSync(new ThreadUncaughtException(taskType, error));
         } catch (Throwable t) {
-            LOGGER.debug("Failed to publish ThreadUncaughtException event", t);
+            LOGGER.warn("Failed to publish ThreadUncaughtException event", t);
         }
     }
 

@@ -12,9 +12,6 @@
  */
 package com.netflix.conductor.client.metrics.prometheus;
 
-import io.micrometer.prometheusmetrics.PrometheusConfig;
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
@@ -33,6 +30,9 @@ import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
+
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
  * Legacy Prometheus metrics implementation preserving the metric names and
