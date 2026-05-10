@@ -40,6 +40,6 @@ package com.netflix.conductor.client.metrics.prometheus;
  *             {@link CanonicalPrometheusMetricsCollector} based on
  *             {@code WORKER_CANONICAL_METRICS}.
  */
-@Deprecated(since = "4.1")
+@Deprecated
 public class PrometheusMetricsCollector extends LegacyPrometheusMetricsCollector {
 }
