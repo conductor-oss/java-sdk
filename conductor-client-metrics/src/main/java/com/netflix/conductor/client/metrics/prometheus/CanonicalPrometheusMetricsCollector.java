@@ -86,6 +86,7 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
         setAutoWiringEnabled(true);
         setActiveWorkersTrackingEnabled(true);
+        setDiagnosticEventsEnabled(true);
     }
 
     /** Package-private constructor for test isolation. */
@@ -94,6 +95,7 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
         setAutoWiringEnabled(true);
         setActiveWorkersTrackingEnabled(true);
+        setDiagnosticEventsEnabled(true);
     }
 
     @Override

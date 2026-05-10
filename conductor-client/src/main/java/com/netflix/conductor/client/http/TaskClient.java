@@ -354,8 +354,10 @@ public class TaskClient {
      * @return true if the task was found with the given ID and acknowledged. False
      *         otherwise. If
      *         the server returns false, the client should NOT attempt to ack again.
-     * @deprecated Prefer {@link #ack(String, String, String)} which also emits
-     *             canonical task-runner metrics.
+     * @deprecated This overload lacks the {@code taskType} parameter, so canonical
+     *             ack metrics ({@code task_ack_failed_total{taskType}},
+     *             {@code task_ack_error_total{taskType}}) cannot be labeled.
+     *             Use {@link #ack(String, String, String)} instead.
      */
     @Deprecated
     public Boolean ack(String taskId, String workerId) {
@@ -375,15 +377,16 @@ public class TaskClient {
                 .addQueryParam("workerid", workerId)
                 .build();
 
+        boolean trackAck = taskType != null && metricsCollector != null;
         try {
             ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
             Boolean acked = response.getData();
-            if (taskType != null && !Boolean.TRUE.equals(acked)) {
+            if (trackAck && !Boolean.TRUE.equals(acked)) {
                 taskRunnerEventDispatcher.publish(new TaskAckFailure(taskType, taskId));
             }
             return acked;
         } catch (Throwable t) {
-            if (taskType != null) {
+            if (trackAck) {
                 taskRunnerEventDispatcher.publish(new TaskAckError(taskType, taskId, t));
             }
             throw t;

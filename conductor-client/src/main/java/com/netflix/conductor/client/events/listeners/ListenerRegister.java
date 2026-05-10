@@ -82,7 +82,7 @@ public class ListenerRegister {
 
     // --- TaskRunnerEventsListener ---
 
-    public static void register(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
+    public static synchronized void register(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
         RegistrationKey key = new RegistrationKey(listener, dispatcher);
         if (registered.containsKey(key)) {
             return;
@@ -104,16 +104,16 @@ public class ListenerRegister {
                 bind(dispatcher, ThreadUncaughtException.class, listener::consume),
                 bind(dispatcher, ActiveWorkersChanged.class, listener::consume));
 
-        registered.putIfAbsent(key, bindings);
+        registered.put(key, bindings);
     }
 
-    public static void unregister(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
+    public static synchronized void unregister(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
         removeBindings(new RegistrationKey(listener, dispatcher));
     }
 
     // --- TaskClientListener ---
 
-    public static void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
+    public static synchronized void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
         RegistrationKey key = new RegistrationKey(listener, dispatcher);
         if (registered.containsKey(key)) {
             return;
@@ -123,16 +123,16 @@ public class ListenerRegister {
                 bind(dispatcher, TaskResultPayloadSizeEvent.class, listener::consume),
                 bind(dispatcher, TaskPayloadUsedEvent.class, listener::consume));
 
-        registered.putIfAbsent(key, bindings);
+        registered.put(key, bindings);
     }
 
-    public static void unregister(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
+    public static synchronized void unregister(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
         removeBindings(new RegistrationKey(listener, dispatcher));
     }
 
     // --- WorkflowClientListener ---
 
-    public static void register(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
+    public static synchronized void register(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
         RegistrationKey key = new RegistrationKey(listener, dispatcher);
         if (registered.containsKey(key)) {
             return;
@@ -143,10 +143,10 @@ public class ListenerRegister {
                 bind(dispatcher, WorkflowInputPayloadSizeEvent.class, listener::consume),
                 bind(dispatcher, WorkflowPayloadUsedEvent.class, listener::consume));
 
-        registered.putIfAbsent(key, bindings);
+        registered.put(key, bindings);
     }
 
-    public static void unregister(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
+    public static synchronized void unregister(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
         removeBindings(new RegistrationKey(listener, dispatcher));
     }
 

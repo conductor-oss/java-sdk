@@ -85,6 +85,7 @@ class TaskRunner {
     private final ScheduledExecutorService leaseExtendExecutorService;
     private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
     private final boolean trackActiveWorkers;
+    private final boolean trackDiagnosticEvents;
     private final AtomicInteger activeWorkerCount = new AtomicInteger(0);
 
     TaskRunner(Worker worker,
@@ -97,6 +98,7 @@ class TaskRunner {
                List<PollFilter> pollFilters,
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean trackActiveWorkers,
+               boolean trackDiagnosticEvents,
                boolean useVirtualThreads) {
         this.worker = worker;
         this.taskClient = taskClient;
@@ -108,6 +110,7 @@ class TaskRunner {
         this.pollFilters = pollFilters;
         this.eventDispatcher = eventDispatcher;
         this.trackActiveWorkers = trackActiveWorkers;
+        this.trackDiagnosticEvents = trackDiagnosticEvents;
         this.tasksTobeExecuted = new LinkedBlockingQueue<>();
         this.enableUpdateV2 = Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
 
@@ -248,7 +251,9 @@ class TaskRunner {
 
         if (worker.paused()) {
             LOGGER.trace("Worker {} has been paused. Not polling anymore!", worker.getClass());
-            eventDispatcher.publish(new TaskPaused(taskType));
+            if (trackDiagnosticEvents) {
+                eventDispatcher.publish(new TaskPaused(taskType));
+            }
             return List.of();
         }
 
@@ -265,7 +270,9 @@ class TaskRunner {
         }
 
         if (pollCount == 0) {
-            eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
+            if (trackDiagnosticEvents) {
+                eventDispatcher.publish(new TaskExecutionQueueFull(taskType));
+            }
             return List.of();
         }
 

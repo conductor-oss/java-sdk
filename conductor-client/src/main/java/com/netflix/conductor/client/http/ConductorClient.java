@@ -448,10 +448,7 @@ public class ConductorClient {
         final Request.Builder requestBuilder = new Request.Builder().url(url);
         processHeaderParams(requestBuilder, addHeadersFromProviders(method, path, headers));
         RequestBody reqBody = requestBody(method, getContentType(headers), body);
-        // Preserve the un-resolved path template (e.g. "/workflow/{workflowId}")
-        // so the metrics interceptor can use it as a bounded uri label instead
-        // of the resolved path which contains per-request UUIDs.
-        requestBuilder.tag(String.class, path);
+        requestBuilder.tag(PathTemplateTag.class, new PathTemplateTag(path));
         if (payloadKind != null) {
             // Read by ApiClientMetricsOkHttpInterceptor at wire time.
             requestBuilder.tag(PayloadKind.class, payloadKind);
@@ -767,6 +764,22 @@ public class ConductorClient {
     }
 
     /**
+     * Marker tag attached to outbound OkHttp requests so the metrics
+     * interceptor can read a bounded-cardinality URI label (the path
+     * template, e.g. {@code "/workflow/{workflowId}"}) instead of the
+     * resolved URL which contains per-request IDs.
+     *
+     * <p>Uses a dedicated class rather than {@code String.class} so the
+     * tag slot does not collide with user-installed interceptors that may
+     * use {@code request.tag(String.class)} for their own purposes.
+     */
+    public static final class PathTemplateTag {
+        private final String path;
+        public PathTemplateTag(String path) { this.path = path; }
+        public String path() { return path; }
+    }
+
+    /**
      * Lightweight OkHttp interceptor that delegates to {@link ApiClientMetrics}.
      * Lives in {@code conductor-client} so we don't need a dependency on the
      * {@code conductor-client-metrics} module just for the builder integration.
@@ -795,10 +808,8 @@ public class ConductorClient {
                 long elapsedNanos = System.nanoTime() - startNanos;
                 try {
                     String method = request.method();
-                    String uri = request.tag(String.class);
-                    if (uri == null) {
-                        uri = request.url().encodedPath();
-                    }
+                    PathTemplateTag tag = request.tag(PathTemplateTag.class);
+                    String uri = tag != null ? tag.path() : request.url().encodedPath();
                     int status = response != null ? response.code()
                             : (ioError != null ? -1 : 0);
                     metrics.recordRequest(method, uri, status,

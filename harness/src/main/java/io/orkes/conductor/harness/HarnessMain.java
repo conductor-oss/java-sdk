@@ -109,6 +109,12 @@ public class HarnessMain {
         log.info("Prometheus metrics server started on port {} ({} metrics)",
                 bundle.getPort(), bundle.getCollector().collectorName());
 
+        if (!bundle.getCollector().isAutoWiringEnabled()) {
+            bundle.getCollector().setAutoWiringEnabled(true);
+            log.info("Legacy collector does not auto-wire by default; "
+                   + "explicitly enabling auto-wiring to honor METRICS_WIRING=auto");
+        }
+
         ConductorClient client = ApiClient.builder()
                 .useEnvVariables(true)
                 .readTimeout(10_000)    // optional — OkHttp default applies if omitted

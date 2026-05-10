@@ -64,4 +64,25 @@ public interface MetricsCollector extends TaskRunnerEventsListener, WorkflowClie
      * override this.
      */
     default void setActiveWorkersTrackingEnabled(boolean enabled) { }
+
+    /**
+     * Whether {@code TaskRunner} should publish per-poll-cycle diagnostic
+     * events ({@code TaskPaused}, {@code TaskExecutionQueueFull}) and
+     * whether {@code TaskClient} should emit ack diagnostic events
+     * ({@code TaskAckFailure}, {@code TaskAckError}).
+     *
+     * <p>Defaults to {@code false} so legacy SDK upgraders see no
+     * additional hot-path overhead. The canonical collector overrides this
+     * to {@code true}. Call {@link #setDiagnosticEventsEnabled(boolean)}
+     * to override the default for any implementation.
+     */
+    default boolean isDiagnosticEventsEnabled() {
+        return false;
+    }
+
+    /**
+     * Override the default diagnostic-events behavior. No-op by default;
+     * concrete implementations that support the toggle should override this.
+     */
+    default void setDiagnosticEventsEnabled(boolean enabled) { }
 }

@@ -17,6 +17,7 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
+import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import okhttp3.Interceptor;
@@ -142,6 +143,29 @@ class ApiClientMetricsInterceptorTest {
 
         Response result = assertDoesNotThrow(() -> interceptor.intercept(chain));
         assertEquals(200, result.code());
+    }
+
+    @Test
+    void interceptUsesPathTemplateTagOverResolvedUrl() throws IOException {
+        ApiClientMetrics metrics = mock(ApiClientMetrics.class);
+        var interceptor = new ApiClientMetricsInterceptor(metrics);
+
+        Request request = new Request.Builder()
+                .url("http://localhost/api/workflow/abc-123-def")
+                .get()
+                .tag(ConductorClient.PathTemplateTag.class,
+                        new ConductorClient.PathTemplateTag("/workflow/{workflowId}"))
+                .build();
+        Response response = buildResponse(request, 200);
+
+        Interceptor.Chain chain = mock(Interceptor.Chain.class);
+        when(chain.request()).thenReturn(request);
+        when(chain.proceed(request)).thenReturn(response);
+
+        interceptor.intercept(chain);
+
+        verify(metrics).recordRequest(
+                eq("GET"), eq("/workflow/{workflowId}"), eq(200), any(Duration.class));
     }
 
     @Test

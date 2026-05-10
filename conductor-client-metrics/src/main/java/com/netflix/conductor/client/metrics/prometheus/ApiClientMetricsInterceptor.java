@@ -15,6 +15,7 @@ package com.netflix.conductor.client.metrics.prometheus;
 import java.io.IOException;
 import java.time.Duration;
 
+import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import com.netflix.conductor.client.metrics.PayloadKind;
 
@@ -54,10 +55,8 @@ final class ApiClientMetricsInterceptor implements Interceptor {
             long elapsedNanos = System.nanoTime() - startNanos;
             try {
                 String method = request.method();
-                String uri = request.tag(String.class);
-                if (uri == null) {
-                    uri = request.url().encodedPath();
-                }
+                ConductorClient.PathTemplateTag tag = request.tag(ConductorClient.PathTemplateTag.class);
+                String uri = tag != null ? tag.path() : request.url().encodedPath();
                 int status = response != null ? response.code()
                         : (ioError != null ? -1 : 0);
                 metrics.recordRequest(method, uri, status, Duration.ofNanos(elapsedNanos));
