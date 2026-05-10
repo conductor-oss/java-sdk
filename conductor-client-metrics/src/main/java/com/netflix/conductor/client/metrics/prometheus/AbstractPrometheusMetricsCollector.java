@@ -18,17 +18,26 @@ import java.net.InetSocketAddress;
 import com.netflix.conductor.client.metrics.MetricsCollector;
 
 import com.sun.net.httpserver.HttpServer;
-import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
  * Shared base for Prometheus-backed {@link MetricsCollector} implementations.
- * Owns the {@link PrometheusMeterRegistry} and the built-in HTTP scrape server
- * so both legacy and canonical implementations share the same plumbing.
+ * Owns the reference to a {@link PrometheusMeterRegistry} and the built-in
+ * HTTP scrape server so both legacy and canonical implementations share the
+ * same plumbing.
+ *
+ * <p>Each concrete subclass holds its own {@code static final} registry so
+ * that multiple instances of the same subclass share a single registry (as
+ * the original 4.0.x {@code PrometheusMetricsCollector} did), while legacy
+ * and canonical registries remain isolated from each other.
  */
 public abstract class AbstractPrometheusMetricsCollector implements MetricsCollector {
 
-    protected final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+    protected final PrometheusMeterRegistry registry;
+
+    protected AbstractPrometheusMetricsCollector(PrometheusMeterRegistry registry) {
+        this.registry = registry;
+    }
 
     private static final int DEFAULT_PORT = 9991;
     private static final String DEFAULT_ENDPOINT = "/metrics";

@@ -40,6 +40,8 @@ import com.netflix.conductor.client.metrics.ApiClientMetrics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
  * Canonical Prometheus metrics implementation emitting the harmonized metric
@@ -49,6 +51,9 @@ import io.micrometer.core.instrument.Timer;
  * No legacy metric names are emitted.
  */
 public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
+
+    private static final PrometheusMeterRegistry SHARED_REGISTRY =
+            new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
     @Override
     public String collectorName() {
@@ -77,6 +82,13 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
     private final ConcurrentHashMap<String, AtomicInteger> activeWorkerGauges = new ConcurrentHashMap<>();
 
     public CanonicalPrometheusMetricsCollector() {
+        super(SHARED_REGISTRY);
+        this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
+    }
+
+    /** Package-private constructor for test isolation. */
+    CanonicalPrometheusMetricsCollector(PrometheusMeterRegistry registry) {
+        super(registry);
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
     }
 

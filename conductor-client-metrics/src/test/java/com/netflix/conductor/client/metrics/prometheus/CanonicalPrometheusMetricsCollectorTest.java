@@ -37,6 +37,7 @@ import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEven
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 
+import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,8 +49,8 @@ class CanonicalPrometheusMetricsCollectorTest {
 
     @BeforeEach
     void setUp() {
-        collector = new CanonicalPrometheusMetricsCollector();
-        registry = collector.getRegistry();
+        registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        collector = new CanonicalPrometheusMetricsCollector(registry);
     }
 
     // --- Poll lifecycle ---

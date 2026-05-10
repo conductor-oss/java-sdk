@@ -161,6 +161,7 @@ public class TaskRunnerConfigurer {
         scheduledExecutorService.shutdown();
         if (metricsCollector != null) {
             ListenerRegister.unregister(metricsCollector, eventDispatcher);
+            taskClient.unregisterListeners();
         }
     }
 

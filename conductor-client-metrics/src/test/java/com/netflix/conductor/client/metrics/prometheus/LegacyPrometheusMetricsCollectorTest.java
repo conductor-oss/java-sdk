@@ -36,6 +36,7 @@ import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
+import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,8 +48,8 @@ class LegacyPrometheusMetricsCollectorTest {
 
     @BeforeEach
     void setUp() {
-        collector = new LegacyPrometheusMetricsCollector();
-        registry = collector.getRegistry();
+        registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        collector = new LegacyPrometheusMetricsCollector(registry);
     }
 
     // --- Active legacy metrics ---

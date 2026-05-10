@@ -12,6 +12,9 @@
  */
 package com.netflix.conductor.client.metrics.prometheus;
 
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
@@ -41,6 +44,18 @@ import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
  * is not set to {@code true}.
  */
 public class LegacyPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
+
+    private static final PrometheusMeterRegistry SHARED_REGISTRY =
+            new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+    public LegacyPrometheusMetricsCollector() {
+        super(SHARED_REGISTRY);
+    }
+
+    /** Package-private constructor for test isolation. */
+    LegacyPrometheusMetricsCollector(PrometheusMeterRegistry registry) {
+        super(registry);
+    }
 
     @Override
     public String collectorName() {
