@@ -35,8 +35,31 @@ public abstract class AbstractPrometheusMetricsCollector implements MetricsColle
 
     protected final PrometheusMeterRegistry registry;
 
+    private boolean autoWiringEnabled = false;
+    private boolean activeWorkersTrackingEnabled = false;
+
     protected AbstractPrometheusMetricsCollector(PrometheusMeterRegistry registry) {
         this.registry = registry;
+    }
+
+    @Override
+    public boolean isAutoWiringEnabled() {
+        return autoWiringEnabled;
+    }
+
+    @Override
+    public void setAutoWiringEnabled(boolean enabled) {
+        this.autoWiringEnabled = enabled;
+    }
+
+    @Override
+    public boolean isActiveWorkersTrackingEnabled() {
+        return activeWorkersTrackingEnabled;
+    }
+
+    @Override
+    public void setActiveWorkersTrackingEnabled(boolean enabled) {
+        this.activeWorkersTrackingEnabled = enabled;
     }
 
     private static final int DEFAULT_PORT = 9991;

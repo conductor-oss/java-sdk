@@ -84,12 +84,16 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
     public CanonicalPrometheusMetricsCollector() {
         super(SHARED_REGISTRY);
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
+        setAutoWiringEnabled(true);
+        setActiveWorkersTrackingEnabled(true);
     }
 
     /** Package-private constructor for test isolation. */
     CanonicalPrometheusMetricsCollector(PrometheusMeterRegistry registry) {
         super(registry);
         this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
+        setAutoWiringEnabled(true);
+        setActiveWorkersTrackingEnabled(true);
     }
 
     @Override

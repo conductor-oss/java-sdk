@@ -21,4 +21,47 @@ public interface MetricsCollector extends TaskRunnerEventsListener, WorkflowClie
     default ApiClientMetrics getApiClientMetrics() {
         return ApiClientMetrics.NOOP;
     }
+
+    /**
+     * Whether downstream clients ({@code TaskClient}, {@code WorkflowClient},
+     * {@code TaskRunnerConfigurer}) should automatically register this
+     * collector as an event listener when a {@code ConductorClient} built with
+     * {@link com.netflix.conductor.client.http.ConductorClient.Builder#withMetricsCollector}
+     * is detected.
+     *
+     * <p>Defaults to {@code false} so that legacy SDK upgraders see no
+     * constructor side-effects. The canonical collector overrides this to
+     * {@code true}. Call {@link #setAutoWiringEnabled(boolean)} to override
+     * the default for any implementation.
+     */
+    default boolean isAutoWiringEnabled() {
+        return false;
+    }
+
+    /**
+     * Override the default auto-wiring behavior. No-op by default; concrete
+     * implementations that support the toggle should override this.
+     */
+    default void setAutoWiringEnabled(boolean enabled) { }
+
+    /**
+     * Whether {@code TaskRunner} should publish {@code ActiveWorkersChanged}
+     * events on every task start/finish to drive the {@code active_workers}
+     * gauge. This adds two async event dispatches per task execution.
+     *
+     * <p>Defaults to {@code false} so legacy SDK upgraders see no additional
+     * hot-path overhead. The canonical collector overrides this to
+     * {@code true}. Call {@link #setActiveWorkersTrackingEnabled(boolean)} to
+     * override the default for any implementation.
+     */
+    default boolean isActiveWorkersTrackingEnabled() {
+        return false;
+    }
+
+    /**
+     * Override the default active-workers tracking behavior. No-op by
+     * default; concrete implementations that support the toggle should
+     * override this.
+     */
+    default void setActiveWorkersTrackingEnabled(boolean enabled) { }
 }

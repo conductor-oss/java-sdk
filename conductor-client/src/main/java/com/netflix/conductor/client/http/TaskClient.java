@@ -129,7 +129,7 @@ public class TaskClient {
         this.conductorClientConfiguration = config;
         if (client != null) {
             MetricsCollector mc = client.getMetricsCollector();
-            if (mc != null) {
+            if (mc != null && mc.isAutoWiringEnabled()) {
                 this.metricsCollector = mc;
                 registerListener(mc);
                 registerTaskRunnerListener(mc);

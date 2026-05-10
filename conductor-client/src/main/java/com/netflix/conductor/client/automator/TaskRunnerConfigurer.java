@@ -54,6 +54,7 @@ public class TaskRunnerConfigurer {
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
+    private final boolean trackActiveWorkers;
     private final boolean useVirtualThreads;
 
     /**
@@ -76,6 +77,7 @@ public class TaskRunnerConfigurer {
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
+        this.trackActiveWorkers = builder.resolveActiveWorkersTracking();
         this.useVirtualThreads = builder.useVirtualThreads;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
@@ -179,6 +181,7 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
+                trackActiveWorkers,
                 useVirtualThreads);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
@@ -215,6 +218,7 @@ public class TaskRunnerConfigurer {
 
         private MetricsCollector metricsCollector;
         private boolean metricsCollectorExplicitlySet;
+        private Boolean activeWorkersTrackingOverride;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
@@ -330,7 +334,7 @@ public class TaskRunnerConfigurer {
                 var conductorClient = taskClient.getConductorClient();
                 if (conductorClient != null) {
                     MetricsCollector mc = conductorClient.getMetricsCollector();
-                    if (mc != null) {
+                    if (mc != null && mc.isAutoWiringEnabled()) {
                         this.metricsCollector = mc;
                         ListenerRegister.register(mc, eventDispatcher);
                     }
@@ -367,6 +371,24 @@ public class TaskRunnerConfigurer {
             ListenerRegister.register(metricsCollector, eventDispatcher);
             this.metricsCollectorExplicitlySet = true;
             return this;
+        }
+
+        /**
+         * Explicitly enable or disable {@code ActiveWorkersChanged} event
+         * publishing on every task start/finish. When set, this overrides the
+         * default derived from the {@link MetricsCollector}. Canonical
+         * metrics enable this by default; legacy metrics do not.
+         */
+        public Builder withActiveWorkersTracking(boolean enabled) {
+            this.activeWorkersTrackingOverride = enabled;
+            return this;
+        }
+
+        private boolean resolveActiveWorkersTracking() {
+            if (activeWorkersTrackingOverride != null) {
+                return activeWorkersTrackingOverride;
+            }
+            return metricsCollector != null && metricsCollector.isActiveWorkersTrackingEnabled();
         }
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {

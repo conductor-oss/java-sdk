@@ -84,6 +84,7 @@ class TaskRunner {
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
     private final ScheduledExecutorService leaseExtendExecutorService;
     private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
+    private final boolean trackActiveWorkers;
     private final AtomicInteger activeWorkerCount = new AtomicInteger(0);
 
     TaskRunner(Worker worker,
@@ -95,6 +96,7 @@ class TaskRunner {
                int taskPollTimeout,
                List<PollFilter> pollFilters,
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
+               boolean trackActiveWorkers,
                boolean useVirtualThreads) {
         this.worker = worker;
         this.taskClient = taskClient;
@@ -105,6 +107,7 @@ class TaskRunner {
         this.permits = new Semaphore(threadCount);
         this.pollFilters = pollFilters;
         this.eventDispatcher = eventDispatcher;
+        this.trackActiveWorkers = trackActiveWorkers;
         this.tasksTobeExecuted = new LinkedBlockingQueue<>();
         this.enableUpdateV2 = Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
 
@@ -342,7 +345,9 @@ class TaskRunner {
 
     private Task processTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
-        eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.incrementAndGet()));
+        if (trackActiveWorkers) {
+            eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.incrementAndGet()));
+        }
 
         // record execution start time for a task
         task.getExecutionMetadata().setExecutionStartTime(System.currentTimeMillis());
@@ -365,7 +370,9 @@ class TaskRunner {
         } finally {
             cancelLeaseExtension(task.getTaskId());
             permits.release();
-            eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
+            if (trackActiveWorkers) {
+                eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
+            }
         }
         return task;
     }

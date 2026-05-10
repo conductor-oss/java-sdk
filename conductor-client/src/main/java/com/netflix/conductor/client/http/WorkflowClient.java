@@ -146,7 +146,7 @@ public class WorkflowClient implements AutoCloseable {
 
         if (client != null) {
             MetricsCollector mc = client.getMetricsCollector();
-            if (mc != null) {
+            if (mc != null && mc.isAutoWiringEnabled()) {
                 this.metricsCollector = mc;
                 registerListener(mc);
             }
