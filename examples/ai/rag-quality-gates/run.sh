@@ -40,7 +40,7 @@ if curl -sf "$HEALTH_URL" > /dev/null 2>&1; then
     echo "Conductor is running at $CONDUCTOR_SERVER_URL"
     echo "Building and running the example..."
     echo ""
-    mvn -q package -DskipTests 2>/dev/null || mvn package -DskipTests
+    docker run --rm -v "$PWD":/work -v "$HOME/.m2":/root/.m2 -w /work maven:3.9-eclipse-temurin-21 mvn -q package -DskipTests 2>/dev/null || docker run --rm -v "$PWD":/work -v "$HOME/.m2":/root/.m2 -w /work maven:3.9-eclipse-temurin-21 mvn package -DskipTests
     CONDUCTOR_SERVER_URL="$CONDUCTOR_SERVER_URL" java -jar target/rag-quality-gates-1.0.0.jar "$@"
 else
     echo "Conductor not found at $HEALTH_URL"
