@@ -26,7 +26,8 @@ public class DockerSetupExample {
     public static void main(String[] args) throws Exception {
         boolean workersOnly = args.length > 0 && "--workers".equals(args[0]);
 
-        String serverUrl = ConductorClientHelper.getServerUrl();
+        var client = new ConductorClientHelper();
+        String serverUrl = client.getServerUrl();
         String baseUrl = serverUrl.endsWith("/api")
                 ? serverUrl.substring(0, serverUrl.length() - 4)
                 : serverUrl;
@@ -47,8 +48,6 @@ public class DockerSetupExample {
             return;
         }
         System.out.println("  Conductor is healthy.\n");
-
-        var client = new ConductorClientHelper();
 
         // Step 2 — Register task definition
         System.out.println("Step 2: Registering task definition...");
