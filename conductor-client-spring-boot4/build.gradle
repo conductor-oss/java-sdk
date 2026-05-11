@@ -1,0 +1,38 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'signing'
+}
+
+ext {
+    artifactId = 'conductor-client-spring-boot4'
+    artifactName = 'Conductor OSS Client Spring Boot 4'
+    artifactDescription = 'Spring Boot 4 autoconfig for Conductor Client and SDK'
+}
+
+apply plugin: 'publish-config'
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(":conductor-client")
+    implementation 'org.springframework.boot:spring-boot-starter:4.0.6'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:4.0.6'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation "org.mockito:mockito-core:${versions.mockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${versions.mockito}"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+test {
+    useJUnitPlatform()
+}
