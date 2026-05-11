@@ -119,8 +119,8 @@ public class ConductorUiExample {
     }
 
     private static void printUiGuide(String workflowId) {
-        String baseUrl = System.getenv("CONDUCTOR_BASE_URL") != null
-                ? System.getenv("CONDUCTOR_BASE_URL")
+        String baseUrl = System.getenv("CONDUCTOR_SERVER_URL") != null
+                ? System.getenv("CONDUCTOR_SERVER_URL")
                 : "http://localhost:8080/api";
         String uiUrl = baseUrl.replace("/api", "").replace(":8080", ":1234");
 

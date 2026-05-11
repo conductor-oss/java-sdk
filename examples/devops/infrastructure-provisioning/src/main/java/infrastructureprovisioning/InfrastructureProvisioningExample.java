@@ -12,7 +12,7 @@ import java.util.*;
  * configure, and verify across cloud providers.
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/infrastructure-provisioning-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/infrastructure-provisioning-1.0.0.jar
  */
 public class InfrastructureProvisioningExample {
 

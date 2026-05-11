@@ -9,7 +9,7 @@ import java.util.*;
  * Environment Management — Lifecycle Orchestration
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/environment-management-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/environment-management-1.0.0.jar
  */
 public class EnvironmentManagementExample {
 

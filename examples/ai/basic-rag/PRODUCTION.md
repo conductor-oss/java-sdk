@@ -4,7 +4,7 @@
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONDUCTOR_BASE_URL` | Yes | Conductor server API endpoint (e.g., `https://orkes.example.com/api`) |
+| `CONDUCTOR_SERVER_URL` | Yes | Conductor server API endpoint (e.g., `https://orkes.example.com/api`) |
 | `CONDUCTOR_OPENAI_API_KEY` | Yes | OpenAI API key for embeddings and chat completions |
 | `OPENAI_EMBED_MODEL` | No | Embedding model override (default: `text-embedding-3-small`) |
 | `OPENAI_CHAT_MODEL` | No | Chat model override (default: `gpt-4o-mini`) |

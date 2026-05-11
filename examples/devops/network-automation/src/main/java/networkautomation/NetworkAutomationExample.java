@@ -12,7 +12,7 @@ import java.util.*;
  * Pipeline: audit -> plan-changes -> apply-config -> verify-connectivity
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/network-automation-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/network-automation-1.0.0.jar
  */
 public class NetworkAutomationExample {
 

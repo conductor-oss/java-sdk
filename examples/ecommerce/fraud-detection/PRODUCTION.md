@@ -4,7 +4,7 @@
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `CONDUCTOR_BASE_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
 | `FRAUD_BLOCK_THRESHOLD` | No | `0.7` | Combined score above which transactions are blocked (0.0-1.0) |
 | `FRAUD_REVIEW_THRESHOLD` | No | `0.4` | Combined score above which transactions require manual review (0.0-1.0) |
 | `FRAUD_RULE_HIGH_RISK_WEIGHT` | No | `3.0` | Total rule weight at or above which the rule engine returns `high_risk` |
@@ -24,7 +24,7 @@
 - **Worker thread count**: Default is 1 thread per worker type. For high-throughput deployments, increase via `TaskRunnerConfigurer.Builder.withThreadCount()`.
 - **Workflow registration**: The workflow definition (`workflow.json`) must be registered before starting workflows. The `FraudDetectionExample.main()` handles this, but in production use CI/CD to register definitions.
 - **JVM settings**: Recommended `-Xmx512m -Xms256m` for worker processes. Increase if maintaining large in-memory customer histories.
-- **Container deployment**: Use the provided `Dockerfile` and `docker-compose.yml`. Ensure `CONDUCTOR_BASE_URL` points to your Conductor cluster, not localhost.
+- **Container deployment**: Use the provided `Dockerfile` and `docker-compose.yml`. Ensure `CONDUCTOR_SERVER_URL` points to your Conductor cluster, not localhost.
 
 ## Monitoring Expectations
 

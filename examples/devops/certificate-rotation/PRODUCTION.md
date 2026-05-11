@@ -4,7 +4,7 @@
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONDUCTOR_BASE_URL` | Yes | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | Conductor server API endpoint |
 
 No API keys are required for this example. All workers use Java's built-in TLS and crypto libraries.
 
@@ -25,7 +25,7 @@ Use Conductor's scheduled workflows or external cron to trigger the rotation pip
 
 ```bash
 # Daily check at 2 AM UTC
-0 2 * * * curl -X POST $CONDUCTOR_BASE_URL/workflow/cert_rotation_workflow -d '{"domain":"your-domain.com"}'
+0 2 * * * curl -X POST $CONDUCTOR_SERVER_URL/workflow/cert_rotation_workflow -d '{"domain":"your-domain.com"}'
 ```
 
 ### Multi-Domain Rotation

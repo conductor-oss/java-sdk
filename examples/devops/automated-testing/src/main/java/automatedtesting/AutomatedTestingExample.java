@@ -9,7 +9,7 @@ import java.util.*;
  * Automated Testing — Test Suite Orchestration
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/automated-testing-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/automated-testing-1.0.0.jar
  */
 public class AutomatedTestingExample {
 

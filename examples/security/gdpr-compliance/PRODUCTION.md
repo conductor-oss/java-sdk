@@ -4,7 +4,7 @@
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `CONDUCTOR_BASE_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
 | `CONDUCTOR_AUTH_KEY` | If auth enabled | none | API key for Conductor authentication |
 | `CONDUCTOR_AUTH_SECRET` | If auth enabled | none | API secret for Conductor authentication |
 
@@ -12,7 +12,7 @@
 
 - **PII handling**: All PII detection patterns run in-memory. No PII data is persisted to disk or logs. The `maskValue()` and `maskPII()` methods ensure only redacted forms appear in output.
 - **Audit logging**: Every worker produces an audit log entry with `timestamp`, `action`, `actor`, `result`, and `detail`. Forward these to your SIEM/audit system.
-- **Transport**: Use HTTPS for `CONDUCTOR_BASE_URL` in production. Never use plain HTTP.
+- **Transport**: Use HTTPS for `CONDUCTOR_SERVER_URL` in production. Never use plain HTTP.
 - **Input validation**: All workers fail with `FAILED_WITH_TERMINAL_ERROR` on missing or invalid inputs. No fallback/synthetic data is generated.
 - **Data subject IDs**: Treat `subjectId` and `requestorId` as sensitive. Do not log them in external systems without masking.
 
@@ -25,14 +25,14 @@
 
 2. Run workers:
    ```bash
-   export CONDUCTOR_BASE_URL=https://your-conductor:8080/api
+   export CONDUCTOR_SERVER_URL=https://your-conductor:8080/api
    java -jar target/gdpr-compliance-1.0.0.jar --workers
    ```
 
 3. Docker:
    ```bash
    docker build -t gdpr-compliance .
-   docker run -e CONDUCTOR_BASE_URL=https://your-conductor:8080/api gdpr-compliance
+   docker run -e CONDUCTOR_SERVER_URL=https://your-conductor:8080/api gdpr-compliance
    ```
 
 ## Monitoring

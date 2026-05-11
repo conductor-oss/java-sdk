@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ConductorClientHelper {
-    private static final String CONDUCTOR_SERVER_URL = System.getenv("CONDUCTOR_BASE_URL") != null ? System.getenv("CONDUCTOR_BASE_URL") : "http://localhost:8080/api";
+    private static final String CONDUCTOR_SERVER_URL = System.getenv("CONDUCTOR_SERVER_URL") != null ? System.getenv("CONDUCTOR_SERVER_URL") : "http://localhost:8080/api";
     private final ConductorClient client;
     private final MetadataClient metadataClient;
     private final WorkflowClient workflowClient;

@@ -4,7 +4,7 @@
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONDUCTOR_BASE_URL` | Yes | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | Conductor server API endpoint |
 
 No external API keys required. All cryptographic operations use Java's built-in libraries.
 

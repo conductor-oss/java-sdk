@@ -4,7 +4,7 @@
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `CONDUCTOR_BASE_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
 | `CONDUCTOR_AUTH_KEY` | If auth enabled | none | API key for Conductor authentication |
 | `CONDUCTOR_AUTH_SECRET` | If auth enabled | none | API secret for Conductor authentication |
 
@@ -23,7 +23,7 @@
 
 2. Run workers:
    ```bash
-   export CONDUCTOR_BASE_URL=https://your-conductor:8080/api
+   export CONDUCTOR_SERVER_URL=https://your-conductor:8080/api
    java -jar target/circuit-breaker-1.0.0.jar --workers
    ```
 

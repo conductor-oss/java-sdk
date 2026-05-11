@@ -24,7 +24,7 @@ Conductor UI will be available at `http://localhost:1234`.
 Start Conductor:
 
 ```bash
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:1.2.3
+docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.22.3
 ```
 
 Build and run the example:
@@ -42,7 +42,7 @@ cd examples/<category>/<example>
 ./run.sh
 ```
 
-The script auto-detects `CONDUCTOR_BASE_URL` or defaults to `http://localhost:8080/api`.
+The script auto-detects `CONDUCTOR_SERVER_URL` or defaults to `http://localhost:8080/api`.
 
 ## Worker-Only Mode
 
@@ -73,7 +73,7 @@ conductor workflow get-execution <workflow_id>
 
 | Environment Variable | Default | Description |
 |---|---|---|
-| `CONDUCTOR_BASE_URL` | `http://localhost:8080/api` | Conductor server URL |
+| `CONDUCTOR_SERVER_URL` | `http://localhost:8080/api` | Conductor server URL |
 | `CONDUCTOR_PORT` | `8080` | Host port for Conductor (Docker Compose only) |
 
 ## SDK Dependency

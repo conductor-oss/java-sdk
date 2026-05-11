@@ -1,6 +1,6 @@
 services:
   conductor:
-    image: orkesio/orkes-conductor-standalone:1.2.3
+    image: conductoross/conductor:3.22.3
     ports:
       - "${CONDUCTOR_PORT:-8080}:8080"
       - "${CONDUCTOR_UI_PORT:-1234}:5000"
@@ -18,7 +18,7 @@ services:
       conductor:
         condition: service_healthy
     environment:
-      - CONDUCTOR_BASE_URL=http://conductor:8080/api
+      - CONDUCTOR_SERVER_URL=http://conductor:8080/api
       - CONDUCTOR_OPENAI_API_KEY=${CONDUCTOR_OPENAI_API_KEY:-}
       - CONDUCTOR_ANTHROPIC_API_KEY=${CONDUCTOR_ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
