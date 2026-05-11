@@ -24,7 +24,7 @@ Conductor UI will be available at `http://localhost:1234`.
 Start Conductor:
 
 ```bash
-docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.22.3
+docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.30.0.rc12
 ```
 
 Build and run the example:

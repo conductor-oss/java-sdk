@@ -6,7 +6,7 @@
 
 ```bash
 # Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.22.3
+docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.30.0.rc12
 
 # Pick any example and run it
 cd examples/basics/hello-world

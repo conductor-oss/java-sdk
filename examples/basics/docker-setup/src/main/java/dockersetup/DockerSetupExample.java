@@ -41,7 +41,7 @@ public class DockerSetupExample {
         if (!isHealthy(healthUrl)) {
             System.out.println("  FAILED — Conductor is not reachable at " + healthUrl + "\n");
             System.out.println("Start Conductor with Docker:");
-            System.out.println("  docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.22.3\n");
+            System.out.println("  docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.30.0.rc12\n");
             System.out.println("Then wait for it to be ready:");
             System.out.println("  until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done\n");
             System.exit(1);

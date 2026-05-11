@@ -6,7 +6,7 @@ These are the original Gradle-based examples, preserved for reference. For new p
 
 ```bash
 # Start Conductor locally
-docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.22.3
+docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:3.30.0.rc12
 
 export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 
