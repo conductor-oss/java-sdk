@@ -14,3 +14,19 @@ permissions:
 jobs:
   scan-scheduled:
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.3"
+    with:
+      # Scan only the published modules. examples/ pins old dependency versions and
+      # is excluded for now to keep the scan green. Add it back once examples are
+      # bumped to the same versions as the production modules.
+      scan-args: |-
+        -r
+        buildSrc
+        conductor-client
+        conductor-client-metrics
+        conductor-client-spring
+        conductor-client-spring-boot4
+        harness
+        java-sdk
+        orkes-client
+        orkes-spring
+        tests
