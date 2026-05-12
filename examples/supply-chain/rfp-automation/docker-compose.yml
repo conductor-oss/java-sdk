@@ -1,6 +1,6 @@
 services:
   conductor:
-    image: conductoross/conductor:3.30.0.rc12
+    image: conductoross/conductor:latest
     ports:
       - "${CONDUCTOR_PORT:-8080}:8080"
       - "${CONDUCTOR_UI_PORT:-1234}:5000"
