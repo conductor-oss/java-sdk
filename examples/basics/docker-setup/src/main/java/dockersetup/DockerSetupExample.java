@@ -26,7 +26,8 @@ public class DockerSetupExample {
     public static void main(String[] args) throws Exception {
         boolean workersOnly = args.length > 0 && "--workers".equals(args[0]);
 
-        String serverUrl = ConductorClientHelper.getServerUrl();
+        var client = new ConductorClientHelper();
+        String serverUrl = client.getServerUrl();
         String baseUrl = serverUrl.endsWith("/api")
                 ? serverUrl.substring(0, serverUrl.length() - 4)
                 : serverUrl;
@@ -40,15 +41,13 @@ public class DockerSetupExample {
         if (!isHealthy(healthUrl)) {
             System.out.println("  FAILED — Conductor is not reachable at " + healthUrl + "\n");
             System.out.println("Start Conductor with Docker:");
-            System.out.println("  docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest\n");
+            System.out.println("  docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:latest\n");
             System.out.println("Then wait for it to be ready:");
             System.out.println("  until curl -sf http://localhost:8080/health > /dev/null; do sleep 2; done\n");
             System.exit(1);
             return;
         }
         System.out.println("  Conductor is healthy.\n");
-
-        var client = new ConductorClientHelper();
 
         // Step 2 — Register task definition
         System.out.println("Step 2: Registering task definition...");

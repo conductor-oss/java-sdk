@@ -4,7 +4,7 @@
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONDUCTOR_BASE_URL` | Yes | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | Conductor server API endpoint |
 | `CONDUCTOR_OPENAI_API_KEY` | Yes | OpenAI API key for classification, reasoning, and generation |
 
 All workers that call OpenAI (`ClassifyWorker`, `SimpleGenerateWorker`, `AnalyticalGenerateWorker`, `CreativeGenerateWorker`, `ReasoningWorker`) throw `IllegalStateException` at construction time if the key is missing.

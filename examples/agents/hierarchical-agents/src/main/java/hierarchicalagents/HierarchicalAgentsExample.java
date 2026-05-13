@@ -20,7 +20,7 @@ import java.util.Map;
  * Uses conductor-oss Java SDK v5 from https://github.com/conductor-oss/conductor/tree/main/conductor-clients
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/hierarchical-agents-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/hierarchical-agents-1.0.0.jar
  */
 public class HierarchicalAgentsExample {
 

@@ -12,7 +12,7 @@ import java.util.*;
  * Pipeline: scan-vulnerabilities -> test-patch -> deploy-patch -> verify-patch
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/patch-management-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/patch-management-1.0.0.jar
  */
 public class PatchManagementExample {
 

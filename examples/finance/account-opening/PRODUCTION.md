@@ -4,7 +4,7 @@
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `CONDUCTOR_BASE_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
+| `CONDUCTOR_SERVER_URL` | Yes | `http://localhost:8080/api` | Conductor server API endpoint |
 
 ## Security Considerations
 

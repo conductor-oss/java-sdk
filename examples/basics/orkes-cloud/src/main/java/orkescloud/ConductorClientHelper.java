@@ -21,7 +21,7 @@ import java.util.Map;
  * Shared Conductor client utilities using conductor-oss Java SDK v5.
  *
  * Supports two connection modes:
- * - Local: connects to a local Conductor instance via CONDUCTOR_BASE_URL
+ * - Local: connects to a local Conductor instance via CONDUCTOR_SERVER_URL
  * - Cloud: connects to Orkes Conductor Cloud via CONDUCTOR_SERVER_URL with
  *   API key authentication using CONDUCTOR_KEY_ID and CONDUCTOR_KEY_SECRET
  *
@@ -44,11 +44,11 @@ public class ConductorClientHelper {
 
     /**
      * Creates a helper connected to the local Conductor instance.
-     * Uses CONDUCTOR_BASE_URL env var, defaulting to http://localhost:8080/api.
+     * Uses CONDUCTOR_SERVER_URL env var, defaulting to http://localhost:8080/api.
      */
     public ConductorClientHelper() {
-        this(System.getenv("CONDUCTOR_BASE_URL") != null
-                ? System.getenv("CONDUCTOR_BASE_URL")
+        this(System.getenv("CONDUCTOR_SERVER_URL") != null
+                ? System.getenv("CONDUCTOR_SERVER_URL")
                 : DEFAULT_LOCAL_URL, null, null);
     }
 

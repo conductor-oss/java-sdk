@@ -14,7 +14,7 @@ import java.util.*;
  * Uses conductor-oss Java SDK v5.
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/change-management-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/change-management-1.0.0.jar
  */
 public class ChangeManagementExample {
 

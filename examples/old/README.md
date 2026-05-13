@@ -6,7 +6,7 @@ These are the original Gradle-based examples, preserved for reference. For new p
 
 ```bash
 # Start Conductor locally
-docker run -d -p 8080:8080 -p 1234:5000 orkesio/orkes-conductor-standalone:latest
+docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:latest
 
 export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 

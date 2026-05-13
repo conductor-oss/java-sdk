@@ -69,7 +69,7 @@ public class ToolUseRateLimitingExample {
         System.out.println("Step 4: Starting workflow...\n");
         
         // Store secret via Conductor Secrets API
-        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_BASE_URL", "http://localhost:8080/api");
+        String conductorUrl = System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
         HttpClient http = HttpClient.newHttpClient();
         http.send(HttpRequest.newBuilder()
                 .uri(URI.create(conductorUrl + "/secrets/rate_limit_api_key"))

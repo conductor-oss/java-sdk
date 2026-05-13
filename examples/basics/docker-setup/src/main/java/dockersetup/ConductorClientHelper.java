@@ -21,11 +21,6 @@ import java.util.Map;
  */
 public class ConductorClientHelper {
 
-    private static final String CONDUCTOR_SERVER_URL =
-            System.getenv("CONDUCTOR_BASE_URL") != null
-                    ? System.getenv("CONDUCTOR_BASE_URL")
-                    : "http://localhost:8080/api";
-
     private final ConductorClient client;
     private final MetadataClient metadataClient;
     private final WorkflowClient workflowClient;
@@ -34,15 +29,15 @@ public class ConductorClientHelper {
 
     public ConductorClientHelper() {
         this.client = ConductorClient.builder()
-                .basePath(CONDUCTOR_SERVER_URL)
+                .useEnvVariables(true)
                 .build();
         this.metadataClient = new MetadataClient(client);
         this.workflowClient = new WorkflowClient(client);
         this.taskClient = new TaskClient(client);
     }
 
-    public static String getServerUrl() {
-        return CONDUCTOR_SERVER_URL;
+    public String getServerUrl() {
+        return client.getBasePath();
     }
 
     public void registerTaskDefs(List<String> taskNames) {

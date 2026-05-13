@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * Local mode (fallback):
  *   If cloud credentials are not set, falls back to a local Conductor instance
- *   using CONDUCTOR_BASE_URL (default: http://localhost:8080/api). Uses
+ *   using CONDUCTOR_SERVER_URL (default: http://localhost:8080/api). Uses
  *   local_greet task and local_connection_test workflow.
  *
  * Run:
@@ -66,8 +66,8 @@ public class OrkesCloudExample {
             System.out.println("    CONDUCTOR_SERVER_URL  — e.g., https://play.orkes.io/api");
             System.out.println("    CONDUCTOR_KEY_ID      — your Orkes Cloud API key ID");
             System.out.println("    CONDUCTOR_KEY_SECRET  — your Orkes Cloud API key secret\n");
-            String localUrl = System.getenv("CONDUCTOR_BASE_URL") != null
-                    ? System.getenv("CONDUCTOR_BASE_URL")
+            String localUrl = System.getenv("CONDUCTOR_SERVER_URL") != null
+                    ? System.getenv("CONDUCTOR_SERVER_URL")
                     : "http://localhost:8080/api";
             System.out.println("  Connecting to local Conductor at: " + localUrl + "\n");
             client = new ConductorClientHelper();

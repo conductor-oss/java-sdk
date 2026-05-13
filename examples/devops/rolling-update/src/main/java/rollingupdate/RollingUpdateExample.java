@@ -15,7 +15,7 @@ import java.util.*;
  * Pattern: analyze -> plan -> execute -> verify
  *
  * Run:
- *   CONDUCTOR_BASE_URL=http://localhost:8080/api java -jar target/rolling-update-1.0.0.jar
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api java -jar target/rolling-update-1.0.0.jar
  */
 public class RollingUpdateExample {
 
