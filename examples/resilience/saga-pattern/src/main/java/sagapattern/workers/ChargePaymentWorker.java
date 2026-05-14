@@ -7,8 +7,8 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import java.time.Instant;
 
 /**
- * Charges payment for the trip. If shouldFail is true, returns a
- * FAILED_WITH_TERMINAL_ERROR to trigger saga compensation.
+ * Charges payment for the trip. If shouldFail is true, completes with
+ * output status "failed" so the SWITCH task can route to compensation.
  *
  * Input:
  *   - tripId (String, required): trip identifier
@@ -68,8 +68,7 @@ public class ChargePaymentWorker implements Worker {
 
         if (shouldFail) {
             System.out.println("  [charge_payment] Payment FAILED for trip " + tripId);
-            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
-            result.setReasonForIncompletion("Payment processing failed for trip " + tripId);
+            result.setStatus(TaskResult.Status.COMPLETED);
             result.getOutputData().put("status", "failed");
             return result;
         }
