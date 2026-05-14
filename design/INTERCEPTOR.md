@@ -28,37 +28,37 @@ The Conductor Java SDK implements a flexible, event-driven metrics collection sy
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                       Task Execution Layer                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │  TaskRunner  │  │WorkflowClient│  │  TaskClient  │          │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
-│         │                  │                  │                   │
-│         └──────────────────┼──────────────────┘                  │
-│                            │ publish events                       │
-└────────────────────────────┼──────────────────────────────────────┘
+│                       Task Execution Layer                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │  TaskRunner  │  │WorkflowClient│  │  TaskClient  │           │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘           │
+│         │                  │                │                   │
+│         └──────────────────┼────────────────┘                   │
+│                            │ publish events                     │
+└────────────────────────────┼────────────────────────────────────┘
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Event Dispatch Layer                        │
+│                      Event Dispatch Layer                       │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │              EventDispatcher<T>                            │  │
+│  │              EventDispatcher<T>                           │  │
 │  │  • Async event publishing (CompletableFuture)             │  │
-│  │  • Type-safe event routing                                 │  │
-│  │  • Multiple listener support                               │  │
+│  │  • Type-safe event routing                                │  │
+│  │  • Multiple listener support                              │  │
 │  └───────────────────────┬───────────────────────────────────┘  │
-│                          │ dispatch to listeners                 │
-└──────────────────────────┼───────────────────────────────────────┘
+│                          │ dispatch to listeners                │
+└──────────────────────────┼──────────────────────────────────────┘
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Listener/Consumer Layer                      │
-│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐  │
-│  │ MetricsCollector│  │ Custom Listener│  │ Audit Logger     │  │
-│  │  (Prometheus)   │  │  (Business)    │  │  (Compliance)    │  │
-│  └────────────────┘  └────────────────┘  └──────────────────┘  │
-│                                                                   │
-│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐  │
-│  │   Datadog      │  │   CloudWatch   │  │   Custom Metrics │  │
-│  │   Collector    │  │   Collector    │  │   Backend        │  │
-│  └────────────────┘  └────────────────┘  └──────────────────┘  │
+│                     Listener/Consumer Layer                     │
+│  ┌──────────────────┐  ┌────────────────┐  ┌──────────────────┐ │
+│  │ MetricsCollector │  │ Custom Listener│  │ Audit Logger     │ │
+│  │  (Prometheus)    │  │  (Business)    │  │  (Compliance     │ │
+│  └──────────────────┘  └────────────────┘  └──────────────────┘ │
+│                                                                 │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐   │
+│  │   Datadog      │  │   CloudWatch   │  │   Custom Metrics │   │ 
+│  │   Collector    │  │   Collector    │  │   Backend        │   │
+│  └────────────────┘  └────────────────┘  └──────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -267,9 +267,9 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ 1. Worker polls for tasks                                        │
+│ 1. Worker polls for tasks                                       │
 │    TaskRunner.pollTasksForWorker()                              │
-│    └─→ eventDispatcher.publish(new PollStarted(taskType))      │
+│    └─→ eventDispatcher.publish(new PollStarted(taskType) )      │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -281,14 +281,14 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 3. Task execution begins                                         │
+│ 3. Task execution begins                                        │
 │    TaskRunner.processTask()                                     │
-│    └─→ eventDispatcher.publish(                                │
-│        new TaskExecutionStarted(taskType, taskId, workerId))   │
+│    └─→ eventDispatcher.publish(                                 │
+│        new TaskExecutionStarted(taskType, taskId, workerId))    │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 4. Worker executes task                                          │
+│ 4. Worker executes task                                         │
 │    TaskRunner.executeTask()                                     │
 │    └─→ worker.execute(task)                                     │
 └─────────────────────────────────────────────────────────────────┘
@@ -297,10 +297,10 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 │ 5. Task execution completes (success or failure)                │
 │    • Success: eventDispatcher.publish(                          │
 │        new TaskExecutionCompleted(taskType, taskId,             │
-│            workerId, duration))                                  │
+│            workerId, duration))                                 │
 │    • Failure: eventDispatcher.publish(                          │
 │        new TaskExecutionFailure(taskType, taskId,               │
-│            workerId, exception, duration))                       │
+│            workerId, exception, duration))                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -308,26 +308,26 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ 1. Check payload size                                            │
-│    WorkflowClient.checkAndUploadToExternalStorage()            │
-│    └─→ eventDispatcher.publish(                                │
-│        new WorkflowInputPayloadSizeEvent(name, version, size)) │
+│ 1. Check payload size                                           │
+│    WorkflowClient.checkAndUploadToExternalStorage()             │
+│    └─→ eventDispatcher.publish(                                 │
+│        new WorkflowInputPayloadSizeEvent(name, version, size))  │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ 2. Upload to external storage (if needed)                       │
-│    └─→ eventDispatcher.publish(                                │
-│        new WorkflowPayloadUsedEvent(name, version,             │
+│    └─→ eventDispatcher.publish(                                 │
+│        new WorkflowPayloadUsedEvent(name, version,              │
 │            "WRITE", "WORKFLOW_INPUT"))                          │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 3. Start workflow                                                │
+│ 3. Start workflow                                               │
 │    WorkflowClient.startWorkflow()                               │
 │    • Success: eventDispatcher.publish(                          │
 │        new WorkflowStartedEvent(name, version))                 │
 │    • Failure: eventDispatcher.publish(                          │
-│        new WorkflowStartedEvent(name, version, false, error))  │
+│        new WorkflowStartedEvent(name, version, false, error))   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1428,5 +1428,5 @@ The system is production-ready and can scale from simple Prometheus metrics to c
 
 For more information, see:
 - [Conductor OSS Documentation](https://www.conductor-oss.org/)
-- [Java SDK README](README.md)
-- [Conductor Client README](conductor-client/README.md)
+- [Java SDK README](../README.md)
+- [Conductor Client README](../conductor-client/README.md)
