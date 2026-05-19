@@ -35,6 +35,11 @@ import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import io.micrometer.core.instrument.Counter;
@@ -52,8 +57,12 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
  */
 public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
 
+    private static final Logger log = LoggerFactory.getLogger(CanonicalPrometheusMetricsCollector.class);
+
     private static final PrometheusMeterRegistry SHARED_REGISTRY =
             new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+    private static final AtomicBoolean instantiated = new AtomicBoolean(false);
 
     @Override
     public String collectorName() {
@@ -87,6 +96,12 @@ public class CanonicalPrometheusMetricsCollector extends AbstractPrometheusMetri
         setAutoWiringEnabled(true);
         setActiveWorkersTrackingEnabled(true);
         setDiagnosticEventsEnabled(true);
+        if (instantiated.getAndSet(true)) {
+            log.warn("Multiple {} instances share a single static PrometheusMeterRegistry. "
+                    + "Metrics from all instances are merged into one registry; "
+                    + "call startServer() only once.",
+                    getClass().getSimpleName());
+        }
     }
 
     /** Package-private constructor for test isolation. */

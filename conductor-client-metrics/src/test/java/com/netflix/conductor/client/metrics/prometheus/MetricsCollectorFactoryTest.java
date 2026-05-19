@@ -55,16 +55,6 @@ class MetricsCollectorFactoryTest {
         assertInstanceOf(LegacyPrometheusMetricsCollector.class, collector);
     }
 
-    @Test
-    void canonicalTakesPriorityOverLegacy() {
-        Map<String, String> env = Map.of(
-                "WORKER_CANONICAL_METRICS", "true",
-                "WORKER_LEGACY_METRICS", "true");
-        var collector = MetricsCollectorFactory.create(env::get);
-
-        assertInstanceOf(CanonicalPrometheusMetricsCollector.class, collector);
-    }
-
     // --- collectorName() ---
 
     @Test

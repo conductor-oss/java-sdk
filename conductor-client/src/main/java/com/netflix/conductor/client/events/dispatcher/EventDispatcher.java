@@ -16,13 +16,26 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.netflix.conductor.client.events.ConductorClientEvent;
 
 public class EventDispatcher<T extends ConductorClientEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EventDispatcher.class);
+
+    private static final ExecutorService EVENT_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "conductor-event-dispatch");
+        t.setDaemon(true);
+        return t;
+    });
 
     private final Map<Class<? extends T>, ConcurrentHashMap<Object, Consumer<? extends T>>> listeners;
 
@@ -73,7 +86,7 @@ public class EventDispatcher<T extends ConductorClientEvent> {
             return;
         }
 
-        CompletableFuture.runAsync(() -> dispatchToListeners(event));
+        CompletableFuture.runAsync(() -> dispatchToListeners(event), EVENT_EXECUTOR);
     }
 
     /**
@@ -95,7 +108,11 @@ public class EventDispatcher<T extends ConductorClientEvent> {
     private void dispatchToListeners(T event) {
         Collection<Consumer<? extends T>> eventListeners = getEventListeners(event);
         for (Consumer<? extends T> listener : eventListeners) {
-            ((Consumer<T>) listener).accept(event);
+            try {
+                ((Consumer<T>) listener).accept(event);
+            } catch (Throwable t) {
+                LOGGER.warn("Listener threw while handling {}", event.getClass().getSimpleName(), t);
+            }
         }
     }
 

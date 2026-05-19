@@ -24,11 +24,11 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *   <li>{@code WORKER_CANONICAL_METRICS=true} &rarr; {@link CanonicalPrometheusMetricsCollector}</li>
- *   <li>{@code WORKER_LEGACY_METRICS=true} (default during deprecation) &rarr; {@link LegacyPrometheusMetricsCollector}</li>
+ *   <li>Otherwise (absent, blank, or falsy) &rarr; {@link LegacyPrometheusMetricsCollector}</li>
  * </ul>
  *
- * If {@code WORKER_CANONICAL_METRICS} is true it takes priority regardless of
- * the value of {@code WORKER_LEGACY_METRICS}.
+ * <p>{@code WORKER_LEGACY_METRICS} is reserved for a future phase where the
+ * default flips to canonical; it is not read by the current implementation.
  */
 public final class MetricsCollectorFactory {
 

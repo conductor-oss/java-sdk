@@ -31,6 +31,11 @@ import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEven
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
@@ -45,11 +50,21 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
  */
 public class LegacyPrometheusMetricsCollector extends AbstractPrometheusMetricsCollector {
 
+    private static final Logger log = LoggerFactory.getLogger(LegacyPrometheusMetricsCollector.class);
+
     private static final PrometheusMeterRegistry SHARED_REGISTRY =
             new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
+    private static final AtomicBoolean instantiated = new AtomicBoolean(false);
+
     public LegacyPrometheusMetricsCollector() {
         super(SHARED_REGISTRY);
+        if (instantiated.getAndSet(true)) {
+            log.warn("Multiple {} instances share a single static PrometheusMeterRegistry. "
+                    + "Metrics from all instances are merged into one registry; "
+                    + "call startServer() only once.",
+                    getClass().getSimpleName());
+        }
     }
 
     /** Package-private constructor for test isolation. */
