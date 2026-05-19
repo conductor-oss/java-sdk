@@ -796,13 +796,11 @@ public class ConductorClient {
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();
             long startNanos = System.nanoTime();
-            IOException ioError = null;
             Response response = null;
             try {
                 response = chain.proceed(request);
                 return response;
             } catch (IOException e) {
-                ioError = e;
                 throw e;
             } finally {
                 long elapsedNanos = System.nanoTime() - startNanos;
@@ -810,8 +808,7 @@ public class ConductorClient {
                     String method = request.method();
                     PathTemplateTag tag = request.tag(PathTemplateTag.class);
                     String uri = tag != null ? tag.path() : request.url().encodedPath();
-                    int status = response != null ? response.code()
-                            : (ioError != null ? -1 : 0);
+                    int status = response != null ? response.code() : 0;
                     metrics.recordRequest(method, uri, status,
                             java.time.Duration.ofNanos(elapsedNanos));
                     recordPayloadSizeIfTagged(request);

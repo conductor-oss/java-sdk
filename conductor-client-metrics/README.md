@@ -129,6 +129,10 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
         .build();
 ```
 
+### Event dispatch threading
+
+Events are dispatched asynchronously on a single shared daemon thread (`conductor-event-dispatch`). This avoids contention with the application's `ForkJoinPool.commonPool()`. Metrics collector listeners (counter increments, timer recordings) are lock-free and sub-microsecond, so the single thread keeps up under normal load. Custom listeners registered via `EventDispatcher.register()` must be non-blocking; a slow listener will delay delivery of all events across the process.
+
 ## Legacy and Canonical Modes
 
 The Java SDK currently supports two mutually exclusive metric surfaces:
@@ -220,6 +224,10 @@ Size metrics use these service-level objective buckets, in bytes:
 | Meter | Labels | Meaning |
 |---|---|---|
 | `active_workers` | `taskType` | Current number of worker threads actively executing tasks. |
+
+### Micrometer `_max` sidecars
+
+Micrometer publishes a `*_max` Gauge alongside every Timer and DistributionSummary. These appear in scrape output as e.g. `task_poll_time_seconds_max`, `task_result_size_bytes_max`. The `_max` tracks the maximum observed value within the current reporting interval. This is a Micrometer artifact, not part of the canonical catalog; it is harmless and can be ignored by dashboards that don't use it.
 
 ## Labels
 
@@ -322,7 +330,7 @@ unreleased metrics harmonization work. For a summary, see the project
   - The Prometheus meter registry is now a `static final` singleton **per concrete subclass** (`LegacyPrometheusMetricsCollector` and `CanonicalPrometheusMetricsCollector` each own their own static registry). This preserves the 4.0.x safety property that multiple instances of the same collector type share a single registry (so accidentally creating two instances cannot cause silent metric loss), while keeping legacy and canonical meter names isolated from each other. The base class `AbstractPrometheusMetricsCollector` now receives the registry via its constructor rather than creating one per instance.
   - `TaskRunnerConfigurer.shutdown()` now calls `taskClient.unregisterListeners()` to clean up auto-wired listener registrations from `ListenerRegister`'s static dedup map, preventing stale entries in long-lived JVMs that re-create configurer instances.
   - Updated `README.md` "Monitoring Workers" and `INTERCEPTOR.md` to use `MetricsCollectorFactory.create()` and reference the env var.
-  - Removed `WorkflowInputPayloadSizeEvent` publish from `checkAndUploadToExternalStorage` and `TaskResultPayloadSizeEvent` publish from `handleExternalStorage`. These were dead code on `main`: the call site was gated behind `isEnforceThresholds()` (default `false`), the `PrometheusMetricsCollector.consume()` handlers were unimplemented `//TODO` stubs, and neither `workflowClient.registerListener()` nor `taskClient.registerListener()` was ever called in any wiring path — no deployment ever received these metrics. Payload-size observability is now provided unconditionally by the `PayloadKind` tag on outbound requests, recorded at wire time by the `ApiClientMetrics` OkHttp interceptor as `task_result_size_bytes{taskType}` and `workflow_input_size_bytes{workflowType,version}`, without double-serialization or manual listener registration.
+  - Removed `WorkflowInputPayloadSizeEvent` publish from `checkAndUploadToExternalStorage` and `TaskResultPayloadSizeEvent` publish from `evaluateAndUploadLargePayload`. These events never reached any listener on `main`: the `PrometheusMetricsCollector.consume()` handlers were unimplemented `//TODO` stubs, and neither `workflowClient.registerListener()` nor `taskClient.registerListener()` was called in any SDK wiring path. Payload-size observability is now provided unconditionally by the `PayloadKind` tag on outbound requests, recorded at wire time by the `ApiClientMetrics` OkHttp interceptor as `task_result_size_bytes{taskType}` and `workflow_input_size_bytes{workflowType,version}`, without double-serialization or manual listener registration.
   - **Transitive dependency change**: `conductor-client-metrics` now exposes `micrometer-registry-prometheus` as an `api` (transitive) dependency instead of `implementation`. Consumers with their own Micrometer version on the classpath should verify compatibility with 1.15.1.
   - **Graceful shutdown improvement**: `TaskRunner` now catches `RejectedExecutionException` when submitting a polled task to the executor during shutdown, logging a descriptive message and releasing the semaphore permit. Previously, the same exception was caught by a broad `catch (Throwable t)` that only logged the message string and did not release the permit. The task outcome is unchanged in both cases (polled but never executed; times out server-side).
   - **OkHttp request tagging**: Outbound requests are tagged with `ConductorClient.PathTemplateTag` (not `String.class`) so the metrics interceptor can read the URI template without conflicting with user-installed interceptors.
