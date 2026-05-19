@@ -12,12 +12,6 @@
  */
 package com.netflix.conductor.client.events.listeners;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-
-import com.netflix.conductor.client.events.ConductorClientEvent;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
@@ -43,134 +37,81 @@ import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 
 /**
- * Idempotent registration (and unregistration) of event listeners onto
- * {@link EventDispatcher} instances.
+ * Stateless helper that wires event listeners onto {@link EventDispatcher}
+ * instances using the listener itself as the registration key.
  *
- * <h3>Why the dedup key includes the dispatcher reference</h3>
+ * <p>Because {@link EventDispatcher#register(Class, Object, java.util.function.Consumer)}
+ * is idempotent per {@code (eventType, key)}, calling any {@code register}
+ * method here multiple times with the same {@code (listener, dispatcher)} pair
+ * is a safe no-op — no external synchronization or static tracking required.
  *
- * <p>A single {@link com.netflix.conductor.client.metrics.MetricsCollector
- * MetricsCollector} is intentionally registered on <em>multiple, distinct</em>
- * dispatchers because each dispatcher is an independent event source:
- *
- * <ol>
- *   <li>{@code TaskClient.eventDispatcher} &mdash;
- *       {@link TaskClientEvent}s (payload size, external storage)</li>
- *   <li>{@code TaskClient.taskRunnerEventDispatcher} &mdash;
- *       {@link TaskRunnerEvent}s emitted from {@code TaskClient.ack()}</li>
- *   <li>{@code WorkflowClient.eventDispatcher} &mdash;
- *       {@link WorkflowClientEvent}s (workflow started, payload size)</li>
- *   <li>{@code TaskRunnerConfigurer.Builder.eventDispatcher} &mdash;
- *       {@link TaskRunnerEvent}s from the poll/execute/update cycle</li>
- * </ol>
- *
- * <p>The key {@code (listener, dispatcher)} therefore correctly allows the same
- * collector to be wired onto all four dispatchers while preventing the same
- * collector from being registered onto the <em>same</em> dispatcher twice
- * (which would double-count every event on that source).
- *
- * <h3>Lifecycle</h3>
- *
- * <p>Call the matching {@code unregister} overload during shutdown to release
- * the entry from the static set and detach the listener from the dispatcher.
- * This prevents the static set from accumulating stale entries in long-lived
- * JVMs that re-create client or configurer instances.
+ * <p>A single listener is intentionally registered on <em>multiple, distinct</em>
+ * dispatchers (each an independent event source). The {@code listener} object
+ * serves as the key within each dispatcher, so the same listener can exist on
+ * all dispatchers while being prevented from double-registering on any single
+ * one.
  */
 public class ListenerRegister {
 
-    private static final Map<RegistrationKey, List<ConsumerBinding>> registered =
-            new ConcurrentHashMap<>();
-
     // --- TaskRunnerEventsListener ---
 
-    public static synchronized void register(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
-        RegistrationKey key = new RegistrationKey(listener, dispatcher);
-        if (registered.containsKey(key)) {
-            return;
-        }
-
-        List<ConsumerBinding> bindings = List.of(
-                bind(dispatcher, PollFailure.class, listener::consume),
-                bind(dispatcher, PollCompleted.class, listener::consume),
-                bind(dispatcher, PollStarted.class, listener::consume),
-                bind(dispatcher, TaskExecutionStarted.class, listener::consume),
-                bind(dispatcher, TaskExecutionCompleted.class, listener::consume),
-                bind(dispatcher, TaskExecutionFailure.class, listener::consume),
-                bind(dispatcher, TaskUpdateCompleted.class, listener::consume),
-                bind(dispatcher, TaskUpdateFailure.class, listener::consume),
-                bind(dispatcher, TaskAckFailure.class, listener::consume),
-                bind(dispatcher, TaskAckError.class, listener::consume),
-                bind(dispatcher, TaskExecutionQueueFull.class, listener::consume),
-                bind(dispatcher, TaskPaused.class, listener::consume),
-                bind(dispatcher, ThreadUncaughtException.class, listener::consume),
-                bind(dispatcher, ActiveWorkersChanged.class, listener::consume));
-
-        registered.put(key, bindings);
+    public static void register(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
+        dispatcher.register(PollFailure.class, listener, listener::consume);
+        dispatcher.register(PollCompleted.class, listener, listener::consume);
+        dispatcher.register(PollStarted.class, listener, listener::consume);
+        dispatcher.register(TaskExecutionStarted.class, listener, listener::consume);
+        dispatcher.register(TaskExecutionCompleted.class, listener, listener::consume);
+        dispatcher.register(TaskExecutionFailure.class, listener, listener::consume);
+        dispatcher.register(TaskUpdateCompleted.class, listener, listener::consume);
+        dispatcher.register(TaskUpdateFailure.class, listener, listener::consume);
+        dispatcher.register(TaskAckFailure.class, listener, listener::consume);
+        dispatcher.register(TaskAckError.class, listener, listener::consume);
+        dispatcher.register(TaskExecutionQueueFull.class, listener, listener::consume);
+        dispatcher.register(TaskPaused.class, listener, listener::consume);
+        dispatcher.register(ThreadUncaughtException.class, listener, listener::consume);
+        dispatcher.register(ActiveWorkersChanged.class, listener, listener::consume);
     }
 
-    public static synchronized void unregister(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
-        removeBindings(new RegistrationKey(listener, dispatcher));
+    public static void unregister(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
+        dispatcher.unregister(PollFailure.class, listener);
+        dispatcher.unregister(PollCompleted.class, listener);
+        dispatcher.unregister(PollStarted.class, listener);
+        dispatcher.unregister(TaskExecutionStarted.class, listener);
+        dispatcher.unregister(TaskExecutionCompleted.class, listener);
+        dispatcher.unregister(TaskExecutionFailure.class, listener);
+        dispatcher.unregister(TaskUpdateCompleted.class, listener);
+        dispatcher.unregister(TaskUpdateFailure.class, listener);
+        dispatcher.unregister(TaskAckFailure.class, listener);
+        dispatcher.unregister(TaskAckError.class, listener);
+        dispatcher.unregister(TaskExecutionQueueFull.class, listener);
+        dispatcher.unregister(TaskPaused.class, listener);
+        dispatcher.unregister(ThreadUncaughtException.class, listener);
+        dispatcher.unregister(ActiveWorkersChanged.class, listener);
     }
 
     // --- TaskClientListener ---
 
-    public static synchronized void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
-        RegistrationKey key = new RegistrationKey(listener, dispatcher);
-        if (registered.containsKey(key)) {
-            return;
-        }
-
-        List<ConsumerBinding> bindings = List.of(
-                bind(dispatcher, TaskResultPayloadSizeEvent.class, listener::consume),
-                bind(dispatcher, TaskPayloadUsedEvent.class, listener::consume));
-
-        registered.put(key, bindings);
+    public static void register(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
+        dispatcher.register(TaskResultPayloadSizeEvent.class, listener, listener::consume);
+        dispatcher.register(TaskPayloadUsedEvent.class, listener, listener::consume);
     }
 
-    public static synchronized void unregister(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
-        removeBindings(new RegistrationKey(listener, dispatcher));
+    public static void unregister(TaskClientListener listener, EventDispatcher<TaskClientEvent> dispatcher) {
+        dispatcher.unregister(TaskResultPayloadSizeEvent.class, listener);
+        dispatcher.unregister(TaskPayloadUsedEvent.class, listener);
     }
 
     // --- WorkflowClientListener ---
 
-    public static synchronized void register(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
-        RegistrationKey key = new RegistrationKey(listener, dispatcher);
-        if (registered.containsKey(key)) {
-            return;
-        }
-
-        List<ConsumerBinding> bindings = List.of(
-                bind(dispatcher, WorkflowStartedEvent.class, listener::consume),
-                bind(dispatcher, WorkflowInputPayloadSizeEvent.class, listener::consume),
-                bind(dispatcher, WorkflowPayloadUsedEvent.class, listener::consume));
-
-        registered.put(key, bindings);
+    public static void register(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
+        dispatcher.register(WorkflowStartedEvent.class, listener, listener::consume);
+        dispatcher.register(WorkflowInputPayloadSizeEvent.class, listener, listener::consume);
+        dispatcher.register(WorkflowPayloadUsedEvent.class, listener, listener::consume);
     }
 
-    public static synchronized void unregister(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
-        removeBindings(new RegistrationKey(listener, dispatcher));
+    public static void unregister(WorkflowClientListener listener, EventDispatcher<WorkflowClientEvent> dispatcher) {
+        dispatcher.unregister(WorkflowStartedEvent.class, listener);
+        dispatcher.unregister(WorkflowInputPayloadSizeEvent.class, listener);
+        dispatcher.unregister(WorkflowPayloadUsedEvent.class, listener);
     }
-
-    // --- internals ---
-
-    @SuppressWarnings("unchecked")
-    private static void removeBindings(RegistrationKey key) {
-        List<ConsumerBinding> bindings = registered.remove(key);
-        if (bindings == null) {
-            return;
-        }
-        for (ConsumerBinding b : bindings) {
-            b.dispatcher.unregister(b.eventType, b.consumer);
-        }
-    }
-
-    private static <T extends ConductorClientEvent, U extends T> ConsumerBinding bind(
-            EventDispatcher<T> dispatcher, Class<U> eventType, Consumer<U> consumer) {
-        dispatcher.register(eventType, consumer);
-        return new ConsumerBinding(dispatcher, eventType, consumer);
-    }
-
-    private record RegistrationKey(Object listener, Object dispatcher) { }
-
-    @SuppressWarnings("rawtypes")
-    private record ConsumerBinding(EventDispatcher dispatcher, Class eventType, Consumer consumer) { }
 }
