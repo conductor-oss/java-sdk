@@ -39,28 +39,6 @@ class AbstractPrometheusMetricsCollectorTest {
         assertEquals("", AbstractPrometheusMetricsCollector.nullToEmpty(""));
     }
 
-    // --- versionLabel ---
-
-    @Test
-    void versionLabelReturnsEmptyForNull() {
-        assertEquals("", AbstractPrometheusMetricsCollector.versionLabel(null));
-    }
-
-    @Test
-    void versionLabelReturnsStringForInteger() {
-        assertEquals("42", AbstractPrometheusMetricsCollector.versionLabel(42));
-    }
-
-    @Test
-    void versionLabelReturnsStringForZero() {
-        assertEquals("0", AbstractPrometheusMetricsCollector.versionLabel(0));
-    }
-
-    @Test
-    void versionLabelReturnsStringForNegative() {
-        assertEquals("-1", AbstractPrometheusMetricsCollector.versionLabel(-1));
-    }
-
     // --- exceptionLabel ---
 
     @Test

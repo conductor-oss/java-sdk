@@ -785,7 +785,7 @@ public class ConductorClient {
      * {@code conductor-client-metrics} module just for the builder integration.
      * Safe to use with {@link ApiClientMetrics#NOOP}.
      */
-    private static final class ApiClientMetricsOkHttpInterceptor implements okhttp3.Interceptor {
+    static final class ApiClientMetricsOkHttpInterceptor implements okhttp3.Interceptor {
         private final ApiClientMetrics metrics;
 
         ApiClientMetricsOkHttpInterceptor(ApiClientMetrics metrics) {

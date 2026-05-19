@@ -10,14 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.client.metrics.prometheus;
+package com.netflix.conductor.client.http;
 
 import java.io.IOException;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
-import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import okhttp3.Interceptor;
@@ -28,7 +27,7 @@ import okhttp3.Response;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ApiClientMetricsInterceptorTest {
+class ApiClientMetricsOkHttpInterceptorTest {
 
     private static Request buildRequest(String url) {
         return new Request.Builder().url(url).get().build();
@@ -46,7 +45,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptRecordsMetricsOnSuccess() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = buildRequest("http://localhost/api/tasks");
         Response response = buildResponse(request, 200);
@@ -64,7 +63,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptRecordsNegativeStatusOnIOException() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = buildRequest("http://localhost/api/tasks");
 
@@ -80,7 +79,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptDoesNotSwallowIOException() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = buildRequest("http://localhost/api/tasks");
         IOException expected = new IOException("timeout");
@@ -95,7 +94,7 @@ class ApiClientMetricsInterceptorTest {
 
     @Test
     void interceptWithNullMetricsFallsBackToNoop() throws IOException {
-        var interceptor = new ApiClientMetricsInterceptor(null);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(null);
 
         Request request = buildRequest("http://localhost/api/workflows");
         Response response = buildResponse(request, 201);
@@ -113,7 +112,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptPassesRequestUnmodified() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = buildRequest("http://localhost/api/tasks/123");
         Response response = buildResponse(request, 200);
@@ -133,7 +132,7 @@ class ApiClientMetricsInterceptorTest {
         doThrow(new RuntimeException("metrics broken"))
                 .when(metrics).recordRequest(any(), any(), anyInt(), any());
 
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
         Request request = buildRequest("http://localhost/api/tasks");
         Response response = buildResponse(request, 200);
 
@@ -148,7 +147,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptUsesPathTemplateTagOverResolvedUrl() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = new Request.Builder()
                 .url("http://localhost/api/workflow/abc-123-def")
@@ -171,7 +170,7 @@ class ApiClientMetricsInterceptorTest {
     @Test
     void interceptExtractsEncodedPath() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
-        var interceptor = new ApiClientMetricsInterceptor(metrics);
+        var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
         Request request = buildRequest("http://localhost/api/tasks/batch?ids=1,2,3");
         Response response = buildResponse(request, 200);

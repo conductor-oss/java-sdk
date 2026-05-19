@@ -103,10 +103,6 @@ public abstract class AbstractPrometheusMetricsCollector implements MetricsColle
         return s == null ? "" : s;
     }
 
-    protected static String versionLabel(Integer v) {
-        return v == null ? "" : v.toString();
-    }
-
     /**
      * Produce a bounded-cardinality label value for an exception. Uses the
      * simple class name so that the label space stays small.
