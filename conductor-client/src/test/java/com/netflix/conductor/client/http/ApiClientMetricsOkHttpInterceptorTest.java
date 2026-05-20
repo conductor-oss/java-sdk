@@ -61,7 +61,7 @@ class ApiClientMetricsOkHttpInterceptorTest {
     }
 
     @Test
-    void interceptRecordsNegativeStatusOnIOException() throws IOException {
+    void interceptRecordsZeroStatusOnIOException() throws IOException {
         ApiClientMetrics metrics = mock(ApiClientMetrics.class);
         var interceptor = new ConductorClient.ApiClientMetricsOkHttpInterceptor(metrics);
 
@@ -73,7 +73,7 @@ class ApiClientMetricsOkHttpInterceptorTest {
 
         assertThrows(IOException.class, () -> interceptor.intercept(chain));
 
-        verify(metrics).recordRequest(eq("GET"), eq("/api/tasks"), eq(-1), any(Duration.class));
+        verify(metrics).recordRequest(eq("GET"), eq("/api/tasks"), eq(0), any(Duration.class));
     }
 
     @Test
