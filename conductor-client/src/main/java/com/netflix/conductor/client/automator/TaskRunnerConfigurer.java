@@ -221,8 +221,6 @@ public class TaskRunnerConfigurer {
 
         private MetricsCollector metricsCollector;
         private boolean metricsCollectorExplicitlySet;
-        private Boolean activeWorkersTrackingOverride;
-        private Boolean diagnosticEventsOverride;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
@@ -338,7 +336,7 @@ public class TaskRunnerConfigurer {
                 var conductorClient = taskClient.getConductorClient();
                 if (conductorClient != null) {
                     MetricsCollector mc = conductorClient.getMetricsCollector();
-                    if (mc != null && mc.isAutoWiringEnabled()) {
+                    if (mc != null) {
                         this.metricsCollector = mc;
                         ListenerRegister.register(mc, eventDispatcher);
                     }
@@ -377,40 +375,12 @@ public class TaskRunnerConfigurer {
             return this;
         }
 
-        /**
-         * Explicitly enable or disable {@code ActiveWorkersChanged} event
-         * publishing on every task start/finish. When set, this overrides the
-         * default derived from the {@link MetricsCollector}. Canonical
-         * metrics enable this by default; legacy metrics do not.
-         */
-        public Builder withActiveWorkersTracking(boolean enabled) {
-            this.activeWorkersTrackingOverride = enabled;
-            return this;
-        }
-
         private boolean resolveActiveWorkersTracking() {
-            if (activeWorkersTrackingOverride != null) {
-                return activeWorkersTrackingOverride;
-            }
-            return metricsCollector != null && metricsCollector.isActiveWorkersTrackingEnabled();
-        }
-
-        /**
-         * Explicitly enable or disable per-poll-cycle diagnostic events
-         * ({@code TaskPaused}, {@code TaskExecutionQueueFull}). When set,
-         * this overrides the default derived from the {@link MetricsCollector}.
-         * Canonical metrics enable this by default; legacy metrics do not.
-         */
-        public Builder withDiagnosticEvents(boolean enabled) {
-            this.diagnosticEventsOverride = enabled;
-            return this;
+            return metricsCollector != null;
         }
 
         private boolean resolveDiagnosticEvents() {
-            if (diagnosticEventsOverride != null) {
-                return diagnosticEventsOverride;
-            }
-            return metricsCollector != null && metricsCollector.isDiagnosticEventsEnabled();
+            return metricsCollector != null;
         }
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {

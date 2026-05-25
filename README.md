@@ -303,24 +303,32 @@ Enable Prometheus metrics collection for monitoring workers:
 ```groovy
 // Using conductor-client-metrics module
 dependencies {
-    implementation 'org.conductoross:conductor-client-metrics:4.0.1'
+    implementation 'org.conductoross:conductor-client-metrics:5.1.0'
 }
 ```
 
 ```java
-import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+metricsCollector.startServer(); // http://localhost:9991/metrics
+
+ConductorClient client = ConductorClient.builder()
+    .basePath("...")
+    .withMetricsCollector(metricsCollector)
+    .build();
+
+TaskClient taskClient = new TaskClient(client);
+WorkflowClient workflowClient = new WorkflowClient(client);
 
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
-    .withMetricsCollector(MetricsCollectorFactory.create())
     .build();
 ```
 
-`MetricsCollectorFactory.create()` uses the legacy Java SDK metric names by default. Set `WORKER_CANONICAL_METRICS=true` to opt in to the canonical cross-SDK metric names.
+When a `MetricsCollector` is attached to the `ConductorClient`, downstream clients (`TaskClient`, `WorkflowClient`, `TaskRunnerConfigurer`) automatically register themselves as event listeners.
 
-> Migrating from 4.0.x? `PrometheusMetricsCollector` still works — it is now a deprecated alias for `LegacyPrometheusMetricsCollector` and emits the same six legacy meter names byte-for-byte. New code should use `MetricsCollectorFactory.create()` (or `MetricsBundle.create()`) so it can opt into canonical metrics via `WORKER_CANONICAL_METRICS=true`.
-
-See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for setup details, the complete legacy and canonical metric catalogs, and migration guidance.
+See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for the complete metric catalog and setup details.
 
 ## Workflows
 

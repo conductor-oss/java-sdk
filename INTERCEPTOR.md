@@ -240,7 +240,7 @@ public class ListenerRegister {
 }
 ```
 
-### 4. MetricsCollectorFactory / LegacyPrometheusMetricsCollector / CanonicalPrometheusMetricsCollector
+### 4. PrometheusMetricsCollector
 
 **Location**: `conductor-client-metrics/src/main/java/com/netflix/conductor/client/metrics/prometheus/`
 
@@ -248,23 +248,11 @@ Reference implementation of `MetricsCollector` using Micrometer Prometheus.
 
 **Features**:
 - Exposes HTTP endpoint for Prometheus scraping (default: `localhost:9991/metrics`)
-- Selects either the legacy or canonical Prometheus collector at startup
 - Records worker, task client, and workflow client metrics through the event listener system
 - Records HTTP API client metrics through an OkHttp interceptor
 - Keeps the metrics backend separated from task and workflow business logic
 
-For setup instructions, environment-variable selection, the complete legacy and canonical metric catalogs, and migration guidance, see [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md).
-
-### Compatibility: `PrometheusMetricsCollector`
-
-`com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector` is retained as a deprecated alias for `LegacyPrometheusMetricsCollector`. Existing 4.0.x code that does:
-
-```java
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(9991, "/metrics");
-```
-
-continues to compile and emit the same six legacy meter names (`poll_started`, `poll_success`, `poll_failure`, `task_execution_started`, `task_execution_completed`, `task_execution_failure`) byte-for-byte. The shim deliberately delegates to `LegacyPrometheusMetricsCollector`, **not** to `MetricsCollectorFactory.create()`, so an upgrader who already has `WORKER_CANONICAL_METRICS=true` in their environment is not silently flipped to the canonical surface. New code should use `MetricsCollectorFactory.create()` (or `MetricsBundle.create()`) to opt into env-var-driven selection.
+For the complete metric catalog and setup instructions, see [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md).
 
 ## Event Lifecycle
 
@@ -352,16 +340,17 @@ import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
 
-// 1. Create and start metrics (factory-selected collector + Prometheus scrape server)
-MetricsBundle bundle = MetricsBundle.create(); // port 9991, /metrics
+// 1. Create and start metrics
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+metricsCollector.startServer(); // port 9991, /metrics
 
 // 2. Create ConductorClient — withMetricsCollector installs the HTTP interceptor
 //    and enables automatic listener registration on downstream clients
 ConductorClient client = ConductorClient.builder()
     .basePath("http://conductor-server:8080/api")
-    .withMetricsCollector(bundle.getCollector())
+    .withMetricsCollector(metricsCollector)
     .build();
 
 // 3. Downstream clients auto-register as listeners
@@ -376,13 +365,13 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
 configurer.init();
 ```
 
-For fine-grained control over which listeners are registered, use `withHttpMetrics` instead of `withMetricsCollector`. This installs only the HTTP interceptor and leaves all listener registration to you. See the [Manual Wiring](conductor-client-metrics/README.md#manual-wiring) section in the metrics README.
+For fine-grained control over which listeners are registered, create the `ConductorClient` without `withMetricsCollector` and register listeners explicitly. See the [Manual Wiring](conductor-client-metrics/README.md#manual-wiring) section in the metrics README.
 
 ### Custom Metrics Endpoint
 
 ```java
 // Start Prometheus server on custom port and endpoint
-AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
 metricsCollector.startServer(8080, "/custom-metrics");
 ```
 
@@ -858,7 +847,7 @@ public class CloudWatchMetricsCollector implements MetricsCollector {
 
 ```java
 // Create multiple collectors
-AbstractPrometheusMetricsCollector prometheus = MetricsCollectorFactory.create();
+PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
 prometheus.startServer(9991, "/metrics");
 
 DatadogMetricsCollector datadog = new DatadogMetricsCollector(
@@ -1219,8 +1208,7 @@ import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.worker.Worker;
-import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
-import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
 import java.util.List;
 
 public class ConductorMonitoringSetup {
@@ -1239,7 +1227,7 @@ public class ConductorMonitoringSetup {
         );
 
         // 3. Setup Prometheus metrics
-        AbstractPrometheusMetricsCollector prometheus = MetricsCollectorFactory.create();
+        PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
         prometheus.startServer(9991, "/metrics");
 
         // 4. Setup custom monitoring

@@ -59,11 +59,6 @@ spec:
         - name: HARNESS_PROBE_RATE_PER_SEC
           value: "0"
 
-        # === METRICS IMPLEMENTATION SELECTION ===
-
-        - name: WORKER_CANONICAL_METRICS
-          value: "true"
-
         ports:
         - name: metrics
           containerPort: 9991

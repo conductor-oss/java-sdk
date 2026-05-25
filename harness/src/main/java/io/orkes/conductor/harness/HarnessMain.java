@@ -25,9 +25,7 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.metrics.prometheus.AbstractPrometheusMetricsCollector;
-import com.netflix.conductor.client.metrics.prometheus.MetricsBundle;
-import com.netflix.conductor.client.metrics.prometheus.MetricsCollectorFactory;
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskType;
@@ -55,12 +53,6 @@ public class HarnessMain {
         int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
-        String wiringMode = envString("METRICS_WIRING", "auto");
-        // Opt-in: when > 0, WorkflowStatusProbe periodically calls
-        // /api/workflow/<id> and /api/workflow/<id>/status so the canonical
-        // http_api_client_request_seconds histogram picks up UUID-bearing
-        // uri label values (the realistic high-cardinality case). Default 0
-        // = disabled, which keeps harness behavior unchanged.
         int probeRatePerSec = envInt("HARNESS_PROBE_RATE_PER_SEC", 0);
 
         List<Worker> workers = new ArrayList<>();
@@ -71,18 +63,33 @@ public class HarnessMain {
         Map<String, Integer> threadCounts =
                 workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
 
-        WiringResult wiring = switch (wiringMode.toLowerCase().trim()) {
-            case "manual" -> wireManual(metricsPort, workers, threadCounts);
-            default -> wireAuto(metricsPort, workers, threadCounts);
-        };
+        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+        metricsCollector.startServer(metricsPort, "/metrics");
+        log.info("Prometheus metrics server started on port {}", metricsPort);
 
-        registerMetadata(wiring.client);
+        ConductorClient client = ApiClient.builder()
+                .useEnvVariables(true)
+                .readTimeout(10_000)
+                .connectTimeout(10_000)
+                .writeTimeout(10_000)
+                .withMetricsCollector(metricsCollector)
+                .build();
 
-        wiring.configurer.init();
+        TaskClient taskClient = new TaskClient(client);
+        WorkflowClient workflowClient = new WorkflowClient(client);
 
-        WorkflowStatusProbe probe = new WorkflowStatusProbe(wiring.workflowClient, probeRatePerSec);
+        TaskRunnerConfigurer configurer =
+                new TaskRunnerConfigurer.Builder(taskClient, workers)
+                        .withTaskThreadCount(threadCounts)
+                        .build();
+
+        registerMetadata(client);
+
+        configurer.init();
+
+        WorkflowStatusProbe probe = new WorkflowStatusProbe(workflowClient, probeRatePerSec);
         WorkflowGovernor governor = new WorkflowGovernor(
-                wiring.workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
+                workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
         governor.start();
         probe.start();
 
@@ -90,90 +97,11 @@ public class HarnessMain {
             log.info("Shutting down harness...");
             governor.shutdown();
             probe.shutdown();
-            wiring.configurer.shutdown();
+            configurer.shutdown();
         }));
 
         Thread.currentThread().join();
     }
-
-    // -------------------------------------------------------------------------
-    // METRICS_WIRING=auto — MetricsBundle + withMetricsCollector on builder;
-    // all listener registration is automatic
-    // -------------------------------------------------------------------------
-    private static WiringResult wireAuto(int metricsPort, List<Worker> workers,
-            Map<String, Integer> threadCounts) throws Exception {
-        log.info("=== METRICS_WIRING=auto — automatic wiring via MetricsBundle ===");
-
-        // MetricsBundle.create() defaults to port 9991 and /metrics if called with no args
-        MetricsBundle bundle = MetricsBundle.create(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {} ({} metrics)",
-                bundle.getPort(), bundle.getCollector().collectorName());
-
-        if (!bundle.getCollector().isAutoWiringEnabled()) {
-            bundle.getCollector().setAutoWiringEnabled(true);
-            log.info("Legacy collector does not auto-wire by default; "
-                   + "explicitly enabling auto-wiring to honor METRICS_WIRING=auto");
-        }
-
-        ConductorClient client = ApiClient.builder()
-                .useEnvVariables(true)
-                .readTimeout(10_000)    // optional — OkHttp default applies if omitted
-                .connectTimeout(10_000) // optional — OkHttp default applies if omitted
-                .writeTimeout(10_000)   // optional — OkHttp default applies if omitted
-                .withMetricsCollector(bundle.getCollector())
-                .build();
-
-        TaskClient taskClient = new TaskClient(client);
-        WorkflowClient workflowClient = new WorkflowClient(client);
-
-        TaskRunnerConfigurer configurer =
-                new TaskRunnerConfigurer.Builder(taskClient, workers)
-                        .withTaskThreadCount(threadCounts)
-                        .build();
-
-        return new WiringResult(client, workflowClient, configurer);
-    }
-
-    // -------------------------------------------------------------------------
-    // METRICS_WIRING=manual — withHttpMetrics installs only the OkHttp
-    // interceptor; all listener registration is explicit
-    // -------------------------------------------------------------------------
-    private static WiringResult wireManual(int metricsPort, List<Worker> workers,
-            Map<String, Integer> threadCounts) throws Exception {
-        log.info("=== METRICS_WIRING=manual — manual listener wiring ===");
-
-        AbstractPrometheusMetricsCollector metricsCollector = MetricsCollectorFactory.create();
-        metricsCollector.startServer(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {} ({} metrics)", metricsPort, metricsCollector.collectorName());
-
-        ConductorClient client = ApiClient.builder()
-                .useEnvVariables(true)
-                .readTimeout(10_000)
-                .connectTimeout(10_000)
-                .writeTimeout(10_000)
-                .withHttpMetrics(metricsCollector)
-                .build();
-
-        TaskClient taskClient = new TaskClient(client);
-        taskClient.registerListener(metricsCollector);
-        taskClient.registerTaskRunnerListener(metricsCollector);
-
-        TaskRunnerConfigurer configurer =
-                new TaskRunnerConfigurer.Builder(taskClient, workers)
-                        .withTaskThreadCount(threadCounts)
-                        .withMetricsCollector(metricsCollector)
-                        .build();
-
-        WorkflowClient workflowClient = new WorkflowClient(client);
-        workflowClient.registerListener(metricsCollector);
-
-        return new WiringResult(client, workflowClient, configurer);
-    }
-
-    private record WiringResult(ConductorClient client, WorkflowClient workflowClient,
-            TaskRunnerConfigurer configurer) { }
-
-    // -------------------------------------------------------------------------
 
     private static void registerMetadata(ConductorClient client) {
         MetadataClient metadataClient = new MetadataClient(client);
@@ -225,13 +153,5 @@ public class HarnessMain {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
-    }
-
-    private static String envString(String name, String defaultValue) {
-        String value = System.getenv(name);
-        if (value == null || value.isBlank()) {
-            return defaultValue;
-        }
-        return value.trim();
     }
 }
