@@ -57,6 +57,7 @@ public final class PrometheusApiClientMetrics implements ApiClientMetrics {
     public void recordRequest(String method, String uri, int statusCode, Duration duration) {
         String statusLabel = statusCode <= 0 ? "0" : Integer.toString(statusCode);
         Timer.builder("http_api_client_request_seconds")
+                .description("HTTP API client request latency in seconds")
                 .tag("method", nullToEmpty(method))
                 .tag("uri", nullToEmpty(uri))
                 .tag("status", statusLabel)
