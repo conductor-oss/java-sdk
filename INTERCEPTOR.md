@@ -91,11 +91,41 @@ ConductorClientEvent (abstract)
 │   │   • String workerId
 │   │   • Duration duration
 │   │
-│   └── TaskExecutionFailure
-│       • String taskId
-│       • String workerId
-│       • Throwable cause
-│       • Duration duration
+│   ├── TaskExecutionFailure
+│   │   • String taskId
+│   │   • String workerId
+│   │   • Throwable cause
+│   │   • Duration duration
+│   │
+│   ├── TaskUpdateCompleted
+│   │   • String taskId
+│   │   • String workerId
+│   │   • String workflowInstanceId
+│   │   • Duration duration
+│   │
+│   ├── TaskUpdateFailure
+│   │   • String taskId
+│   │   • String workerId
+│   │   • String workflowInstanceId
+│   │   • Duration duration
+│   │   • Throwable cause
+│   │
+│   ├── TaskAckFailure
+│   │   • String taskId
+│   │
+│   ├── TaskAckError
+│   │   • String taskId
+│   │   • Throwable cause
+│   │
+│   ├── TaskExecutionQueueFull
+│   │
+│   ├── TaskPaused
+│   │
+│   ├── ThreadUncaughtException
+│   │   • Throwable cause
+│   │
+│   └── ActiveWorkersChanged
+│       • int count
 │
 ├── WorkflowClientEvent (abstract)
 │   │   • String name
@@ -123,6 +153,10 @@ ConductorClientEvent (abstract)
         • long size
 ```
 
+All `consume()` methods in `TaskRunnerEventsListener` are `default` no-ops, so implementations only need to override the events they care about.
+
+For the full Prometheus metrics catalog (counters, timers, gauges, and size histograms), see [`conductor-client-metrics/README.md`](conductor-client-metrics/README.md).
+
 ## Core Components
 
 ### 1. EventDispatcher\<T\>
@@ -140,16 +174,27 @@ The core event routing component that manages listener registration and event pu
 **API**:
 ```java
 public class EventDispatcher<T extends ConductorClientEvent> {
-    // Register a listener for a specific event type
+    // Register a listener for a specific event type (consumer itself is the key)
     public <U extends T> void register(Class<U> clazz, Consumer<U> listener);
 
-    // Unregister a listener
+    // Register a listener under an explicit key (idempotent per clazz+key)
+    public <U extends T> void register(Class<U> clazz, Object key, Consumer<U> listener);
+
+    // Unregister a listener by consumer reference
     public <U extends T> void unregister(Class<U> clazz, Consumer<U> listener);
 
-    // Publish an event (async)
+    // Unregister a listener by key
+    public <U extends T> void unregister(Class<U> clazz, Object key);
+
+    // Publish an event asynchronously
     public void publish(T event);
+
+    // Publish an event on the calling thread (for use in UncaughtExceptionHandler, etc.)
+    public void publishSync(T event);
 }
 ```
+
+The 3-arg `register(Class, Object, Consumer)` form is used by `ListenerRegister` with the listener object as the key, making bulk registration idempotent — calling it twice with the same listener instance is a safe no-op.
 
 ### 2. Listener Interfaces
 
@@ -161,12 +206,15 @@ Defines callbacks for task runner lifecycle events.
 
 ```java
 public interface TaskRunnerEventsListener {
-    void consume(PollFailure e);
-    void consume(PollCompleted e);
-    void consume(PollStarted e);
-    void consume(TaskExecutionStarted e);
-    void consume(TaskExecutionCompleted e);
-    void consume(TaskExecutionFailure e);
+    default void consume(PollFailure e) {}
+    default void consume(PollCompleted e) {}
+    default void consume(PollStarted e) {}
+    default void consume(TaskExecutionStarted e) {}
+    default void consume(TaskExecutionCompleted e) {}
+    default void consume(TaskExecutionFailure e) {}
+    // ... plus default no-ops for TaskUpdateCompleted, TaskUpdateFailure,
+    //     TaskAckFailure, TaskAckError, TaskExecutionQueueFull,
+    //     TaskPaused, ThreadUncaughtException, ActiveWorkersChanged
 }
 ```
 
@@ -216,7 +264,7 @@ public interface MetricsCollector
 
 **Location**: `conductor-client/src/main/java/com/netflix/conductor/client/events/listeners/ListenerRegister.java`
 
-Utility class for bulk registration of listeners with event dispatchers.
+Utility class for bulk registration of listeners with event dispatchers. Internally, each method calls `dispatcher.register(EventClass.class, listener, listener::consume)` — using the listener object as the key — so calling `register` multiple times with the same `(listener, dispatcher)` pair is a safe no-op.
 
 ```java
 public class ListenerRegister {
@@ -308,6 +356,11 @@ For the complete metric catalog and setup instructions, see [`conductor-client-m
 │           eventDispatcher.publish(                              │
 │             new WorkflowPayloadUsedEvent(name, version,         │
 │                "WRITE", "WORKFLOW_INPUT"))                      │
+│        if IOException during serialization/upload:              │
+│           eventDispatcher.publish(                              │
+│             new WorkflowStartedEvent(name, version,             │
+│                false, error))                                    │
+│           throw ConductorClientException                        │
 └─────────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -318,10 +371,15 @@ For the complete metric catalog and setup instructions, see [`conductor-client-m
 │    WorkflowClient.startWorkflow()                               │
 │    • Success: eventDispatcher.publish(                          │
 │        new WorkflowStartedEvent(name, version))                 │
-│    • Failure: eventDispatcher.publish(                          │
-│        new WorkflowStartedEvent(name, version, false, error))  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+> Note: The failure `WorkflowStartedEvent` is published from
+> `checkAndUploadToExternalStorage()`, not from `startWorkflow()`. It fires
+> only when an `IOException` occurs during payload serialization or external
+> storage upload. If `client.execute()` itself fails (HTTP error, network
+> timeout), no `WorkflowStartedEvent` is published — the exception propagates
+> directly to the caller.
 
 > Note: `WorkflowInputPayloadSizeEvent` is no longer published from
 > `WorkflowClient` — the canonical `workflow_input_size_bytes` histogram is
@@ -626,6 +684,8 @@ public interface TaskRunnerEventsListener {
 ```
 
 #### 4. Update ListenerRegister (If Updated Interface)
+
+Use the 3-arg `register` with the listener as the key for idempotent registration:
 
 ```java
 public static void register(TaskRunnerEventsListener listener,

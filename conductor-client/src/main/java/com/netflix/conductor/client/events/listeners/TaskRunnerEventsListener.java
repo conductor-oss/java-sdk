@@ -29,17 +29,17 @@ import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 
 public interface TaskRunnerEventsListener {
 
-    void consume(PollFailure e);
+    default void consume(PollFailure e) {}
 
-    void consume(PollCompleted e);
+    default void consume(PollCompleted e) {}
 
-    void consume(PollStarted e);
+    default void consume(PollStarted e) {}
 
-    void consume(TaskExecutionStarted e);
+    default void consume(TaskExecutionStarted e) {}
 
-    void consume(TaskExecutionCompleted e);
+    default void consume(TaskExecutionCompleted e) {}
 
-    void consume(TaskExecutionFailure e);
+    default void consume(TaskExecutionFailure e) {}
 
     default void consume(TaskUpdateCompleted e) {}
 
