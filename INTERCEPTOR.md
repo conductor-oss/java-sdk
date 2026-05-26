@@ -133,7 +133,7 @@ The core event routing component that manages listener registration and event pu
 
 **Key Features**:
 - Generic type parameter ensures type safety
-- Thread-safe using `ConcurrentHashMap` and `CopyOnWriteArrayList`
+- Thread-safe using nested `ConcurrentHashMap` structures
 - Asynchronous event publishing via `CompletableFuture.runAsync()`
 - Supports both specific event type listeners and "promiscuous" listeners (listening to all events)
 
@@ -390,13 +390,10 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
         System.err.println("Task " + event.getTaskId() +
                           " failed: " + event.getCause().getMessage());
     })
-    // Listen to ALL task runner events
-    .withListener(TaskRunnerEvent.class, event -> {
-        System.out.println("Event: " + event.getClass().getSimpleName() +
-                          " for task type: " + event.getTaskType());
-    })
     .build();
 ```
+
+> **Note:** Registering with a parent class like `TaskRunnerEvent.class` does **not** create a catch-all listener. The dispatcher routes by exact event class. The only "promiscuous" key is `ConductorClientEvent.class`, which receives all events regardless of type.
 
 #### Approach 2: Implementing Custom MetricsCollector
 
@@ -511,9 +508,13 @@ public class TaskMonitor implements TaskRunnerEventsListener {
     }
 }
 
-// Register manually using EventDispatcher
-EventDispatcher<TaskRunnerEvent> dispatcher = new EventDispatcher<>();
-ListenerRegister.register(new TaskMonitor(), dispatcher);
+// Register a TaskRunnerEventsListener via the builder's dispatcher
+TaskRunnerConfigurer.Builder builder =
+        new TaskRunnerConfigurer.Builder(taskClient, workers);
+ListenerRegister.register(new TaskMonitor(), builder.getEventDispatcher());
+
+TaskRunnerConfigurer configurer = builder.build();
+configurer.init();
 ```
 
 ### Workflow and Task Client Event Listeners
@@ -630,7 +631,7 @@ public interface TaskRunnerEventsListener {
 public static void register(TaskRunnerEventsListener listener,
                            EventDispatcher<TaskRunnerEvent> dispatcher) {
     // ... existing registrations ...
-    dispatcher.register(TaskRetried.class, listener::consume);
+    dispatcher.register(TaskRetried.class, listener, listener::consume);
 }
 ```
 
@@ -860,14 +861,19 @@ CloudWatchMetricsCollector cloudwatch = new CloudWatchMetricsCollector(
     "ConductorMetrics"
 );
 
-// Register all collectors
+// **Important:** `withMetricsCollector` can only be called once effectively -- each call
+// replaces the previous collector. Only the last one will be properly unregistered during
+// shutdown(). To use multiple collectors, register additional ones via `withListener` calls
+// or directly through `ListenerRegister`.
+
+// Use withMetricsCollector for the primary collector
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withMetricsCollector(prometheus)
-    .withMetricsCollector(datadog)
-    .withMetricsCollector(cloudwatch)
     .build();
 
-configurer.init();
+// Register additional collectors directly on the TaskClient/WorkflowClient
+// event dispatchers, or use individual withListener calls:
+// builder.withListener(TaskExecutionCompleted.class, datadog::consume);
 ```
 
 ### Building Custom Observability Solutions
@@ -1142,15 +1148,16 @@ public class WorkerScaler implements TaskRunnerEventsListener {
 
 ### Async Event Publishing
 
-All events are published asynchronously using `CompletableFuture.runAsync()`, which ensures:
+All events are published asynchronously using `CompletableFuture.runAsync()` with a dedicated static single-thread daemon executor (`conductor-event-dispatch`), which ensures:
 - **Non-blocking**: Task execution is never blocked by event processing
 - **Independent failure**: If a listener throws an exception, it doesn't affect task execution
-- **Scalability**: Event processing can scale independently
+- **Serialized dispatch**: All events are processed in order on a single thread; listeners should remain lightweight to avoid becoming a bottleneck
+
+For cases where async dispatch is unsafe (e.g. inside an `UncaughtExceptionHandler`), the `publishSync()` method dispatches directly on the calling thread.
 
 ### Thread Safety
 
-- **CopyOnWriteArrayList**: Used for listener storage, optimized for read-heavy workloads
-- **ConcurrentHashMap**: Used for event type to listener mappings
+- **ConcurrentHashMap**: Used for both event-type-to-listeners mapping and per-event-type listener storage (keyed by listener identity)
 - **Immutable Events**: All event objects are immutable (final fields), preventing race conditions
 
 ### Memory Considerations

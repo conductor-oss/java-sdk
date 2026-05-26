@@ -213,6 +213,15 @@ public class TaskRunnerConfigurer {
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
 
+        /**
+         * Returns the event dispatcher used by this builder, allowing direct
+         * listener registration via {@link ListenerRegister} for implementations
+         * of {@link TaskRunnerEventsListener} or other custom listener interfaces.
+         */
+        public EventDispatcher<TaskRunnerEvent> getEventDispatcher() {
+            return eventDispatcher;
+        }
+
         private MetricsCollector metricsCollector;
         private boolean metricsCollectorExplicitlySet;
 
