@@ -54,8 +54,6 @@ public class TaskRunnerConfigurer {
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
-    private final boolean trackActiveWorkers;
-    private final boolean trackDiagnosticEvents;
     private final boolean useVirtualThreads;
 
     /**
@@ -78,8 +76,6 @@ public class TaskRunnerConfigurer {
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
-        this.trackActiveWorkers = builder.resolveActiveWorkersTracking();
-        this.trackDiagnosticEvents = builder.resolveDiagnosticEvents();
         this.useVirtualThreads = builder.useVirtualThreads;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
@@ -183,8 +179,6 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                trackActiveWorkers,
-                trackDiagnosticEvents,
                 useVirtualThreads);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
@@ -373,14 +367,6 @@ public class TaskRunnerConfigurer {
             ListenerRegister.register(metricsCollector, eventDispatcher);
             this.metricsCollectorExplicitlySet = true;
             return this;
-        }
-
-        private boolean resolveActiveWorkersTracking() {
-            return metricsCollector != null;
-        }
-
-        private boolean resolveDiagnosticEvents() {
-            return metricsCollector != null;
         }
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {
