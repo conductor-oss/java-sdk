@@ -49,44 +49,54 @@ public class HarnessMain {
     };
 
     public static void main(String[] args) throws Exception {
-        ConductorClient client = ApiClient.builder().useEnvVariables(true).readTimeout(10_000).connectTimeout(10_000)
-                .writeTimeout(10_000).build();
-
         int workflowsPerSec = envInt("HARNESS_WORKFLOWS_PER_SEC", 2);
         int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
-
-        registerMetadata(client);
-
-        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
-        metricsCollector.startServer(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {}", metricsPort);
+        int probeRatePerSec = envInt("HARNESS_PROBE_RATE_PER_SEC", 0);
 
         List<Worker> workers = new ArrayList<>();
         for (String[] entry : SIMULATED_WORKERS) {
             workers.add(new SimulatedTaskWorker(entry[0], entry[1], Integer.parseInt(entry[2]), batchSize,
                     pollIntervalMs));
         }
-
-        TaskClient taskClient = new TaskClient(client);
         Map<String, Integer> threadCounts =
                 workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
+
+        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+        metricsCollector.startServer(metricsPort, "/metrics");
+        log.info("Prometheus metrics server started on port {}", metricsPort);
+
+        ConductorClient client = ApiClient.builder()
+                .useEnvVariables(true)
+                .readTimeout(10_000)
+                .connectTimeout(10_000)
+                .writeTimeout(10_000)
+                .withMetricsCollector(metricsCollector)
+                .build();
+
+        TaskClient taskClient = new TaskClient(client);
+        WorkflowClient workflowClient = new WorkflowClient(client);
 
         TaskRunnerConfigurer configurer =
                 new TaskRunnerConfigurer.Builder(taskClient, workers)
                         .withTaskThreadCount(threadCounts)
-                        .withMetricsCollector(metricsCollector)
                         .build();
+
+        registerMetadata(client);
+
         configurer.init();
 
-        WorkflowClient workflowClient = new WorkflowClient(client);
-        WorkflowGovernor governor = new WorkflowGovernor(workflowClient, WORKFLOW_NAME, workflowsPerSec);
+        WorkflowStatusProbe probe = new WorkflowStatusProbe(workflowClient, probeRatePerSec);
+        WorkflowGovernor governor = new WorkflowGovernor(
+                workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
         governor.start();
+        probe.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("Shutting down harness...");
             governor.shutdown();
+            probe.shutdown();
             configurer.shutdown();
         }));
 

@@ -53,6 +53,7 @@ public class TaskRunnerConfigurer {
     private ExecutorService scheduledExecutorService;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
+    private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
 
     /**
@@ -74,6 +75,7 @@ public class TaskRunnerConfigurer {
         this.threadCount = builder.threadCount;
         this.pollFilters = builder.pollFilters;
         this.eventDispatcher = builder.eventDispatcher;
+        this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
@@ -157,6 +159,10 @@ public class TaskRunnerConfigurer {
             }
         }
         scheduledExecutorService.shutdown();
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
+            taskClient.unregisterListeners();
+        }
     }
 
     private void startWorker(Worker worker) {
@@ -206,6 +212,18 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
+
+        /**
+         * Returns the event dispatcher used by this builder, allowing direct
+         * listener registration via {@link ListenerRegister} for implementations
+         * of {@link TaskRunnerEventsListener} or other custom listener interfaces.
+         */
+        public EventDispatcher<TaskRunnerEvent> getEventDispatcher() {
+            return eventDispatcher;
+        }
+
+        private MetricsCollector metricsCollector;
+        private boolean metricsCollectorExplicitlySet;
 
         public Builder(TaskClient taskClient, Iterable<Worker> workers) {
             Preconditions.checkNotNull(taskClient, "TaskClient cannot be null");
@@ -317,6 +335,16 @@ public class TaskRunnerConfigurer {
          * @return Builder instance
          */
         public TaskRunnerConfigurer build() {
+            if (!metricsCollectorExplicitlySet) {
+                var conductorClient = taskClient.getConductorClient();
+                if (conductorClient != null) {
+                    MetricsCollector mc = conductorClient.getMetricsCollector();
+                    if (mc != null) {
+                        this.metricsCollector = mc;
+                        ListenerRegister.register(mc, eventDispatcher);
+                    }
+                }
+            }
             return new TaskRunnerConfigurer(this);
         }
 
@@ -344,7 +372,9 @@ public class TaskRunnerConfigurer {
         }
 
         public Builder withMetricsCollector(MetricsCollector metricsCollector) {
+            this.metricsCollector = metricsCollector;
             ListenerRegister.register(metricsCollector, eventDispatcher);
+            this.metricsCollectorExplicitlySet = true;
             return this;
         }
 

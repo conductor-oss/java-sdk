@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.netflix.conductor.client.metrics.PayloadKind;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -34,6 +36,14 @@ public class ConductorClientRequest {
     private final List<Param> queryParams;
     private final Map<String, String> headerParams;
     private final Object body;
+    /**
+     * Optional discriminator read by the {@code ApiClientMetrics} OkHttp
+     * interceptor at wire time so it can record canonical payload-size
+     * histograms (e.g. {@code task_result_size_bytes},
+     * {@code workflow_input_size_bytes}) without forcing the caller to
+     * serialize the body a second time.
+     */
+    private final PayloadKind payloadKind;
 
     private ConductorClientRequest(Builder builder) {
         this.method = builder.method;
@@ -42,6 +52,7 @@ public class ConductorClientRequest {
         this.queryParams = builder.queryParams;
         this.headerParams = builder.headerParams;
         this.body = builder.body;
+        this.payloadKind = builder.payloadKind;
     }
 
     public static Builder builder() {
@@ -55,6 +66,7 @@ public class ConductorClientRequest {
         private final List<Param> queryParams = new ArrayList<>();
         private final Map<String, String> headerParams = new HashMap<>();
         private Object body;
+        private PayloadKind payloadKind;
 
         public Builder method(Method method) {
             if (method == null) {
@@ -140,6 +152,17 @@ public class ConductorClientRequest {
 
         public Builder body(Object body) {
             this.body = body;
+            return this;
+        }
+
+        /**
+         * Tag the request with a {@link PayloadKind} so the metrics
+         * interceptor can label canonical payload-size histograms at wire
+         * time. May be {@code null} (the default), in which case no size
+         * histogram is recorded for this request.
+         */
+        public Builder payloadKind(PayloadKind payloadKind) {
+            this.payloadKind = payloadKind;
             return this;
         }
 

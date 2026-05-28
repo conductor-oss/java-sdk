@@ -15,6 +15,7 @@ package io.orkes.conductor.harness;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +31,14 @@ public class WorkflowGovernor {
     private final String workflowName;
     private final int workflowsPerSecond;
     private final ScheduledExecutorService scheduler;
+    private final Consumer<String> idSink;
 
-    public WorkflowGovernor(WorkflowClient workflowClient, String workflowName, int workflowsPerSecond) {
+    public WorkflowGovernor(WorkflowClient workflowClient, String workflowName, int workflowsPerSecond,
+            Consumer<String> idSink) {
         this.workflowClient = workflowClient;
         this.workflowName = workflowName;
         this.workflowsPerSecond = workflowsPerSecond;
+        this.idSink = idSink != null ? idSink : id -> { };
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "workflow-governor");
             t.setDaemon(true);
@@ -64,7 +68,16 @@ public class WorkflowGovernor {
             for (int i = 0; i < workflowsPerSecond; i++) {
                 StartWorkflowRequest request = new StartWorkflowRequest();
                 request.setName(workflowName);
-                workflowClient.startWorkflow(request);
+                request.setVersion(1);
+                // Stretch goal: set a unique correlationId per request
+                // (e.g. UUID.randomUUID().toString()) so a future probe can
+                // call WorkflowClient.getWorkflows(name, correlationId, ...),
+                // which maps to /api/workflow/<name>/correlated/<correlationId>
+                // — a third UUID-bearing endpoint useful for verifying that
+                // the OkHttp metrics interceptor templates *every* path
+                // segment, not just /workflow/<id>.
+                String workflowId = workflowClient.startWorkflow(request);
+                idSink.accept(workflowId);
             }
             log.info("Governor: started {} workflow(s)", workflowsPerSecond);
         } catch (Exception e) {

@@ -12,25 +12,49 @@
  */
 package com.netflix.conductor.client.events.listeners;
 
+import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskAckError;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionCompleted;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskExecutionQueueFull;
 import com.netflix.conductor.client.events.taskrunner.TaskExecutionStarted;
+import com.netflix.conductor.client.events.taskrunner.TaskPaused;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
+import com.netflix.conductor.client.events.taskrunner.ThreadUncaughtException;
 
 public interface TaskRunnerEventsListener {
 
-    void consume(PollFailure e);
+    default void consume(PollFailure e) {}
 
-    void consume(PollCompleted e);
+    default void consume(PollCompleted e) {}
 
-    void consume(PollStarted e);
+    default void consume(PollStarted e) {}
 
-    void consume(TaskExecutionStarted e);
+    default void consume(TaskExecutionStarted e) {}
 
-    void consume(TaskExecutionCompleted e);
+    default void consume(TaskExecutionCompleted e) {}
 
-    void consume(TaskExecutionFailure e);
+    default void consume(TaskExecutionFailure e) {}
+
+    default void consume(TaskUpdateCompleted e) {}
+
+    default void consume(TaskUpdateFailure e) {}
+
+    default void consume(TaskAckFailure e) {}
+
+    default void consume(TaskAckError e) {}
+
+    default void consume(TaskExecutionQueueFull e) {}
+
+    default void consume(TaskPaused e) {}
+
+    default void consume(ThreadUncaughtException e) {}
+
+    default void consume(ActiveWorkersChanged e) {}
 
 }

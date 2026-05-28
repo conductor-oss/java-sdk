@@ -115,4 +115,81 @@ class EventDispatcherTest {
         // Unregister from a type that was never registered - should not throw
         assertDoesNotThrow(() -> dispatcher.unregister(PollStarted.class, listener));
     }
+
+    @Test
+    void testPublishSyncRunsOnCallingThread() {
+        Thread callingThread = Thread.currentThread();
+        AtomicReference<Thread> listenerThread = new AtomicReference<>();
+        AtomicReference<PollStarted> received = new AtomicReference<>();
+
+        Consumer<PollStarted> listener = event -> {
+            listenerThread.set(Thread.currentThread());
+            received.set(event);
+        };
+
+        dispatcher.register(PollStarted.class, listener);
+        PollStarted event = new PollStarted("syncTask");
+        dispatcher.publishSync(event);
+
+        assertSame(callingThread, listenerThread.get(),
+                "publishSync must invoke listener on the calling thread");
+        assertSame(event, received.get());
+    }
+
+    @Test
+    void testPublishSyncNoListeners() {
+        assertDoesNotThrow(() -> dispatcher.publishSync(new PollStarted("orphanTask")));
+    }
+
+    @Test
+    void testThrowingListenerDoesNotBreakOtherListeners() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Consumer<PollStarted> throwingListener = event -> {
+            throw new RuntimeException("boom");
+        };
+        Consumer<PollStarted> healthyListener = event -> latch.countDown();
+
+        dispatcher.register(PollStarted.class, throwingListener);
+        dispatcher.register(PollStarted.class, healthyListener);
+        dispatcher.publish(new PollStarted("faultyTask"));
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS),
+                "Healthy listener must still fire when a sibling throws");
+    }
+
+    @Test
+    void testPublishSyncThrowingListenerDoesNotPropagate() {
+        AtomicBoolean secondCalled = new AtomicBoolean(false);
+
+        Consumer<PollStarted> throwingListener = event -> {
+            throw new RuntimeException("boom");
+        };
+        Consumer<PollStarted> healthyListener = event -> secondCalled.set(true);
+
+        dispatcher.register(PollStarted.class, throwingListener);
+        dispatcher.register(PollStarted.class, healthyListener);
+
+        assertDoesNotThrow(() -> dispatcher.publishSync(new PollStarted("syncFaultyTask")));
+        assertTrue(secondCalled.get(),
+                "publishSync must continue to subsequent listeners after one throws");
+    }
+
+    @Test
+    void testPublishRunsOnDedicatedThread() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<String> threadName = new AtomicReference<>();
+
+        Consumer<PollStarted> listener = event -> {
+            threadName.set(Thread.currentThread().getName());
+            latch.countDown();
+        };
+
+        dispatcher.register(PollStarted.class, listener);
+        dispatcher.publish(new PollStarted("threadCheckTask"));
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS));
+        assertTrue(threadName.get().startsWith("conductor-event-dispatch"),
+                "publish() should dispatch on the dedicated thread, got: " + threadName.get());
+    }
 }

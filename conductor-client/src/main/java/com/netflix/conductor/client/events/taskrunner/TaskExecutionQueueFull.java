@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Conductor Authors.
+ * Copyright 2026 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,15 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.netflix.conductor.client.metrics;
+package com.netflix.conductor.client.events.taskrunner;
 
-import com.netflix.conductor.client.events.listeners.TaskClientListener;
-import com.netflix.conductor.client.events.listeners.TaskRunnerEventsListener;
-import com.netflix.conductor.client.events.listeners.WorkflowClientListener;
+import lombok.ToString;
 
-public interface MetricsCollector extends TaskRunnerEventsListener, WorkflowClientListener, TaskClientListener {
-
-    default ApiClientMetrics getApiClientMetrics() {
-        return ApiClientMetrics.NOOP;
+/**
+ * Published when a poll cycle finds zero available permits (all worker
+ * threads are busy), indicating the worker is at capacity for this
+ * task type.
+ */
+@ToString
+public final class TaskExecutionQueueFull extends TaskRunnerEvent {
+    public TaskExecutionQueueFull(String taskType) {
+        super(taskType);
     }
 }

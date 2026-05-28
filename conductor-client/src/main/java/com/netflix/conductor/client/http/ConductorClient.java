@@ -48,6 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
+import com.netflix.conductor.client.metrics.ApiClientMetrics;
+import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,6 +78,7 @@ public class ConductorClient {
     private final InputStream sslCaCert;
     private final KeyManager[] keyManagers;
     private final List<HeaderSupplier> headerSuppliers;
+    private final MetricsCollector metricsCollector;
 
     public static Builder<?> builder() {
         return new Builder<>();
@@ -90,6 +94,14 @@ public class ConductorClient {
         this.sslCaCert = builder.sslCaCert;
         this.keyManagers = builder.keyManagers;
         this.headerSuppliers = builder.headerSupplier();
+        this.metricsCollector = builder.metricsCollector;
+
+        if (this.metricsCollector != null) {
+            ApiClientMetrics apiClientMetrics = this.metricsCollector.getApiClientMetrics();
+            if (apiClientMetrics != null && apiClientMetrics != ApiClientMetrics.NOOP) {
+                okHttpBuilder.addInterceptor(new ApiClientMetricsOkHttpInterceptor(apiClientMetrics));
+            }
+        }
 
         if (builder.connectTimeout > -1) {
             okHttpBuilder.connectTimeout(builder.connectTimeout, TimeUnit.MILLISECONDS);
@@ -141,6 +153,16 @@ public class ConductorClient {
 
     public String getBasePath() {
         return basePath;
+    }
+
+    /**
+     * Returns the {@link MetricsCollector} associated with this client, or
+     * {@code null} if none was set at build time. Downstream clients
+     * ({@code TaskClient}, {@code WorkflowClient}) use this to auto-register
+     * themselves as listeners when metrics are wired through the builder.
+     */
+    public MetricsCollector getMetricsCollector() {
+        return metricsCollector;
     }
 
     public void shutdown() {
@@ -234,7 +256,8 @@ public class ConductorClient {
                 pathParams,
                 queryParams,
                 headerParams,
-                req.getBody());
+                req.getBody(),
+                req.getPayloadKind());
 
         Call call = okHttpClient.newCall(request);
         if (typeReference == null) {
@@ -408,10 +431,25 @@ public class ConductorClient {
             List<Param> queryParams,
             Map<String, String> headers,
             Object body) {
+        return buildRequest(method, path, pathParams, queryParams, headers, body, null);
+    }
+
+    protected Request buildRequest(String method,
+            String path,
+            List<Param> pathParams,
+            List<Param> queryParams,
+            Map<String, String> headers,
+            Object body,
+            PayloadKind payloadKind) {
         final HttpUrl url = buildUrl(replacePathParams(path, pathParams), queryParams);
         final Request.Builder requestBuilder = new Request.Builder().url(url);
         processHeaderParams(requestBuilder, addHeadersFromProviders(method, path, headers));
         RequestBody reqBody = requestBody(method, getContentType(headers), body);
+        requestBuilder.tag(PathTemplateTag.class, new PathTemplateTag(path));
+        if (payloadKind != null) {
+            // Read by ApiClientMetricsOkHttpInterceptor at wire time.
+            requestBuilder.tag(PayloadKind.class, payloadKind);
+        }
         return requestBuilder.method(method, reqBody).build();
     }
 
@@ -564,6 +602,7 @@ public class ConductorClient {
         private ConnectionPoolConfig connectionPoolConfig;
         private Supplier<ObjectMapper> objectMapperSupplier = () -> new ObjectMapperProvider().getObjectMapper();
         private final List<HeaderSupplier> headerSuppliers = new ArrayList<>();
+        MetricsCollector metricsCollector;
 
         private boolean useEnvVariables = false;
 
@@ -650,6 +689,20 @@ public class ConductorClient {
             return self();
         }
 
+        /**
+         * Attach a {@link MetricsCollector} to the client. The collector's
+         * {@link ApiClientMetrics} will be wired as an OkHttp interceptor
+         * automatically.
+         *
+         * <p>Downstream clients ({@code TaskClient}, {@code WorkflowClient},
+         * {@code TaskRunnerConfigurer}) will auto-register as event listeners
+         * when constructed with this client.
+         */
+        public T withMetricsCollector(MetricsCollector metricsCollector) {
+            this.metricsCollector = metricsCollector;
+            return self();
+        }
+
         protected List<HeaderSupplier> headerSupplier() {
             return headerSuppliers;
         }
@@ -687,6 +740,78 @@ public class ConductorClient {
             } else {
                 throw new RuntimeException("env variable CONDUCTOR_SERVER_URL is not set");
             }
+        }
+    }
+
+    /**
+     * Marker tag attached to outbound OkHttp requests so the metrics
+     * interceptor can read a bounded-cardinality URI label (the path
+     * template, e.g. {@code "/workflow/{workflowId}"}) instead of the
+     * resolved URL which contains per-request IDs.
+     *
+     * <p>Uses a dedicated class rather than {@code String.class} so the
+     * tag slot does not collide with user-installed interceptors that may
+     * use {@code request.tag(String.class)} for their own purposes.
+     */
+    public static final class PathTemplateTag {
+        private final String path;
+        public PathTemplateTag(String path) { this.path = path; }
+        public String path() { return path; }
+    }
+
+    /**
+     * Lightweight OkHttp interceptor that delegates to {@link ApiClientMetrics}.
+     * Lives in {@code conductor-client} so we don't need a dependency on the
+     * {@code conductor-client-metrics} module just for the builder integration.
+     * Safe to use with {@link ApiClientMetrics#NOOP}.
+     */
+    static final class ApiClientMetricsOkHttpInterceptor implements okhttp3.Interceptor {
+        private final ApiClientMetrics metrics;
+
+        ApiClientMetricsOkHttpInterceptor(ApiClientMetrics metrics) {
+            this.metrics = metrics == null ? ApiClientMetrics.NOOP : metrics;
+        }
+
+        @Override
+        public Response intercept(Chain chain) throws IOException {
+            Request request = chain.request();
+            long startNanos = System.nanoTime();
+            Response response = null;
+            try {
+                response = chain.proceed(request);
+                return response;
+            } catch (IOException e) {
+                throw e;
+            } finally {
+                long elapsedNanos = System.nanoTime() - startNanos;
+                try {
+                    String method = request.method();
+                    PathTemplateTag tag = request.tag(PathTemplateTag.class);
+                    String uri = tag != null ? tag.path() : request.url().encodedPath();
+                    int status = response != null ? response.code() : 0;
+                    metrics.recordRequest(method, uri, status,
+                            java.time.Duration.ofNanos(elapsedNanos));
+                    recordPayloadSizeIfTagged(request);
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+
+        private void recordPayloadSizeIfTagged(Request request) {
+            PayloadKind kind = request.tag(PayloadKind.class);
+            if (kind == null || request.body() == null) {
+                return;
+            }
+            long len;
+            try {
+                len = request.body().contentLength();
+            } catch (IOException e) {
+                return;
+            }
+            if (len < 0) {
+                return;
+            }
+            kind.recordSize(metrics, len);
         }
     }
 }

@@ -1,20 +1,21 @@
 plugins {
     id 'java-library'
     id 'idea'
-//    id 'maven-publish'
-//    id 'signing'
+    id 'maven-publish'
+    id 'signing'
 }
 
-//ext {
-//    artifactName = 'Conductor Client Metrics'
-//    artifactDescription = 'Conductor Client Metrics'
-//}
-//
-//apply plugin: 'publish-config'
+ext {
+    artifactName = 'Conductor Client Metrics'
+    artifactDescription = 'Conductor Client Metrics'
+}
+
+apply plugin: 'publish-config'
 
 dependencies {
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.15.1'
+    api 'io.micrometer:micrometer-registry-prometheus:1.15.1'
     implementation project(":conductor-client")
+    implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.3'

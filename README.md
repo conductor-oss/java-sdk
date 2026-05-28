@@ -298,24 +298,37 @@ executor.initWorkers("com.mycompany.workers");  // Package to scan for @WorkerTa
 
 ## Monitoring Workers
 
-Enable metrics collection for monitoring workers:
+Enable Prometheus metrics collection for monitoring workers:
 
-```java
+```groovy
 // Using conductor-client-metrics module
 dependencies {
-    implementation 'org.conductoross:conductor-client-metrics:4.0.1'
+    implementation 'org.conductoross:conductor-client-metrics:5.1.0'
 }
 ```
 
 ```java
-// Configure metrics with Prometheus
+import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
+metricsCollector.startServer(); // http://localhost:9991/metrics
+
+ConductorClient client = ConductorClient.builder()
+    .basePath("...")
+    .withMetricsCollector(metricsCollector)
+    .build();
+
+TaskClient taskClient = new TaskClient(client);
+WorkflowClient workflowClient = new WorkflowClient(client);
+
 TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
     .withThreadCount(10)
-    .withMetricsCollector(new PrometheusMetricsCollector())
     .build();
 ```
 
-See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for full metrics documentation.
+When a `MetricsCollector` is attached to the `ConductorClient`, downstream clients (`TaskClient`, `WorkflowClient`, `TaskRunnerConfigurer`) automatically register themselves as event listeners.
+
+See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for the complete metric catalog and setup details.
 
 ## Workflows
 

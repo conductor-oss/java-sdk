@@ -46,11 +46,12 @@ import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.WorkflowClientListener;
 import com.netflix.conductor.client.events.workflow.WorkflowClientEvent;
-import com.netflix.conductor.client.events.workflow.WorkflowInputPayloadSizeEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowPayloadUsedEvent;
 import com.netflix.conductor.client.events.workflow.WorkflowStartedEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
+import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.RerunWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.SkipTaskRequest;
@@ -102,6 +103,8 @@ public class WorkflowClient implements AutoCloseable {
 
     private final EventDispatcher<WorkflowClientEvent> eventDispatcher = new EventDispatcher<>();
 
+    private MetricsCollector metricsCollector;
+
     protected ConductorClient client;
 
     private PayloadStorage payloadStorage;
@@ -140,12 +143,23 @@ public class WorkflowClient implements AutoCloseable {
         } else {
             this.executorService = Executors.newFixedThreadPool(executorThreadCount, factory);
         }
+
+        if (client != null) {
+            MetricsCollector mc = client.getMetricsCollector();
+            if (mc != null) {
+                this.metricsCollector = mc;
+                registerListener(mc);
+            }
+        }
     }
 
     @Override
     public void close() {
         if (executorService != null) {
             executorService.shutdown();
+        }
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
         }
     }
 
@@ -191,6 +205,8 @@ public class WorkflowClient implements AutoCloseable {
                 .method(Method.POST)
                 .path("/workflow")
                 .body(startWorkflowRequest)
+                .payloadKind(new PayloadKind.WorkflowInput(
+                        startWorkflowRequest.getName(), startWorkflowRequest.getVersion()))
                 .build();
 
         ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
@@ -205,8 +221,6 @@ public class WorkflowClient implements AutoCloseable {
             objectMapper.writeValue(byteArrayOutputStream, startWorkflowRequest.getInput());
             byte[] workflowInputBytes = byteArrayOutputStream.toByteArray();
             long workflowInputSize = workflowInputBytes.length;
-            eventDispatcher.publish(new WorkflowInputPayloadSizeEvent(startWorkflowRequest.getName(),
-                    startWorkflowRequest.getVersion(), workflowInputSize));
 
             if (workflowInputSize > conductorClientConfiguration.getWorkflowInputPayloadThresholdKB() * 1024L) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled() ||

@@ -33,11 +33,16 @@ import com.netflix.conductor.client.config.DefaultConductorClientConfiguration;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.listeners.TaskClientListener;
+import com.netflix.conductor.client.events.listeners.TaskRunnerEventsListener;
 import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
-import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
+import com.netflix.conductor.client.events.taskrunner.TaskAckError;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
+import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
+import com.netflix.conductor.client.metrics.MetricsCollector;
+import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.PollData;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -93,7 +98,11 @@ public class TaskClient {
 
     private final EventDispatcher<TaskClientEvent> eventDispatcher = new EventDispatcher<>();
 
+    private final EventDispatcher<TaskRunnerEvent> taskRunnerEventDispatcher = new EventDispatcher<>();
+
     private PayloadStorage payloadStorage;
+
+    private MetricsCollector metricsCollector;
 
     protected ConductorClient client;
 
@@ -118,6 +127,14 @@ public class TaskClient {
         this.client = client;
         this.payloadStorage = new PayloadStorage(client);
         this.conductorClientConfiguration = config;
+        if (client != null) {
+            MetricsCollector mc = client.getMetricsCollector();
+            if (mc != null) {
+                this.metricsCollector = mc;
+                registerListener(mc);
+                registerTaskRunnerListener(mc);
+            }
+        }
     }
 
     /**
@@ -134,8 +151,33 @@ public class TaskClient {
         payloadStorage = new PayloadStorage(client);
     }
 
+    public ConductorClient getConductorClient() {
+        return client;
+    }
+
     public void registerListener(TaskClientListener listener) {
         ListenerRegister.register(listener, eventDispatcher);
+    }
+
+    /**
+     * Register a {@link TaskRunnerEventsListener} with this {@code TaskClient}.
+     * Used for canonical task-runner events (e.g. {@code TaskAckFailure}/
+     * {@code TaskAckError}) emitted from within {@code TaskClient} itself.
+     */
+    public void registerTaskRunnerListener(TaskRunnerEventsListener listener) {
+        ListenerRegister.register(listener, taskRunnerEventDispatcher);
+    }
+
+    /**
+     * Detaches the auto-wired {@link MetricsCollector} (if any) from this
+     * client's dispatchers. Called during shutdown to release the entries from
+     * {@link ListenerRegister}'s static registry.
+     */
+    public void unregisterListeners() {
+        if (metricsCollector != null) {
+            ListenerRegister.unregister(metricsCollector, eventDispatcher);
+            ListenerRegister.unregister(metricsCollector, taskRunnerEventDispatcher);
+        }
     }
 
     /**
@@ -225,11 +267,21 @@ public class TaskClient {
      * @param taskResult the {@link TaskResult} of the executed task to be updated.
      */
     public void updateTask(TaskResult taskResult) {
+        updateTask(taskResult, null);
+    }
+
+    /**
+     * Same as {@link #updateTask(TaskResult)} but propagates {@code taskType}
+     * to the canonical {@code task_result_size_bytes} histogram (since
+     * {@link TaskResult} does not carry the task definition name itself).
+     */
+    public void updateTask(TaskResult taskResult, String taskType) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks")
                 .body(taskResult)
+                .payloadKind(new PayloadKind.TaskResult(taskType))
                 .build();
 
         client.execute(request);
@@ -244,11 +296,21 @@ public class TaskClient {
      * @param taskResult the {@link TaskResult} of the executed task to be updated.
      */
     public Task updateTaskV2(TaskResult taskResult) {
+        return updateTaskV2(taskResult, null);
+    }
+
+    /**
+     * Same as {@link #updateTaskV2(TaskResult)} but propagates {@code taskType}
+     * to the canonical {@code task_result_size_bytes} histogram (since
+     * {@link TaskResult} does not carry the task definition name itself).
+     */
+    public Task updateTaskV2(TaskResult taskResult, String taskType) {
         Validate.notNull(taskResult, "Task result cannot be null");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
                 .path("/tasks/update-v2")
                 .body(taskResult)
+                .payloadKind(new PayloadKind.TaskResult(taskType))
                 .build();
 
         ConductorClientResponse<Task> response = client.execute(request, TASK_TYPE);
@@ -259,12 +321,10 @@ public class TaskClient {
         if (!conductorClientConfiguration.isEnforceThresholds()) {
             return Optional.empty();
         }
-
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             objectMapper.writeValue(byteArrayOutputStream, taskOutputData);
             byte[] taskOutputBytes = byteArrayOutputStream.toByteArray();
             long taskResultSize = taskOutputBytes.length;
-            eventDispatcher.publish(new TaskResultPayloadSizeEvent(taskType, taskResultSize));
             long payloadSizeThreshold = conductorClientConfiguration.getTaskOutputPayloadThresholdKB() * 1024L;
             if (taskResultSize > payloadSizeThreshold) {
                 if (!conductorClientConfiguration.isExternalPayloadStorageEnabled()
@@ -294,8 +354,21 @@ public class TaskClient {
      * @return true if the task was found with the given ID and acknowledged. False
      *         otherwise. If
      *         the server returns false, the client should NOT attempt to ack again.
+     * @deprecated This overload lacks the {@code taskType} parameter, so canonical
+     *             ack metrics ({@code task_ack_failed_total{taskType}},
+     *             {@code task_ack_error_total{taskType}}) cannot be labeled.
+     *             Use {@link #ack(String, String, String)} instead.
      */
+    @Deprecated
     public Boolean ack(String taskId, String workerId) {
+        return ack(null, taskId, workerId);
+    }
+
+    /**
+     * Ack variant that emits canonical task-runner metrics ({@code TaskAckFailure}
+     * / {@code TaskAckError}) when {@code taskType} is known.
+     */
+    public Boolean ack(String taskType, String taskId, String workerId) {
         Validate.notBlank(taskId, "Task id cannot be blank");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.POST)
@@ -304,9 +377,20 @@ public class TaskClient {
                 .addQueryParam("workerid", workerId)
                 .build();
 
-        ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
-
-        return response.getData();
+        boolean trackAck = taskType != null && metricsCollector != null;
+        try {
+            ConductorClientResponse<Boolean> response = client.execute(request, BOOLEAN_TYPE);
+            Boolean acked = response.getData();
+            if (trackAck && !Boolean.TRUE.equals(acked)) {
+                taskRunnerEventDispatcher.publish(new TaskAckFailure(taskType, taskId));
+            }
+            return acked;
+        } catch (Throwable t) {
+            if (trackAck) {
+                taskRunnerEventDispatcher.publish(new TaskAckError(taskType, taskId, t));
+            }
+            throw t;
+        }
     }
 
     /**
