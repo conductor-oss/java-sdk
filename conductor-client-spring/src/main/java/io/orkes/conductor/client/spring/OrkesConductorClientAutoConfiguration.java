@@ -13,9 +13,12 @@
 package io.orkes.conductor.client.spring;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conductoross.conductor.client.FileClient;
+import org.conductoross.conductor.client.FileClientProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -128,4 +131,18 @@ public class OrkesConductorClientAutoConfiguration {
         return clients.getSecretClient();
     }
 
+    @Bean
+    @ConfigurationProperties("conductor.file-client")
+    @ConditionalOnBean(ApiClient.class)
+    @ConditionalOnMissingBean
+    public FileClientProperties fileClientProperties() {
+        return new FileClientProperties();
+    }
+
+    @Bean
+    @ConditionalOnBean(ApiClient.class)
+    @ConditionalOnMissingBean
+    public FileClient fileClient(ApiClient client, FileClientProperties fileClientProperties) {
+        return new FileClient(client, fileClientProperties, null);
+    }
 }

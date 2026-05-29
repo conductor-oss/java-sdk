@@ -18,10 +18,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conductoross.conductor.client.FileClient;
+import org.conductoross.conductor.client.FileClientProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
@@ -82,6 +85,7 @@ public class ConductorClientAutoConfiguration {
                                                      TaskClient taskClient,
                                                      ClientProperties clientProperties,
                                                      List<Worker> workers,
+                                                     Optional<FileClient> fileClient,
                                                      Optional<MetricsCollector> metricsCollector) {
         Map<String, Integer> taskThreadCount = new HashMap<>();
         for (Worker worker : workers) {
@@ -105,6 +109,7 @@ public class ConductorClientAutoConfiguration {
                 .withTaskToDomain(clientProperties.getTaskToDomain())
                 .withShutdownGracePeriodSeconds(clientProperties.getShutdownGracePeriodSeconds())
                 .withTaskPollTimeout(clientProperties.getTaskPollTimeout());
+        fileClient.ifPresent(builder::withFileClient);
         metricsCollector.ifPresent(builder::withMetricsCollector);
         return builder.build();
     }
@@ -121,5 +126,20 @@ public class ConductorClientAutoConfiguration {
     @ConditionalOnMissingBean
     public WorkflowClient workflowClient(ConductorClient client) {
         return new WorkflowClient(client);
+    }
+
+    @Bean
+    @ConfigurationProperties("conductor.file-client")
+    @ConditionalOnBean(ConductorClient.class)
+    @ConditionalOnMissingBean
+    public FileClientProperties fileClientProperties() {
+        return new FileClientProperties();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConductorClient.class)
+    @ConditionalOnMissingBean
+    public FileClient fileClient(ConductorClient client, FileClientProperties fileClientProperties) {
+        return new FileClient(client, fileClientProperties, null);
     }
 }

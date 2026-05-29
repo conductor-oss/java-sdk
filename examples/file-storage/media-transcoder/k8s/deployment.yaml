@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-transcoder
+  namespace: conductor-file-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media-transcoder
+  template:
+    metadata:
+      labels:
+        app: media-transcoder
+    spec:
+      initContainers:
+        - name: wait-for-conductor
+          image: busybox
+          command: ["sh", "-c", "until wget -qO- http://conductor-server:8080/health; do sleep 3; done"]
+      containers:
+        - name: media-transcoder
+          image: media-transcoder
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CONDUCTOR_SERVER_URL
+              value: "http://conductor-server:8080/api"
+            - name: AWS_S3_ENDPOINT
+              value: "http://minio:9000"
+            - name: AWS_ACCESS_KEY_ID
+              value: "minioadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minioadmin"

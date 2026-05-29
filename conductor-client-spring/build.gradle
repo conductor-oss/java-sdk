@@ -20,6 +20,8 @@ repositories {
 dependencies {
     api project(":conductor-client")
     implementation 'org.springframework.boot:spring-boot-starter:3.5.13'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.3.13'
 }
 
 java {
