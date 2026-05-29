@@ -85,6 +85,7 @@ public class ConductorClientAutoConfiguration {
                                                      TaskClient taskClient,
                                                      ClientProperties clientProperties,
                                                      List<Worker> workers,
+                                                     Optional<FileClient> fileClient,
                                                      Optional<MetricsCollector> metricsCollector) {
         Map<String, Integer> taskThreadCount = new HashMap<>();
         for (Worker worker : workers) {
@@ -108,6 +109,7 @@ public class ConductorClientAutoConfiguration {
                 .withTaskToDomain(clientProperties.getTaskToDomain())
                 .withShutdownGracePeriodSeconds(clientProperties.getShutdownGracePeriodSeconds())
                 .withTaskPollTimeout(clientProperties.getTaskPollTimeout());
+        fileClient.ifPresent(builder::withFileClient);
         metricsCollector.ifPresent(builder::withMetricsCollector);
         return builder.build();
     }
@@ -128,6 +130,7 @@ public class ConductorClientAutoConfiguration {
 
     @Bean
     @ConfigurationProperties("conductor.file-client")
+    @ConditionalOnBean(ConductorClient.class)
     @ConditionalOnMissingBean
     public FileClientProperties fileClientProperties() {
         return new FileClientProperties();

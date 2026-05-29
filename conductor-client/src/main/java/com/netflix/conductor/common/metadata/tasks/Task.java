@@ -189,13 +189,18 @@ public class Task {
     private transient WorkflowFileClient workflowFileClient;
 
     @JsonIgnore
-    public FileUploader getFileUploader() { return workflowFileClient; }
+    public FileUploader getFileUploader() {
+        return workflowFileClient;
+    }
 
     public void setWorkflowFileClient(WorkflowFileClient workflowFileClient) {
         this.workflowFileClient = workflowFileClient;
     }
 
     public FileHandler getInputFileHandler(String key) {
+        if (workflowFileClient == null) {
+            throw new FileStorageException("FileClient is not configured; cannot access file input for key '" + key + "'");
+        }
         Object value = getInputData().get(key);
         String fileHandleId = FileHandler.extractFileHandleId(value);
         if (FileHandler.isFileHandleId(fileHandleId)) {
