@@ -15,11 +15,8 @@ package io.orkes.conductor.client.http;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,16 +34,12 @@ public class OrkesAuthentication implements HeaderSupplier {
     public static final String PROP_TOKEN_REFRESH_INTERVAL = "CONDUCTOR_SECURITY_TOKEN_REFRESH_INTERVAL";
     private static final Logger LOGGER = LoggerFactory.getLogger(OrkesAuthentication.class);
     private static final String TOKEN_CACHE_KEY = "TOKEN";
-    private final ScheduledExecutorService tokenRefreshService = Executors.newSingleThreadScheduledExecutor(
-            new BasicThreadFactory.Builder()
-                    .namingPattern("OrkesAuthenticationSupplier Token Refresh %d")
-                    .daemon(true)
-                    .build());
 
     private final Cache<String, String> tokenCache;
     private final String keyId;
     private final String keySecret;
     private final long tokenRefreshInSeconds;
+    private final Object refreshLock = new Object();
 
     private TokenResource tokenResource;
 
@@ -85,7 +78,6 @@ public class OrkesAuthentication implements HeaderSupplier {
     @Override
     public void init(ConductorClient client) {
         this.tokenResource = new TokenResource(client);
-        scheduleTokenRefresh();
         try {
             getToken();
         } catch (Throwable t) {
@@ -110,10 +102,24 @@ public class OrkesAuthentication implements HeaderSupplier {
         }
     }
 
-    private void scheduleTokenRefresh() {
-        long refreshInterval = Math.max(30, tokenRefreshInSeconds - 30); // why?
-        LOGGER.info("Starting token refresh thread to run at every {} seconds", refreshInterval);
-        tokenRefreshService.scheduleAtFixedRate(this::refreshToken, refreshInterval, refreshInterval, TimeUnit.SECONDS);
+    /**
+     * Force a token refresh, but only if the current cached token still matches the
+     * stale token that produced a 401. Prevents a thundering herd when many worker
+     * threads hit the expired token simultaneously.
+     *
+     * @param staleToken the token value that just produced a 401 response
+     * @return a fresh (or already-rotated) token
+     */
+    public String refreshIfStale(String staleToken) {
+        synchronized (refreshLock) {
+            String current = tokenCache.getIfPresent(TOKEN_CACHE_KEY);
+            if (current != null && !current.equals(staleToken)) {
+                return current; // another thread already rotated it
+            }
+            String fresh = refreshToken();
+            tokenCache.put(TOKEN_CACHE_KEY, fresh); // resets TTL and unblocks others
+            return fresh;
+        }
     }
 
     private String refreshToken() {
