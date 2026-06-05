@@ -39,9 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Simulates a token expiring mid-use and verifies the client reactively refreshes
- * the token on a 401 and retries the request. These tests fail if the
- * {@link TokenRefreshAuthenticator} wiring is removed: without it the first 401
+ * the token on a 401/403 and retries the request. These tests fail if the
+ * {@link TokenRefreshInterceptor} wiring is removed: without it the first 401
  * propagates as a {@link ConductorClientException} instead of being retried.
+ *
+ * <p>The interceptor only refreshes when the JSON {@code error} field is
+ * {@code EXPIRED_TOKEN} or {@code INVALID_TOKEN}; any other status, error code,
+ * or unparseable body bubbles straight up.
  */
 public class TokenRefreshTest {
 
@@ -76,17 +80,25 @@ public class TokenRefreshTest {
 
     /**
      * Dispatcher that mints incrementing tokens on /token, and treats the very first
-     * minted token as "expired" on the business endpoint (returns 401). Any other
-     * token is accepted (200).
+     * minted token as "expired" on the business endpoint (rejecting it with the
+     * configured status code and {@code error} value). Any other token is accepted (200).
      */
     private static class ExpiringTokenDispatcher extends Dispatcher {
         final AtomicInteger tokenMints = new AtomicInteger(0);
         final AtomicReference<String> firstToken = new AtomicReference<>();
         final AtomicReference<String> lastAcceptedToken = new AtomicReference<>();
         final boolean alwaysExpire;
+        final int rejectCode;
+        final String errorCode;
 
         ExpiringTokenDispatcher(boolean alwaysExpire) {
+            this(alwaysExpire, 401, "EXPIRED_TOKEN");
+        }
+
+        ExpiringTokenDispatcher(boolean alwaysExpire, int rejectCode, String errorCode) {
             this.alwaysExpire = alwaysExpire;
+            this.rejectCode = rejectCode;
+            this.errorCode = errorCode;
         }
 
         @NotNull
@@ -107,9 +119,9 @@ public class TokenRefreshTest {
                     || (firstToken.get() != null && firstToken.get().equals(presented));
             if (expired) {
                 return new MockResponse()
-                        .setResponseCode(401)
+                        .setResponseCode(rejectCode)
                         .setHeader("Content-Type", "application/json")
-                        .setBody("{\"message\":\"EXPIRED_TOKEN\"}");
+                        .setBody("{\"error\":\"" + errorCode + "\"}");
             }
 
             lastAcceptedToken.set(presented);
@@ -117,6 +129,71 @@ public class TokenRefreshTest {
                     .setResponseCode(200)
                     .setHeader("Content-Type", "text/plain")
                     .setBody("ok");
+        }
+    }
+
+    /**
+     * Dispatcher that mints tokens on /token but always rejects the business endpoint
+     * with a fixed status code and body, regardless of the token presented.
+     */
+    private static class StaticRejectDispatcher extends Dispatcher {
+        final AtomicInteger tokenMints = new AtomicInteger(0);
+        final int rejectCode;
+        final String body;
+        final String contentType;
+
+        StaticRejectDispatcher(int rejectCode, String body) {
+            this(rejectCode, body, "application/json");
+        }
+
+        StaticRejectDispatcher(int rejectCode, String body, String contentType) {
+            this.rejectCode = rejectCode;
+            this.body = body;
+            this.contentType = contentType;
+        }
+
+        @NotNull
+        @Override
+        public MockResponse dispatch(@NotNull RecordedRequest request) {
+            String path = request.getPath() == null ? "" : request.getPath();
+            if (path.endsWith("/token") && "POST".equals(request.getMethod())) {
+                String token = "token-" + tokenMints.incrementAndGet();
+                return new MockResponse()
+                        .setResponseCode(200)
+                        .setHeader("Content-Type", "application/json")
+                        .setBody("{\"token\":\"" + token + "\"}");
+            }
+
+            return new MockResponse()
+                    .setResponseCode(rejectCode)
+                    .setHeader("Content-Type", contentType)
+                    .setBody(body);
+        }
+    }
+
+    /**
+     * Dispatcher whose /token endpoint always fails, so every mint attempt throws.
+     * Counts how many times /token was actually hit.
+     */
+    private static class FailingTokenDispatcher extends Dispatcher {
+        final AtomicInteger tokenAttempts = new AtomicInteger(0);
+
+        @NotNull
+        @Override
+        public MockResponse dispatch(@NotNull RecordedRequest request) {
+            String path = request.getPath() == null ? "" : request.getPath();
+            if (path.endsWith("/token") && "POST".equals(request.getMethod())) {
+                tokenAttempts.incrementAndGet();
+                return new MockResponse()
+                        .setResponseCode(401)
+                        .setHeader("Content-Type", "application/json")
+                        .setBody("{\"error\":\"INVALID_TOKEN\"}");
+            }
+
+            return new MockResponse()
+                    .setResponseCode(401)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"error\":\"EXPIRED_TOKEN\"}");
         }
     }
 
@@ -136,6 +213,24 @@ public class TokenRefreshTest {
         // One mint at init (token-1) plus one reactive refresh after the 401 (token-2).
         assertEquals(2, dispatcher.tokenMints.get());
         // The successful (retried) request must have carried the refreshed token.
+        assertEquals("token-2", dispatcher.lastAcceptedToken.get());
+    }
+
+    @Test
+    public void refreshesAndContinuesAfter403() throws IOException {
+        server = new MockWebServer();
+        // Server rejects the stale token with 403 + INVALID_TOKEN instead of 401.
+        ExpiringTokenDispatcher dispatcher = new ExpiringTokenDispatcher(false, 403, "INVALID_TOKEN");
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        ConductorClientResponse<String> response = callBusinessEndpoint(client);
+
+        assertEquals(200, response.getStatusCode());
+        assertEquals("ok", response.getData());
+        assertEquals(2, dispatcher.tokenMints.get());
         assertEquals("token-2", dispatcher.lastAcceptedToken.get());
     }
 
@@ -173,7 +268,89 @@ public class TokenRefreshTest {
         assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
         // Init mint (token-1) plus exactly one reactive refresh attempt (token-2); then it gives up.
         assertEquals(2, dispatcher.tokenMints.get(),
-                "authenticator must retry at most once and not loop");
+                "interceptor must retry at most once and not loop");
         assertTrue(dispatcher.tokenMints.get() <= 2);
+    }
+
+    @Test
+    public void nonTokenErrorBubblesUpWithoutRefresh() throws IOException {
+        server = new MockWebServer();
+        // 401 whose error code is not a token-expiry/invalid code -> must not refresh.
+        StaticRejectDispatcher dispatcher = new StaticRejectDispatcher(401, "{\"error\":\"USER_NOT_FOUND\"}");
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
+        // Only the init mint happened; no reactive refresh for a non-token error.
+        assertEquals(1, dispatcher.tokenMints.get(),
+                "non-token 401 must bubble up without minting a new token");
+    }
+
+    @Test
+    public void blankErrorBodyBubblesUpWithoutRefresh() throws IOException {
+        server = new MockWebServer();
+        // 401 with no error field at all -> treated as a non-token failure.
+        StaticRejectDispatcher dispatcher = new StaticRejectDispatcher(401, "{}");
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
+        assertEquals(1, dispatcher.tokenMints.get(),
+                "401 without an error field must bubble up without minting a new token");
+    }
+
+    @Test
+    public void nonJsonBodyBubblesUpWithoutRefresh() throws IOException {
+        server = new MockWebServer();
+        // 401 with a non-JSON (HTML) body, e.g. from a proxy/gateway -> must not refresh.
+        StaticRejectDispatcher dispatcher = new StaticRejectDispatcher(
+                401, "<html><body>401 Unauthorized</body></html>", "text/html");
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
+        assertEquals(1, dispatcher.tokenMints.get(),
+                "401 with an unparseable body must bubble up without minting a new token");
+    }
+
+    @Test
+    public void emptyBodyBubblesUpWithoutRefresh() throws IOException {
+        server = new MockWebServer();
+        // 401 with no body at all -> must not refresh.
+        StaticRejectDispatcher dispatcher = new StaticRejectDispatcher(401, "", "text/plain");
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
+        assertEquals(1, dispatcher.tokenMints.get(),
+                "401 with an empty body must bubble up without minting a new token");
+    }
+
+    @Test
+    public void backoffThrottlesRepeatedTokenMintFailures() throws IOException {
+        server = new MockWebServer();
+        FailingTokenDispatcher dispatcher = new FailingTokenDispatcher();
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        // Init attempts one mint that fails (failure count -> 1), but build still succeeds.
+        ApiClient client = buildClient();
+        assertEquals(1, dispatcher.tokenAttempts.get(), "init should attempt exactly one mint");
+
+        // Rapid subsequent calls are throttled by the exponential backoff and must not
+        // hammer the /token endpoint again within the backoff window.
+        for (int i = 0; i < 3; i++) {
+            assertThrows(RuntimeException.class, () -> callBusinessEndpoint(client));
+        }
+        assertEquals(1, dispatcher.tokenAttempts.get(),
+                "backoff must prevent additional mint attempts within the backoff window");
     }
 }
