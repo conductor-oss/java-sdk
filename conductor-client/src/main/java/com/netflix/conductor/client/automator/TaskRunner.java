@@ -64,6 +64,8 @@ import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 
+import io.orkes.conductor.client.http.FatalAuthenticationException;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -296,6 +298,11 @@ class TaskRunner {
         } catch (Throwable e) {
             permits.release(pollCount - tasks.size());
 
+            if (hasFatalAuthCause(e)) {
+                LOGGER.error("Fatal authentication failure — terminating JVM");
+                System.exit(1);
+            }
+
             //For the first 100 errors, just print them as is...
             boolean printError = pollingErrorCount < 100 || pollingErrorCount % errorAt == 0;
             pollingErrorCount++;
@@ -348,6 +355,15 @@ class TaskRunner {
         } catch (Throwable t) {
             LOGGER.warn("Failed to publish ThreadUncaughtException event", t);
         }
+    }
+
+    private static boolean hasFatalAuthCause(Throwable t) {
+        for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+            if (cause instanceof FatalAuthenticationException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Task processTask(Task task) {

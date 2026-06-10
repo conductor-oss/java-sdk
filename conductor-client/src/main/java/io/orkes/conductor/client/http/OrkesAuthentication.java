@@ -141,7 +141,7 @@ public class OrkesAuthentication implements HeaderSupplier {
     private String refreshToken() {
         synchronized (refreshLock) {
             if (tokenRefreshFailures >= MAX_TOKEN_REFRESH_FAILURES) {
-                throw new ConductorClientException("Token refresh has failed " + tokenRefreshFailures
+                throw new FatalAuthenticationException("Token refresh has failed " + tokenRefreshFailures
                         + " times. Please check your authentication credentials (CONDUCTOR_AUTH_KEY/"
                         + "CONDUCTOR_AUTH_SECRET). Stopping token refresh attempts.");
             }
