@@ -13,6 +13,8 @@
 package io.orkes.conductor.client.http;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,6 +30,7 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 import io.orkes.conductor.client.ApiClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.cache.Cache;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -352,5 +355,178 @@ public class TokenRefreshTest {
         }
         assertEquals(1, dispatcher.tokenAttempts.get(),
                 "backoff must prevent additional mint attempts within the backoff window");
+    }
+
+    @Test
+    public void fatalExceptionAfterMaxRefreshFailures() throws Exception {
+        server = new MockWebServer();
+        FailingTokenDispatcher dispatcher = new FailingTokenDispatcher();
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+        OrkesAuthentication auth = extractAuth(client);
+        assertEquals(1, dispatcher.tokenAttempts.get(), "init should attempt exactly one mint");
+
+        // Drive 4 more mint failures (total 5) by bypassing the backoff between each.
+        for (int i = 0; i < 4; i++) {
+            resetBackoff(auth);
+            assertThrows(RuntimeException.class, () -> auth.refreshIfStale("stale"));
+        }
+        assertEquals(5, getFailureCount(auth));
+
+        // The next call must throw FatalAuthenticationException because the counter
+        // has reached MAX_TOKEN_REFRESH_FAILURES.
+        resetBackoff(auth);
+        assertThrows(FatalAuthenticationException.class, () -> auth.refreshIfStale("stale"));
+    }
+
+    @Test
+    public void fatalExceptionPropagatesThroughHeaderSupplier() throws Exception {
+        server = new MockWebServer();
+        FailingTokenDispatcher dispatcher = new FailingTokenDispatcher();
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+        OrkesAuthentication auth = extractAuth(client);
+
+        // Force the failure counter past the fatal threshold and clear the cached
+        // token so the next HTTP call triggers a fresh refreshToken() via the
+        // header supplier path (getToken -> cache miss -> refreshToken).
+        setFailureCount(auth, 5);
+        invalidateTokenCache(auth);
+
+        // The FatalAuthenticationException should propagate out of client.execute()
+        // (wrapped in UncheckedExecutionException from Guava Cache) so that
+        // TaskRunner.hasFatalAuthCause() can find it in the cause chain.
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> callBusinessEndpoint(client));
+        assertTrue(hasFatalAuthCause(thrown),
+                "FatalAuthenticationException must be present in the cause chain");
+    }
+
+    @Test
+    public void successfulMintResetsFailureCounter() throws Exception {
+        server = new MockWebServer();
+        SwitchableTokenDispatcher dispatcher = new SwitchableTokenDispatcher();
+        dispatcher.shouldFailMints.set(true);
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+        OrkesAuthentication auth = extractAuth(client);
+        assertEquals(1, dispatcher.tokenAttempts.get(), "init should attempt exactly one mint");
+
+        // Accumulate 4 consecutive failures (1 from init + 3 more).
+        for (int i = 0; i < 3; i++) {
+            resetBackoff(auth);
+            assertThrows(RuntimeException.class, () -> auth.refreshIfStale("stale"));
+        }
+        assertEquals(4, getFailureCount(auth));
+
+        // Let the next mint succeed — this must reset the failure counter to 0.
+        dispatcher.shouldFailMints.set(false);
+        resetBackoff(auth);
+        String freshToken = auth.refreshIfStale("stale");
+        assertTrue(freshToken.startsWith("token-"), "should have received a valid token");
+        assertEquals(0, getFailureCount(auth), "successful mint must reset the failure counter");
+
+        // A subsequent call through the full HTTP stack should succeed.
+        ConductorClientResponse<String> response = callBusinessEndpoint(client);
+        assertEquals(200, response.getStatusCode());
+
+        // Now fail again — the counter starts from zero so 4 new failures must NOT
+        // trigger FatalAuthenticationException (would need 5 to hit the threshold).
+        dispatcher.shouldFailMints.set(true);
+        invalidateTokenCache(auth);
+        for (int i = 0; i < 4; i++) {
+            resetBackoff(auth);
+            assertThrows(RuntimeException.class, () -> auth.refreshIfStale("stale"));
+        }
+        assertEquals(4, getFailureCount(auth),
+                "failure counter must have restarted from zero after the earlier success");
+    }
+
+    // ------------------------------------------------------------------
+    // Dispatcher whose /token endpoint can be toggled between success and
+    // failure at runtime. Business endpoint always returns 200 when a
+    // valid token is present.
+    // ------------------------------------------------------------------
+
+    private static class SwitchableTokenDispatcher extends Dispatcher {
+        final AtomicBoolean shouldFailMints = new AtomicBoolean(false);
+        final AtomicInteger tokenAttempts = new AtomicInteger(0);
+        final AtomicInteger tokenMints = new AtomicInteger(0);
+
+        @NotNull
+        @Override
+        public MockResponse dispatch(@NotNull RecordedRequest request) {
+            String path = request.getPath() == null ? "" : request.getPath();
+            if (path.endsWith("/token") && "POST".equals(request.getMethod())) {
+                tokenAttempts.incrementAndGet();
+                if (shouldFailMints.get()) {
+                    return new MockResponse()
+                            .setResponseCode(401)
+                            .setHeader("Content-Type", "application/json")
+                            .setBody("{\"error\":\"INVALID_TOKEN\"}");
+                }
+                String token = "token-" + tokenMints.incrementAndGet();
+                return new MockResponse()
+                        .setResponseCode(200)
+                        .setHeader("Content-Type", "application/json")
+                        .setBody("{\"token\":\"" + token + "\"}");
+            }
+
+            return new MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "text/plain")
+                    .setBody("ok");
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Reflection helpers — allow tests to bypass the real-time backoff
+    // and inspect internal counters without exposing them in production.
+    // ------------------------------------------------------------------
+
+    private static OrkesAuthentication extractAuth(ApiClient client) throws Exception {
+        Field f = ApiClient.class.getDeclaredField("authentication");
+        f.setAccessible(true);
+        return (OrkesAuthentication) f.get(client);
+    }
+
+    private static void resetBackoff(OrkesAuthentication auth) throws Exception {
+        Field f = OrkesAuthentication.class.getDeclaredField("lastTokenRefreshAttempt");
+        f.setAccessible(true);
+        f.set(auth, 0L);
+    }
+
+    private static int getFailureCount(OrkesAuthentication auth) throws Exception {
+        Field f = OrkesAuthentication.class.getDeclaredField("tokenRefreshFailures");
+        f.setAccessible(true);
+        return (int) f.get(auth);
+    }
+
+    private static void setFailureCount(OrkesAuthentication auth, int count) throws Exception {
+        Field f = OrkesAuthentication.class.getDeclaredField("tokenRefreshFailures");
+        f.setAccessible(true);
+        f.set(auth, count);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void invalidateTokenCache(OrkesAuthentication auth) throws Exception {
+        Field f = OrkesAuthentication.class.getDeclaredField("tokenCache");
+        f.setAccessible(true);
+        ((Cache<String, String>) f.get(auth)).invalidateAll();
+    }
+
+    private static boolean hasFatalAuthCause(Throwable t) {
+        for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+            if (cause instanceof FatalAuthenticationException) {
+                return true;
+            }
+        }
+        return false;
     }
 }

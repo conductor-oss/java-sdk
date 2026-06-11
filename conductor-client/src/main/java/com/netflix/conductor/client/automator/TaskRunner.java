@@ -95,6 +95,7 @@ class TaskRunner {
     private final ScheduledExecutorService leaseExtendExecutorService;
     private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
     private final AtomicInteger activeWorkerCount = new AtomicInteger(0);
+    private Runnable exitAction = () -> System.exit(1);
 
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -168,6 +169,11 @@ class TaskRunner {
                         .uncaughtExceptionHandler(uncaughtExceptionHandler)
                         .build()
         );
+    }
+
+    @VisibleForTesting
+    void setExitAction(Runnable exitAction) {
+        this.exitAction = exitAction;
     }
 
     public void pollAndExecute() {
@@ -300,7 +306,7 @@ class TaskRunner {
 
             if (hasFatalAuthCause(e)) {
                 LOGGER.error("Fatal authentication failure — terminating JVM");
-                System.exit(1);
+                exitAction.run();
             }
 
             //For the first 100 errors, just print them as is...
