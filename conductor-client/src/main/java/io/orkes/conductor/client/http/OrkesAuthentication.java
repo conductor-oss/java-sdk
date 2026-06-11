@@ -36,7 +36,7 @@ public class OrkesAuthentication implements HeaderSupplier {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrkesAuthentication.class);
     private static final String TOKEN_CACHE_KEY = "TOKEN";
 
-    // Stop minting after this many consecutive failures (mirrors the Python SDK).
+    // Stop minting after this many consecutive failures.
     private static final int MAX_TOKEN_REFRESH_FAILURES = 5;
 
     private final Cache<String, String> tokenCache;
@@ -132,8 +132,8 @@ public class OrkesAuthentication implements HeaderSupplier {
 
     /**
      * Mints a fresh token. Shared by the lazy cache-TTL reload ({@link #getToken()})
-     * and the reactive {@link #refreshIfStale(String)} path. Mirrors the Python SDK's
-     * backoff: after a failure, attempts are spaced by an exponential delay
+     * and the reactive {@link #refreshIfStale(String)} path. After a failure,
+     * attempts are spaced by an exponential delay
      * ({@code 2^failures} seconds) and stop entirely once
      * {@link #MAX_TOKEN_REFRESH_FAILURES} consecutive failures are reached. A
      * successful mint resets the failure counter.

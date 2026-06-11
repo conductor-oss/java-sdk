@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 
 - `PrometheusMetricsCollector` metric names updated to the harmonized cross-SDK catalog (e.g. `task_poll_total`, `task_execute_time_seconds`)
 - `micrometer-registry-prometheus` is now a transitive (`api`) dependency
-- Token refresh reworked to a reactive interceptor model (aligned with the Python SDK) replacing the previous scheduled refresh mechanism; includes exponential backoff and thundering-herd prevention
+- Token refresh reworked to a reactive interceptor model replacing the previous scheduled refresh mechanism; includes exponential backoff and thundering-herd prevention
 
 ### Removed
 

@@ -25,7 +25,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * Application interceptor that mirrors the Python SDK's token-expiry handling.
+ * Application interceptor that handles token expiry transparently.
  *
  * <p>On a {@code 401} or {@code 403} it inspects the JSON {@code error} field of
  * the response body. Only when that field is {@code EXPIRED_TOKEN} or
