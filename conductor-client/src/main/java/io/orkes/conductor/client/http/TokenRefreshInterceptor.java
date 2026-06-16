@@ -78,6 +78,8 @@ public final class TokenRefreshInterceptor implements Interceptor {
         String fresh;
         try {
             fresh = auth.refreshIfStale(stale);
+        } catch (FatalAuthenticationException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.warn("Token refresh after {} failed, bubbling up original error", response.code(), e);
             return response;

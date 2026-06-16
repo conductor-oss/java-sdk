@@ -406,6 +406,49 @@ public class TokenRefreshTest {
                 "FatalAuthenticationException must be present in the cause chain");
     }
 
+    /**
+     * Reproduces the mid-session credential-revocation scenario where the
+     * interceptor (not the header-supplier / cache-miss path) is the one that
+     * triggers the fatal exception.
+     *
+     * <p>Setup: init succeeds (token cached), then both the /token endpoint and
+     * the business endpoint start failing (simulating revoked credentials).
+     * The failure counter is pre-seeded to the fatal threshold so that the very
+     * next {@code refreshIfStale} inside the interceptor throws
+     * {@link FatalAuthenticationException}.
+     *
+     * <p><b>Without the fix</b>, the interceptor's {@code catch (Exception)}
+     * swallows the fatal exception and returns the raw 401 response, which
+     * becomes a plain {@link ConductorClientException}. {@code hasFatalAuthCause}
+     * (the same check {@code TaskRunner} uses to decide whether to call
+     * {@code System.exit}) returns {@code false}, so the worker never exits.
+     */
+    @Test
+    public void fatalExceptionPropagatesThroughInterceptor() throws Exception {
+        server = new MockWebServer();
+        SwitchableTokenDispatcher dispatcher = new SwitchableTokenDispatcher();
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+        OrkesAuthentication auth = extractAuth(client);
+        assertEquals(0, getFailureCount(auth), "init should have succeeded");
+
+        dispatcher.shouldFailMints.set(true);
+        dispatcher.shouldExpireBusiness.set(true);
+
+        setFailureCount(auth, 5);
+        resetBackoff(auth);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> callBusinessEndpoint(client));
+        assertTrue(hasFatalAuthCause(thrown),
+                "FatalAuthenticationException must survive the interceptor's catch block — "
+                        + "without it TaskRunner.hasFatalAuthCause() won't find it and the "
+                        + "worker will never call System.exit(). "
+                        + "Actual exception chain: " + causeChainString(thrown));
+    }
+
     @Test
     public void successfulMintResetsFailureCounter() throws Exception {
         server = new MockWebServer();
@@ -456,6 +499,7 @@ public class TokenRefreshTest {
 
     private static class SwitchableTokenDispatcher extends Dispatcher {
         final AtomicBoolean shouldFailMints = new AtomicBoolean(false);
+        final AtomicBoolean shouldExpireBusiness = new AtomicBoolean(false);
         final AtomicInteger tokenAttempts = new AtomicInteger(0);
         final AtomicInteger tokenMints = new AtomicInteger(0);
 
@@ -476,6 +520,13 @@ public class TokenRefreshTest {
                         .setResponseCode(200)
                         .setHeader("Content-Type", "application/json")
                         .setBody("{\"token\":\"" + token + "\"}");
+            }
+
+            if (shouldExpireBusiness.get()) {
+                return new MockResponse()
+                        .setResponseCode(401)
+                        .setHeader("Content-Type", "application/json")
+                        .setBody("{\"error\":\"EXPIRED_TOKEN\"}");
             }
 
             return new MockResponse()
@@ -528,5 +579,14 @@ public class TokenRefreshTest {
             }
         }
         return false;
+    }
+
+    private static String causeChainString(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+            if (sb.length() > 0) sb.append(" -> ");
+            sb.append(cause.getClass().getSimpleName());
+        }
+        return sb.toString();
     }
 }
