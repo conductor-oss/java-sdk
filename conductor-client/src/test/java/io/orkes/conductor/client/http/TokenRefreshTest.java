@@ -14,7 +14,6 @@ package io.orkes.conductor.client.http;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -489,51 +488,6 @@ public class TokenRefreshTest {
         }
         assertEquals(4, getFailureCount(auth),
                 "failure counter must have restarted from zero after the earlier success");
-    }
-
-    // ------------------------------------------------------------------
-    // Dispatcher whose /token endpoint can be toggled between success and
-    // failure at runtime. Business endpoint always returns 200 when a
-    // valid token is present.
-    // ------------------------------------------------------------------
-
-    private static class SwitchableTokenDispatcher extends Dispatcher {
-        final AtomicBoolean shouldFailMints = new AtomicBoolean(false);
-        final AtomicBoolean shouldExpireBusiness = new AtomicBoolean(false);
-        final AtomicInteger tokenAttempts = new AtomicInteger(0);
-        final AtomicInteger tokenMints = new AtomicInteger(0);
-
-        @NotNull
-        @Override
-        public MockResponse dispatch(@NotNull RecordedRequest request) {
-            String path = request.getPath() == null ? "" : request.getPath();
-            if (path.endsWith("/token") && "POST".equals(request.getMethod())) {
-                tokenAttempts.incrementAndGet();
-                if (shouldFailMints.get()) {
-                    return new MockResponse()
-                            .setResponseCode(401)
-                            .setHeader("Content-Type", "application/json")
-                            .setBody("{\"error\":\"INVALID_TOKEN\"}");
-                }
-                String token = "token-" + tokenMints.incrementAndGet();
-                return new MockResponse()
-                        .setResponseCode(200)
-                        .setHeader("Content-Type", "application/json")
-                        .setBody("{\"token\":\"" + token + "\"}");
-            }
-
-            if (shouldExpireBusiness.get()) {
-                return new MockResponse()
-                        .setResponseCode(401)
-                        .setHeader("Content-Type", "application/json")
-                        .setBody("{\"error\":\"EXPIRED_TOKEN\"}");
-            }
-
-            return new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "text/plain")
-                    .setBody("ok");
-        }
     }
 
     // ------------------------------------------------------------------
