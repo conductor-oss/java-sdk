@@ -13,6 +13,7 @@
 package io.orkes.conductor.harness;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,6 +50,8 @@ public class HarnessMain {
     };
 
     public static void main(String[] args) throws Exception {
+        boolean workersOnly = Arrays.asList(args).contains("--workers-only");
+
         int workflowsPerSec = envInt("HARNESS_WORKFLOWS_PER_SEC", 2);
         int batchSize = envInt("HARNESS_BATCH_SIZE", 20);
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
@@ -63,42 +66,64 @@ public class HarnessMain {
         Map<String, Integer> threadCounts =
                 workers.stream().collect(Collectors.toMap(Worker::getTaskDefName, w -> batchSize));
 
-        PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-        metricsCollector.startServer(metricsPort, "/metrics");
-        log.info("Prometheus metrics server started on port {}", metricsPort);
+        PrometheusMetricsCollector metricsCollector = null;
+        if (!workersOnly) {
+            metricsCollector = new PrometheusMetricsCollector();
+        }
 
-        ConductorClient client = ApiClient.builder()
+        var clientBuilder = ApiClient.builder()
                 .useEnvVariables(true)
                 .readTimeout(10_000)
                 .connectTimeout(10_000)
-                .writeTimeout(10_000)
-                .withMetricsCollector(metricsCollector)
-                .build();
+                .writeTimeout(10_000);
+        if (metricsCollector != null) {
+            clientBuilder.withMetricsCollector(metricsCollector);
+        }
+
+        ConductorClient client = clientBuilder.build();
 
         TaskClient taskClient = new TaskClient(client);
-        WorkflowClient workflowClient = new WorkflowClient(client);
 
         TaskRunnerConfigurer configurer =
                 new TaskRunnerConfigurer.Builder(taskClient, workers)
                         .withTaskThreadCount(threadCounts)
                         .build();
 
-        registerMetadata(client);
+        if (!workersOnly) {
+            try {
+                registerMetadata(client);
+            } catch (Exception e) {
+                log.error("Failed to register metadata (bad credentials?): {}", e.getMessage());
+                System.exit(1);
+                return;
+            }
+            metricsCollector.startServer(metricsPort, "/metrics");
+            log.info("Prometheus metrics server started on port {}", metricsPort);
+        }
 
         configurer.init();
 
-        WorkflowStatusProbe probe = new WorkflowStatusProbe(workflowClient, probeRatePerSec);
-        WorkflowGovernor governor = new WorkflowGovernor(
-                workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
-        governor.start();
-        probe.start();
+        if (workersOnly) {
+            log.info("Running in --workers-only mode (no metrics, no registration, no governor)");
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                log.info("Shutting down harness...");
+                configurer.shutdown();
+            }));
+        } else {
+            WorkflowClient workflowClient = new WorkflowClient(client);
+            WorkflowStatusProbe probe = new WorkflowStatusProbe(workflowClient, probeRatePerSec);
+            WorkflowGovernor governor = new WorkflowGovernor(
+                    workflowClient, WORKFLOW_NAME, workflowsPerSec, probe::offer);
+            governor.start();
+            probe.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("Shutting down harness...");
-            governor.shutdown();
-            probe.shutdown();
-            configurer.shutdown();
-        }));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                log.info("Shutting down harness...");
+                governor.shutdown();
+                probe.shutdown();
+                configurer.shutdown();
+            }));
+        }
 
         Thread.currentThread().join();
     }

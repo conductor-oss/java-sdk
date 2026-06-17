@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.HeaderSupplier;
 
@@ -35,11 +36,18 @@ public class OrkesAuthentication implements HeaderSupplier {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrkesAuthentication.class);
     private static final String TOKEN_CACHE_KEY = "TOKEN";
 
+    // Stop minting after this many consecutive failures.
+    private static final int MAX_TOKEN_REFRESH_FAILURES = 5;
+
     private final Cache<String, String> tokenCache;
     private final String keyId;
     private final String keySecret;
     private final long tokenRefreshInSeconds;
     private final Object refreshLock = new Object();
+
+    // Guarded by refreshLock.
+    private int tokenRefreshFailures = 0;
+    private long lastTokenRefreshAttempt = 0;
 
     private TokenResource tokenResource;
 
@@ -122,14 +130,52 @@ public class OrkesAuthentication implements HeaderSupplier {
         }
     }
 
+    /**
+     * Mints a fresh token. Shared by the lazy cache-TTL reload ({@link #getToken()})
+     * and the reactive {@link #refreshIfStale(String)} path. After a failure,
+     * attempts are spaced by an exponential delay
+     * ({@code 2^failures} seconds) and stop entirely once
+     * {@link #MAX_TOKEN_REFRESH_FAILURES} consecutive failures are reached. A
+     * successful mint resets the failure counter.
+     */
     private String refreshToken() {
-        LOGGER.debug("Refreshing token @ {}", Instant.now());
-        if (keyId == null || keySecret == null) {
-            throw new RuntimeException("KeyId and KeySecret must be set in order to get an authentication token");
-        }
+        synchronized (refreshLock) {
+            if (tokenRefreshFailures >= MAX_TOKEN_REFRESH_FAILURES) {
+                throw new FatalAuthenticationException("Token refresh has failed " + tokenRefreshFailures
+                        + " times. Please check your authentication credentials (CONDUCTOR_AUTH_KEY/"
+                        + "CONDUCTOR_AUTH_SECRET). Stopping token refresh attempts.");
+            }
 
-        GenerateTokenRequest generateTokenRequest = new GenerateTokenRequest(keyId, keySecret);
-        TokenResponse response = tokenResource.generate(generateTokenRequest).getData();
-        return response.getToken();
+            if (tokenRefreshFailures > 0) {
+                long backoffMillis = (1L << tokenRefreshFailures) * 1000L; // 2^failures seconds
+                long sinceLastAttempt = System.currentTimeMillis() - lastTokenRefreshAttempt;
+                if (sinceLastAttempt < backoffMillis) {
+                    long remaining = backoffMillis - sinceLastAttempt;
+                    throw new ConductorClientException("Token refresh backoff active. Please wait " + remaining
+                            + "ms before the next attempt. (Failure count: " + tokenRefreshFailures + ")");
+                }
+            }
+
+            lastTokenRefreshAttempt = System.currentTimeMillis();
+
+            if (keyId == null || keySecret == null) {
+                tokenRefreshFailures++;
+                throw new ConductorClientException(
+                        "KeyId and KeySecret must be set in order to get an authentication token");
+            }
+
+            LOGGER.debug("Refreshing token @ {}", Instant.now());
+            try {
+                GenerateTokenRequest generateTokenRequest = new GenerateTokenRequest(keyId, keySecret);
+                TokenResponse response = tokenResource.generate(generateTokenRequest).getData();
+                tokenRefreshFailures = 0;
+                return response.getToken();
+            } catch (RuntimeException e) {
+                tokenRefreshFailures++;
+                LOGGER.error("Failed to refresh authentication token (attempt {}): {}",
+                        tokenRefreshFailures, e.getMessage());
+                throw e;
+            }
+        }
     }
 }

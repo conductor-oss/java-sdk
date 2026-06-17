@@ -30,7 +30,7 @@ import io.orkes.conductor.client.http.ApiCallback;
 import io.orkes.conductor.client.http.ApiResponse;
 import io.orkes.conductor.client.http.OrkesAuthentication;
 import io.orkes.conductor.client.http.Pair;
-import io.orkes.conductor.client.http.TokenRefreshAuthenticator;
+import io.orkes.conductor.client.http.TokenRefreshInterceptor;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -194,7 +194,7 @@ public final class ApiClient extends ConductorClient {
 
             this.authentication = new OrkesAuthentication(key, secret);
             this.addHeaderSupplier(this.authentication);
-            this.configureOkHttp(b -> b.authenticator(new TokenRefreshAuthenticator(this.authentication)));
+            this.configureOkHttp(b -> b.addInterceptor(new TokenRefreshInterceptor(this.authentication)));
             return this;
         }
 
