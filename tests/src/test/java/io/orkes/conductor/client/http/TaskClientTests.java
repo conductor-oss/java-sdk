@@ -169,7 +169,7 @@ public class TaskClientTests {
                 count++;
                 continue;
             }
-            // Converting TaskOutput class to Map to resolve Jackson's afterburner module
+            // Converting TaskOutput class to Map to resolve Jackson's blackbird module
             // and class loading issues
             Map<String, Object> output = new HashMap<>();
             output.put("name", "hello");
