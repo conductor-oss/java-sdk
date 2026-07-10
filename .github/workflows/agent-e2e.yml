@@ -1,0 +1,121 @@
+name: Agent E2E
+
+# Runs the agent e2e suites (conductor-ai-e2e/) against the released Agentspan
+# server JAR — a full Conductor server with the agent runtime baked in.
+#
+# These tests call real LLMs via the OPENAI_API_KEY / ANTHROPIC_API_KEY
+# repo secrets. The suites themselves never read the keys (asserted by
+# Suite2ToolCallingCredentials) — only the server process gets them.
+# Fork PRs cannot see repo secrets, so for them the run fails at the
+# silently-empty guard rather than passing vacuously.
+
+on: [pull_request, workflow_dispatch]
+
+concurrency:
+  group: agent-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AGENTSPAN_VERSION: "0.4.0"   # pinned server release — bump deliberately
+
+jobs:
+  agent-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      AGENTSPAN_SERVER_URL: http://localhost:8080/api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Python is only needed for mcp-testkit and the XML guard.
+      # No `cache: pip` — it hard-fails without a requirements file.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache server JAR
+        id: jar_cache
+        uses: actions/cache@v4
+        with:
+          path: agentspan-server.jar
+          key: agentspan-server-${{ env.AGENTSPAN_VERSION }}
+
+      - name: Download server JAR from release
+        if: steps.jar_cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${AGENTSPAN_VERSION}" --repo agentspan-ai/agentspan \
+            --pattern "agentspan-server-${AGENTSPAN_VERSION}.jar" --output agentspan-server.jar
+
+      - name: Install mcp-testkit
+        run: |
+          python -m pip install --upgrade pip
+          pip install mcp-testkit
+
+      - name: Start mcp-testkit
+        run: |
+          mcp-testkit --transport http --port 3001 &
+          sleep 2
+
+      - name: Start server
+        run: |
+          java -jar agentspan-server.jar --server.port=8080 > server.log 2>&1 &
+
+      - name: Wait for server health
+        run: |
+          for i in $(seq 1 45); do
+            if curl -sf http://localhost:8080/health | grep -q '"healthy"[[:space:]]*:[[:space:]]*true'; then
+              echo "server healthy after ~$((i*2))s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::server failed to become healthy within 90s"
+          tail -100 server.log
+          exit 1
+
+      - name: Run e2e suites
+        run: ./gradlew :conductor-ai-e2e:test -Pe2e
+
+      # BaseTest assumeTrue-skips every suite when the server is unreachable —
+      # without this guard a boot failure after the health gate (or a future
+      # gate regression) would yield a green job that ran nothing.
+      - name: Guard against silently-empty runs
+        if: always()
+        run: |
+          python - <<'EOF'
+          import glob
+          import sys
+          import xml.etree.ElementTree as ET
+
+          total = executed = 0
+          for path in glob.glob("conductor-ai-e2e/build/test-results/test/TEST-*.xml"):
+              root = ET.parse(path).getroot()
+              t = int(root.get("tests", 0))
+              sk = int(root.get("skipped", 0))
+              total += t
+              executed += t - sk
+          print(f"executed {executed}/{total} tests")
+          sys.exit(0 if executed > 0 else 1)
+          EOF
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-e2e-results
+          path: |
+            conductor-ai-e2e/build/test-results/test/
+            conductor-ai-e2e/build/reports/tests/test/
+            server.log
+          retention-days: 14
