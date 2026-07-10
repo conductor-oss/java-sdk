@@ -13,6 +13,7 @@
 package io.orkes.conductor.client.spring;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -89,7 +90,10 @@ class OrkesConductorClientAutoConfigurationTest {
     void orkesConductorClient_beanMethod_hasConditionalOnExpressionGuard() throws Exception {
         Method method =
                 OrkesConductorClientAutoConfiguration.class.getDeclaredMethod(
-                        "orkesConductorClient", ClientProperties.class, OrkesClientProperties.class);
+                        "orkesConductorClient",
+                        ClientProperties.class,
+                        OrkesClientProperties.class,
+                        Optional.class);
         assertThat(method.isAnnotationPresent(ConditionalOnExpression.class)).isTrue();
     }
 }
