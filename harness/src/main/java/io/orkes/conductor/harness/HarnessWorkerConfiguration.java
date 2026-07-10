@@ -15,11 +15,9 @@ package io.orkes.conductor.harness;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.netflix.conductor.client.worker.Worker;
-
 /**
  * Registers the five simulated task workers as beans. The auto-configured
- * {@code TaskRunnerConfigurer} collects every {@link Worker} bean and starts
+ * {@code TaskRunnerConfigurer} collects every {@code Worker} bean and starts
  * polling for them. Thread counts are taken from
  * {@code conductor.worker.<taskName>.threadCount} (wired to
  * {@code HARNESS_BATCH_SIZE} in {@code application.yml}).
@@ -32,27 +30,27 @@ import com.netflix.conductor.client.worker.Worker;
 public class HarnessWorkerConfiguration {
 
     @Bean
-    public Worker quickpulseWorker(HarnessProperties props) {
+    public SimulatedTaskWorker quickpulseWorker(HarnessProperties props) {
         return new SimulatedTaskWorker("java_worker_0", "quickpulse", 1, props.getBatchSize(), props.getPollIntervalMs());
     }
 
     @Bean
-    public Worker whisperlinkWorker(HarnessProperties props) {
+    public SimulatedTaskWorker whisperlinkWorker(HarnessProperties props) {
         return new SimulatedTaskWorker("java_worker_1", "whisperlink", 2, props.getBatchSize(), props.getPollIntervalMs());
     }
 
     @Bean
-    public Worker shadowfetchWorker(HarnessProperties props) {
+    public SimulatedTaskWorker shadowfetchWorker(HarnessProperties props) {
         return new SimulatedTaskWorker("java_worker_2", "shadowfetch", 3, props.getBatchSize(), props.getPollIntervalMs());
     }
 
     @Bean
-    public Worker ironforgeWorker(HarnessProperties props) {
+    public SimulatedTaskWorker ironforgeWorker(HarnessProperties props) {
         return new SimulatedTaskWorker("java_worker_3", "ironforge", 4, props.getBatchSize(), props.getPollIntervalMs());
     }
 
     @Bean
-    public Worker deepcrawlWorker(HarnessProperties props) {
+    public SimulatedTaskWorker deepcrawlWorker(HarnessProperties props) {
         return new SimulatedTaskWorker("java_worker_4", "deepcrawl", 5, props.getBatchSize(), props.getPollIntervalMs());
     }
 }

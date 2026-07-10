@@ -45,25 +45,26 @@ public class HarnessBootstrap implements ApplicationRunner {
 
     private static final String WORKFLOW_NAME = "java_simulated_tasks_workflow";
 
-    private static final String[][] SIMULATED_WORKERS = {
-        {"java_worker_0", "quickpulse", "1"},
-        {"java_worker_1", "whisperlink", "2"},
-        {"java_worker_2", "shadowfetch", "3"},
-        {"java_worker_3", "ironforge", "4"},
-        {"java_worker_4", "deepcrawl", "5"},
-    };
-
     private final ConductorClient client;
     private final WorkflowClient workflowClient;
     private final HarnessProperties props;
+    private final List<SimulatedTaskWorker> workers;
 
     private WorkflowGovernor governor;
     private WorkflowStatusProbe probe;
 
-    public HarnessBootstrap(ConductorClient client, WorkflowClient workflowClient, HarnessProperties props) {
+    public HarnessBootstrap(ConductorClient client,
+                            WorkflowClient workflowClient,
+                            HarnessProperties props,
+                            List<SimulatedTaskWorker> workers) {
         this.client = client;
         this.workflowClient = workflowClient;
         this.props = props;
+        // Sort by task name (java_worker_0..N) so the workflow chain order is
+        // deterministic regardless of bean-injection order.
+        this.workers = workers.stream()
+                .sorted(Comparator.comparing(SimulatedTaskWorker::getTaskDefName))
+                .toList();
     }
 
     @Override
@@ -94,14 +95,10 @@ public class HarnessBootstrap implements ApplicationRunner {
 
     private void registerMetadata(MetadataClient metadataClient) {
         List<TaskDef> taskDefs = new ArrayList<>();
-        for (String[] entry : SIMULATED_WORKERS) {
-            String taskName = entry[0];
-            String codename = entry[1];
-            int sleepSeconds = Integer.parseInt(entry[2]);
-
-            TaskDef td = new TaskDef(taskName);
-            td.setDescription(
-                    "Java SDK harness simulated task (" + codename + ", default delay " + sleepSeconds + "s)");
+        for (SimulatedTaskWorker worker : workers) {
+            TaskDef td = new TaskDef(worker.getTaskDefName());
+            td.setDescription("Java SDK harness simulated task (" + worker.getCodename()
+                    + ", default delay " + worker.getDelaySeconds() + "s)");
             td.setRetryCount(1);
             td.setTimeoutSeconds(300);
             td.setResponseTimeoutSeconds(300);
@@ -117,10 +114,10 @@ public class HarnessBootstrap implements ApplicationRunner {
         workflowDef.setOwnerEmail("java-sdk-harness@conductor.io");
 
         List<WorkflowTask> wfTasks = new ArrayList<>();
-        for (String[] entry : SIMULATED_WORKERS) {
+        for (SimulatedTaskWorker worker : workers) {
             WorkflowTask wt = new WorkflowTask();
-            wt.setName(entry[0]);
-            wt.setTaskReferenceName(entry[1]);
+            wt.setName(worker.getTaskDefName());
+            wt.setTaskReferenceName(worker.getCodename());
             wt.setType(TaskType.SIMPLE.name());
             wfTasks.add(wt);
         }
