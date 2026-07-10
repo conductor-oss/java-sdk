@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.internal;
+package io.orkes.conductor.client;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -22,13 +22,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.conductoross.conductor.ai.model.AgentEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.orkes.conductor.client.ApiClient;
+import com.netflix.conductor.common.config.ObjectMapperProvider;
+
 import io.orkes.conductor.client.http.Pair;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -42,16 +44,22 @@ import okhttp3.ResponseBody;
  * and token-refresh auth interceptor, exactly like every other client. The
  * response body is read incrementally; parsed events are placed into a
  * {@link LinkedBlockingQueue} and consumed via {@link #nextEvent()}.
+ *
+ * <p>Transport-only: events are surfaced as raw parsed JSON maps. Domain mapping
+ * (e.g. the agent SDK's {@code AgentEvent}) is the caller's concern.
  */
 public class SseClient implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(SseClient.class);
 
-    /** Sentinel value to signal end-of-stream. */
-    private static final AgentEvent DONE_SENTINEL = new AgentEvent(null, null, null, null, null, null, "", null, null);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapperProvider().getObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
+
+    /** Sentinel value to signal end-of-stream (compared by identity). */
+    private static final Map<String, Object> DONE_SENTINEL = Collections.unmodifiableMap(new HashMap<>());
 
     private final ApiClient apiClient;
     private final String executionId;
-    private final BlockingQueue<AgentEvent> eventQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Map<String, Object>> eventQueue = new LinkedBlockingQueue<>();
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private volatile Call call;
 
@@ -62,7 +70,7 @@ public class SseClient implements AutoCloseable {
 
     /** Connect and start receiving SSE events in a background thread. */
     public void connect() {
-        Thread streamThread = new Thread(this::streamLoop, "agentspan-sse-" + executionId);
+        Thread streamThread = new Thread(this::streamLoop, "agent-sse-" + executionId);
         streamThread.setDaemon(true);
         streamThread.start();
     }
@@ -70,11 +78,11 @@ public class SseClient implements AutoCloseable {
     /**
      * Block until the next event is available and return it.
      *
-     * @return the next event, or null if the stream is done
+     * @return the next event as a parsed JSON map, or null if the stream is done
      */
-    public AgentEvent nextEvent() {
+    public Map<String, Object> nextEvent() {
         try {
-            AgentEvent event = eventQueue.take();
+            Map<String, Object> event = eventQueue.take();
             return event == DONE_SENTINEL ? null : event;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -162,17 +170,15 @@ public class SseClient implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void dispatchEvent(String eventType, String data) {
         try {
             if ("[DONE]".equals(data)) {
                 eventQueue.offer(DONE_SENTINEL);
                 return;
             }
-            Map<String, Object> parsed = JsonMapper.fromJson(data, Map.class);
-            AgentEvent event = AgentEvent.fromMap(parsed);
-            eventQueue.offer(event);
-            if (event.getType() != null && "done".equals(event.getType().toJsonValue())) {
+            Map<String, Object> parsed = OBJECT_MAPPER.readValue(data, MAP_TYPE);
+            eventQueue.offer(parsed);
+            if ("done".equals(parsed.get("type"))) {
                 eventQueue.offer(DONE_SENTINEL);
             }
         } catch (Exception e) {

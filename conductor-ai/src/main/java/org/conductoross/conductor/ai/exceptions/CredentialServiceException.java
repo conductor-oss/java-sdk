@@ -12,6 +12,8 @@
  */
 package org.conductoross.conductor.ai.exceptions;
 
+import io.orkes.conductor.client.exceptions.AgentspanException;
+
 /**
  * Credential resolution service returned 5xx or was unreachable.
  *

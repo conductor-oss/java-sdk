@@ -22,9 +22,10 @@ import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.enums.AgentStatus;
 import org.conductoross.conductor.ai.frameworks.LangChain4jAgent;
 import org.conductoross.conductor.ai.model.AgentResult;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

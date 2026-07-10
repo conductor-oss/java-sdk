@@ -20,12 +20,13 @@ import java.util.NoSuchElementException;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
 import org.conductoross.conductor.ai.enums.EventType;
-import org.conductoross.conductor.ai.internal.AgentClient;
-import org.conductoross.conductor.ai.internal.AgentStatusResponse;
-import org.conductoross.conductor.ai.internal.RespondBody;
-import org.conductoross.conductor.ai.internal.SseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.orkes.conductor.client.AgentClient;
+import io.orkes.conductor.client.SseClient;
+import io.orkes.conductor.client.model.agent.AgentStatusResponse;
+import io.orkes.conductor.client.model.agent.RespondBody;
 
 /**
  * A streaming view of an agent execution.
@@ -303,6 +304,24 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
         return new AgentResult(output, executionId, status, toolCalls, new ArrayList<>(capturedEvents), null, error);
     }
 
+    /**
+     * Pull the next raw SSE map off the transport client and map it to the
+     * {@link AgentEvent} domain type. Events that fail to map are logged and
+     * skipped (same contract as the pre-split SSE client, which parsed
+     * events itself). Returns {@code null} when the stream is done.
+     */
+    private AgentEvent nextDomainEvent() {
+        Map<String, Object> raw;
+        while ((raw = sseClient.nextEvent()) != null) {
+            try {
+                return AgentEvent.fromMap(raw);
+            } catch (Exception e) {
+                logger.warn("Failed to map SSE event data: {} — {}", raw, e.getMessage());
+            }
+        }
+        return null;
+    }
+
     private class SseEventIterator implements Iterator<AgentEvent> {
         private AgentEvent nextEvent = null;
         private boolean done = false;
@@ -312,7 +331,7 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
             if (done) return false;
             if (nextEvent != null) return true;
 
-            nextEvent = sseClient.nextEvent();
+            nextEvent = nextDomainEvent();
             if (nextEvent == null) {
                 done = true;
                 exhausted = true;

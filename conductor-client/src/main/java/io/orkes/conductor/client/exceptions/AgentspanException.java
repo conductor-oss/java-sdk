@@ -10,17 +10,18 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.exceptions;
+package io.orkes.conductor.client.exceptions;
 
 /**
- * Thrown when the workflow / agent / execution ID is not found (HTTP 404).
- *
- * <p>Subclass of {@link AgentAPIException} — catch this when you want to
- * distinguish "doesn't exist" from generic server errors. Mirrors
- * {@code AgentNotFoundError} in the Python SDK.
+ * Base exception for all Agentspan SDK errors.
  */
-public class AgentNotFoundException extends AgentAPIException {
-    public AgentNotFoundException(int statusCode, String responseBody) {
-        super(statusCode, responseBody);
+public class AgentspanException extends RuntimeException {
+
+    public AgentspanException(String message) {
+        super(message);
+    }
+
+    public AgentspanException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

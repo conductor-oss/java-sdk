@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.model;
+package io.orkes.conductor.client.model.agent;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Response from {@code POST /api/agent/compile}.
  *
- * <p>Returned by {@link org.conductoross.conductor.ai.AgentRuntime#plan(org.conductoross.conductor.ai.Agent)}.
+ * <p>Returned by the agent runtime's {@code plan(Agent)}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class CompileResponse {
@@ -43,7 +43,7 @@ public final class CompileResponse {
     /**
      * Task type names the SDK must register local workers for before the agent
      * can make progress. The SDK handles this automatically inside
-     * {@link org.conductoross.conductor.ai.AgentRuntime#run}.
+     * {@code AgentRuntime#run}.
      */
     public List<String> getRequiredWorkers() {
         return requiredWorkers != null ? requiredWorkers : Collections.emptyList();

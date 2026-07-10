@@ -14,6 +14,8 @@ package org.conductoross.conductor.ai.exceptions;
 
 import java.util.List;
 
+import io.orkes.conductor.client.exceptions.AgentspanException;
+
 /**
  * One or more declared credentials could not be resolved from the server.
  *

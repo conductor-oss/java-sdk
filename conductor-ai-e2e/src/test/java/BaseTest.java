@@ -18,8 +18,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.junit.jupiter.api.BeforeAll;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

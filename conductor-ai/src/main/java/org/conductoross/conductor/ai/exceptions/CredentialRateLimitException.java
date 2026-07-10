@@ -12,6 +12,8 @@
  */
 package org.conductoross.conductor.ai.exceptions;
 
+import io.orkes.conductor.client.exceptions.AgentspanException;
+
 /**
  * Rate limit hit on {@code POST /api/workers/secrets} (HTTP 429).
  *

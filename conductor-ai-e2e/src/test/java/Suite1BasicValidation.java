@@ -23,11 +23,12 @@ import org.conductoross.conductor.ai.enums.OnFail;
 import org.conductoross.conductor.ai.enums.Position;
 import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.internal.ToolRegistry;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.conductoross.conductor.ai.model.GuardrailDef;
 import org.conductoross.conductor.ai.model.GuardrailResult;
 import org.conductoross.conductor.ai.tools.HttpTool;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

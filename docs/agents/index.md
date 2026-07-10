@@ -53,7 +53,7 @@ Run agents authored in another framework on the durable Agentspan runtime.
 
 - **[Public API summary](api-reference.md)** — every public signature on one page.
 - **[AgentRuntime](agent-runtime-api.md)** — the entry-point class in detail.
-- **[AgentClient (internal)](agent-client-api.md)** — the `/api/agent/*` control plane.
+- **[AgentClient](agent-client-api.md)** — the `/api/agent/*` control plane (`io.orkes.conductor.client.AgentClient`, in `conductor-client`).
 
 ## Installation
 

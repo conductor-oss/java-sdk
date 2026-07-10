@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.internal;
+package io.orkes.conductor.client.model.agent;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <p>For deploy, {@link #getExecutionId()} is {@code null} — no execution was started.
  * For start, {@link #getExecutionId()} is the Conductor workflow ID to pass to
- * {@link AgentClient#getAgentStatus(String)} and {@link AgentClient#respond(String, java.util.Map)}.
+ * {@link io.orkes.conductor.client.AgentClient#getAgentStatus(String)} and {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class StartResponse {

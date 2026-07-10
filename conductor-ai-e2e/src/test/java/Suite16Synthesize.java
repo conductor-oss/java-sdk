@@ -19,8 +19,9 @@ import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.annotations.Tool;
 import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.internal.ToolRegistry;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

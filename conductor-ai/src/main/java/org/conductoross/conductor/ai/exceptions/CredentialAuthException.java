@@ -12,6 +12,8 @@
  */
 package org.conductoross.conductor.ai.exceptions;
 
+import io.orkes.conductor.client.exceptions.AgentspanException;
+
 /**
  * Execution token rejected by {@code POST /api/workers/secrets} (HTTP 401).
  *

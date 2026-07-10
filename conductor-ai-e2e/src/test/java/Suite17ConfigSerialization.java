@@ -24,7 +24,6 @@ import org.conductoross.conductor.ai.gate.TextGate;
 import org.conductoross.conductor.ai.guardrail.LLMGuardrail;
 import org.conductoross.conductor.ai.guardrail.RegexGuardrail;
 import org.conductoross.conductor.ai.handoff.OnCondition;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.conductoross.conductor.ai.model.DeploymentInfo;
 import org.conductoross.conductor.ai.model.GuardrailDef;
 import org.conductoross.conductor.ai.model.ToolDef;
@@ -34,6 +33,8 @@ import org.conductoross.conductor.ai.tools.HumanTool;
 import org.conductoross.conductor.ai.tools.MediaTools;
 import org.conductoross.conductor.ai.tools.WaitForMessageTool;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

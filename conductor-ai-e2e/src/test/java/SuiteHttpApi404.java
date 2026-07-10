@@ -10,16 +10,16 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-import org.conductoross.conductor.ai.exceptions.AgentAPIException;
-import org.conductoross.conductor.ai.exceptions.AgentNotFoundException;
-import org.conductoross.conductor.ai.exceptions.AgentspanException;
-import org.conductoross.conductor.ai.internal.AgentClient;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.client.http.ConductorClient;
 
+import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.exceptions.AgentAPIException;
+import io.orkes.conductor.client.exceptions.AgentNotFoundException;
+import io.orkes.conductor.client.exceptions.AgentspanException;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -18,15 +18,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
-import org.conductoross.conductor.ai.internal.AgentClient;
-import org.conductoross.conductor.ai.internal.AgentStatusResponse;
-import org.conductoross.conductor.ai.internal.RespondBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.run.Workflow;
+
+import io.orkes.conductor.client.AgentClient;
+import io.orkes.conductor.client.model.agent.AgentStatusResponse;
+import io.orkes.conductor.client.model.agent.RespondBody;
 
 /**
  * A handle to a running agent workflow.

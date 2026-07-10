@@ -19,10 +19,11 @@ import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.model.AgentResult;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.tools.PdfTool;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.model.agent.CompileResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 

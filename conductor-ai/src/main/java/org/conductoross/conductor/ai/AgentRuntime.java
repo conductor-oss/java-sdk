@@ -31,15 +31,11 @@ import org.conductoross.conductor.ai.enums.Framework;
 import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.execution.CliCommandExecutor;
 import org.conductoross.conductor.ai.execution.CliConfig;
-import org.conductoross.conductor.ai.internal.AgentClient;
-import org.conductoross.conductor.ai.internal.AgentRequest;
-import org.conductoross.conductor.ai.internal.SseClient;
-import org.conductoross.conductor.ai.internal.StartResponse;
+import org.conductoross.conductor.ai.internal.AgentConfigSerializer;
 import org.conductoross.conductor.ai.internal.WorkerManager;
 import org.conductoross.conductor.ai.model.AgentHandle;
 import org.conductoross.conductor.ai.model.AgentResult;
 import org.conductoross.conductor.ai.model.AgentStream;
-import org.conductoross.conductor.ai.model.CompileResponse;
 import org.conductoross.conductor.ai.model.DeploymentInfo;
 import org.conductoross.conductor.ai.model.GuardrailDef;
 import org.conductoross.conductor.ai.model.GuardrailResult;
@@ -59,7 +55,12 @@ import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.http.WorkflowClient;
 
+import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.SseClient;
+import io.orkes.conductor.client.model.agent.AgentRequest;
+import io.orkes.conductor.client.model.agent.CompileResponse;
+import io.orkes.conductor.client.model.agent.StartResponse;
 
 /**
  * Main runtime for executing agents.
@@ -318,7 +319,7 @@ public class AgentRuntime implements AutoCloseable {
                     .prompt(prompt)
                     .sessionId(sessionId != null && !sessionId.isEmpty() ? sessionId : null)
                     .runId(runId != null && !runId.isEmpty() ? runId : null)
-                    .staticPlan(plan)
+                    .staticPlan(plan != null ? plan.toJson() : null)
                     .build());
             String executionId = response.getExecutionId();
             if (executionId == null) {
@@ -346,16 +347,21 @@ public class AgentRuntime implements AutoCloseable {
         return false;
     }
 
+    /** Serializes {@link Agent} definitions to their JSON wire shape (shared, stateless). */
+    private static final AgentConfigSerializer AGENT_SERIALIZER = new AgentConfigSerializer();
+
     /**
-     * Build an {@link AgentRequest} pre-populated with the agent definition.
+     * Build an {@link AgentRequest} pre-populated with the serialized agent definition.
      * The agent's framework string is resolved to a {@link Framework} enum value;
      * if it matches a known framework the request uses {@code framework + rawConfig},
-     * otherwise it uses {@code agentConfig} (native path).
+     * otherwise it uses {@code agentConfig} (native path). Serialization happens here —
+     * the transport DTO in {@code conductor-client} carries only JSON-ready maps.
      */
     private static AgentRequest.Builder agentRequest(Agent agent) {
+        Map<String, Object> config = AGENT_SERIALIZER.serialize(agent);
         return Framework.of(agent.getFramework())
-                .map(fw -> AgentRequest.frameworkAgent(fw, agent))
-                .orElseGet(() -> AgentRequest.nativeAgent(agent));
+                .map(fw -> AgentRequest.frameworkAgent(fw.wireValue(), config))
+                .orElseGet(() -> AgentRequest.nativeAgent(config));
     }
 
     /**

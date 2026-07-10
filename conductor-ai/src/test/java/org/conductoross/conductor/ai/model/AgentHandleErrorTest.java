@@ -15,11 +15,12 @@ package org.conductoross.conductor.ai.model;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
-import org.conductoross.conductor.ai.internal.AgentClient;
-import org.conductoross.conductor.ai.internal.AgentStatusResponse;
 import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.client.http.ConductorClient;
+
+import io.orkes.conductor.client.AgentClient;
+import io.orkes.conductor.client.model.agent.AgentStatusResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

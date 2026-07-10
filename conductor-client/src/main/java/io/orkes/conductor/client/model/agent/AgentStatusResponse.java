@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.internal;
+package io.orkes.conductor.client.model.agent;
 
 import java.util.Map;
 
@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Response from {@code GET /api/agent/{executionId}/status}.
  *
- * <p>Polled by {@link org.conductoross.conductor.ai.model.AgentHandle} until the
+ * <p>Polled by {@code AgentHandle} until the
  * execution reaches a terminal status. Used internally — callers receive an
- * {@link org.conductoross.conductor.ai.model.AgentResult} after completion.
+ * {@code AgentResult} after completion.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class AgentStatusResponse {

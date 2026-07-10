@@ -10,11 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.internal;
-
-import org.conductoross.conductor.ai.exceptions.AgentAPIException;
-import org.conductoross.conductor.ai.exceptions.AgentNotFoundException;
-import org.conductoross.conductor.ai.model.CompileResponse;
+package io.orkes.conductor.client;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
@@ -22,20 +18,28 @@ import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 
+import io.orkes.conductor.client.exceptions.AgentAPIException;
+import io.orkes.conductor.client.exceptions.AgentNotFoundException;
+import io.orkes.conductor.client.model.agent.AgentRequest;
+import io.orkes.conductor.client.model.agent.AgentStatusResponse;
+import io.orkes.conductor.client.model.agent.CompileResponse;
+import io.orkes.conductor.client.model.agent.RespondBody;
+import io.orkes.conductor.client.model.agent.StartResponse;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
- * Client for agentspan's proprietary agent control-plane ({@code /api/agent/*}).
+ * Client for the agent control-plane ({@code /api/agent/*}).
  *
  * <p>Strictly scoped to five endpoints — compile, deploy, start, status, respond.
  * Standard Conductor endpoints ({@code /api/workflow/*}, {@code /api/tasks}, etc.)
- * are handled by the Conductor SDK's own typed clients ({@code WorkflowClient},
+ * are handled by the SDK's own typed clients ({@code WorkflowClient},
  * {@code TaskClient}, {@code MetadataClient}).
  *
  * <p>Every request goes through the shared {@link ConductorClient}'s native HTTP +
  * auth + serialization layer ({@link ConductorClientRequest} →
  * {@link ConductorClient#execute}). No hand-rolled HTTP. Conductor's
- * {@link ConductorClientException} is mapped to agentspan's
+ * {@link ConductorClientException} is mapped to the agent SDK's typed
  * {@link AgentAPIException}/{@link AgentNotFoundException}.
  *
  * <p>Paths are relative to the client's base path (the server's {@code /api}
@@ -113,7 +117,7 @@ public class AgentClient {
         }
     }
 
-    /** Preserve agentspan's typed error contract over Conductor's exception. */
+    /** Preserve the agent SDK's typed error contract over Conductor's exception. */
     private static RuntimeException mapException(ConductorClientException e) {
         int status = e.getStatus();
         String body = e.getMessage();

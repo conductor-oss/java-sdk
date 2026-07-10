@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.ai.internal;
+package io.orkes.conductor.client.model.agent;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <p>Present only when {@link AgentStatusResponse#isWaiting()} is {@code true}.
  * Pass {@link #getTaskRefName()} back to the server via
- * {@link AgentClient#respond(String, java.util.Map)} to resume execution.
+ * {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)} to resume execution.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class PendingTool {

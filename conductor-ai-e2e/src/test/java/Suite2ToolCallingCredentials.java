@@ -21,12 +21,13 @@ import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.annotations.Tool;
-import org.conductoross.conductor.ai.exceptions.AgentspanException;
 import org.conductoross.conductor.ai.internal.ToolRegistry;
 import org.conductoross.conductor.ai.model.AgentResult;
 import org.conductoross.conductor.ai.model.ToolContext;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.junit.jupiter.api.*;
+
+import io.orkes.conductor.client.exceptions.AgentspanException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -729,9 +729,9 @@ public class AgentConfigSerializer {
     /**
      * Jackson {@link JsonSerializer} that delegates to {@link AgentConfigSerializer#serialize(Agent)}.
      * Applied via {@code @JsonSerialize(using = AgentConfigSerializer.AsJson.class)} on
-     * {@code Agent}-typed fields in {@link AgentRequest} so Jackson writes the correct
-     * wire format (camelCase map matching the server's AgentConfig DTO) without
-     * requiring the caller to pre-serialize to a Map.
+     * {@code Agent}-typed fields so Jackson writes the correct wire format (camelCase
+     * map matching the server's AgentConfig DTO) without requiring the caller to
+     * pre-serialize to a Map.
      */
     public static final class AsJson extends JsonSerializer<Agent> {
         private static final AgentConfigSerializer INSTANCE = new AgentConfigSerializer();

@@ -16,26 +16,16 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import io.orkes.conductor.client.exceptions.AgentspanException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Pure unit tests for the SDK exception hierarchy (status/message/typed fields). */
+/**
+ * Pure unit tests for the credential exception hierarchy (typed fields, base type).
+ * The agent-client exceptions ({@code AgentAPIException} et al.) are tested in
+ * {@code conductor-client}'s {@code AgentExceptionsTest}.
+ */
 class ExceptionsTest {
-
-    @Test
-    void agentApiCarriesStatusAndBody() {
-        AgentAPIException e = new AgentAPIException(500, "boom");
-        assertEquals(500, e.getStatusCode());
-        assertEquals("boom", e.getResponseBody());
-        assertInstanceOf(AgentspanException.class, e);
-    }
-
-    @Test
-    void notFoundIsApiExceptionWith404() {
-        AgentNotFoundException e = new AgentNotFoundException(404, "missing");
-        assertEquals(404, e.getStatusCode());
-        assertInstanceOf(AgentAPIException.class, e);
-        assertInstanceOf(AgentspanException.class, e);
-    }
 
     @Test
     void credentialNotFoundListsMissingNames() {
@@ -54,13 +44,5 @@ class ExceptionsTest {
     void credentialAuthAndRateLimitAreAgentspanExceptions() {
         assertInstanceOf(AgentspanException.class, new CredentialAuthException("rejected"));
         assertInstanceOf(AgentspanException.class, new CredentialRateLimitException());
-    }
-
-    @Test
-    void baseExceptionKeepsMessageAndCause() {
-        Throwable cause = new IllegalStateException("c");
-        AgentspanException e = new AgentspanException("m", cause);
-        assertEquals("m", e.getMessage());
-        assertSame(cause, e.getCause());
     }
 }

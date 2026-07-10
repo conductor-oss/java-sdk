@@ -1,8 +1,8 @@
 # AgentClient — Control-Plane API Reference
 
-`AgentClient` is the Java SDK's interface to the Agentspan server's proprietary agent control-plane (`/api/agent/*`). Strictly scoped to five endpoints — compile, deploy, start, status, respond. Standard Conductor endpoints (`/api/workflow/*`, `/api/tasks`, etc.) are handled by the Conductor SDK's own typed clients (`WorkflowClient`, `TaskClient`, `MetadataClient`).
+`AgentClient` (`io.orkes.conductor.client.AgentClient`, in the `conductor-client` module) is the Java SDK's interface to the agent control-plane (`/api/agent/*`). Strictly scoped to five endpoints — compile, deploy, start, status, respond. Standard Conductor endpoints (`/api/workflow/*`, `/api/tasks`, etc.) are handled by the SDK's own typed clients (`WorkflowClient`, `TaskClient`, `MetadataClient`). Obtain one with `new AgentClient(conductorClient)` or `OrkesClients.getAgentClient()`.
 
-Every request goes through the shared `ConductorClient`'s native HTTP + auth + serialization layer. No hand-rolled HTTP. `ConductorClientException` is mapped to agentspan's `AgentAPIException` / `AgentNotFoundException`.
+Every request goes through the shared `ConductorClient`'s native HTTP + auth + serialization layer. No hand-rolled HTTP. `ConductorClientException` is mapped to the typed `AgentAPIException` / `AgentNotFoundException` (`io.orkes.conductor.client.exceptions`).
 
 ## Methods
 
@@ -18,49 +18,50 @@ Every request goes through the shared `ConductorClient`'s native HTTP + auth + s
 
 ## AgentRequest
 
-Input to `compileAgent`, `deployAgent`, and `startAgent`. Holds a single `Agent` field — no `agentConfig`/`rawConfig` duplication. A custom `Serializer` writes the correct JSON shape based on the `Framework` discriminator.
+Input to `compileAgent`, `deployAgent`, and `startAgent` (`io.orkes.conductor.client.model.agent.AgentRequest`). A pure transport DTO: the agent definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by `conductor-ai` (`AgentRuntime.agentRequest(agent)` calls `AgentConfigSerializer.serialize(agent)` and resolves the `Framework` discriminator before building the request).
 
 ```java
-// Native agent
-AgentRequest.nativeAgent(agent).build()
+// Native agent — AgentRuntime passes the serialized agent map
+AgentRequest.nativeAgent(serializedAgent).build()
 
-// Framework-backed agent — Framework enum, not a String
-AgentRequest.frameworkAgent(Framework.OPENAI, agent).build()
-AgentRequest.frameworkAgent(Framework.LANGCHAIN, agent).build()
+// Framework-backed agent — framework wire name + serialized raw config
+AgentRequest.frameworkAgent("openai", serializedAgent).build()
+AgentRequest.frameworkAgent("langchain", serializedAgent).build()
 
 // With execution fields (for /start only)
-AgentRequest.nativeAgent(agent)
+AgentRequest.nativeAgent(serializedAgent)
     .prompt("What is the capital of France?")
     .sessionId("session-abc")
-    .runId("a1b2c3...")   // per-execution domain UUID for stateful agents
-    .staticPlan(plan)     // Plan — Serializer calls plan.toJson() internally
+    .runId("a1b2c3...")           // per-execution domain UUID for stateful agents
+    .staticPlan(plan.toJson())    // pre-serialized map, written as "static_plan"
     .build()
 ```
 
-**`AgentRequest.Serializer` wire output:**
+**Wire output (mutually exclusive shapes, fixed at build time):**
 
-| When | JSON emitted |
+| Factory | JSON emitted |
 |---|---|
-| `framework == null` (native) | `"agentConfig": AgentConfigSerializer.serialize(agent)` |
-| `framework != null` (framework-backed) | `"framework": fw.wireValue(), "rawConfig": AgentConfigSerializer.serialize(agent)` |
+| `nativeAgent(config)` | `"agentConfig": config` |
+| `frameworkAgent(framework, config)` | `"framework": framework, "rawConfig": config` |
 
 **Field mapping to server `StartRequest`:**
 
-| `AgentRequest` field | Java type | JSON key(s) written by Serializer | Server `StartRequest` field | Used by |
+| `AgentRequest` field | Java type | JSON key | Server `StartRequest` field | Used by |
 |---|---|---|---|---|
-| `agent` | `Agent` | `"agentConfig"` or `"rawConfig"` (see above) | `agentConfig` / `rawConfig` | all |
-| `framework` | `Framework` | `"framework"` (only when non-null) | `framework` | framework agents |
+| `agentConfig` | `Object` (map) | `"agentConfig"` (native path) | `agentConfig` | native agents |
+| `framework` | `String` | `"framework"` (framework path) | `framework` | framework agents |
+| `rawConfig` | `Object` (map) | `"rawConfig"` (framework path) | `rawConfig` | framework agents |
 | `prompt` | `String` | `"prompt"` | `prompt` | start only |
 | `sessionId` | `String` | `"sessionId"` | `sessionId` | start (stateful) |
 | `runId` | `String` | `"runId"` | `runId` | start (stateful isolation) |
-| `staticPlan` | `Plan` | `"static_plan"` (Serializer calls `plan.toJson()`) | `staticPlan` (`@JsonProperty("static_plan")`) | start (PLAN_EXECUTE) |
+| `staticPlan` | `Object` (map) | `"static_plan"` (`AgentRuntime` calls `plan.toJson()`) | `staticPlan` (`@JsonProperty("static_plan")`) | start (PLAN_EXECUTE) |
 | `media` | `List<String>` | `"media"` | `media` | start (multi-modal) |
 | `context` | `Map<String,Object>` | `"context"` | `context` | start |
 | `idempotencyKey` | `String` | `"idempotencyKey"` | `idempotencyKey` | start |
 | `credentials` | `List<String>` | `"credentials"` | `credentials` | compile / start |
 | `timeoutSeconds` | `Integer` | `"timeoutSeconds"` | `timeoutSeconds` | compile / start |
 
-Null fields are never written — the `Serializer` uses explicit null-checks, not `@JsonInclude`.
+Null fields are never written — the class is annotated `@JsonInclude(NON_NULL)`.
 
 **`Framework` enum** — all seven values map 1-to-1 with the server's normalizer registry:
 
@@ -77,7 +78,7 @@ Null fields are never written — the `Serializer` uses explicit null-checks, no
 `AgentRuntime` resolves `agent.getFramework()` → `Framework` via `Framework.of(String)` (returns `Optional.empty()` for unrecognised strings, routing them through the native path).
 
 **Structural proof — `static_plan` key:**
-The server field is `staticPlan` annotated `@JsonProperty("static_plan")`. The `Serializer` writes `gen.writeObjectField("static_plan", ...)` — both sides agree on the JSON key.
+The server field is `staticPlan` annotated `@JsonProperty("static_plan")`. The SDK's `AgentRequest.staticPlan` field carries the same `@JsonProperty("static_plan")` — both sides agree on the JSON key.
 
 ---
 
@@ -114,13 +115,13 @@ Used by `AgentRuntime.plan(agent)`.
 ### Request body — `AgentRequest`
 
 ```java
-// AgentRuntime builds this via agentRequest(agent):
-AgentRequest.nativeAgent(agent).build()
-// or, for framework agents — uses Framework enum, not a raw String:
-AgentRequest.frameworkAgent(Framework.OPENAI, agent).build()
+// AgentRuntime builds this via agentRequest(agent), serializing the agent first:
+AgentRequest.nativeAgent(AGENT_SERIALIZER.serialize(agent)).build()
+// or, for framework agents — the resolved framework's wire name:
+AgentRequest.frameworkAgent(fw.wireValue(), AGENT_SERIALIZER.serialize(agent)).build()
 ```
 
-Native agent wire shape (produced by `AgentRequest.Serializer` calling `AgentConfigSerializer.serialize(agent)`):
+Native agent wire shape (the map produced by `AgentConfigSerializer.serialize(agent)`):
 ```json
 { "agentConfig": { "name": "my_agent", "model": "anthropic/claude-sonnet-4-6", "strategy": "handoff", ... } }
 ```
