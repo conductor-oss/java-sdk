@@ -28,6 +28,7 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.tasks.TypedTask;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
@@ -150,6 +151,14 @@ public class Task {
     private Map<String, Object> outputData = new HashMap<>();
 
     private WorkflowTask workflowTask;
+
+    /**
+     * Secret values the server resolved for this task at poll time and delivered on the wire only
+     * (never persisted). Populated when the task's {@code TaskDef.runtimeMetadata} declares secret
+     * names the host resolves from its secret store (conductor-oss PR #1255). Empty/absent otherwise.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> runtimeMetadata;
 
     private String domain;
 
