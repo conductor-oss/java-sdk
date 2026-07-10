@@ -19,7 +19,7 @@ is the reconciliation of three sources:
 | Source | File |
 |---|---|
 | Server model (deserialization target) | `server/conductor-agentspan/src/main/java/dev/agentspan/runtime/model/AgentConfig.java` (+ nested `*Config` models) |
-| Java SDK emit | `sdk/java/src/main/java/org/conductoross/conductor/ai/internal/AgentConfigSerializer.java` |
+| Java SDK emit | `conductor-ai/src/main/java/org/conductoross/conductor/ai/internal/AgentConfigSerializer.java` |
 | Python SDK emit | `sdk/python/src/agentspan/agents/config_serializer.py` |
 
 ## Proof of correctness

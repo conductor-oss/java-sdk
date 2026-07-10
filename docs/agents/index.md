@@ -60,16 +60,16 @@ Run agents authored in another framework on the durable Agentspan runtime.
 === "Gradle"
 
     ```groovy
-    implementation 'org.conductoross.conductor:conductor-agent-sdk:0.1.0'
+    implementation 'org.conductoross:conductor-ai:5.1.0'
     ```
 
 === "Maven"
 
     ```xml
     <dependency>
-        <groupId>org.conductoross.conductor</groupId>
-        <artifactId>conductor-agent-sdk</artifactId>
-        <version>0.1.0</version>
+        <groupId>org.conductoross</groupId>
+        <artifactId>conductor-ai</artifactId>
+        <version>5.1.0</version>
     </dependency>
     ```
 

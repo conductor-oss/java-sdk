@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Merged the Agentspan agent SDK into this repository as four new modules: `conductor-ai` (durable AI agents — `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, multi-agent strategies), `conductor-ai-spring` (Spring Boot auto-configuration), `conductor-ai-examples` (150+ runnable examples), and `conductor-ai-e2e` (e2e suites, gated behind `-Pe2e`) — docs under [docs/agents/](docs/agents/index.md)
+- `conductor-ai` and `conductor-ai-spring` publish as `org.conductoross:conductor-ai` and `org.conductoross:conductor-ai-spring`, superseding `org.conductoross.conductor:conductor-agent-sdk[-spring]@0.1.0`; the java package `org.conductoross.conductor.ai[.spring]` is unchanged, so migrating is a dependency-coordinate swap only
+- `agent-e2e` GitHub workflow running the e2e suites against the released `agentspan-server-0.4.0.jar`
+
 ## [5.1.0]
 
 ### Added

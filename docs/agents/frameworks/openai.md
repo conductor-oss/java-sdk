@@ -5,7 +5,7 @@ Use the Agentspan Java SDK with OpenAI Agents SDK-style tool definitions. The `O
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross.conductor:conductor-agent-sdk:0.1.0'
+implementation 'org.conductoross:conductor-ai:5.1.0'
 ```
 
 The bridge uses the LangChain4j `@Tool` annotation as a practical equivalent of the Python OpenAI Agents SDK `@function_tool` decorator — add it if you need the annotation:

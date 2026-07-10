@@ -14,16 +14,16 @@ Maven (`pom.xml`):
 
 ```xml
 <dependency>
-    <groupId>org.conductoross.conductor</groupId>
-    <artifactId>conductor-agent-sdk</artifactId>
-    <version>0.1.0</version>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-ai</artifactId>
+    <version>5.1.0</version>
 </dependency>
 ```
 
 Gradle (`build.gradle`):
 
 ```groovy
-implementation 'org.conductoross.conductor:conductor-agent-sdk:0.1.0'
+implementation 'org.conductoross:conductor-ai:5.1.0'
 ```
 
 ### Spring Boot starter
@@ -32,14 +32,14 @@ For Spring Boot apps, add the auto-configuration starter instead:
 
 ```xml
 <dependency>
-    <groupId>org.conductoross.conductor</groupId>
-    <artifactId>conductor-agent-sdk-spring</artifactId>
-    <version>0.1.0</version>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-ai-spring</artifactId>
+    <version>5.1.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'org.conductoross.conductor:conductor-agent-sdk-spring:0.1.0'
+implementation 'org.conductoross:conductor-ai-spring:5.1.0'
 ```
 
 ## Quick Start
@@ -165,4 +165,4 @@ See the `examples/` directory for complete working examples:
 
 ## License
 
-MIT License. See [LICENSE](../../LICENSE).
+Apache 2.0 License. See [LICENSE](../../LICENSE).

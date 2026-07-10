@@ -1,26 +1,26 @@
 # Spring Boot
 
-The `conductor-agent-sdk-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
+The `conductor-ai-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
 
 ## Dependency
 
 === "Gradle"
 
     ```groovy
-    implementation 'org.conductoross.conductor:conductor-agent-sdk-spring:0.1.0'
+    implementation 'org.conductoross:conductor-ai-spring:5.1.0'
     ```
 
 === "Maven"
 
     ```xml
     <dependency>
-        <groupId>org.conductoross.conductor</groupId>
-        <artifactId>conductor-agent-sdk-spring</artifactId>
-        <version>0.1.0</version>
+        <groupId>org.conductoross</groupId>
+        <artifactId>conductor-ai-spring</artifactId>
+        <version>5.1.0</version>
     </dependency>
     ```
 
-This pulls in both `conductor-agent-sdk` and `conductor-client-spring` (which wires the `ApiClient`).
+This pulls in both `conductor-ai` and `conductor-client-spring` (which wires the `ApiClient`).
 
 ## Configuration
 
