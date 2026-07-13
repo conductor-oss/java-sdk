@@ -58,6 +58,7 @@ import com.netflix.conductor.client.http.WorkflowClient;
 import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.SseClient;
+import io.orkes.conductor.client.http.OrkesAgentClient;
 import io.orkes.conductor.client.model.agent.AgentRequest;
 import io.orkes.conductor.client.model.agent.CompileResponse;
 import io.orkes.conductor.client.model.agent.StartResponse;
@@ -120,10 +121,20 @@ public class AgentRuntime implements AutoCloseable {
     public AgentRuntime(ApiClient conductorClient, AgentConfig config) {
         this.config = config;
         this.conductorClient = conductorClient;
-        this.agentClient = new AgentClient(conductorClient);
+        this.agentClient = new OrkesAgentClient(conductorClient);
         this.workflowClient = new WorkflowClient(conductorClient);
         this.workerManager = new WorkerManager(config, conductorClient);
         logger.info("AgentRuntime initialized: {}", conductorClient.getBasePath());
+    }
+
+    /**
+     * The control-plane {@link AgentClient} this runtime uses for every
+     * {@code /api/agent/*} call — the same instance for the runtime's whole
+     * lifetime, built on the runtime's shared Conductor client (single token
+     * authority).
+     */
+    public AgentClient getClient() {
+        return agentClient;
     }
 
     // ── Conductor client factory ──────────────────────────────────────────

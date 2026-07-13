@@ -31,7 +31,7 @@ public class OrkesClients {
     }
 
     public AgentClient getAgentClient() {
-        return new AgentClient(client);
+        return new OrkesAgentClient(client);
     }
 
     public AuthorizationClient getAuthorizationClient() {

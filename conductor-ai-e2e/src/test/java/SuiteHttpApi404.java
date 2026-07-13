@@ -20,6 +20,7 @@ import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.exceptions.AgentAPIException;
 import io.orkes.conductor.client.exceptions.AgentNotFoundException;
 import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.http.OrkesAgentClient;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,7 +42,7 @@ class SuiteHttpApi404 extends BaseTest {
     void getStatusOnMissingExecutionIdRaisesAgentNotFoundException() {
         ConductorClient cc = new ApiClient(
                 (BASE_URL.endsWith("/") ? BASE_URL.substring(0, BASE_URL.length() - 1) : BASE_URL) + "/api");
-        AgentClient api = new AgentClient(cc);
+        AgentClient api = new OrkesAgentClient(cc);
 
         AgentAPIException ex =
                 assertThrows(AgentAPIException.class, () -> api.getAgentStatus("does-not-exist-" + System.nanoTime()));

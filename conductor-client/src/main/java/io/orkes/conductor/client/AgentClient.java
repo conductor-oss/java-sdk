@@ -12,118 +12,86 @@
  */
 package io.orkes.conductor.client;
 
-import com.netflix.conductor.client.exception.ConductorClientException;
-import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.ConductorClientRequest;
-import com.netflix.conductor.client.http.ConductorClientRequest.Method;
-import com.netflix.conductor.client.http.ConductorClientResponse;
+import java.util.Map;
 
 import io.orkes.conductor.client.exceptions.AgentAPIException;
 import io.orkes.conductor.client.exceptions.AgentNotFoundException;
+import io.orkes.conductor.client.exceptions.SSEUnavailableException;
 import io.orkes.conductor.client.model.agent.AgentRequest;
 import io.orkes.conductor.client.model.agent.AgentStatusResponse;
 import io.orkes.conductor.client.model.agent.CompileResponse;
 import io.orkes.conductor.client.model.agent.RespondBody;
 import io.orkes.conductor.client.model.agent.StartResponse;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 /**
  * Client for the agent control-plane ({@code /api/agent/*}).
  *
- * <p>Strictly scoped to five endpoints — compile, deploy, start, status, respond.
- * Standard Conductor endpoints ({@code /api/workflow/*}, {@code /api/tasks}, etc.)
- * are handled by the SDK's own typed clients ({@code WorkflowClient},
- * {@code TaskClient}, {@code MetadataClient}).
+ * <p>Follows the SDK's interface + Orkes-implementation convention
+ * ({@code SchedulerClient} / {@code http.OrkesSchedulerClient}); obtain an
+ * instance from {@link OrkesClients#getAgentClient()}. Standard Conductor
+ * endpoints ({@code /api/workflow/*}, {@code /api/tasks}, etc.) are handled by
+ * the SDK's own typed clients ({@code WorkflowClient}, {@code TaskClient},
+ * {@code MetadataClient}).
  *
- * <p>Every request goes through the shared {@link ConductorClient}'s native HTTP +
- * auth + serialization layer ({@link ConductorClientRequest} →
- * {@link ConductorClient#execute}). No hand-rolled HTTP. Conductor's
- * {@link ConductorClientException} is mapped to the agent SDK's typed
- * {@link AgentAPIException}/{@link AgentNotFoundException}.
- *
- * <p>Paths are relative to the client's base path (the server's {@code /api}
- * root), so {@code "/agent/start"} resolves to {@code /api/agent/start}.
+ * <p>Server errors surface as the agent SDK's typed exceptions:
+ * {@link AgentNotFoundException} for HTTP 404, {@link AgentAPIException}
+ * otherwise.
  */
-public class AgentClient {
-
-    private static final TypeReference<CompileResponse> COMPILE_TYPE = new TypeReference<CompileResponse>() {};
-    private static final TypeReference<StartResponse> START_TYPE = new TypeReference<StartResponse>() {};
-    private static final TypeReference<AgentStatusResponse> STATUS_TYPE = new TypeReference<AgentStatusResponse>() {};
-
-    protected final ConductorClient client;
-
-    public AgentClient(ConductorClient client) {
-        this.client = client;
-    }
+public interface AgentClient extends AutoCloseable {
 
     /** {@code POST /api/agent/compile} — compile agent config to a workflow def. */
-    public CompileResponse compileAgent(AgentRequest request) {
-        return post("/agent/compile", request, COMPILE_TYPE);
-    }
+    CompileResponse compileAgent(AgentRequest request);
 
     /** {@code POST /api/agent/deploy} — compile + register, no execution. */
-    public StartResponse deployAgent(AgentRequest request) {
-        return post("/agent/deploy", request, START_TYPE);
-    }
+    StartResponse deployAgent(AgentRequest request);
 
     /** {@code POST /api/agent/start} — compile + register + start an execution. */
-    public StartResponse startAgent(AgentRequest request) {
-        return post("/agent/start", request, START_TYPE);
-    }
+    StartResponse startAgent(AgentRequest request);
 
     /** {@code GET /api/agent/{executionId}/status} — fetch execution status. */
-    public AgentStatusResponse getAgentStatus(String executionId) {
-        ConductorClientRequest req = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/agent/{executionId}/status")
-                .addPathParam("executionId", executionId)
-                .build();
-        return executeFor(req, STATUS_TYPE);
-    }
+    AgentStatusResponse getAgentStatus(String executionId);
+
+    /**
+     * {@code GET /api/agent/execution/{executionId}} — fetch the full execution
+     * tree. Returned as the server's raw JSON shape (no client-side DTO).
+     */
+    Map<String, Object> getExecution(String executionId);
+
+    /**
+     * {@code GET /api/agent/executions} — search executions. {@code params} are
+     * passed through as query parameters ({@code null} for none). Returned as
+     * the server's raw JSON shape.
+     */
+    Map<String, Object> listExecutions(Map<String, Object> params);
 
     /** {@code POST /api/agent/{executionId}/respond} — respond to a waiting HITL task. */
-    public void respond(String executionId, RespondBody body) {
-        ConductorClientRequest req = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/agent/{executionId}/respond")
-                .addPathParam("executionId", executionId)
-                .body(body)
-                .build();
-        try {
-            client.execute(req);
-        } catch (ConductorClientException e) {
-            throw mapException(e);
-        }
-    }
+    void respond(String executionId, RespondBody body);
 
-    // ── internals ──────────────────────────────────────────────────────────
+    /** {@code POST /api/agent/{executionId}/stop} — graceful deterministic stop. */
+    void stopAgent(String executionId);
 
-    private <T> T post(String path, Object payload, TypeReference<T> type) {
-        ConductorClientRequest req = ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path(path)
-                .body(payload)
-                .build();
-        return executeFor(req, type);
-    }
+    /** {@code POST /api/agent/{executionId}/signal} — inject persistent context. */
+    void signalAgent(String executionId, String message);
 
-    private <T> T executeFor(ConductorClientRequest req, TypeReference<T> type) {
-        try {
-            ConductorClientResponse<T> resp = client.execute(req, type);
-            return resp.getData();
-        } catch (ConductorClientException e) {
-            throw mapException(e);
-        }
-    }
+    /**
+     * {@code GET /api/agent/stream/{executionId}} — open the SSE event stream.
+     *
+     * <p>Returns a connected {@link SseClient}; consume via
+     * {@link SseClient#nextEvent()}. On mid-stream drops the client reconnects
+     * with a {@code Last-Event-ID} header. Throws
+     * {@link SSEUnavailableException} when the server rejects streaming
+     * outright — callers should degrade to status polling.
+     *
+     * @param executionId the execution to stream
+     * @param lastEventId resume point for reconnects ({@code null} to start fresh)
+     */
+    SseClient streamSse(String executionId, String lastEventId);
 
-    /** Preserve the agent SDK's typed error contract over Conductor's exception. */
-    private static RuntimeException mapException(ConductorClientException e) {
-        int status = e.getStatus();
-        String body = e.getMessage();
-        if (status == 404) {
-            return new AgentNotFoundException(status, body);
-        }
-        return new AgentAPIException(status, body);
-    }
+    /**
+     * Release any transport resources held by this client. The shared
+     * {@code ConductorClient} (and its HTTP pool) is owned by the caller and is
+     * not closed here.
+     */
+    @Override
+    void close();
 }

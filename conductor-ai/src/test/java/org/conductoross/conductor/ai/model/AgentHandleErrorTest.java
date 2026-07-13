@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import com.netflix.conductor.client.http.ConductorClient;
 
 import io.orkes.conductor.client.AgentClient;
+import io.orkes.conductor.client.http.OrkesAgentClient;
 import io.orkes.conductor.client.model.agent.AgentStatusResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +45,7 @@ class AgentHandleErrorTest {
 
     /** Stub AgentClient that always throws — simulates a permanently-down server. */
     private static AgentClient alwaysErrorClient() {
-        return new AgentClient(new ConductorClient("http://localhost:1/api")) {
+        return new OrkesAgentClient(new ConductorClient("http://localhost:1/api")) {
             @Override
             public AgentStatusResponse getAgentStatus(String executionId) {
                 throw new RuntimeException("connection refused");
@@ -55,7 +56,7 @@ class AgentHandleErrorTest {
     /** Stub AgentClient that throws once then returns COMPLETED. */
     private static AgentClient oneErrorThenCompleteClient() {
         AtomicInteger calls = new AtomicInteger(0);
-        return new AgentClient(new ConductorClient("http://localhost:1/api")) {
+        return new OrkesAgentClient(new ConductorClient("http://localhost:1/api")) {
             @Override
             public AgentStatusResponse getAgentStatus(String executionId) {
                 if (calls.incrementAndGet() == 1) throw new RuntimeException("transient");
