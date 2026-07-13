@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -25,9 +26,11 @@ import org.conductoross.conductor.ai.execution.CliConfig;
 import org.conductoross.conductor.ai.handoff.Handoff;
 import org.conductoross.conductor.ai.internal.AgentRegistry;
 import org.conductoross.conductor.ai.model.ConversationMemory;
+import org.conductoross.conductor.ai.model.FeedbackEvent;
 import org.conductoross.conductor.ai.model.GuardrailDef;
 import org.conductoross.conductor.ai.model.PrefillToolCall;
 import org.conductoross.conductor.ai.model.PromptTemplate;
+import org.conductoross.conductor.ai.model.SemanticMemory;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.termination.TerminationCondition;
 
@@ -128,6 +131,21 @@ public class Agent {
     private final List<String> maskedFields;
     /** Token threshold for proactive context condensation. */
     private final Integer contextWindowBudget;
+    /**
+     * OCG-backed long-term memory (see {@link org.conductoross.conductor.ai.model.OCGMemoryStore}).
+     * When the backing store is OCG-backed, the config serializer emits a
+     * {@code longTermMemory} block so the server-side compiler inlines retrieval
+     * (pre-loop) + distill/save/feedback (post-loop) steps on the deployed path.
+     */
+    private final SemanticMemory semanticMemory;
+    /** Optional model override for the internal conversation summarizer (falls back to {@link #model}). */
+    private final String memorySummaryModel;
+    /**
+     * Optional sink that receives the good/bad capability links (a {@link FeedbackEvent})
+     * for a saved conversation memory, for out-of-band human delivery. When set, the
+     * serializer emits a {@code feedbackSink} worker ref.
+     */
+    private final Consumer<FeedbackEvent> feedbackSink;
 
     private Agent(Builder builder) {
         this.name = builder.name;
@@ -195,6 +213,9 @@ public class Agent {
         this.reasoningEffort = builder.reasoningEffort;
         this.maskedFields = builder.maskedFields != null ? new ArrayList<>(builder.maskedFields) : null;
         this.contextWindowBudget = builder.contextWindowBudget;
+        this.semanticMemory = builder.semanticMemory;
+        this.memorySummaryModel = builder.memorySummaryModel;
+        this.feedbackSink = builder.feedbackSink;
     }
 
     /**
@@ -440,6 +461,21 @@ public class Agent {
         return contextWindowBudget;
     }
 
+    /** OCG-backed long-term memory handle, or {@code null} if unset. */
+    public SemanticMemory getSemanticMemory() {
+        return semanticMemory;
+    }
+
+    /** Model override for the conversation summarizer, or {@code null} to reuse {@link #getModel()}. */
+    public String getMemorySummaryModel() {
+        return memorySummaryModel;
+    }
+
+    /** Out-of-band feedback link sink, or {@code null} if unset. */
+    public Consumer<FeedbackEvent> getFeedbackSink() {
+        return feedbackSink;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -542,6 +578,9 @@ public class Agent {
         private String reasoningEffort;
         private List<String> maskedFields;
         private Integer contextWindowBudget;
+        private SemanticMemory semanticMemory;
+        private String memorySummaryModel;
+        private Consumer<FeedbackEvent> feedbackSink;
 
         /** Set the agent name (required). Must match {@code ^[a-zA-Z_][a-zA-Z0-9_-]*$}. */
         public Builder name(String name) {
@@ -1049,6 +1088,36 @@ public class Agent {
          */
         public Builder contextWindowBudget(int contextWindowBudget) {
             this.contextWindowBudget = contextWindowBudget;
+            return this;
+        }
+
+        /**
+         * Attach OCG-backed long-term memory. When the backing store is an
+         * {@link org.conductoross.conductor.ai.model.OCGMemoryStore}, the config serializer
+         * emits a {@code longTermMemory} block so the server-side compiler activates
+         * pre-run retrieval and post-run distill/save on the deployed path.
+         */
+        public Builder semanticMemory(SemanticMemory semanticMemory) {
+            this.semanticMemory = semanticMemory;
+            return this;
+        }
+
+        /**
+         * Override the model used by the internal conversation summarizer. Defaults to
+         * the agent's own {@link #model} when unset.
+         */
+        public Builder memorySummaryModel(String memorySummaryModel) {
+            this.memorySummaryModel = memorySummaryModel;
+            return this;
+        }
+
+        /**
+         * Set the sink that receives the good/bad capability links (a
+         * {@link FeedbackEvent}) for a saved conversation memory, for out-of-band human
+         * delivery. When set, the serializer emits a {@code feedbackSink} worker ref.
+         */
+        public Builder feedbackSink(Consumer<FeedbackEvent> feedbackSink) {
+            this.feedbackSink = feedbackSink;
             return this;
         }
 

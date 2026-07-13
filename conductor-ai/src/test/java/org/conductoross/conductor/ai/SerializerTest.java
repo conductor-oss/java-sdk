@@ -973,4 +973,92 @@ class SerializerTest {
         assertFalse(out.containsKey("contextWindowBudget"), "contextWindowBudget omitted when unset");
         assertFalse(out.containsKey("memory"), "memory omitted when unset");
     }
+
+    // ── Long-term (OCG-backed) memory ─────────────────────────
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void serialize_long_term_memory() {
+        // OCG-backed semanticMemory serializes to longTermMemory + feedbackSink.
+        org.conductoross.conductor.ai.model.OCGMemoryStore store =
+                org.conductoross.conductor.ai.model.OCGMemoryStore.builder()
+                        .url("https://ocg.example.com/")
+                        .agent("agent:ce-ticket-resolution")
+                        .user("user:alice")
+                        .scope("agent")
+                        .build();
+        org.conductoross.conductor.ai.model.SemanticMemory sm =
+                new org.conductoross.conductor.ai.model.SemanticMemory(store, 7, null);
+
+        Agent agent = Agent.builder()
+                .name("ce_agent")
+                .model("openai/gpt-4o")
+                .instructions("Resolve tickets.")
+                .semanticMemory(sm)
+                .memorySummaryModel("openai/gpt-4o-mini")
+                .feedbackSink(event -> {})
+                .build();
+
+        Map<String, Object> out = ser.serialize(agent);
+
+        Map<String, Object> ltm = (Map<String, Object>) out.get("longTermMemory");
+        assertNotNull(ltm, "longTermMemory must be serialized for an OCG-backed store");
+        assertEquals("https://ocg.example.com", ltm.get("ocgUrl")); // trailing slash stripped
+        assertEquals("OCG_PUBLIC_KEY", ltm.get("credential")); // server-resolvable name, not token
+        assertEquals("agent:ce-ticket-resolution", ltm.get("agent"));
+        assertEquals("user:alice", ltm.get("user"));
+        assertEquals("agent", ltm.get("scope"));
+        assertEquals(7, ltm.get("maxResults"));
+        assertEquals("openai/gpt-4o-mini", ltm.get("summaryModel"));
+
+        assertEquals(Map.of("taskName", "ce_agent_feedback_sink"), out.get("feedbackSink"));
+    }
+
+    @Test
+    void serialize_long_term_memory_absent() {
+        // No semanticMemory -> no longTermMemory / feedbackSink keys (no-op).
+        Agent agent =
+                Agent.builder().name("plain").model("openai/gpt-4o").instructions("Hi.").build();
+        Map<String, Object> out = ser.serialize(agent);
+        assertFalse(out.containsKey("longTermMemory"));
+        assertFalse(out.containsKey("feedbackSink"));
+    }
+
+    @Test
+    void serialize_long_term_memory_ignores_non_ocg_store() {
+        // A default (in-memory) SemanticMemory is a client-side helper and must NOT
+        // compile to longTermMemory — only OCG-backed stores do.
+        Agent agent = Agent.builder()
+                .name("plain")
+                .model("openai/gpt-4o")
+                .semanticMemory(new org.conductoross.conductor.ai.model.SemanticMemory())
+                .build();
+        Map<String, Object> out = ser.serialize(agent);
+        assertFalse(out.containsKey("longTermMemory"), "in-memory store must not emit longTermMemory");
+        assertFalse(out.containsKey("feedbackSink"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void serialize_long_term_memory_summary_model_fallback() {
+        // summaryModel falls back to the agent's own model when unset; no feedback_sink
+        // -> no feedbackSink emitted.
+        org.conductoross.conductor.ai.model.OCGMemoryStore store =
+                org.conductoross.conductor.ai.model.OCGMemoryStore.builder()
+                        .url("https://ocg.example.com")
+                        .agent("agent:x")
+                        .build();
+        org.conductoross.conductor.ai.model.SemanticMemory sm =
+                new org.conductoross.conductor.ai.model.SemanticMemory(store, 5, null);
+        Agent agent = Agent.builder()
+                .name("a")
+                .model("anthropic/claude")
+                .semanticMemory(sm)
+                .build();
+
+        Map<String, Object> out = ser.serialize(agent);
+        Map<String, Object> ltm = (Map<String, Object>) out.get("longTermMemory");
+        assertEquals("anthropic/claude", ltm.get("summaryModel"));
+        assertFalse(out.containsKey("feedbackSink"));
+    }
 }

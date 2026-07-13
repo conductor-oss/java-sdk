@@ -108,6 +108,11 @@ public class SemanticMemory {
         return store.listAll();
     }
 
+    /** The backing store (an {@link InMemoryStore} by default, or e.g. an OCGMemoryStore). */
+    public MemoryStore getStore() {
+        return store;
+    }
+
     public int getMaxResults() {
         return maxResults;
     }

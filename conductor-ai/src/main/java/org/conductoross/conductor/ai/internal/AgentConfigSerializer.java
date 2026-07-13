@@ -29,7 +29,9 @@ import org.conductoross.conductor.ai.handoff.Handoff;
 import org.conductoross.conductor.ai.handoff.OnTextMention;
 import org.conductoross.conductor.ai.handoff.OnToolResult;
 import org.conductoross.conductor.ai.model.GuardrailDef;
+import org.conductoross.conductor.ai.model.OCGMemoryStore;
 import org.conductoross.conductor.ai.model.PromptTemplate;
+import org.conductoross.conductor.ai.model.SemanticMemory;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.plans.Context;
 import org.slf4j.Logger;
@@ -260,6 +262,21 @@ public class AgentConfigSerializer {
                 memMap.put("maxMessages", agent.getMemory().getMaxMessages());
             }
             agentMap.put("memory", memMap);
+        }
+
+        // Long-term (OCG-backed) memory. When present, the server-side compiler
+        // inlines retrieval (pre-loop) + distill/save/feedback (post-loop) steps
+        // so memory works on the deployed/webhook path — not just client run().
+        Map<String, Object> ltm = serializeLongTermMemory(agent);
+        if (ltm != null) {
+            agentMap.put("longTermMemory", ltm);
+            // feedbackSink delivers the human good/bad capability links out-of-band.
+            // Emit a worker ref so the compiled path can call the SDK's sink worker.
+            if (agent.getFeedbackSink() != null) {
+                Map<String, Object> feedbackSink = new LinkedHashMap<>();
+                feedbackSink.put("taskName", agent.getName() + "_feedback_sink");
+                agentMap.put("feedbackSink", feedbackSink);
+            }
         }
 
         // Termination condition
@@ -594,6 +611,51 @@ public class AgentConfigSerializer {
         }
 
         return agentMap;
+    }
+
+    /**
+     * Serialize an agent's OCG-backed semantic memory to a {@code LongTermMemoryConfig} map.
+     *
+     * <p>Returns {@code null} (no-op) unless the agent has a {@link SemanticMemory} whose
+     * store is an {@link OCGMemoryStore} (only OCG-backed stores compile server-side —
+     * they need a base url to call). Reads the OCG instance url, scope owner, user and
+     * scope off the store; the credential is a SERVER-resolvable secret NAME (e.g.
+     * {@code OCG_PUBLIC_KEY}) — never the raw client token. The summary model falls back
+     * to the agent's own model when not explicitly set. Null-valued keys are omitted.
+     */
+    private Map<String, Object> serializeLongTermMemory(Agent agent) {
+        SemanticMemory sm = agent.getSemanticMemory();
+        if (sm == null) {
+            return null;
+        }
+        // Only OCG-backed stores compile server-side (need a base url to call).
+        if (!(sm.getStore() instanceof OCGMemoryStore)) {
+            return null;
+        }
+        OCGMemoryStore store = (OCGMemoryStore) sm.getStore();
+
+        String scope = store.getScope() != null && !store.getScope().isEmpty() ? store.getScope() : "agent";
+        String credential =
+                store.getCredential() != null && !store.getCredential().isEmpty() ? store.getCredential() : "OCG_PUBLIC_KEY";
+        String summaryModel = agent.getMemorySummaryModel() != null && !agent.getMemorySummaryModel().isEmpty()
+                ? agent.getMemorySummaryModel()
+                : (agent.getModel() != null && !agent.getModel().isEmpty() ? agent.getModel() : null);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        putIfNotNull(result, "ocgUrl", store.getBaseUrl());
+        putIfNotNull(result, "credential", credential);
+        putIfNotNull(result, "agent", store.getAgent());
+        putIfNotNull(result, "user", store.getUser());
+        putIfNotNull(result, "scope", scope);
+        result.put("maxResults", sm.getMaxResults());
+        putIfNotNull(result, "summaryModel", summaryModel);
+        return result;
+    }
+
+    private static void putIfNotNull(Map<String, Object> map, String key, Object value) {
+        if (value != null) {
+            map.put(key, value);
+        }
     }
 
     private Map<String, Object> serializeTool(ToolDef tool, boolean agentStateful) {
