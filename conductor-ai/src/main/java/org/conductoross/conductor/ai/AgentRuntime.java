@@ -32,6 +32,7 @@ import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.execution.CliCommandExecutor;
 import org.conductoross.conductor.ai.execution.CliConfig;
 import org.conductoross.conductor.ai.internal.AgentConfigSerializer;
+import org.conductoross.conductor.ai.internal.ServerLivenessMonitor;
 import org.conductoross.conductor.ai.internal.WorkerManager;
 import org.conductoross.conductor.ai.model.AgentHandle;
 import org.conductoross.conductor.ai.model.AgentResult;
@@ -392,7 +393,21 @@ public class AgentRuntime implements AutoCloseable {
             }
 
             logger.info("Agent '{}' started with execution ID: {}", agent.getName(), executionId);
-            return new AgentHandle(executionId, agentClient, workflowClient);
+
+            // Stateful runs enqueue worker tasks under the per-execution domain —
+            // if this process stops polling, nothing else ever will. Watch for
+            // that stall so waits fail fast instead of timing out (spec R11).
+            ServerLivenessMonitor livenessMonitor = null;
+            if (runId != null && config.isLivenessEnabled()) {
+                livenessMonitor = new ServerLivenessMonitor(
+                        workflowClient,
+                        executionId,
+                        config.getLivenessStallSeconds(),
+                        config.getLivenessCheckIntervalSeconds(),
+                        config.isDaemonWorkers());
+                livenessMonitor.start();
+            }
+            return new AgentHandle(executionId, agentClient, workflowClient, livenessMonitor);
         });
     }
 
@@ -1194,52 +1209,23 @@ public class AgentRuntime implements AutoCloseable {
             allNames.add(sub.getName());
         }
 
-        // Register {source}_transfer_to_{peer} workers — just complete with empty output
+        // Register {source}_transfer_to_{peer} workers — no-op tools that echo the
+        // hand-off message so it is visible in the task output / UI (spec R13).
         for (String source : allNames) {
             for (String peer : allNames) {
                 if (!source.equals(peer)) {
                     final String taskName = source + "_transfer_to_" + peer;
-                    workerManager.register(taskName, input -> Collections.emptyMap());
+                    workerManager.register(taskName, AgentRuntime::swarmTransferHandler);
                 }
             }
         }
 
         // Register {name}_check_transfer workers for each participant.
         // Input: tool_calls (list of LLM tool calls)
-        // Output: is_transfer (boolean), transfer_to (target agent name)
+        // Output: is_transfer, transfer_to, transfer_message (+ dropped_transfers
+        // when the LLM emitted more than one transfer in a single turn)
         for (String agentName : allNames) {
-            final String prefix = agentName + "_transfer_to_";
-            final String taskName = agentName + "_check_transfer";
-            workerManager.register(taskName, input -> {
-                Object toolCallsRaw = input.get("tool_calls");
-                Map<String, Object> out = new LinkedHashMap<>();
-                out.put("is_transfer", false);
-                out.put("transfer_to", "");
-                if (toolCallsRaw instanceof List) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> toolCalls = (List<Object>) toolCallsRaw;
-                    for (Object tc : toolCalls) {
-                        String name = null;
-                        if (tc instanceof Map) {
-                            @SuppressWarnings("unchecked")
-                            Map<String, Object> tcMap = (Map<String, Object>) tc;
-                            name = tcMap.get("name") instanceof String ? (String) tcMap.get("name") : null;
-                            if (name == null && tcMap.get("function") instanceof Map) {
-                                @SuppressWarnings("unchecked")
-                                Map<String, Object> fn = (Map<String, Object>) tcMap.get("function");
-                                name = fn.get("name") instanceof String ? (String) fn.get("name") : null;
-                            }
-                        }
-                        if (name != null && name.startsWith(prefix)) {
-                            String target = name.substring(prefix.length());
-                            out.put("is_transfer", true);
-                            out.put("transfer_to", target);
-                            break;
-                        }
-                    }
-                }
-                return out;
-            });
+            workerManager.register(agentName + "_check_transfer", checkTransferHandler(agentName));
         }
 
         // Register {swarmAgent.name}_handoff_check worker.
@@ -1281,6 +1267,90 @@ public class AgentRuntime implements AutoCloseable {
             }
             return out;
         });
+    }
+
+    /**
+     * Visible for testing: the {@code {source}_transfer_to_{peer}} no-op tool.
+     * Echoes the hand-off {@code message} so it is visible in the task output /
+     * UI (the server compiler records it in the conversation as
+     * {@code [agent -> target]: <message>}); handoff itself is detected by
+     * {@code check_transfer} from the LLM's toolCalls output (spec R13).
+     */
+    static Object swarmTransferHandler(Map<String, Object> input) {
+        Object message = input != null ? input.get("message") : null;
+        String text = message != null ? message.toString() : "";
+        if (text.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return Map.of("message", text);
+    }
+
+    /**
+     * Visible for testing: build the {@code {name}_check_transfer} handler.
+     *
+     * <p>Selection is first-wins: when the LLM emits multiple transfer calls in
+     * one turn only the first is honored (the swarm loop can only hand off to
+     * one agent). The others are surfaced as {@code dropped_transfers} so the
+     * intent is visible in the task output instead of silently discarded
+     * (spec R13). {@code transfer_message} carries the winning call's
+     * {@code message} argument — the hand-off note for the receiving agent.
+     */
+    static Function<Map<String, Object>, Object> checkTransferHandler(String agentName) {
+        final String prefix = agentName + "_transfer_to_";
+        return input -> {
+            List<Map<String, Object>> transfers = new ArrayList<>();
+            Object toolCallsRaw = input != null ? input.get("tool_calls") : null;
+            if (toolCallsRaw instanceof List) {
+                for (Object tc : (List<?>) toolCallsRaw) {
+                    if (!(tc instanceof Map)) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> tcMap = (Map<String, Object>) tc;
+                    String name = tcMap.get("name") instanceof String s ? s : null;
+                    if (name == null && tcMap.get("function") instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> fn = (Map<String, Object>) tcMap.get("function");
+                        name = fn.get("name") instanceof String s ? s : null;
+                    }
+                    if (name == null || !name.startsWith(prefix)) {
+                        continue;
+                    }
+                    // The hand-off note rides inputParameters.message; tolerate
+                    // the "arguments" key variant some LLM shapes emit.
+                    Object params = tcMap.get("inputParameters");
+                    if (!(params instanceof Map)) {
+                        params = tcMap.get("arguments");
+                    }
+                    Object message = params instanceof Map ? ((Map<?, ?>) params).get("message") : null;
+                    Map<String, Object> transfer = new LinkedHashMap<>();
+                    transfer.put("transfer_to", name.substring(prefix.length()));
+                    transfer.put("message", message != null ? message.toString() : "");
+                    transfers.add(transfer);
+                }
+            }
+
+            Map<String, Object> out = new LinkedHashMap<>();
+            if (transfers.isEmpty()) {
+                out.put("is_transfer", false);
+                out.put("transfer_to", "");
+                out.put("transfer_message", "");
+                return out;
+            }
+            Map<String, Object> first = transfers.get(0);
+            out.put("is_transfer", true);
+            out.put("transfer_to", first.get("transfer_to"));
+            out.put("transfer_message", first.get("message"));
+            if (transfers.size() > 1) {
+                List<Map<String, Object>> dropped = new ArrayList<>(transfers.subList(1, transfers.size()));
+                logger.warn(
+                        "Multiple transfer calls in one turn; honoring '{}', dropping {}",
+                        first.get("transfer_to"),
+                        dropped.stream().map(t -> t.get("transfer_to")).collect(Collectors.toList()));
+                out.put("dropped_transfers", dropped);
+            }
+            return out;
+        };
     }
 
     /**

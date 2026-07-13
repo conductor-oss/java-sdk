@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
+import org.conductoross.conductor.ai.exceptions.WorkerStallError;
+import org.conductoross.conductor.ai.internal.ServerLivenessMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +47,26 @@ public class AgentHandle {
     private final String executionId;
     private final AgentClient agentClient;
     private final WorkflowClient workflowClient;
+    /** Liveness watch for stateful runs (spec R11); {@code null} when not monitored. */
+    private final ServerLivenessMonitor livenessMonitor;
 
     public AgentHandle(String executionId, AgentClient agentClient, WorkflowClient workflowClient) {
+        this(executionId, agentClient, workflowClient, null);
+    }
+
+    /**
+     * Internal — used by {@code AgentRuntime.startAsync} to attach a liveness
+     * monitor to stateful runs. {@code livenessMonitor} may be {@code null}.
+     */
+    public AgentHandle(
+            String executionId,
+            AgentClient agentClient,
+            WorkflowClient workflowClient,
+            ServerLivenessMonitor livenessMonitor) {
         this.executionId = executionId;
         this.agentClient = agentClient;
         this.workflowClient = workflowClient;
+        this.livenessMonitor = livenessMonitor;
     }
 
     public String getExecutionId() {
@@ -80,11 +97,29 @@ public class AgentHandle {
 
     @SuppressWarnings("unchecked")
     public AgentResult waitForResult(long timeoutMs, long pollIntervalMs) {
+        try {
+            return pollForResult(timeoutMs, pollIntervalMs);
+        } finally {
+            // Every exit (terminal result, stall, timeout, poll give-up,
+            // interrupt) ends this wait — the monitor has nothing left to watch.
+            if (livenessMonitor != null) {
+                livenessMonitor.close();
+            }
+        }
+    }
+
+    private AgentResult pollForResult(long timeoutMs, long pollIntervalMs) {
         long startTime = System.currentTimeMillis();
         int consecutiveErrors = 0;
         Exception lastError = null;
 
         while (System.currentTimeMillis() - startTime < timeoutMs) {
+            // Surface a worker stall immediately instead of burning the full
+            // timeout on an execution nothing is polling (spec R11).
+            String stalledTask = livenessMonitor != null ? livenessMonitor.stalledTask() : null;
+            if (stalledTask != null) {
+                throw new WorkerStallError(stalledTask, executionId);
+            }
             try {
                 AgentStatusResponse status = agentClient.getAgentStatus(executionId);
                 consecutiveErrors = 0; // reset on success

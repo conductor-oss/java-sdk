@@ -42,7 +42,9 @@ dependencies {
     testImplementation "com.google.adk:google-adk:${versions.googleAdk}"
     testImplementation "org.bsc.langgraph4j:langgraph4j-core:${versions.langgraph4j}"
     testImplementation "org.bsc.langgraph4j:langgraph4j-agent-executor:${versions.langgraph4j}"
-    testRuntimeOnly "ch.qos.logback:logback-classic:1.5.32"
+    // testImplementation (not runtimeOnly): tests attach a ListAppender to
+    // capture contract-mandated warnings (e.g. swarm dropped_transfers).
+    testImplementation "ch.qos.logback:logback-classic:1.5.32"
 }
 
 java {
