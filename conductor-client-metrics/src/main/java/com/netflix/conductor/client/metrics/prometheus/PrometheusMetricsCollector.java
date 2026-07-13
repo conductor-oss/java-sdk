@@ -150,7 +150,30 @@ public class PrometheusMetricsCollector implements MetricsCollector {
         return apiClientMetrics;
     }
 
-    public MeterRegistry getRegistry() {
+    /**
+     * @return the registry as a {@link PrometheusMeterRegistry}
+     * @deprecated prefer {@link #getMeterRegistry()}, which returns the registry
+     *     as the {@link MeterRegistry} interface and works for any registry
+     *     type. This method only succeeds when the collector was constructed
+     *     with a Prometheus registry (the default / deprecated embedded path).
+     * @throws IllegalStateException if this collector was constructed with a
+     *     non-Prometheus {@link MeterRegistry}
+     */
+    @Deprecated
+    public PrometheusMeterRegistry getRegistry() {
+        if (registry instanceof PrometheusMeterRegistry prometheusRegistry) {
+            return prometheusRegistry;
+        }
+        throw new IllegalStateException(
+                "getRegistry() returns a PrometheusMeterRegistry, but this collector was "
+                        + "constructed with " + registry.getClass().getName()
+                        + ". Use getMeterRegistry() instead.");
+    }
+
+    /**
+     * @return the {@link MeterRegistry} this collector records metrics into
+     */
+    public MeterRegistry getMeterRegistry() {
         return registry;
     }
 

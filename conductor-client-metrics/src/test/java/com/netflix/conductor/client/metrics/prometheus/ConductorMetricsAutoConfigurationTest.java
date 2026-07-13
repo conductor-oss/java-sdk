@@ -36,7 +36,7 @@ class ConductorMetricsAutoConfigurationTest {
         runner.withBean(MeterRegistry.class, () -> registry).run(ctx -> {
             assertTrue(ctx.containsBean("conductorMetricsCollector"));
             MetricsCollector collector = ctx.getBean(MetricsCollector.class);
-            assertSame(registry, ((PrometheusMetricsCollector) collector).getRegistry());
+            assertSame(registry, ((PrometheusMetricsCollector) collector).getMeterRegistry());
         });
     }
 

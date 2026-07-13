@@ -293,6 +293,7 @@ class PrometheusMetricsCollectorTest {
     // --- getRegistry ---
 
     @Test
+    @SuppressWarnings("deprecation")
     void getRegistryReturnsNonNull() {
         assertNotNull(collector.getRegistry());
     }
