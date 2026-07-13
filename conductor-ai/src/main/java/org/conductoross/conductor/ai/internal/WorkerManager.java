@@ -22,10 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import org.conductoross.conductor.ai.AgentConfig;
-import org.conductoross.conductor.ai.exceptions.CredentialAuthException;
-import org.conductoross.conductor.ai.exceptions.CredentialNotFoundException;
-import org.conductoross.conductor.ai.exceptions.CredentialRateLimitException;
-import org.conductoross.conductor.ai.exceptions.CredentialServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +57,14 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
  * resolution before each handler call (with terminal failure on credential
  * errors so Conductor doesn't burn retries), and the {@code result → outputData}
  * mapping.
+ *
+ * <p>Credentials ride the {@code runtimeMetadata} contract (spec R6): declared
+ * secret names are stamped on {@code TaskDef.runtimeMetadata} at registration;
+ * a capable host (agentspan &gt; 0.4.2, conductor-oss PR #1255) resolves them at
+ * poll time and delivers the values on the wire-only
+ * {@code Task.runtimeMetadata} map. There is no fetch call, no execution token,
+ * and ambient process env is never read — a declared-but-undelivered name fails
+ * the task terminally.
  */
 public class WorkerManager {
     private static final Logger logger = LoggerFactory.getLogger(WorkerManager.class);
@@ -98,7 +102,6 @@ public class WorkerManager {
     }
 
     private final AgentConfig config;
-    private final WorkerCredentialFetcher credentialFetcher;
     private final TaskClient taskClient;
     private final MetadataClient metadataClient;
 
@@ -123,7 +126,6 @@ public class WorkerManager {
 
     public WorkerManager(AgentConfig config, ConductorClient conductorClient) {
         this.config = config;
-        this.credentialFetcher = new WorkerCredentialFetcher(conductorClient);
         this.handlers = new ConcurrentHashMap<>();
         this.taskDomains = new ConcurrentHashMap<>();
         this.taskCredentials = new ConcurrentHashMap<>();
@@ -227,6 +229,12 @@ public class WorkerManager {
             taskCredentials.remove(taskName);
         }
 
+        // Size and upsert the task def on EVERY register — not just the first.
+        // The upsert overwrites the whole def, so skipping it on re-registration
+        // would leave a stale def, and running it without the credentials param
+        // would wipe a previously-stamped runtimeMetadata (spec R6 MUST re-stamp).
+        registerTaskDef(taskName, taskTimeoutSeconds, credentials);
+
         if (!isNew) {
             // Same task type — the Worker looks the handler up live, so a swapped
             // handler takes effect with no rebuild. BUT the domain is baked into the
@@ -250,24 +258,32 @@ public class WorkerManager {
             return;
         }
 
-        // Size and upsert the task def so the server's timeouts track the handler.
-        registerTaskDef(taskName, taskTimeoutSeconds);
-
         synchronized (lifecycleLock) {
             workerSetChanged = true;
         }
         logger.info("Registered worker for task: {} (domain={})", taskName, domain);
     }
 
-    private void registerTaskDef(String taskName, int configuredTimeoutSeconds) {
+    private void registerTaskDef(String taskName, int configuredTimeoutSeconds, List<String> credentials) {
+        long timeout = effectiveTaskTimeout(configuredTimeoutSeconds);
+        TaskDef taskDef = new TaskDef(taskName);
+        taskDef.setTimeoutSeconds(timeout);
+        taskDef.setResponseTimeoutSeconds(timeout);
+        if (credentials != null && !credentials.isEmpty()) {
+            // Declared secret names — a capable host resolves these at poll time
+            // and delivers the values on the wire-only Task.runtimeMetadata.
+            taskDef.setRuntimeMetadata(List.copyOf(credentials));
+        }
         try {
-            long timeout = effectiveTaskTimeout(configuredTimeoutSeconds);
-            TaskDef taskDef = new TaskDef(taskName);
-            taskDef.setTimeoutSeconds(timeout);
-            taskDef.setResponseTimeoutSeconds(timeout);
-            metadataClient.registerTaskDefs(List.of(taskDef));
-        } catch (Exception e) {
-            logger.debug("Could not register task def {} (may already exist): {}", taskName, e.getMessage());
+            // PUT overwrite first (mirrors the Python task runner): a create-only
+            // POST would silently keep a stale def on re-registration.
+            metadataClient.updateTaskDef(taskDef);
+        } catch (Exception updateFailure) {
+            try {
+                metadataClient.registerTaskDefs(List.of(taskDef));
+            } catch (Exception registerFailure) {
+                logger.debug("Could not register task def {}: {}", taskName, registerFailure.getMessage());
+            }
         }
     }
 
@@ -373,32 +389,42 @@ public class WorkerManager {
         };
     }
 
-    private TaskResult executeHandler(String taskName, Task task) {
+    /** Visible for testing: the per-task dispatch (credential resolution + handler invocation). */
+    TaskResult executeHandler(String taskName, Task task) {
         TaskResult result = new TaskResult(task);
         Map<String, Object> inputData = task.getInputData() != null ? task.getInputData() : Collections.emptyMap();
 
-        // Resolve declared secrets BEFORE invoking the handler. Credential
-        // failures are terminal so Conductor doesn't burn retries on a config
-        // problem. See docs/design/secret-injection-contract.md.
+        // Resolve declared secrets from the values the host delivered on the task
+        // (wire-only Task.runtimeMetadata) BEFORE invoking the handler. Fail closed:
+        // a declared-but-undelivered name is a terminal failure so Conductor doesn't
+        // burn retries on a config problem — ambient process env is NEVER read.
+        // See docs/design/secret-injection-contract.md.
         Map<String, String> resolvedSecrets = Collections.emptyMap();
         List<String> declared = taskCredentials.getOrDefault(taskName, Collections.emptyList());
         if (!declared.isEmpty()) {
-            String execToken = extractExecutionToken(inputData);
-            try {
-                resolvedSecrets = credentialFetcher.fetch(execToken, declared);
-            } catch (CredentialNotFoundException
-                    | CredentialAuthException
-                    | CredentialRateLimitException
-                    | CredentialServiceException ce) {
+            Map<String, String> delivered =
+                    task.getRuntimeMetadata() != null ? task.getRuntimeMetadata() : Collections.emptyMap();
+            Map<String, String> resolved = new HashMap<>();
+            List<String> missing = new ArrayList<>();
+            for (String name : declared) {
+                String value = delivered.get(name);
+                if (value != null) {
+                    resolved.put(name, value);
+                } else {
+                    missing.add(name);
+                }
+            }
+            if (!missing.isEmpty()) {
                 logger.error(
-                        "Credential resolution failed for task {} ({}): {}",
-                        taskName,
-                        task.getTaskId(),
-                        ce.getMessage());
+                        "Credentials {} not delivered for task {} ({})", missing, taskName, task.getTaskId());
                 result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
-                result.setReasonForIncompletion("Credential resolution failed: " + ce.getMessage());
+                result.setReasonForIncompletion("Missing credentials " + missing
+                        + ": not delivered by the server on this task. Ensure each secret is stored and "
+                        + "declared on the tool/agent, and that the server supports runtimeMetadata "
+                        + "delivery (agentspan > 0.4.2 / conductor-oss PR #1255).");
                 return result;
             }
+            resolvedSecrets = resolved;
         }
 
         Function<Map<String, Object>, Object> handler = handlers.get(taskName);
@@ -424,20 +450,6 @@ public class WorkerManager {
             result.setReasonForIncompletion(e.getMessage());
         }
         return result;
-    }
-
-    /**
-     * Pull the execution token out of {@code inputData["__agentspan_ctx__"]["execution_token"]}.
-     * Returns {@code null} if no token is present.
-     */
-    @SuppressWarnings("unchecked")
-    private static String extractExecutionToken(Map<String, Object> inputData) {
-        if (inputData == null) return null;
-        Object ctx = inputData.get("__agentspan_ctx__");
-        if (!(ctx instanceof Map<?, ?> ctxMap)) return null;
-        Object token = ctxMap.get("execution_token");
-        if (token == null) token = ctxMap.get("executionToken"); // tolerate camelCase
-        return token instanceof String s ? s : null;
     }
 
     @SuppressWarnings("unchecked")

@@ -49,9 +49,13 @@ import static org.junit.jupiter.api.Assertions.*;
  * (set a JVM-startup env var; verify the SDK doesn't surface it via
  * {@code ctx.getCredential()}).</p>
  *
- * <p>This is the test that would catch URL drift on {@code /api/workers/secrets},
- * silent-swallow regressions in {@code WorkerCredentialFetcher}, or any
- * future "tool gets the wrong value" bug.</p>
+ * <p>Credentials ride the {@code runtimeMetadata} contract (spec R6): the SDK
+ * stamps declared names on {@code TaskDef.runtimeMetadata}; the server resolves
+ * them at poll time and delivers values on the wire-only
+ * {@code Task.runtimeMetadata}. This is the test that would catch stamp drift,
+ * fail-open regressions in {@code WorkerManager}, or any future "tool gets the
+ * wrong value" bug. A capability probe skips the suite on servers that drop the
+ * field (agentspan ≤ 0.4.2) — those failures would be the server's, not the SDK's.</p>
  */
 @Tag("e2e")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -82,7 +86,48 @@ class Suite2ToolCallingCredentials extends BaseTest {
 
     @BeforeAll
     static void setup() {
+        assumeRuntimeMetadataCapable();
         runtime = new AgentRuntime(new AgentConfig(100, 1));
+    }
+
+    /**
+     * Register a probe TaskDef with {@code runtimeMetadata} and read it back —
+     * servers without conductor-oss PR #1255 (agentspan ≤ 0.4.2) silently drop
+     * the field, and every wire-delivery assertion below would then fail for a
+     * server reason, not an SDK one.
+     */
+    static void assumeRuntimeMetadataCapable() {
+        io.orkes.conductor.client.ApiClient probeClient = new io.orkes.conductor.client.ApiClient(
+                (BASE_URL.endsWith("/") ? BASE_URL.substring(0, BASE_URL.length() - 1) : BASE_URL) + "/api");
+        com.netflix.conductor.client.http.MetadataClient metadataClient =
+                new com.netflix.conductor.client.http.MetadataClient(probeClient);
+        String probeName = "e2e_java_runtime_metadata_probe";
+        com.netflix.conductor.common.metadata.tasks.TaskDef probe =
+                new com.netflix.conductor.common.metadata.tasks.TaskDef(probeName);
+        probe.setTimeoutSeconds(60);
+        probe.setResponseTimeoutSeconds(60);
+        probe.setRuntimeMetadata(List.of("E2E_PROBE_SECRET"));
+        try {
+            metadataClient.updateTaskDef(probe);
+        } catch (Exception updateFailure) {
+            try {
+                metadataClient.registerTaskDefs(List.of(probe));
+            } catch (Exception ignored) {
+                // fall through to the read-back check
+            }
+        }
+        com.netflix.conductor.common.metadata.tasks.TaskDef readBack = null;
+        try {
+            readBack = metadataClient.getTaskDef(probeName);
+        } catch (Exception ignored) {
+            // treated as not capable below
+        }
+        Assumptions.assumeTrue(
+                readBack != null
+                        && readBack.getRuntimeMetadata() != null
+                        && readBack.getRuntimeMetadata().contains("E2E_PROBE_SECRET"),
+                "Server does not persist TaskDef.runtimeMetadata (needs agentspan > 0.4.2 / "
+                        + "conductor-oss PR #1255) — skipping credential wire-delivery suite");
     }
 
     @AfterAll
@@ -235,9 +280,20 @@ class Suite2ToolCallingCredentials extends BaseTest {
                     .build();
             HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() >= 400) {
+                // The conductor-oss standalone flavor serves secrets from the
+                // server process env — the API is read-only there, so the
+                // set/update lifecycle steps cannot run (a server-flavor
+                // capability, not an SDK regression). The fail-closed steps
+                // still run everywhere; the full lifecycle runs on the
+                // writable-store (agentspan) flavor.
+                Assumptions.assumeFalse(
+                        resp.body() != null && resp.body().contains("read-only"),
+                        "server secret store is read-only (env-backed) — skipping write-dependent step");
                 throw new AgentspanException(
                         "PUT /api/secrets/" + name + " failed: HTTP " + resp.statusCode() + " " + resp.body());
             }
+        } catch (org.opentest4j.TestAbortedException skip) {
+            throw skip;
         } catch (Exception e) {
             fail("putSecret(" + name + ") failed: " + e);
         }

@@ -24,6 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pure unit tests for the credential exception hierarchy (typed fields, base type).
  * The agent-client exceptions ({@code AgentAPIException} et al.) are tested in
  * {@code conductor-client}'s {@code AgentExceptionsTest}.
+ *
+ * <p>Only {@link CredentialNotFoundException} remains: the fetch-transport
+ * exceptions (auth / rate-limit / service) died with the {@code /workers/secrets}
+ * fetcher — credentials now arrive on the wire via {@code Task.runtimeMetadata}
+ * (spec R6/R12).
  */
 class ExceptionsTest {
 
@@ -36,13 +41,7 @@ class ExceptionsTest {
     }
 
     @Test
-    void credentialServiceCarriesStatus() {
-        assertEquals(503, new CredentialServiceException(503, "down").getStatusCode());
-    }
-
-    @Test
-    void credentialAuthAndRateLimitAreAgentspanExceptions() {
-        assertInstanceOf(AgentspanException.class, new CredentialAuthException("rejected"));
-        assertInstanceOf(AgentspanException.class, new CredentialRateLimitException());
+    void credentialNotFoundIsAnAgentspanException() {
+        assertInstanceOf(AgentspanException.class, new CredentialNotFoundException("ONLY"));
     }
 }
