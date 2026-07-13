@@ -48,6 +48,9 @@ import io.orkes.conductor.client.model.agent.RespondBody;
 public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(AgentStream.class);
 
+    private static final long DEFAULT_POLL_TIMEOUT_MS = 600_000; // 10 minutes
+    private static final long DEFAULT_POLL_INTERVAL_MS = 2000;
+
     private final String executionId;
     private final SseClient sseClient;
     private final AgentClient agentClient;
@@ -55,6 +58,12 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
     private AgentResult result;
     private boolean exhausted = false;
 
+    /**
+     * @param sseClient the connected SSE transport, or {@code null} for
+     *     polling mode — used when streaming is disabled by config or the
+     *     server rejected the SSE connection. In polling mode iteration yields
+     *     no events and {@link #getResult()} polls the status endpoint instead.
+     */
     public AgentStream(String executionId, SseClient sseClient, AgentClient agentClient) {
         this.executionId = executionId;
         this.sseClient = sseClient;
@@ -71,9 +80,17 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
     }
 
     /**
-     * Drain the stream and return the final result.
+     * Drain the stream and return the final result. In polling mode (no SSE
+     * transport) this polls the status endpoint until the execution reaches a
+     * terminal status instead of consuming events.
      */
     public AgentResult getResult() {
+        if (sseClient == null) {
+            if (result == null) {
+                result = waitForResult(DEFAULT_POLL_TIMEOUT_MS, DEFAULT_POLL_INTERVAL_MS);
+            }
+            return result;
+        }
         if (!exhausted) {
             for (AgentEvent event : this) {
                 // consume all events
@@ -311,6 +328,9 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
      * events itself). Returns {@code null} when the stream is done.
      */
     private AgentEvent nextDomainEvent() {
+        if (sseClient == null) {
+            return null; // polling mode — no event transport
+        }
         Map<String, Object> raw;
         while ((raw = sseClient.nextEvent()) != null) {
             try {
@@ -335,7 +355,11 @@ public class AgentStream implements Iterable<AgentEvent>, AutoCloseable {
             if (nextEvent == null) {
                 done = true;
                 exhausted = true;
-                result = buildResult();
+                if (sseClient != null) {
+                    // Polling mode has no events — getResult() polls the status
+                    // endpoint instead of trusting an empty capture buffer.
+                    result = buildResult();
+                }
                 return false;
             }
 

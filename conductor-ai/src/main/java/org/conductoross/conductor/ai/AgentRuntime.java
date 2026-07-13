@@ -58,6 +58,7 @@ import com.netflix.conductor.client.http.WorkflowClient;
 import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.SseClient;
+import io.orkes.conductor.client.exceptions.SSEUnavailableException;
 import io.orkes.conductor.client.http.OrkesAgentClient;
 import io.orkes.conductor.client.model.agent.AgentRequest;
 import io.orkes.conductor.client.model.agent.CompileResponse;
@@ -139,16 +140,27 @@ public class AgentRuntime implements AutoCloseable {
 
     // ── Conductor client factory ──────────────────────────────────────────
 
+    /** Default server URL when no environment override is set (spec R3). */
+    private static final String DEFAULT_SERVER_URL = "http://localhost:8080";
+
     /**
-     * Build a native Conductor client from environment
-     * ({@code AGENTSPAN_SERVER_URL}, {@code AGENTSPAN_AUTH_KEY},
-     * {@code AGENTSPAN_AUTH_SECRET}).
+     * Build a native Conductor client from environment. Standard Conductor
+     * variables win; the legacy Agentspan names are honored as fallbacks
+     * (spec R3): {@code CONDUCTOR_SERVER_URL} → {@code AGENTSPAN_SERVER_URL}
+     * → {@code http://localhost:8080}, and {@code CONDUCTOR_AUTH_KEY}/
+     * {@code CONDUCTOR_AUTH_SECRET} → {@code AGENTSPAN_AUTH_KEY}/
+     * {@code AGENTSPAN_AUTH_SECRET}.
      */
     public static ApiClient clientFromEnv() {
+        return clientFromEnv(System::getenv);
+    }
+
+    /** Env-seam variant so tests can exercise precedence without mutating process env. */
+    static ApiClient clientFromEnv(Function<String, String> env) {
         return client(
-                envVar("AGENTSPAN_SERVER_URL", "http://localhost:6767"),
-                envVar("AGENTSPAN_AUTH_KEY", null),
-                envVar("AGENTSPAN_AUTH_SECRET", null));
+                envVar(env, "CONDUCTOR_SERVER_URL", envVar(env, "AGENTSPAN_SERVER_URL", DEFAULT_SERVER_URL)),
+                envVar(env, "CONDUCTOR_AUTH_KEY", envVar(env, "AGENTSPAN_AUTH_KEY", null)),
+                envVar(env, "CONDUCTOR_AUTH_SECRET", envVar(env, "AGENTSPAN_AUTH_SECRET", null)));
     }
 
     /** Build an unauthenticated Conductor client for {@code serverUrl}. */
@@ -176,14 +188,15 @@ public class AgentRuntime implements AutoCloseable {
         return builder.build();
     }
 
-    private static String envVar(String key, String defaultValue) {
-        String val = System.getenv(key);
-        return val != null ? val : defaultValue;
+    /** Empty values are treated as unset — an exported-but-blank variable never clobbers the chain. */
+    private static String envVar(Function<String, String> env, String key, String defaultValue) {
+        String val = env.apply(key);
+        return val != null && !val.trim().isEmpty() ? val : defaultValue;
     }
 
     /** Strip a trailing {@code /} and any {@code /api} suffix; defaults if null. */
     private static String normalizeUrl(String url) {
-        String s = (url != null ? url : "http://localhost:6767").stripTrailing();
+        String s = (url != null ? url : DEFAULT_SERVER_URL).stripTrailing();
         while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
         if (s.endsWith("/api")) s = s.substring(0, s.length() - 4);
         while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
@@ -246,6 +259,14 @@ public class AgentRuntime implements AutoCloseable {
     }
 
     /**
+     * Execute an agent with per-run LLM overrides (spec R8) — only non-null
+     * {@link RunSettings} fields override the agent's own settings.
+     */
+    public AgentResult run(Agent agent, String prompt, RunSettings runSettings) {
+        return runAsync(agent, prompt, runSettings).join();
+    }
+
+    /**
      * Start an agent (fire-and-forget) and return a handle.
      *
      * @param agent  the agent to start
@@ -254,6 +275,11 @@ public class AgentRuntime implements AutoCloseable {
      */
     public AgentHandle start(Agent agent, String prompt) {
         return startAsync(agent, prompt).join();
+    }
+
+    /** Start an agent with per-run LLM overrides (spec R8). */
+    public AgentHandle start(Agent agent, String prompt, RunSettings runSettings) {
+        return startAsync(agent, prompt, runSettings).join();
     }
 
     /**
@@ -265,6 +291,11 @@ public class AgentRuntime implements AutoCloseable {
      */
     public AgentStream stream(Agent agent, String prompt) {
         return streamAsync(agent, prompt).join();
+    }
+
+    /** Stream an agent with per-run LLM overrides (spec R8). */
+    public AgentStream stream(Agent agent, String prompt, RunSettings runSettings) {
+        return streamAsync(agent, prompt, runSettings).join();
     }
 
     // ── Async API ────────────────────────────────────────────────────────
@@ -293,6 +324,12 @@ public class AgentRuntime implements AutoCloseable {
                 .thenCompose(handle -> CompletableFuture.supplyAsync(() -> handle.waitForResult()));
     }
 
+    /** Async variant of {@link #run(Agent, String, RunSettings)}. */
+    public CompletableFuture<AgentResult> runAsync(Agent agent, String prompt, RunSettings runSettings) {
+        return startAsync(agent, prompt, null, runSettings)
+                .thenCompose(handle -> CompletableFuture.supplyAsync(() -> handle.waitForResult()));
+    }
+
     /**
      * Start an agent asynchronously and return a handle.
      *
@@ -310,6 +347,19 @@ public class AgentRuntime implements AutoCloseable {
      * {@code Strategy.PLAN_EXECUTE} harnesses; ignored otherwise.
      */
     public CompletableFuture<AgentHandle> startAsync(Agent agent, String prompt, Plan plan) {
+        return startAsync(agent, prompt, plan, null);
+    }
+
+    /** Async variant with per-run LLM overrides (spec R8). */
+    public CompletableFuture<AgentHandle> startAsync(Agent agent, String prompt, RunSettings runSettings) {
+        return startAsync(agent, prompt, null, runSettings);
+    }
+
+    /**
+     * Full async variant: deterministic {@link Plan} plus per-run
+     * {@link RunSettings} overrides (either may be null).
+     */
+    public CompletableFuture<AgentHandle> startAsync(Agent agent, String prompt, Plan plan, RunSettings runSettings) {
         // Stateful agents get a per-execution domain UUID. The server uses it
         // as taskToDomain for every worker task in this run; local workers are
         // registered under the same domain so they poll the per-execution
@@ -318,15 +368,19 @@ public class AgentRuntime implements AutoCloseable {
         // Mirrors Python runtime._has_stateful_tools + run_id = uuid.uuid4().
         final String runId =
                 hasStatefulTools(agent) ? UUID.randomUUID().toString().replace("-", "") : null;
-        prepareWorkers(agent, runId);
-        workerManager.startAll();
+        if (config.isAutoStartWorkers()) {
+            prepareWorkers(agent, runId);
+            workerManager.startAll();
+        } else {
+            logger.debug("autoStartWorkers=false — skipping worker registration for '{}'", agent.getName());
+        }
 
         return CompletableFuture.supplyAsync(() -> {
             String sessionId = agent.getSessionId();
 
             logger.debug("Starting agent '{}' with prompt: {}", agent.getName(), prompt);
 
-            StartResponse response = agentClient.startAgent(agentRequest(agent)
+            StartResponse response = agentClient.startAgent(agentRequest(agent, runSettings)
                     .prompt(prompt)
                     .sessionId(sessionId != null && !sessionId.isEmpty() ? sessionId : null)
                     .runId(runId != null && !runId.isEmpty() ? runId : null)
@@ -369,7 +423,19 @@ public class AgentRuntime implements AutoCloseable {
      * the transport DTO in {@code conductor-client} carries only JSON-ready maps.
      */
     private static AgentRequest.Builder agentRequest(Agent agent) {
+        return agentRequest(agent, null);
+    }
+
+    /**
+     * Variant with per-run {@link RunSettings} overrides: only non-null fields
+     * mutate the serialized <b>root</b> config (sub-agents keep their own
+     * settings), before compile+register+start — mirrors the Python runtime.
+     */
+    private static AgentRequest.Builder agentRequest(Agent agent, RunSettings runSettings) {
         Map<String, Object> config = AGENT_SERIALIZER.serialize(agent);
+        if (runSettings != null) {
+            config.putAll(runSettings.toConfigOverrides());
+        }
         return Framework.of(agent.getFramework())
                 .map(fw -> AgentRequest.frameworkAgent(fw.wireValue(), config))
                 .orElseGet(() -> AgentRequest.nativeAgent(config));
@@ -383,14 +449,34 @@ public class AgentRuntime implements AutoCloseable {
      * @return a CompletableFuture that resolves to an AgentStream
      */
     public CompletableFuture<AgentStream> streamAsync(Agent agent, String prompt) {
+        return streamAsync(agent, prompt, (RunSettings) null);
+    }
+
+    /**
+     * Async streaming variant with per-run LLM overrides (spec R8).
+     *
+     * <p>Streams over SSE via the runtime's {@link AgentClient}. When streaming
+     * is disabled by config or the server rejects the SSE connection
+     * ({@link SSEUnavailableException}), the returned {@link AgentStream}
+     * degrades to status polling instead of ending silently.
+     */
+    public CompletableFuture<AgentStream> streamAsync(Agent agent, String prompt, RunSettings runSettings) {
         // Worker registration + runner start happen inside startAsync, under the
         // per-execution domain (runId) for stateful agents — see runAsync.
-        return startAsync(agent, prompt).thenApply(handle -> {
+        return startAsync(agent, prompt, null, runSettings).thenApply(handle -> {
             String executionId = handle.getExecutionId();
-            SseClient sseClient = new SseClient(conductorClient, executionId);
-            sseClient.connect();
-
-            return new AgentStream(executionId, sseClient, agentClient);
+            if (!config.isStreamingEnabled()) {
+                logger.info("Streaming disabled by config — status polling for {}", executionId);
+                return new AgentStream(executionId, null, agentClient);
+            }
+            try {
+                SseClient sseClient = agentClient.streamSse(executionId, null);
+                return new AgentStream(executionId, sseClient, agentClient);
+            } catch (SSEUnavailableException e) {
+                logger.warn("SSE unavailable ({}) — falling back to status polling for {}",
+                        e.getMessage(), executionId);
+                return new AgentStream(executionId, null, agentClient);
+            }
         });
     }
 
@@ -465,22 +551,50 @@ public class AgentRuntime implements AutoCloseable {
     }
 
     /**
-     * Register workers and keep them polling until interrupted.
+     * Deploy agents, register their workers, and keep polling until interrupted.
      *
-     * <p>This is a runtime operation: it registers the Java tool functions as
-     * Conductor workers and starts polling for tasks.
+     * <p>{@code serve} = deploy + serve (spec R9): each agent is first deployed
+     * (compile + register on the server — idempotent) so a bare
+     * {@code runtime.serve(agent)} is a complete, startable deployment. Then the
+     * Java tool functions are registered as Conductor workers and polled for
+     * tasks until the process is interrupted.
      *
-     * @param agents agents whose workers should be served
+     * @param agents agents to deploy and serve
      */
     public void serve(Agent... agents) {
+        serve(true, agents);
+    }
+
+    /**
+     * {@link #serve(Agent...)} with an explicit blocking mode.
+     *
+     * <p>{@code blocking=false} returns as soon as the agents are deployed and
+     * the workers are registered and polling — for embedding the runtime in a
+     * host application that owns the process lifecycle (spec R9). The caller is
+     * responsible for {@link #shutdown()}.
+     *
+     * <p>The flag is {@code Boolean} (not {@code boolean}) so this overload is
+     * strictly more specific than the {@code serve(Object...)} drop-in — with a
+     * primitive flag, {@code serve(false, agent)} would be ambiguous.
+     *
+     * @param blocking when true or null, block the calling thread until interrupted
+     * @param agents   agents to deploy and serve
+     */
+    public void serve(Boolean blocking, Agent... agents) {
         if (agents == null || agents.length == 0) {
             throw new IllegalArgumentException("serve() requires at least one agent — without one, no workers would "
                     + "register and the call would block forever.");
         }
         for (Agent agent : agents) {
+            agentClient.deployAgent(agentRequest(agent).build());
+            logger.info("Deployed agent '{}' before serving", agent.getName());
             prepareWorkers(agent);
         }
         workerManager.startAll();
+        if (Boolean.FALSE.equals(blocking)) {
+            logger.info("Serving {} agent(s) — workers polling in the background", agents.length);
+            return;
+        }
         logger.info("Serving {} agent(s) — waiting for tasks (Ctrl+C to stop)", agents.length);
         Runtime.getRuntime().addShutdownHook(new Thread(workerManager::stop, "agentspan-serve-shutdown"));
         try {
@@ -589,7 +703,12 @@ public class AgentRuntime implements AutoCloseable {
 
     /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Agentspan {@link Agent}s). */
     public void serve(Object... agents) {
-        serve(coerceAgents(agents));
+        serve(true, coerceAgents(agents));
+    }
+
+    /** Drop-in twin of {@link #serve(Boolean, Agent...)}. */
+    public void serve(Boolean blocking, Object... agents) {
+        serve(blocking, coerceAgents(agents));
     }
 
     /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
@@ -618,22 +737,46 @@ public class AgentRuntime implements AutoCloseable {
 
     /** Drop-in: native LangChain4j {@code ChatModel} / LangGraph4j {@code Builder} + tool POJOs. */
     public AgentResult run(Object agent, String prompt, Object... tools) {
-        return run(coerceAgent(agent, tools), prompt);
+        return run(coerceAgent(agent, withoutRunSettings(tools)), prompt, findRunSettings(tools));
     }
 
     /** Drop-in (async): native framework object + tool POJOs. */
     public CompletableFuture<AgentResult> runAsync(Object agent, String prompt, Object... tools) {
-        return runAsync(coerceAgent(agent, tools), prompt);
+        return runAsync(coerceAgent(agent, withoutRunSettings(tools)), prompt, findRunSettings(tools));
     }
 
     /** Drop-in (start): native framework object + tool POJOs. */
     public AgentHandle start(Object agent, String prompt, Object... tools) {
-        return start(coerceAgent(agent, tools), prompt);
+        return start(coerceAgent(agent, withoutRunSettings(tools)), prompt, findRunSettings(tools));
     }
 
     /** Drop-in (stream): native framework object + tool POJOs. */
     public AgentStream stream(Object agent, String prompt, Object... tools) {
-        return stream(coerceAgent(agent, tools), prompt);
+        return stream(coerceAgent(agent, withoutRunSettings(tools)), prompt, findRunSettings(tools));
+    }
+
+    /**
+     * Pull a {@link RunSettings} out of a drop-in varargs tool list ({@code null}
+     * if absent, last one wins). Without this, a {@code RunSettings} passed
+     * through the {@code Object...} drop-ins would be coerced as a tool and
+     * silently dropped.
+     */
+    private static RunSettings findRunSettings(Object[] tools) {
+        if (tools == null) return null;
+        RunSettings found = null;
+        for (Object tool : tools) {
+            if (tool instanceof RunSettings rs) {
+                found = rs;
+            }
+        }
+        return found;
+    }
+
+    private static Object[] withoutRunSettings(Object[] tools) {
+        if (tools == null) return new Object[0];
+        return java.util.Arrays.stream(tools)
+                .filter(tool -> !(tool instanceof RunSettings))
+                .toArray();
     }
 
     /**

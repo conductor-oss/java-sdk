@@ -171,16 +171,71 @@ public class AgentHandle {
     }
 
     /**
-     * Send a message to a waiting agent (equivalent to approve with no comment).
+     * Send a message to a waiting agent (multi-turn conversation).
      *
-     * @param message ignored — kept for API compatibility
+     * <p>Delivered as {@code {"message": ...}} via
+     * {@code POST /api/agent/{id}/respond} — the same wire shape as
+     * {@link org.conductoross.conductor.ai.model.AgentStream#send(String)} and
+     * the Python SDK's {@code handle.send()}.
+     *
+     * @param message the message to send to the waiting execution
      */
     public void send(String message) {
-        agentClient.respond(executionId, RespondBody.approve());
+        agentClient.respond(executionId, RespondBody.of(Map.of("message", message)));
+    }
 
-        // placeholder to suppress unused-parameter warning
-        @SuppressWarnings("unused")
-        String ignored = message;
+    /**
+     * Gracefully stop the agent execution.
+     *
+     * <p>The agent loop exits after the current iteration completes; the
+     * execution reaches {@code COMPLETED} status with the last LLM output
+     * preserved. Deterministic — does not depend on the LLM following stop
+     * instructions. For immediate termination ({@code TERMINATED} status) use
+     * {@link #cancel(String)}.
+     *
+     * <p>Also best-effort signals the execution to unblock a blocking
+     * message-wait; failures are swallowed (the agent may not be waiting).
+     */
+    public void stop() {
+        agentClient.stopAgent(executionId);
+        try {
+            agentClient.signalAgent(executionId, "");
+        } catch (Exception e) {
+            logger.debug("Best-effort stop unblock failed for {}: {}", executionId, e.getMessage());
+        }
+    }
+
+    /** Pause the agent workflow (standard Conductor pause). */
+    public void pause() {
+        workflowClient.pauseWorkflow(executionId);
+    }
+
+    /**
+     * Resume a <b>paused</b> agent workflow (un-pause).
+     *
+     * <p>Not to be confused with
+     * {@code AgentRuntime.resume(executionId, agent)}, which re-attaches this
+     * process's workers to an existing execution.
+     */
+    public void resume() {
+        workflowClient.resumeWorkflow(executionId);
+    }
+
+    /**
+     * Cancel the agent workflow immediately ({@code TERMINATED} status).
+     *
+     * @param reason the termination reason recorded on the workflow
+     */
+    public void cancel(String reason) {
+        workflowClient.terminateWorkflow(executionId, reason);
+    }
+
+    /**
+     * Fetch the current status snapshot of the agent execution
+     * ({@code GET /api/agent/{id}/status}).
+     */
+    public AgentStatusResponse getStatus() {
+        return agentClient.getAgentStatus(executionId);
     }
 
     /**
