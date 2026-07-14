@@ -8,16 +8,16 @@ The SDK entry point. Thread-safe — share one instance.
 
 ```java
 // Constructors
-AgentRuntime()                                    // reads AGENTSPAN_* env vars
+AgentRuntime()                                    // client + tuning from env vars
 AgentRuntime(AgentConfig config)                  // env vars + explicit tuning
 AgentRuntime(ApiClient client)                    // explicit client
 AgentRuntime(ApiClient client, AgentConfig config)
-
-// Static factories for ApiClient
-static ApiClient clientFromEnv()
-static ApiClient client(String serverUrl)
-static ApiClient client(String serverUrl, String authKey, String authSecret)
 ```
+
+Build the `ApiClient` with its own builder (construction lives in the client
+layer): `ApiClient.builder().basePath("http://host:8080/api").credentials(key, secret).build()`,
+or `ApiClient.builder().useEnvVariables(true).build()` for the
+`CONDUCTOR_SERVER_URL` → `AGENTSPAN_SERVER_URL` → `http://localhost:8080/api` chain.
 
 ### Run
 

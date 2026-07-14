@@ -125,7 +125,10 @@ public class MyAgentspanConfig {
 
     @Bean
     public ApiClient agentspanClient() {
-        return AgentRuntime.client("http://myserver:8080", "key", "secret");
+        return ApiClient.builder()
+                .basePath("http://myserver:8080/api")
+                .credentials("key", "secret")
+                .build();
     }
 }
 ```

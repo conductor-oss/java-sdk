@@ -77,22 +77,26 @@ fallbacks. Invalid or empty values fall back to the default.
 
 ---
 
-## ApiClient factories
+## Building the ApiClient
 
-Build an `ApiClient` to pass to the `AgentRuntime(ApiClient)` constructor. The `ApiClient` owns server URL, auth, and HTTP timeouts.
+Build an `ApiClient` (via its own builder — client construction lives in the client layer, not on the runtime) to pass to the `AgentRuntime(ApiClient)` constructor. The `ApiClient` owns server URL, auth, and HTTP timeouts.
 
 ```java
-// From environment (same as the no-arg constructor uses internally)
-ApiClient client = AgentRuntime.clientFromEnv();
+// From environment: CONDUCTOR_SERVER_URL → AGENTSPAN_SERVER_URL → http://localhost:8080/api
+// (same resolution the no-arg AgentRuntime() constructor uses internally)
+ApiClient client = ApiClient.builder().useEnvVariables(true).build();
 
 // Unauthenticated — local dev
-ApiClient client = AgentRuntime.client("http://localhost:8080");
+ApiClient client = ApiClient.builder().basePath("http://localhost:8080/api").build();
 
 // Key/secret auth
-ApiClient client = AgentRuntime.client("http://myserver:8080", "key", "secret");
+ApiClient client = ApiClient.builder()
+        .basePath("http://myserver:8080/api")
+        .credentials("key", "secret")
+        .build();
 ```
 
-Default timeouts: `connectTimeout=10s`, `readTimeout=30s`, `writeTimeout=30s`. The `/api` base path is appended automatically.
+The no-arg `AgentRuntime()` constructor additionally applies `connectTimeout=10s`, `readTimeout=30s`, `writeTimeout=30s`. The env path normalizes the URL to end in `/api`; an explicit `basePath` is used as given.
 
 ---
 

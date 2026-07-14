@@ -49,10 +49,13 @@ import io.orkes.conductor.client.ApiClient;
 import org.conductoross.conductor.ai.AgentRuntime;
 
 // No auth (local dev)
-ApiClient client = AgentRuntime.client("http://localhost:8080");
+ApiClient client = ApiClient.builder().basePath("http://localhost:8080/api").build();
 
 // With key/secret
-ApiClient client = AgentRuntime.client("http://myserver:8080", "key", "secret");
+ApiClient client = ApiClient.builder()
+        .basePath("http://myserver:8080/api")
+        .credentials("key", "secret")
+        .build();
 
 AgentRuntime runtime = new AgentRuntime(client);
 ```

@@ -88,7 +88,10 @@ import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
 
 // Build the Conductor client (server URL + optional key/secret auth)…
-ApiClient client = AgentRuntime.client("http://localhost:8080", "my-key", "my-secret");
+ApiClient client = ApiClient.builder()
+        .basePath("http://localhost:8080/api")
+        .credentials("my-key", "my-secret")
+        .build();
 // …and pass worker tuning (poll interval ms, worker threads).
 AgentRuntime runtime = new AgentRuntime(client, new AgentConfig(100, 5));
 ```
