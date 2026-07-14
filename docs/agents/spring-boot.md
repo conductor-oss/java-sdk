@@ -28,7 +28,7 @@ This pulls in both `conductor-ai` and `conductor-client-spring` (which wires the
 # application.properties
 
 # Conductor server — from conductor-client-spring
-conductor.root-uri=http://localhost:6767/api
+conductor.root-uri=http://localhost:8080/api
 conductor.security.client.key-id=your-key      # optional
 conductor.security.client.secret=your-secret   # optional
 
@@ -125,7 +125,7 @@ public class MyAgentspanConfig {
 
     @Bean
     public ApiClient agentspanClient() {
-        return AgentRuntime.client("http://myserver:6767", "key", "secret");
+        return AgentRuntime.client("http://myserver:8080", "key", "secret");
     }
 }
 ```

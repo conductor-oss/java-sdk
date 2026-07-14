@@ -41,7 +41,7 @@ public abstract class BaseTest {
 
     /** API URL for the Agentspan server (includes /api suffix). */
     protected static final String SERVER_URL =
-            System.getenv().getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:6767/api");
+            System.getenv().getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:8080/api");
 
     /** Base URL (without /api) for health checks and workflow fetches. */
     protected static final String BASE_URL = SERVER_URL.replace("/api", "");

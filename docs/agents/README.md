@@ -73,9 +73,9 @@ public class Main {
 Set environment variables:
 
 ```bash
-export AGENTSPAN_SERVER_URL=http://localhost:6767/api
-export AGENTSPAN_AUTH_KEY=your-key
-export AGENTSPAN_AUTH_SECRET=your-secret
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+export CONDUCTOR_AUTH_KEY=your-key
+export CONDUCTOR_AUTH_SECRET=your-secret
 export AGENTSPAN_LLM_MODEL=openai/gpt-4o
 ```
 
@@ -88,14 +88,15 @@ import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
 
 // Build the Conductor client (server URL + optional key/secret auth)…
-ApiClient client = AgentRuntime.client("http://localhost:6767", "my-key", "my-secret");
+ApiClient client = AgentRuntime.client("http://localhost:8080", "my-key", "my-secret");
 // …and pass worker tuning (poll interval ms, worker threads).
 AgentRuntime runtime = new AgentRuntime(client, new AgentConfig(100, 5));
 ```
 
 > Or just `new AgentRuntime()` / `new AgentRuntime(new AgentConfig(100, 5))` to
-> build the client from `AGENTSPAN_SERVER_URL` / `AGENTSPAN_AUTH_KEY` /
-> `AGENTSPAN_AUTH_SECRET`.
+> build the client from `CONDUCTOR_SERVER_URL` / `CONDUCTOR_AUTH_KEY` /
+> `CONDUCTOR_AUTH_SECRET` (the legacy `AGENTSPAN_*` names are honored as
+> fallbacks).
 
 ## Tools
 

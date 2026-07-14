@@ -58,13 +58,22 @@ Fully explicit — the canonical constructor all others delegate to.
 
 ### Environment variables
 
+Standard Conductor variables win; the legacy Agentspan names are honored as
+fallbacks. Invalid or empty values fall back to the default.
+
 | Variable | Default | Description |
 |---|---|---|
-| `AGENTSPAN_SERVER_URL` | `http://localhost:6767` | Agentspan server base URL |
-| `AGENTSPAN_AUTH_KEY` | _(none)_ | API key (optional) |
-| `AGENTSPAN_AUTH_SECRET` | _(none)_ | API secret (optional) |
+| `CONDUCTOR_SERVER_URL` → `AGENTSPAN_SERVER_URL` | `http://localhost:8080` | Conductor server base URL |
+| `CONDUCTOR_AUTH_KEY` → `AGENTSPAN_AUTH_KEY` | _(none)_ | API key (optional) |
+| `CONDUCTOR_AUTH_SECRET` → `AGENTSPAN_AUTH_SECRET` | _(none)_ | API secret (optional) |
 | `AGENTSPAN_WORKER_POLL_INTERVAL` | `100` | Worker poll interval (ms) |
 | `AGENTSPAN_WORKER_THREADS` | `1` | Worker thread count |
+| `AGENTSPAN_AUTO_START_WORKERS` | `true` | Register + start workers on `run`/`start`/`stream` (`serve` always starts) |
+| `AGENTSPAN_DAEMON_WORKERS` | `true` | SDK-owned background threads (SSE reader, liveness monitor) run as daemons |
+| `AGENTSPAN_STREAMING_ENABLED` | `true` | Use SSE for `stream()`; `false` degrades to status polling |
+| `AGENTSPAN_LIVENESS_ENABLED` | `true` | Watch stateful runs for worker stalls (`WorkerStallError`) |
+| `AGENTSPAN_LIVENESS_STALL_SECONDS` | `30.0` | Seconds a task may sit unpolled before it counts as a stall |
+| `AGENTSPAN_LIVENESS_CHECK_INTERVAL_SECONDS` | `10.0` | Seconds between liveness checks |
 
 ---
 
@@ -77,10 +86,10 @@ Build an `ApiClient` to pass to the `AgentRuntime(ApiClient)` constructor. The `
 ApiClient client = AgentRuntime.clientFromEnv();
 
 // Unauthenticated — local dev
-ApiClient client = AgentRuntime.client("http://localhost:6767");
+ApiClient client = AgentRuntime.client("http://localhost:8080");
 
 // Key/secret auth
-ApiClient client = AgentRuntime.client("http://myserver:6767", "key", "secret");
+ApiClient client = AgentRuntime.client("http://myserver:8080", "key", "secret");
 ```
 
 Default timeouts: `connectTimeout=10s`, `readTimeout=30s`, `writeTimeout=30s`. The `/api` base path is appended automatically.
@@ -105,6 +114,17 @@ AgentResult run(Agent agent, String prompt)
 
 // For PLAN_EXECUTE strategy — bypasses the planner LLM entirely
 AgentResult run(Agent agent, String prompt, Plan plan)
+
+// Per-run LLM overrides — only non-null fields override the agent's settings.
+// Also available on start()/stream() and every async variant.
+AgentResult run(Agent agent, String prompt, RunSettings runSettings)
+```
+
+```java
+runtime.run(agent, "Summarize this document", new RunSettings()
+        .model("openai/gpt-4o")
+        .temperature(0.2)
+        .maxTokens(2048));
 ```
 
 **What happens internally:**
@@ -288,14 +308,19 @@ CompletableFuture<List<DeploymentInfo>> deployAsync(Agent... agents)
 
 ## serve
 
-Register workers and block indefinitely, polling for tasks from the Conductor server. Designed for long-running worker processes.
+Deploy the agents (compile + register on the server — idempotent), register their workers, and block indefinitely, polling for tasks from the Conductor server. Designed for long-running worker processes: `serve` = deploy + serve, so a bare `runtime.serve(agent)` is a complete, startable deployment.
 
 ```java
 // Blocks until the process is killed (SIGTERM triggers graceful shutdown)
 runtime.serve(agentA, agentB);
+
+// Non-blocking: returns once agents are deployed and workers are polling —
+// for embedding in a host application that owns the process lifecycle.
+// The caller is responsible for runtime.shutdown().
+runtime.serve(false, agentA, agentB);
 ```
 
-A JVM shutdown hook calls `workerManager.stop()` on SIGTERM. Unlike `run()`, `serve()` does not start any executions — it just makes the agent's workers available for tasks the server dispatches.
+A JVM shutdown hook calls `workerManager.stop()` on SIGTERM (blocking mode only). Unlike `run()`, `serve()` does not start any executions — it deploys the agents and makes their workers available for tasks the server dispatches.
 
 ---
 

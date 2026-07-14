@@ -7,7 +7,7 @@
 - A running Agentspan server — see the [Agentspan repo](https://github.com/agentspan-ai/agentspan) or start one locally:
 
 ```bash
-docker run -p 6767:6767 agentspan/server:latest
+docker run -p 8080:8080 agentspan/server:latest
 ```
 
 ## Add the dependency
@@ -35,11 +35,11 @@ docker run -p 6767:6767 agentspan/server:latest
 The SDK reads connection settings from environment variables by default:
 
 ```bash
-export AGENTSPAN_SERVER_URL=http://localhost:6767/api
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 export OPENAI_API_KEY=<YOUR-KEY>
 export AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini
-export AGENTSPAN_AUTH_KEY=your-key                 # optional
-export AGENTSPAN_AUTH_SECRET=your-secret           # optional
+export CONDUCTOR_AUTH_KEY=your-key                 # optional
+export CONDUCTOR_AUTH_SECRET=your-secret           # optional
 ```
 
 Or construct an `ApiClient` explicitly:
@@ -49,10 +49,10 @@ import io.orkes.conductor.client.ApiClient;
 import org.conductoross.conductor.ai.AgentRuntime;
 
 // No auth (local dev)
-ApiClient client = AgentRuntime.client("http://localhost:6767");
+ApiClient client = AgentRuntime.client("http://localhost:8080");
 
 // With key/secret
-ApiClient client = AgentRuntime.client("http://myserver:6767", "key", "secret");
+ApiClient client = AgentRuntime.client("http://myserver:8080", "key", "secret");
 
 AgentRuntime runtime = new AgentRuntime(client);
 ```
