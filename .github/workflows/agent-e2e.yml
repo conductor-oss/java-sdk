@@ -14,6 +14,11 @@ name: Agent E2E
 
 on: [pull_request, workflow_dispatch]
 
+# least privilege: the token is only used to download the public agentspan
+# release JAR (gh release download) — read access suffices
+permissions:
+  contents: read
+
 concurrency:
   group: agent-e2e-${{ github.ref }}
   cancel-in-progress: true
