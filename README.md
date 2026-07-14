@@ -424,6 +424,10 @@ workflowClient.restartWorkflow(workflowId, false);
 
 Conductor supports AI-native workflows including agentic tool calling, RAG pipelines, and multi-agent orchestration.
 
+**Durable AI Agents**
+
+The `conductor-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-ai-spring` and 150+ runnable examples in `conductor-ai-examples`. Start with the [agent docs](docs/agents/index.md).
+
 **Agentic Workflows**
 
 Build AI agents where LLMs dynamically select and call Java workers as tools. All agentic examples live in [`AgenticExamplesRunner.java`](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/AgenticExamplesRunner.java) — a single unified runner.
@@ -542,6 +546,7 @@ End-to-end examples covering all APIs for each domain:
 | [Conductor Client](conductor-client/README.md) | HTTP client library documentation |
 | [Client Metrics](conductor-client-metrics/README.md) | Prometheus metrics collection |
 | [Spring Integration](conductor-client-spring/README.md) | Spring Boot auto-configuration |
+| [AI Agents](docs/agents/index.md) | Durable AI agent SDK (`conductor-ai`) guide |
 | [Examples](examples/README.md) | Complete examples catalog |
 
 ## Support

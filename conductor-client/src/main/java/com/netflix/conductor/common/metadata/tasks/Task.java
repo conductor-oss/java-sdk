@@ -185,6 +185,13 @@ public class Task {
 
     private long firstStartTime;
 
+    /**
+     * Secret values delivered by a capable host (agentspan &gt; 0.4.2, conductor-oss
+     * PR #1255) for the names declared on {@code TaskDef.runtimeMetadata} — resolved
+     * at poll time, wire-only, never persisted to task input.
+     */
+    private Map<String, String> runtimeMetadata;
+
     @JsonIgnore
     private transient WorkflowFileClient workflowFileClient;
 

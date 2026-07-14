@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Merged the Agentspan agent SDK into this repository as four new modules: `conductor-ai` (durable AI agents — `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, multi-agent strategies), `conductor-ai-spring` (Spring Boot auto-configuration), `conductor-ai-examples` (150+ runnable examples), and `conductor-ai-e2e` (e2e suites, gated behind `-Pe2e`) — docs under [docs/agents/](docs/agents/index.md)
+- `conductor-ai` and `conductor-ai-spring` publish as `org.conductoross:conductor-ai` and `org.conductoross:conductor-ai-spring`, superseding `org.conductoross.conductor:conductor-agent-sdk[-spring]@0.1.0`; the java package `org.conductoross.conductor.ai[.spring]` is unchanged apart from the client relocation below, so migrating is a dependency-coordinate swap plus — only if those types are imported directly — the relocated imports
+- Agent control-plane clients now live in `conductor-client`: `AgentClient` is an interface (implemented by `io.orkes.conductor.client.http.OrkesAgentClient`) covering the full `/agent/*` control plane — `compileAgent`, `deployAgent`, `startAgent`, `getAgentStatus`, `getExecution`, `listExecutions`, `respond`, `stopAgent`, `signalAgent`, `streamSse`, `close` — handed out by `OrkesClients.getAgentClient()`; the SSE streaming client `SseClient` moved to `io.orkes.conductor.client`; their transport DTOs (`AgentRequest`, `StartResponse`, `AgentStatusResponse`, `PendingTool`, `RespondBody`, `CompileResponse`) moved to `io.orkes.conductor.client.model.agent` and the typed exceptions (`AgentspanException`, `AgentAPIException`, `AgentNotFoundException`, `SSEUnavailableException`) to `io.orkes.conductor.client.exceptions`
+- SSE streaming hardened: the initial connect throws `SSEUnavailableException` when the server rejects streaming (never a silently-empty stream — `stream()` degrades to status polling), `id:` frames are tracked, and mid-stream drops reconnect with a `Last-Event-ID` header; `AgentRuntime.getClient()` exposes the runtime's own `AgentClient` instance
+- Verb contract: `serve` = deploy + serve (each served agent is compiled + registered first, idempotently) with a non-blocking variant `serve(false, agents...)` that returns once workers are polling; `AgentHandle` gains the lifecycle verbs `send(message)` (now actually delivers `{"message": ...}` — it previously discarded the message), `stop()` (graceful, deterministic), `pause()`/`resume()` (un-pause; distinct from `AgentRuntime.resume(executionId, agent)` which re-attaches workers), `cancel(reason)`, and `getStatus()`
+- `RunSettings` — per-run LLM overrides (`model`, `temperature`, `maxTokens`, `reasoningEffort`, `thinkingBudgetTokens`) on `run`/`start`/`stream` and their async variants; only non-null fields override the agent (zero values apply), mutating the serialized root config so overrides flow into the LLM tasks
+- Connection environment: standard `CONDUCTOR_SERVER_URL`/`CONDUCTOR_AUTH_KEY`/`CONDUCTOR_AUTH_SECRET` now win over the legacy `AGENTSPAN_*` names (still honored as fallbacks); the default server URL is `http://localhost:8080` (was `6767`); blank variables no longer clobber the chain. The resolution lives in the client layer — `ApiClient.builder().useEnvVariables(true)` / `new ApiClient()` — not on `AgentRuntime` (matching the Python SDK, where `AgentRuntime()` defaults to `Configuration()`); `AgentRuntime` exposes no client factories
+- `AgentConfig` knobs with lenient env parsing (invalid/empty → default): `autoStartWorkers`, `daemonWorkers`, `streamingEnabled`, `livenessEnabled`, `livenessStallSeconds`, `livenessCheckIntervalSeconds`
+- Worker credentials ride the `runtimeMetadata` wire contract: declared secret names are stamped on `TaskDef.runtimeMetadata` at (every) registration and a capable server (agentspan > 0.4.2 / conductor-oss ≥ 3.32.0-rc, conductor-oss PR #1255) delivers values on the wire-only `Task.runtimeMetadata` at poll time; dispatch is fail-closed (missing delivery → terminal failure; ambient process env is never read) — the `/workers/secrets` fetch path and its transport exceptions are deleted; see [docs/design/secret-injection-contract.md](docs/design/secret-injection-contract.md)
+- Liveness for stateful runs: a `SCHEDULED` task with zero polls beyond `livenessStallSeconds` surfaces as `WorkerStallError` from the handle's wait instead of burning the full timeout
+- Swarm hand-offs: transfer tools echo the hand-off `message`; `check_transfer` is first-wins with `transfer_message` and surfaces non-winning transfers in `dropped_transfers` (with a warning) instead of silently discarding them
+- `agent-e2e` GitHub workflow runs the e2e suites as a two-server matrix: the Conductor OSS server boot JAR `3.32.0-rc.8` (Maven Central) and the released `agentspan-server-0.4.4.jar`
+
+### Changed
+
+- `useEnvVariables(true)` (and the `new ApiClient()` no-arg constructor) no longer throws when `CONDUCTOR_SERVER_URL` is unset — it falls back to `AGENTSPAN_SERVER_URL`, then `http://localhost:8080/api`; the resolved URL is normalized to end in `/api`, and credentials gain the `AGENTSPAN_AUTH_KEY`/`AGENTSPAN_AUTH_SECRET` fallback
+
 ## [5.1.0]
 
 ### Added

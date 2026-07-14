@@ -960,6 +960,9 @@
         "outputData": {
           "sample_key": "sample_value"
         },
+        "runtimeMetadata": {
+          "sample_key": "sample_value"
+        },
         "referenceTaskName": "sample_referenceTaskName",
         "workflowPriority": 123,
         "isolationGroupId": "sample_isolationGroupId",
@@ -1260,6 +1263,9 @@
         "timeoutPolicy": "${TaskDef.TimeoutPolicy}",
         "inputKeys": [
           "sample_inputKeys"
+        ],
+        "runtimeMetadata": [
+          "sample_runtimeMetadata"
         ],
         "concurrentExecLimit": 123,
         "isolationGroupId": "sample_isolationGroupId",
