@@ -20,9 +20,9 @@ import java.util.function.Function;
  * <p>Connection details (server URL, auth key/secret) are NOT here — those are
  * transport concerns owned by the Conductor client
  * ({@code io.orkes.conductor.client.ApiClient}). Build one with
- * {@link AgentRuntime#clientFromEnv()} / {@link AgentRuntime#client(String)} and
- * pass it to {@link AgentRuntime}. This class carries only how the local worker
- * runner and runtime-owned background threads behave.
+ * {@code ApiClient.builder()} (or {@code new ApiClient()} for environment-based
+ * resolution) and pass it to {@link AgentRuntime}. This class carries only how
+ * the local worker runner and runtime-owned background threads behave.
  *
  * <p>Environment variables (invalid or empty values fall back to the default):
  * <ul>

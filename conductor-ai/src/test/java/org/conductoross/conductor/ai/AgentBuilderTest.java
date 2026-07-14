@@ -269,7 +269,10 @@ class AgentBuilderTest {
     @Test
     void testConductorClientBuiltFromServerUrl() {
         // Connection (server URL + auth) lives on the Conductor client, not AgentConfig.
-        var client = AgentRuntime.client("http://myserver:8080/api", "my-key", "my-secret");
+        var client = io.orkes.conductor.client.ApiClient.builder()
+                .basePath("http://myserver:8080/api")
+                .credentials("my-key", "my-secret")
+                .build();
         assertEquals("http://myserver:8080/api", client.getBasePath());
     }
 }

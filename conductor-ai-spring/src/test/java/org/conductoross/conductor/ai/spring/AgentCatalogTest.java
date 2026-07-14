@@ -13,7 +13,6 @@
 package org.conductoross.conductor.ai.spring;
 
 import org.conductoross.conductor.ai.Agent;
-import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.annotations.AgentDef;
 import org.conductoross.conductor.ai.annotations.Tool;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentCatalogTest {
 
     private static ApiClient stubApiClient() {
-        return AgentRuntime.client("http://localhost:6767");
+        return ApiClient.builder().basePath("http://localhost:6767/api").build();
     }
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()

@@ -97,12 +97,12 @@ public class AgentRuntime implements AutoCloseable {
 
     /** Create a runtime with a Conductor client and worker tuning both from environment. */
     public AgentRuntime() {
-        this(clientFromEnv(), AgentConfig.fromEnv());
+        this(envClient(), AgentConfig.fromEnv());
     }
 
     /** Use the given worker tuning with a Conductor client built from environment. */
     public AgentRuntime(AgentConfig config) {
-        this(clientFromEnv(), config);
+        this(envClient(), config);
     }
 
     /** Use the given Conductor client with worker tuning from environment. */
@@ -114,8 +114,9 @@ public class AgentRuntime implements AutoCloseable {
      * Create a runtime with an explicit Conductor client and worker tuning.
      *
      * <p>The {@code conductorClient} (an {@code io.orkes.conductor.client.ApiClient})
-     * owns the server URL and auth/token; build one with {@link #clientFromEnv()} or
-     * {@link #client(String)}. {@code config} carries only worker-runner tuning.
+     * owns the server URL and auth/token; build one with
+     * {@code ApiClient.builder()} (or {@code new ApiClient()} for environment-based
+     * resolution). {@code config} carries only worker-runner tuning.
      *
      * @param conductorClient the native Conductor client (server URL + auth)
      * @param config          worker-runner tuning
@@ -139,69 +140,20 @@ public class AgentRuntime implements AutoCloseable {
         return agentClient;
     }
 
-    // ── Conductor client factory ──────────────────────────────────────────
-
-    /** Default server URL when no environment override is set (spec R3). */
-    private static final String DEFAULT_SERVER_URL = "http://localhost:8080";
-
     /**
-     * Build a native Conductor client from environment. Standard Conductor
-     * variables win; the legacy Agentspan names are honored as fallbacks
-     * (spec R3): {@code CONDUCTOR_SERVER_URL} → {@code AGENTSPAN_SERVER_URL}
-     * → {@code http://localhost:8080}, and {@code CONDUCTOR_AUTH_KEY}/
-     * {@code CONDUCTOR_AUTH_SECRET} → {@code AGENTSPAN_AUTH_KEY}/
-     * {@code AGENTSPAN_AUTH_SECRET}.
+     * Environment-based bootstrap for the no-arg constructors. Construction and
+     * env resolution (spec R3 chain) live in the client layer —
+     * {@code ApiClient.builder().useEnvVariables(true)}; only the agent-specific
+     * timeout hardening is applied here so transient server delays surface as
+     * bounded errors rather than blocking forever.
      */
-    public static ApiClient clientFromEnv() {
-        return clientFromEnv(System::getenv);
-    }
-
-    /** Env-seam variant so tests can exercise precedence without mutating process env. */
-    static ApiClient clientFromEnv(Function<String, String> env) {
-        return client(
-                envVar(env, "CONDUCTOR_SERVER_URL", envVar(env, "AGENTSPAN_SERVER_URL", DEFAULT_SERVER_URL)),
-                envVar(env, "CONDUCTOR_AUTH_KEY", envVar(env, "AGENTSPAN_AUTH_KEY", null)),
-                envVar(env, "CONDUCTOR_AUTH_SECRET", envVar(env, "AGENTSPAN_AUTH_SECRET", null)));
-    }
-
-    /** Build an unauthenticated Conductor client for {@code serverUrl}. */
-    public static ApiClient client(String serverUrl) {
-        return client(serverUrl, null, null);
-    }
-
-    /**
-     * Build a Conductor client for {@code serverUrl} with optional key/secret auth
-     * (the SDK's native token mechanism). The {@code /api} base path is appended.
-     *
-     * <p>Explicit timeouts are set so transient server delays (e.g. SQLite contention
-     * under load) surface as bounded errors rather than blocking forever.
-     */
-    public static ApiClient client(String serverUrl, String authKey, String authSecret) {
-        String basePath = normalizeUrl(serverUrl) + "/api";
-        ApiClient.ApiClientBuilder builder = ApiClient.builder()
-                .basePath(basePath)
+    private static ApiClient envClient() {
+        return ApiClient.builder()
+                .useEnvVariables(true)
                 .connectTimeout(10_000) // ms — fail fast if server unreachable
                 .readTimeout(30_000) // ms — bound slow server responses
-                .writeTimeout(30_000);
-        if (authKey != null && !authKey.isEmpty()) {
-            builder.credentials(authKey, authSecret);
-        }
-        return builder.build();
-    }
-
-    /** Empty values are treated as unset — an exported-but-blank variable never clobbers the chain. */
-    private static String envVar(Function<String, String> env, String key, String defaultValue) {
-        String val = env.apply(key);
-        return val != null && !val.trim().isEmpty() ? val : defaultValue;
-    }
-
-    /** Strip a trailing {@code /} and any {@code /api} suffix; defaults if null. */
-    private static String normalizeUrl(String url) {
-        String s = (url != null ? url : DEFAULT_SERVER_URL).stripTrailing();
-        while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-        if (s.endsWith("/api")) s = s.substring(0, s.length() - 4);
-        while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-        return s;
+                .writeTimeout(30_000)
+                .build();
     }
 
     // ── Synchronous API ──────────────────────────────────────────────────

@@ -166,7 +166,10 @@ public class Example108PlanExecuteRefs {
             .build();
 
         try (AgentRuntime runtime = new AgentRuntime(
-                AgentRuntime.client(BASE_URL), new AgentConfig(100, 1))) {
+                io.orkes.conductor.client.ApiClient.builder()
+                        .basePath(BASE_URL + "/api")
+                        .build(),
+                new AgentConfig(100, 1))) {
             AgentResult result = runtime.run(harness, "demo", plan);
             System.out.println("status=" + result.getStatus()
                 + " executionId=" + result.getExecutionId());

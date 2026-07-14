@@ -79,7 +79,7 @@ class AgentStreamFallbackTest {
     }
 
     private AgentRuntime runtime(AgentConfig config) {
-        return new AgentRuntime(AgentRuntime.client(server.url("/").toString()), config.autoStartWorkers(false));
+        return new AgentRuntime(TestClients.forUrl(server.url("/").toString()), config.autoStartWorkers(false));
     }
 
     private static Agent agent() {

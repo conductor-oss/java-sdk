@@ -31,7 +31,7 @@ class AgentAutoConfigurationTest {
      * conductor.* properties.
      */
     private static ApiClient stubApiClient() {
-        return AgentRuntime.client("http://localhost:6767");
+        return ApiClient.builder().basePath("http://localhost:6767/api").build();
     }
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()

@@ -58,7 +58,7 @@ class AgentRuntimeServeTest {
             }
         });
         server.start();
-        runtime = new AgentRuntime(AgentRuntime.client(server.url("/").toString()));
+        runtime = new AgentRuntime(TestClients.forUrl(server.url("/").toString()));
     }
 
     @AfterEach

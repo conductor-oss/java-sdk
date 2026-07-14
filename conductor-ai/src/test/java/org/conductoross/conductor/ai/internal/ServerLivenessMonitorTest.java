@@ -17,6 +17,7 @@ import java.io.IOException;
 import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
+import org.conductoross.conductor.ai.TestClients;
 import org.conductoross.conductor.ai.exceptions.WorkerStallError;
 import org.conductoross.conductor.ai.model.AgentHandle;
 import org.junit.jupiter.api.AfterEach;
@@ -90,7 +91,7 @@ class ServerLivenessMonitorTest {
     }
 
     private ApiClient apiClient() {
-        return AgentRuntime.client(server.url("/").toString());
+        return TestClients.forUrl(server.url("/").toString());
     }
 
     private ServerLivenessMonitor monitor() {

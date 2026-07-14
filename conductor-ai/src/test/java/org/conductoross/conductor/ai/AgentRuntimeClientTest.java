@@ -30,7 +30,7 @@ class AgentRuntimeClientTest {
 
     @Test
     void getClientReturnsTheRuntimeClientInstance() {
-        AgentRuntime runtime = new AgentRuntime(AgentRuntime.client("http://localhost:8080"));
+        AgentRuntime runtime = new AgentRuntime(TestClients.forUrl("http://localhost:8080"));
 
         AgentClient client = runtime.getClient();
         assertInstanceOf(OrkesAgentClient.class, client);

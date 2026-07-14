@@ -706,35 +706,8 @@ class SerializerTest {
         assertEquals("MY_KEY", filled.getEnvVar());
     }
 
-    // --- Conductor client base-path normalization (server URL now lives on the client) ---
-
-    @Test
-    void client_default_base_path_ends_with_api() {
-        assertEquals(
-                "http://localhost:6767/api",
-                AgentRuntime.client("http://localhost:6767").getBasePath());
-    }
-
-    @Test
-    void client_strips_trailing_api_then_re_appends() {
-        assertEquals(
-                "http://localhost:6767/api",
-                AgentRuntime.client("http://localhost:6767/api").getBasePath());
-    }
-
-    @Test
-    void client_strips_trailing_slash_and_api() {
-        assertEquals(
-                "http://localhost:6767/api",
-                AgentRuntime.client("http://localhost:6767/api/").getBasePath());
-    }
-
-    @Test
-    void client_plain_url_gets_api_suffix() {
-        assertEquals(
-                "http://localhost:6767/api",
-                AgentRuntime.client("http://localhost:6767").getBasePath());
-    }
+    // Base-path normalization coverage moved to conductor-client
+    // (ApiClientEnvResolutionTest) with the env-based construction path.
 
     // --- CliConfig serialization ---
 

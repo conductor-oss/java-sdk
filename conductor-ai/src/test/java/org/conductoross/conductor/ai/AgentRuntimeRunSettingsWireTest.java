@@ -60,7 +60,7 @@ class AgentRuntimeRunSettingsWireTest {
         });
         server.start();
         runtime = new AgentRuntime(
-                AgentRuntime.client(server.url("/").toString()),
+                TestClients.forUrl(server.url("/").toString()),
                 new AgentConfig().autoStartWorkers(false));
         agent = Agent.builder()
                 .name("test_agent")
