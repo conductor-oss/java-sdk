@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Merged the Agentspan agent SDK into this repository as four new modules: `conductor-client-ai` (durable AI agents — `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, multi-agent strategies), `conductor-client-ai-spring` (Spring Boot auto-configuration), `conductor-ai-examples` (150+ runnable examples), and `conductor-ai-e2e` (e2e suites, gated behind `-Pe2e`) — docs under [docs/agents/](docs/agents/index.md)
+- Merged the Agentspan agent SDK into this repository as four new modules: `conductor-client-ai` (durable AI agents — `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, multi-agent strategies), `conductor-client-ai-spring` (Spring Boot auto-configuration), `agent-examples` (150+ runnable examples), and `e2e` (e2e suites, gated behind `-Pe2e`) — docs under [docs/agents/](docs/agents/index.md)
 - `conductor-client-ai` and `conductor-client-ai-spring` publish as `org.conductoross:conductor-client-ai` and `org.conductoross:conductor-client-ai-spring`, superseding `org.conductoross.conductor:conductor-agent-sdk[-spring]@0.1.0`; the java package `org.conductoross.conductor.ai[.spring]` is unchanged apart from the client relocation below, so migrating is a dependency-coordinate swap plus — only if those types are imported directly — the relocated imports
 - Agent control-plane clients now live in `conductor-client`: `AgentClient` is an interface (implemented by `io.orkes.conductor.client.http.OrkesAgentClient`) covering the full `/agent/*` control plane — `compileAgent`, `deployAgent`, `startAgent`, `getAgentStatus`, `getExecution`, `listExecutions`, `respond`, `stopAgent`, `signalAgent`, `streamSse`, `close` — handed out by `OrkesClients.getAgentClient()`; the SSE streaming client `SseClient` moved to `io.orkes.conductor.client`; their transport DTOs (`AgentRequest`, `StartResponse`, `AgentStatusResponse`, `PendingTool`, `RespondBody`, `CompileResponse`) moved to `io.orkes.conductor.client.model.agent` and the typed exceptions (`AgentspanException`, `AgentAPIException`, `AgentNotFoundException`, `SSEUnavailableException`) to `io.orkes.conductor.client.exceptions`
 - SSE streaming hardened: the initial connect throws `SSEUnavailableException` when the server rejects streaming (never a silently-empty stream — `stream()` degrades to status polling), `id:` frames are tracked, and mid-stream drops reconnect with a `Last-Event-ID` header; `AgentRuntime.getClient()` exposes the runtime's own `AgentClient` instance
@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - Liveness for stateful runs: a `SCHEDULED` task with zero polls beyond `livenessStallSeconds` surfaces as `WorkerStallError` from the handle's wait instead of burning the full timeout
 - Swarm hand-offs: transfer tools echo the hand-off `message`; `check_transfer` is first-wins with `transfer_message` and surfaces non-winning transfers in `dropped_transfers` (with a warning) instead of silently discarding them
 - `agent-e2e` GitHub workflow runs the e2e suites as a two-server matrix: the Conductor OSS server boot JAR `3.32.0-rc.8` (Maven Central) and the released `agentspan-server-0.4.4.jar`
+
+### Removed
+
+- The source-less publishing shim modules `java-sdk` (`org.conductoross:java-sdk`), `orkes-client` (`io.orkes.conductor:orkes-conductor-client`), and `orkes-spring` (`io.orkes.conductor:orkes-conductor-client-spring`) are deleted — depend on `org.conductoross:conductor-client` / `conductor-client-spring` directly instead
 
 ### Changed
 

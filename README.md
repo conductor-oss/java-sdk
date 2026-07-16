@@ -293,7 +293,7 @@ executor.initWorkers("com.mycompany.workers");  // Package to scan for @WorkerTa
 | Complexity | Simple | Complex (service mesh, load balancer) |
 
 **Learn more:**
-- [Worker SDK Guide](java-sdk/worker_sdk.md) — Complete worker framework documentation
+- [Worker SDK Guide](docs/worker_sdk.md) — Complete worker framework documentation
 - [Worker Examples](examples/) — Sample worker implementations
 
 ## Monitoring Workers
@@ -387,8 +387,8 @@ workflowClient.restartWorkflow(workflowId, false);
 ```
 
 **Learn more:**
-- [Workflow SDK Guide](java-sdk/workflow_sdk.md) — Workflow-as-code documentation
-- [Workflow Testing](java-sdk/testing_framework.md) — Unit testing workflows
+- [Workflow SDK Guide](docs/workflow_sdk.md) — Workflow-as-code documentation
+- [Workflow Testing](docs/testing_framework.md) — Unit testing workflows
 
 ## Troubleshooting
 
@@ -426,7 +426,7 @@ Conductor supports AI-native workflows including agentic tool calling, RAG pipel
 
 **Durable AI Agents**
 
-The `conductor-client-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-client-ai-spring` and 150+ runnable examples in `conductor-ai-examples`. Start with the [agent docs](docs/agents/index.md).
+The `conductor-client-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-client-ai-spring` and 150+ runnable examples in `agent-examples`. Start with the [agent docs](docs/agents/index.md).
 
 **Agentic Workflows**
 
@@ -540,9 +540,9 @@ End-to-end examples covering all APIs for each domain:
 
 | Document | Description |
 |----------|-------------|
-| [Worker SDK](java-sdk/worker_sdk.md) | Complete worker framework guide |
-| [Workflow SDK](java-sdk/workflow_sdk.md) | Workflow-as-code documentation |
-| [Testing Framework](java-sdk/testing_framework.md) | Unit testing workflows and workers |
+| [Worker SDK](docs/worker_sdk.md) | Complete worker framework guide |
+| [Workflow SDK](docs/workflow_sdk.md) | Workflow-as-code documentation |
+| [Testing Framework](docs/testing_framework.md) | Unit testing workflows and workers |
 | [Conductor Client](conductor-client/README.md) | HTTP client library documentation |
 | [Client Metrics](conductor-client-metrics/README.md) | Prometheus metrics collection |
 | [Spring Integration](conductor-client-spring/README.md) | Spring Boot auto-configuration |
@@ -600,7 +600,7 @@ Workers are standard Java applications. Deploy them as you would any Java applic
 
 **How do I test workflows without running a full Conductor server?**
 
-The SDK provides a test framework that uses Conductor's `POST /api/workflow/test` endpoint to evaluate workflows with mock task outputs. See [Testing Framework](java-sdk/testing_framework.md) for details.
+The SDK provides a test framework that uses Conductor's `POST /api/workflow/test` endpoint to evaluate workflows with mock task outputs. See [Testing Framework](docs/testing_framework.md) for details.
 
 ## License
 
