@@ -426,7 +426,7 @@ Conductor supports AI-native workflows including agentic tool calling, RAG pipel
 
 **Durable AI Agents**
 
-The `conductor-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-ai-spring` and 150+ runnable examples in `conductor-ai-examples`. Start with the [agent docs](docs/agents/index.md).
+The `conductor-client-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-client-ai-spring` and 150+ runnable examples in `conductor-ai-examples`. Start with the [agent docs](docs/agents/index.md).
 
 **Agentic Workflows**
 
@@ -546,7 +546,7 @@ End-to-end examples covering all APIs for each domain:
 | [Conductor Client](conductor-client/README.md) | HTTP client library documentation |
 | [Client Metrics](conductor-client-metrics/README.md) | Prometheus metrics collection |
 | [Spring Integration](conductor-client-spring/README.md) | Spring Boot auto-configuration |
-| [AI Agents](docs/agents/index.md) | Durable AI agent SDK (`conductor-ai`) guide |
+| [AI Agents](docs/agents/index.md) | Durable AI agent SDK (`conductor-client-ai`) guide |
 | [Examples](examples/README.md) | Complete examples catalog |
 
 ## Support

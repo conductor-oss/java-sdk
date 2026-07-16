@@ -10,7 +10,7 @@ application {
 }
 
 dependencies {
-    implementation project(':conductor-ai')
+    implementation project(':conductor-client-ai')
 
     // Native framework SDKs used by the adk/, langchain/, langgraph/, openai/
     // subpackages. @Tool / @P annotations are RUNTIME-retained, so these must be

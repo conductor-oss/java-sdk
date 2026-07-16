@@ -7,7 +7,7 @@ configured `ChatModel` (and system message, if any), then runs the agent server-
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-ai:5.1.0'
+implementation 'org.conductoross:conductor-client-ai:5.1.0'
 compileOnly 'dev.langchain4j:langchain4j:1.0.0'
 compileOnly 'dev.langchain4j:langchain4j-open-ai:1.0.0'
 compileOnly 'org.bsc.langgraph4j:langgraph4j-core:1.6.0-beta5'

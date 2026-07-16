@@ -13,7 +13,7 @@ ext {
 apply plugin: 'publish-config'
 
 dependencies {
-    api project(":conductor-ai")
+    api project(":conductor-client-ai")
     // Conductor Spring auto-configuration — wires ApiClient from conductor.* properties
     // so callers don't need to hand-roll the client bean themselves.
     api project(":conductor-client-spring")

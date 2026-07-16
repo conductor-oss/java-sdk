@@ -18,7 +18,7 @@ Every request goes through the shared `ConductorClient`'s native HTTP + auth + s
 
 ## AgentRequest
 
-Input to `compileAgent`, `deployAgent`, and `startAgent` (`io.orkes.conductor.client.model.agent.AgentRequest`). A pure transport DTO: the agent definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by `conductor-ai` (`AgentRuntime.agentRequest(agent)` calls `AgentConfigSerializer.serialize(agent)` and resolves the `Framework` discriminator before building the request).
+Input to `compileAgent`, `deployAgent`, and `startAgent` (`io.orkes.conductor.client.model.agent.AgentRequest`). A pure transport DTO: the agent definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by `conductor-client-ai` (`AgentRuntime.agentRequest(agent)` calls `AgentConfigSerializer.serialize(agent)` and resolves the `Framework` discriminator before building the request).
 
 ```java
 // Native agent — AgentRuntime passes the serialized agent map

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <p>All three endpoints share the same server-side {@code StartRequest} DTO. The agent
  * definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by
- * the agent SDK ({@code conductor-ai}), keeping this transport DTO free of agent types.
+ * the agent SDK ({@code conductor-client-ai}), keeping this transport DTO free of agent types.
  * Native agents carry it under {@code "agentConfig"}; framework-backed agents under
  * {@code "framework"} + {@code "rawConfig"}.
  *

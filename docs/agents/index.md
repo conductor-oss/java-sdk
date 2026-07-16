@@ -60,7 +60,7 @@ Run agents authored in another framework on the durable Agentspan runtime.
 === "Gradle"
 
     ```groovy
-    implementation 'org.conductoross:conductor-ai:5.1.0'
+    implementation 'org.conductoross:conductor-client-ai:5.1.0'
     ```
 
 === "Maven"
@@ -68,7 +68,7 @@ Run agents authored in another framework on the durable Agentspan runtime.
     ```xml
     <dependency>
         <groupId>org.conductoross</groupId>
-        <artifactId>conductor-ai</artifactId>
+        <artifactId>conductor-client-ai</artifactId>
         <version>5.1.0</version>
     </dependency>
     ```

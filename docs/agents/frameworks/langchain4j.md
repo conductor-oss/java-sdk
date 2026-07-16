@@ -5,7 +5,7 @@ Use LangChain4j `@Tool`-annotated POJOs directly with Agentspan. The bridge refl
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-ai:5.1.0'
+implementation 'org.conductoross:conductor-client-ai:5.1.0'
 compileOnly 'dev.langchain4j:langchain4j:1.0.0'
 ```
 
