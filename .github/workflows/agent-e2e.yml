@@ -1,6 +1,6 @@
 name: Agent E2E
 
-# Runs the agent e2e suites (conductor-ai-e2e/) against the Conductor OSS
+# Runs the agent e2e suites (e2e/) against the Conductor OSS
 # server boot JAR (Maven Central) — the server this SDK ships against, with
 # the agent runtime on by default from 3.32.0-rc.8 onward. The Agentspan
 # server JAR is no longer used here.
@@ -88,7 +88,7 @@ jobs:
           exit 1
 
       - name: Run e2e suites
-        run: ./gradlew :conductor-ai-e2e:test -Pe2e
+        run: ./gradlew :e2e:test -Pe2e
 
       # BaseTest assumeTrue-skips every suite when the server is unreachable —
       # without this guard a boot failure after the health gate (or a future
@@ -102,7 +102,7 @@ jobs:
           import xml.etree.ElementTree as ET
 
           total = executed = 0
-          for path in glob.glob("conductor-ai-e2e/build/test-results/test/TEST-*.xml"):
+          for path in glob.glob("e2e/build/test-results/test/TEST-*.xml"):
               root = ET.parse(path).getroot()
               t = int(root.get("tests", 0))
               sk = int(root.get("skipped", 0))
@@ -118,7 +118,7 @@ jobs:
         with:
           name: agent-e2e-results
           path: |
-            conductor-ai-e2e/build/test-results/test/
-            conductor-ai-e2e/build/reports/tests/test/
+            e2e/build/test-results/test/
+            e2e/build/reports/tests/test/
             server.log
           retention-days: 14

@@ -15,7 +15,7 @@ Maven (`pom.xml`):
 ```xml
 <dependency>
     <groupId>org.conductoross</groupId>
-    <artifactId>conductor-ai</artifactId>
+    <artifactId>conductor-client-ai</artifactId>
     <version>5.1.0</version>
 </dependency>
 ```
@@ -23,7 +23,7 @@ Maven (`pom.xml`):
 Gradle (`build.gradle`):
 
 ```groovy
-implementation 'org.conductoross:conductor-ai:5.1.0'
+implementation 'org.conductoross:conductor-client-ai:5.1.0'
 ```
 
 ### Spring Boot starter
@@ -33,13 +33,13 @@ For Spring Boot apps, add the auto-configuration starter instead:
 ```xml
 <dependency>
     <groupId>org.conductoross</groupId>
-    <artifactId>conductor-ai-spring</artifactId>
+    <artifactId>conductor-client-ai-spring</artifactId>
     <version>5.1.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'org.conductoross:conductor-ai-spring:5.1.0'
+implementation 'org.conductoross:conductor-client-ai-spring:5.1.0'
 ```
 
 ## Quick Start

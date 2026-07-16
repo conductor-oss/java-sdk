@@ -1,13 +1,13 @@
 # Spring Boot
 
-The `conductor-ai-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
+The `conductor-client-ai-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
 
 ## Dependency
 
 === "Gradle"
 
     ```groovy
-    implementation 'org.conductoross:conductor-ai-spring:5.1.0'
+    implementation 'org.conductoross:conductor-client-ai-spring:5.1.0'
     ```
 
 === "Maven"
@@ -15,12 +15,12 @@ The `conductor-ai-spring` module provides Spring Boot auto-configuration. Add it
     ```xml
     <dependency>
         <groupId>org.conductoross</groupId>
-        <artifactId>conductor-ai-spring</artifactId>
+        <artifactId>conductor-client-ai-spring</artifactId>
         <version>5.1.0</version>
     </dependency>
     ```
 
-This pulls in both `conductor-ai` and `conductor-client-spring` (which wires the `ApiClient`).
+This pulls in both `conductor-client-ai` and `conductor-client-spring` (which wires the `ApiClient`).
 
 ## Configuration
 

@@ -4,13 +4,13 @@ plugins {
 }
 
 // Run individual examples via:
-//   ./gradlew :conductor-ai-examples:run -PmainClass=org.conductoross.conductor.ai.examples.openai.Example01BasicAgent
+//   ./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.openai.Example01BasicAgent
 application {
     mainClass = project.findProperty('mainClass') ?: 'org.conductoross.conductor.ai.examples.Example01BasicAgent'
 }
 
 dependencies {
-    implementation project(':conductor-ai')
+    implementation project(':conductor-client-ai')
 
     // Native framework SDKs used by the adk/, langchain/, langgraph/, openai/
     // subpackages. @Tool / @P annotations are RUNTIME-retained, so these must be
