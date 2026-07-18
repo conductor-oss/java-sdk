@@ -12,37 +12,30 @@
  */
 package org.conductoross.conductor.ai.schedule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Supplier;
 
 import org.conductoross.conductor.ai.model.AgentHandle;
 import org.conductoross.conductor.ai.model.AgentResult;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.ConductorClientRequest;
-import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.run.Workflow;
 
+import io.orkes.conductor.client.SchedulerClient;
 import io.orkes.conductor.client.exceptions.AgentAPIException;
-
-import com.fasterxml.jackson.core.type.TypeReference;
+import io.orkes.conductor.client.http.OrkesSchedulerClient;
+import io.orkes.conductor.client.model.SaveScheduleRequest;
+import io.orkes.conductor.client.model.WorkflowSchedule;
 
 /**
  * Lifecycle API for cron-based agent schedules. Obtained via {@code runtime.schedules()}.
  *
- * <p>All requests ride the shared native Conductor {@link ConductorClient}/ApiClient
- * (same HTTP + token-auth backend as every other client) — the scheduler CRUD via
- * {@link ConductorClientRequest}/{@link ConductorClient#execute} ({@code /api/scheduler/*},
- * for which the Conductor client ships no typed {@code SchedulerClient}), and
- * {@code runNow} via the typed {@link WorkflowClient}.
+ * <p>This class contributes only agent-scoped naming (prefix/unprefix),
+ * {@link Schedule}/{@link ScheduleInfo} DTO mapping, declarative
+ * {@link #reconcile}, and {@code runNow} sugar (via the typed {@link WorkflowClient}).
  *
  * <p>Operations are keyed by the <strong>wire name</strong> (prefixed with
  * {@code agent-}) returned by {@link #list(String)}. Use {@link Schedule} to
@@ -50,65 +43,43 @@ import com.fasterxml.jackson.core.type.TypeReference;
  */
 public class Schedules {
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
-    private static final TypeReference<List<Map<String, Object>>> LIST_MAP_TYPE =
-            new TypeReference<List<Map<String, Object>>>() {};
-    private static final TypeReference<List<Long>> LIST_LONG_TYPE = new TypeReference<List<Long>>() {};
-
-    private final ConductorClient client;
+    private final SchedulerClient schedulerClient;
     /** Shared native Conductor client for starting workflows (runNow). */
     private final WorkflowClient workflowClient;
 
     public Schedules(ConductorClient conductorClient) {
-        this.client = conductorClient;
+        this.schedulerClient = new OrkesSchedulerClient(conductorClient);
         this.workflowClient = new WorkflowClient(conductorClient);
     }
 
     /** Test seam: inject a {@link WorkflowClient} so {@code runNow}/{@code runNowAndWait} can be unit-tested. */
     Schedules(ConductorClient conductorClient, WorkflowClient workflowClient) {
-        this.client = conductorClient;
+        this.schedulerClient = new OrkesSchedulerClient(conductorClient);
         this.workflowClient = workflowClient;
     }
 
     // ── CRUD ────────────────────────────────────────────────────────────
 
     public void save(Schedule schedule, String agentName) {
-        Map<String, Object> body = toSaveRequest(schedule, agentName);
-        execVoid(ConductorClientRequest.builder()
-                .method(Method.POST)
-                .path("/scheduler/schedules")
-                .body(body)
-                .build());
+        SaveScheduleRequest request = toSaveRequest(schedule, agentName);
+        translate(() -> {
+            schedulerClient.saveSchedule(request);
+            return null;
+        });
     }
 
     public ScheduleInfo get(String wireName) {
-        Map<String, Object> resp = exec(
-                ConductorClientRequest.builder()
-                        .method(Method.GET)
-                        .path("/scheduler/schedules/{name}")
-                        .addPathParam("name", wireName)
-                        .build(),
-                MAP_TYPE);
-        if (resp == null || resp.isEmpty() || resp.get("name") == null) {
-            throw new ScheduleException.NotFound("Schedule '" + wireName + "' not found");
-        }
-        return fromWorkflowSchedule(resp, null);
+        WorkflowSchedule ws = translate(() -> schedulerClient.getSchedule(wireName));
+        return fromWorkflowSchedule(ws, null);
     }
 
     public List<ScheduleInfo> list(String agentName) {
-        List<Map<String, Object>> resp = exec(
-                ConductorClientRequest.builder()
-                        .method(Method.GET)
-                        .path("/scheduler/schedules")
-                        .addQueryParam("workflowName", agentName)
-                        .build(),
-                LIST_MAP_TYPE);
+        List<WorkflowSchedule> resp = translate(() -> schedulerClient.getAllSchedules(agentName));
         if (resp == null) return new ArrayList<>();
-        List<ScheduleInfo> out = new ArrayList<>();
-        for (Map<String, Object> item : resp) {
-            if (item != null) out.add(fromWorkflowSchedule(item, agentName));
-        }
-        return out;
+        return resp.stream()
+                .filter(Objects::nonNull)
+                .map(item -> fromWorkflowSchedule(item, agentName))
+                .toList();
     }
 
     public void pause(String wireName) {
@@ -116,28 +87,24 @@ public class Schedules {
     }
 
     public void pause(String wireName, String reason) {
-        ConductorClientRequest.Builder b = ConductorClientRequest.builder()
-                .method(Method.PUT)
-                .path("/scheduler/schedules/{name}/pause")
-                .addPathParam("name", wireName);
-        if (reason != null) b.addQueryParam("reason", reason);
-        execVoid(b.build());
+        translate(() -> {
+            schedulerClient.pauseSchedule(wireName, reason);
+            return null;
+        });
     }
 
     public void resume(String wireName) {
-        execVoid(ConductorClientRequest.builder()
-                .method(Method.PUT)
-                .path("/scheduler/schedules/{name}/resume")
-                .addPathParam("name", wireName)
-                .build());
+        translate(() -> {
+            schedulerClient.resumeSchedule(wireName);
+            return null;
+        });
     }
 
     public void delete(String wireName) {
-        execVoid(ConductorClientRequest.builder()
-                .method(Method.DELETE)
-                .path("/scheduler/schedules/{name}")
-                .addPathParam("name", wireName)
-                .build());
+        translate(() -> {
+            schedulerClient.deleteSchedule(wireName);
+            return null;
+        });
     }
 
     /**
@@ -241,14 +208,7 @@ public class Schedules {
     }
 
     public List<Long> previewNext(String cron, int n) {
-        List<Long> resp = exec(
-                ConductorClientRequest.builder()
-                        .method(Method.GET)
-                        .path("/scheduler/nextFewSchedules")
-                        .addQueryParam("cronExpression", cron)
-                        .addQueryParam("limit", Integer.valueOf(n))
-                        .build(),
-                LIST_LONG_TYPE);
+        List<Long> resp = translate(() -> schedulerClient.getNextFewSchedules(cron, null, null, n));
         return resp != null ? resp : new ArrayList<>();
     }
 
@@ -304,68 +264,52 @@ public class Schedules {
         }
     }
 
-    static Map<String, Object> toSaveRequest(Schedule s, String agentName) {
-        Map<String, Object> swr = new LinkedHashMap<>();
-        swr.put("name", agentName);
-        swr.put("input", s.getInput() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(s.getInput()));
-
-        Map<String, Object> req = new LinkedHashMap<>();
-        req.put("name", prefix(agentName, s.getName()));
-        req.put("cronExpression", s.getCron());
-        req.put("zoneId", s.getTimezone());
-        req.put("runCatchupScheduleInstances", s.isCatchup());
-        req.put("paused", s.isPaused());
-        if (s.getStartAt() != null) req.put("scheduleStartTime", s.getStartAt());
-        if (s.getEndAt() != null) req.put("scheduleEndTime", s.getEndAt());
-        if (s.getDescription() != null) req.put("description", s.getDescription());
-        req.put("startWorkflowRequest", swr);
-        return req;
+    static SaveScheduleRequest toSaveRequest(Schedule s, String agentName) {
+        StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest()
+                .withName(agentName)
+                .withInput(s.getInput() == null ? Map.of() : new LinkedHashMap<>(s.getInput()));
+        return new SaveScheduleRequest()
+                .name(prefix(agentName, s.getName()))
+                .cronExpression(s.getCron())
+                .zoneId(s.getTimezone())
+                .runCatchupScheduleInstances(s.isCatchup())
+                .paused(s.isPaused())
+                .scheduleStartTime(s.getStartAt())
+                .scheduleEndTime(s.getEndAt())
+                .startWorkflowRequest(startWorkflowRequest)
+                .description(s.getDescription());
     }
 
-    @SuppressWarnings("unchecked")
-    static ScheduleInfo fromWorkflowSchedule(Map<String, Object> ws, String agentHint) {
-        Map<String, Object> swr = (Map<String, Object>) ws.getOrDefault("startWorkflowRequest", new HashMap<>());
-        String wireName = (String) ws.getOrDefault("name", "");
-        String swrName = (String) swr.getOrDefault("name", "");
+    static ScheduleInfo fromWorkflowSchedule(WorkflowSchedule ws, String agentHint) {
+        StartWorkflowRequest swr = ws.getStartWorkflowRequest();
+        String wireName = ws.getName() != null ? ws.getName() : "";
+        String swrName = swr != null && swr.getName() != null ? swr.getName() : "";
         String agent = agentHint != null ? agentHint : (swrName.isEmpty() ? "" : swrName);
 
         return new ScheduleInfo(
                 wireName,
                 unprefix(agent, wireName),
                 swrName,
-                (String) ws.getOrDefault("cronExpression", ""),
-                (String) ws.getOrDefault("zoneId", "UTC"),
-                (Map<String, Object>) swr.getOrDefault("input", new HashMap<>()),
-                Boolean.TRUE.equals(ws.get("paused")),
-                (String) ws.get("pausedReason"),
-                Boolean.TRUE.equals(ws.get("runCatchupScheduleInstances")),
-                longOrNull(ws.get("scheduleStartTime")),
-                longOrNull(ws.get("scheduleEndTime")),
-                (String) ws.get("description"),
-                longOrNull(ws.get("nextRunTime")),
-                longOrNull(ws.get("createTime")),
-                longOrNull(ws.get("updatedTime")),
-                (String) ws.get("createdBy"),
-                (String) ws.get("updatedBy"));
+                ws.getCronExpression() != null ? ws.getCronExpression() : "",
+                ws.getZoneId() != null ? ws.getZoneId() : "UTC",
+                swr != null && swr.getInput() != null ? swr.getInput() : new HashMap<>(),
+                Boolean.TRUE.equals(ws.isPaused()),
+                ws.getPausedReason(),
+                Boolean.TRUE.equals(ws.isRunCatchupScheduleInstances()),
+                ws.getScheduleStartTime(),
+                ws.getScheduleEndTime(),
+                ws.getDescription(),
+                ws.getNextRunTime(),
+                ws.getCreateTime(),
+                ws.getUpdatedTime(),
+                ws.getCreatedBy(),
+                ws.getUpdatedBy());
     }
 
-    private static Long longOrNull(Object o) {
-        return o instanceof Number ? ((Number) o).longValue() : null;
-    }
-
-    /** Execute a scheduler request returning a typed body via the native Conductor client. */
-    private <T> T exec(ConductorClientRequest req, TypeReference<T> type) {
+    /** Run a {@link SchedulerClient} call, translating transport errors to the scheduler's typed exceptions. */
+    private static <T> T translate(Supplier<T> call) {
         try {
-            return client.execute(req, type).getData();
-        } catch (ConductorClientException e) {
-            throw mapException(e);
-        }
-    }
-
-    /** Execute a scheduler request that returns no body. */
-    private void execVoid(ConductorClientRequest req) {
-        try {
-            client.execute(req);
+            return call.get();
         } catch (ConductorClientException e) {
             throw mapException(e);
         }

@@ -222,11 +222,22 @@
         "zoneId": "sample_zoneId",
         "runCatchupScheduleInstances": true,
         "scheduleStartTime": 123,
-        "scheduleEndTime": 123
+        "scheduleEndTime": 123,
+        "cronSchedules": [
+          "${CronSchedule}"
+        ]
       },
       "dependencies": [
-        "StartWorkflowRequest"
+        "StartWorkflowRequest",
+        "CronSchedule"
       ]
+    },
+    "CronSchedule": {
+      "content": {
+        "cronExpression": "sample_cronExpression",
+        "zoneId": "sample_zoneId"
+      },
+      "dependencies": []
     },
     "GrantedAccess": {
       "content": {
@@ -1993,11 +2004,16 @@
         "createdBy": "sample_createdBy",
         "name": "sample_name",
         "zoneId": "sample_zoneId",
-        "scheduleEndTime": 123
+        "scheduleEndTime": 123,
+        "nextRunTime": 123,
+        "cronSchedules": [
+          "${CronSchedule}"
+        ]
       },
       "dependencies": [
         "Tag",
-        "StartWorkflowRequest"
+        "StartWorkflowRequest",
+        "CronSchedule"
       ]
     },
     "T": {

@@ -15,6 +15,7 @@ package io.orkes.conductor.client.http;
 import java.util.List;
 import java.util.Map;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
@@ -31,6 +32,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public class SchedulerResource {
 
     private final ConductorClient client;
+
+    /**
+     * Once a server answers {@code 405} to a PUT pause/resume request (OSS Conductor's original
+     * verb; Orkes Conductor historically accepted only {@code GET}), fall back to {@code GET} for
+     * the remaining lifetime of this instance rather than probing on every call.
+     */
+    private volatile boolean useGetForScheduleStateChange = false;
 
     public SchedulerResource(ConductorClient client) {
         this.client = client;
@@ -88,7 +96,14 @@ public class SchedulerResource {
         ConductorClientResponse<WorkflowSchedule> resp = client.execute(request, new TypeReference<>() {
         });
 
-        return resp.getData();
+        WorkflowSchedule schedule = resp.getData();
+        if (schedule == null || schedule.getName() == null) {
+            // OSS Conductor returns 200 with an empty/null body on a miss (Orkes returns 404,
+            // which already surfaces as a ConductorClientException below); normalize both server
+            // families to the same not-found contract.
+            throw new ConductorClientException(404, "Schedule '" + name + "' not found");
+        }
+        return schedule;
     }
 
     public Map<String, Object> pauseAllSchedules() {
@@ -104,13 +119,15 @@ public class SchedulerResource {
     }
 
     public void pauseSchedule(String name) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/scheduler/schedules/{name}/pause")
-                .addPathParam("name", name)
-                .build();
+        pauseSchedule(name, null);
+    }
 
-        client.execute(request);
+    /**
+     * Pauses a schedule, recording an optional reason (persisted as {@code pausedReason} where
+     * the server supports it; silently ignored otherwise — e.g. Orkes Conductor today).
+     */
+    public void pauseSchedule(String name, String reason) {
+        executeStateChange("/scheduler/schedules/{name}/pause", name, reason);
     }
 
     public Map<String, Object> requeueAllExecutionRecords() {
@@ -138,13 +155,40 @@ public class SchedulerResource {
     }
 
     public void resumeSchedule(String name) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
-                .method(Method.GET)
-                .path("/scheduler/schedules/{name}/resume")
-                .addPathParam("name", name)
-                .build();
+        executeStateChange("/scheduler/schedules/{name}/resume", name, null);
+    }
 
-        client.execute(request);
+    /**
+     * Sends a schedule state-change (pause/resume) as {@code PUT} first; if the server answers
+     * {@code 405 Method Not Allowed} (Orkes Conductor, historically), falls back to {@code GET}
+     * and remembers that verdict for the rest of this instance's lifetime. Any other error
+     * status (403, 404, 5xx, ...) propagates immediately — only a routing mismatch (405)
+     * triggers the fallback.
+     */
+    private void executeStateChange(String path, String name, String reason) {
+        if (!useGetForScheduleStateChange) {
+            try {
+                client.execute(stateChangeRequest(Method.PUT, path, name, reason));
+                return;
+            } catch (ConductorClientException e) {
+                if (e.getStatus() != 405) {
+                    throw e;
+                }
+                useGetForScheduleStateChange = true;
+            }
+        }
+        client.execute(stateChangeRequest(Method.GET, path, name, reason));
+    }
+
+    private ConductorClientRequest stateChangeRequest(Method method, String path, String name, String reason) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
+                .method(method)
+                .path(path)
+                .addPathParam("name", name);
+        if (reason != null) {
+            builder.addQueryParam("reason", reason);
+        }
+        return builder.build();
     }
 
     public void saveSchedule(SaveScheduleRequest saveScheduleRequest) {

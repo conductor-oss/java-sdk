@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - Liveness for stateful runs: a `SCHEDULED` task with zero polls beyond `livenessStallSeconds` surfaces as `WorkerStallError` from the handle's wait instead of burning the full timeout
 - Swarm hand-offs: transfer tools echo the hand-off `message`; `check_transfer` is first-wins with `transfer_message` and surfaces non-winning transfers in `dropped_transfers` (with a warning) instead of silently discarding them
 - `agent-e2e` GitHub workflow runs the e2e suites as a two-server matrix: the Conductor OSS server boot JAR `3.32.0-rc.8` (Maven Central) and the released `agentspan-server-0.4.4.jar`
+- `SchedulerClient.pauseSchedule(name, reason)` — an optional pause reason, persisted as `pausedReason`
+- `WorkflowSchedule`/`SaveScheduleRequest` gain `nextRunTime` (read) and `cronSchedules` (a new `CronSchedule` list — multi-cron schedules) — additive, null-omitting serialization keeps existing save bodies unchanged when unused; `cronSchedules` is sent as-is and silently ignored on servers whose create DTO doesn't expose it
 
 ### Removed
 
@@ -26,6 +28,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - `useEnvVariables(true)` (and the `new ApiClient()` no-arg constructor) no longer throws when `CONDUCTOR_SERVER_URL` is unset — it falls back to `AGENTSPAN_SERVER_URL`, then `http://localhost:8080/api`; the resolved URL is normalized to end in `/api`, and credentials gain the `AGENTSPAN_AUTH_KEY`/`AGENTSPAN_AUTH_SECRET` fallback
+- `SchedulerClient.pauseSchedule`/`resumeSchedule` now send `PUT` first (OSS Conductor's verb) and fall back to `GET` — caching that verdict for the client's lifetime — only on a `405`; any other error status propagates immediately. This makes the same client portable across OSS Conductor, Orkes Conductor (`GET`-only today), and agentspan-embedded servers with no configuration
+- `SchedulerClient.getSchedule` now throws consistently on a missing schedule
 
 ## [5.1.0]
 

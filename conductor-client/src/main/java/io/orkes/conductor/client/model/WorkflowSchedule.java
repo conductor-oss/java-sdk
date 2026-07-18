@@ -56,6 +56,11 @@ public class WorkflowSchedule {
 
     private String description;
 
+    /** Server-owned next-scheduled execution time, in epoch millis. Can be null if unavailable. **/
+    private Long nextRunTime;
+
+    private List<CronSchedule> cronSchedules;
+
     public WorkflowSchedule createTime(Long createTime) {
         this.createTime = createTime;
         return this;
@@ -121,6 +126,16 @@ public class WorkflowSchedule {
 
     public WorkflowSchedule zoneId(String zoneId) {
         this.zoneId = zoneId;
+        return this;
+    }
+
+    public WorkflowSchedule nextRunTime(Long nextRunTime) {
+        this.nextRunTime = nextRunTime;
+        return this;
+    }
+
+    public WorkflowSchedule cronSchedules(List<CronSchedule> cronSchedules) {
+        this.cronSchedules = cronSchedules;
         return this;
     }
 }

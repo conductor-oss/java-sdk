@@ -68,6 +68,11 @@ public class OrkesSchedulerClient implements SchedulerClient {
     }
 
     @Override
+    public void pauseSchedule(String name, String reason) {
+        schedulerResource.pauseSchedule(name, reason);
+    }
+
+    @Override
     public void requeueAllExecutionRecords() {
         schedulerResource.requeueAllExecutionRecords();
     }

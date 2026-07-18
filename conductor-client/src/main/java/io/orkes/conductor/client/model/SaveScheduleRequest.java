@@ -12,6 +12,8 @@
  */
 package io.orkes.conductor.client.model;
 
+import java.util.List;
+
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 
 import lombok.*;
@@ -45,6 +47,8 @@ public class SaveScheduleRequest {
     private String zoneId;
 
     private String description;
+
+    private List<CronSchedule> cronSchedules;
 
     public SaveScheduleRequest createdBy(String createdBy) {
         this.createdBy = createdBy;
@@ -104,4 +108,13 @@ public class SaveScheduleRequest {
         return this;
     }
 
+    public SaveScheduleRequest cronSchedules(List<CronSchedule> cronSchedules) {
+        this.cronSchedules = cronSchedules;
+        return this;
+    }
+
+    public SaveScheduleRequest description(String description) {
+        this.description = description;
+        return this;
+    }
 }

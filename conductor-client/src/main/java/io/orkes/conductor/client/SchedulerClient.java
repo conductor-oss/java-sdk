@@ -93,6 +93,21 @@ public interface SchedulerClient {
     void pauseSchedule(String name);
 
     /**
+     * Pauses a specific schedule, recording an optional reason.
+     * <p>
+     * The reason is persisted as {@code pausedReason} where the server supports it (e.g. OSS
+     * Conductor); it is silently ignored otherwise (e.g. Orkes Conductor today). The default
+     * implementation ignores the reason and delegates to {@link #pauseSchedule(String)} so
+     * existing {@link SchedulerClient} implementations remain source- and binary-compatible.
+     *
+     * @param name   the name of the schedule to pause
+     * @param reason optional reason for the pause, or {@code null}
+     */
+    default void pauseSchedule(String name, String reason) {
+        pauseSchedule(name);
+    }
+
+    /**
      * Resumes a paused schedule, allowing new workflow executions.
      *
      * @param name the name of the schedule to resume

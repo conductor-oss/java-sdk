@@ -19,6 +19,11 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
+
+import io.orkes.conductor.client.model.SaveScheduleRequest;
+import io.orkes.conductor.client.model.WorkflowSchedule;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -121,16 +126,15 @@ class ScheduleTest {
     @Test
     void toSaveRequestMinimal() {
         Schedule s = Schedule.builder().name("daily").cron("0 0 9 * * ?").build();
-        Map<String, Object> req = Schedules.toSaveRequest(s, "digest");
-        assertEquals("digest-daily", req.get("name"));
-        assertEquals("0 0 9 * * ?", req.get("cronExpression"));
-        assertEquals("UTC", req.get("zoneId"));
-        assertEquals(false, req.get("paused"));
-        assertEquals(false, req.get("runCatchupScheduleInstances"));
-        @SuppressWarnings("unchecked")
-        Map<String, Object> swr = (Map<String, Object>) req.get("startWorkflowRequest");
-        assertEquals("digest", swr.get("name"));
-        assertTrue(((Map<?, ?>) swr.get("input")).isEmpty());
+        SaveScheduleRequest req = Schedules.toSaveRequest(s, "digest");
+        assertEquals("digest-daily", req.getName());
+        assertEquals("0 0 9 * * ?", req.getCronExpression());
+        assertEquals("UTC", req.getZoneId());
+        assertEquals(false, req.isPaused());
+        assertEquals(false, req.isRunCatchupScheduleInstances());
+        StartWorkflowRequest swr = req.getStartWorkflowRequest();
+        assertEquals("digest", swr.getName());
+        assertTrue(swr.getInput().isEmpty());
     }
 
     @Test
@@ -149,13 +153,13 @@ class ScheduleTest {
                 .endAt(2000L)
                 .description("desc")
                 .build();
-        Map<String, Object> req = Schedules.toSaveRequest(s, "digest");
-        assertEquals("America/Los_Angeles", req.get("zoneId"));
-        assertEquals(true, req.get("paused"));
-        assertEquals(true, req.get("runCatchupScheduleInstances"));
-        assertEquals(1000L, req.get("scheduleStartTime"));
-        assertEquals(2000L, req.get("scheduleEndTime"));
-        assertEquals("desc", req.get("description"));
+        SaveScheduleRequest req = Schedules.toSaveRequest(s, "digest");
+        assertEquals("America/Los_Angeles", req.getZoneId());
+        assertEquals(true, req.isPaused());
+        assertEquals(true, req.isRunCatchupScheduleInstances());
+        assertEquals(1000L, req.getScheduleStartTime());
+        assertEquals(2000L, req.getScheduleEndTime());
+        assertEquals("desc", req.getDescription());
     }
 
     @Test
@@ -164,29 +168,29 @@ class ScheduleTest {
         original.put("a", 1);
         Schedule s =
                 Schedule.builder().name("x").cron("* * * * * ?").input(original).build();
-        Map<String, Object> req = Schedules.toSaveRequest(s, "agent");
-        @SuppressWarnings("unchecked")
-        Map<String, Object> swrInput =
-                (Map<String, Object>) ((Map<String, Object>) req.get("startWorkflowRequest")).get("input");
+        SaveScheduleRequest req = Schedules.toSaveRequest(s, "agent");
+        Map<String, Object> swrInput = req.getStartWorkflowRequest().getInput();
         swrInput.put("mutated", true);
         assertNull(original.get("mutated"));
     }
 
     @Test
     void fromWorkflowScheduleBasic() {
-        Map<String, Object> ws = new LinkedHashMap<>();
-        ws.put("name", "digest-daily");
-        ws.put("cronExpression", "0 0 9 * * ?");
-        ws.put("zoneId", "UTC");
-        ws.put("paused", false);
-        Map<String, Object> swr = new LinkedHashMap<>();
-        swr.put("name", "digest");
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("c", "#eng");
-        swr.put("input", input);
-        ws.put("startWorkflowRequest", swr);
-        ws.put("createTime", 111L);
-        ws.put("createdBy", "alice");
+        StartWorkflowRequest swr = new StartWorkflowRequest();
+        swr.setName("digest");
+        swr.setInput(input);
+
+        WorkflowSchedule ws = WorkflowSchedule.builder()
+                .name("digest-daily")
+                .cronExpression("0 0 9 * * ?")
+                .zoneId("UTC")
+                .paused(false)
+                .startWorkflowRequest(swr)
+                .createTime(111L)
+                .createdBy("alice")
+                .build();
 
         ScheduleInfo info = Schedules.fromWorkflowSchedule(ws, "digest");
         assertEquals("digest-daily", info.getName());
@@ -201,11 +205,14 @@ class ScheduleTest {
 
     @Test
     void fromWorkflowScheduleDerivesAgentWhenOmitted() {
-        Map<String, Object> ws = new LinkedHashMap<>();
-        ws.put("name", "digest-daily");
-        Map<String, Object> swr = new LinkedHashMap<>();
-        swr.put("name", "digest");
-        ws.put("startWorkflowRequest", swr);
+        StartWorkflowRequest swr = new StartWorkflowRequest();
+        swr.setName("digest");
+
+        WorkflowSchedule ws = WorkflowSchedule.builder()
+                .name("digest-daily")
+                .startWorkflowRequest(swr)
+                .build();
+
         ScheduleInfo info = Schedules.fromWorkflowSchedule(ws, null);
         assertEquals("digest", info.getAgent());
         assertEquals("daily", info.getShortName());
