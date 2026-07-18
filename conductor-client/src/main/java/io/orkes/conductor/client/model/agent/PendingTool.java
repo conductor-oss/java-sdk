@@ -27,13 +27,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class PendingTool {
 
-    @JsonProperty("taskRefName")
     private String taskRefName;
 
     @JsonProperty("tool_name")
     private String toolName;
 
-    @JsonProperty("parameters")
     private Map<String, Object> parameters;
 
     @JsonProperty("response_schema")

@@ -17,7 +17,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Response from {@code POST /api/agent/deploy} and {@code POST /api/agent/start}.
@@ -30,14 +29,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public final class StartResponse {
 
     /** Current canonical field name. {@code @JsonAlias} handles older server versions. */
-    @JsonProperty("executionId")
     @JsonAlias({"workflowId", "id", "correlationId"})
     private String executionId;
 
-    @JsonProperty("agentName")
     private String agentName;
 
-    @JsonProperty("requiredWorkers")
     private List<String> requiredWorkers;
 
     public StartResponse() {}

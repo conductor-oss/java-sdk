@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Response from {@code POST /api/agent/compile}.
@@ -27,10 +26,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class CompileResponse {
 
-    @JsonProperty("workflowDef")
     private Map<String, Object> workflowDef;
 
-    @JsonProperty("requiredWorkers")
     private List<String> requiredWorkers;
 
     public CompileResponse() {}

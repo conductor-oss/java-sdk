@@ -27,10 +27,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class AgentStatusResponse {
 
-    @JsonProperty("executionId")
     private String executionId;
 
-    @JsonProperty("status")
     private String status;
 
     @JsonProperty("isComplete")
@@ -42,13 +40,10 @@ public final class AgentStatusResponse {
     @JsonProperty("isWaiting")
     private boolean waiting;
 
-    @JsonProperty("output")
     private Map<String, Object> output;
 
-    @JsonProperty("reasonForIncompletion")
     private String reasonForIncompletion;
 
-    @JsonProperty("pendingTool")
     private PendingTool pendingTool;
 
     public AgentStatusResponse() {}

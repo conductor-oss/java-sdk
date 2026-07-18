@@ -15,6 +15,7 @@ package io.orkes.conductor.client.model.agent;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,48 +33,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * are omitted from the JSON body.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public final class AgentRequest {
 
     // ── Agent definition (mutually exclusive shapes) ─────────────────────
     /** Serialized agent definition for native agents; {@code null} on the framework path. */
-    @JsonProperty("agentConfig")
     private final Object agentConfig;
 
     /** Framework wire name (e.g. {@code "openai"}); {@code null} on the native path. */
-    @JsonProperty("framework")
     private final String framework;
 
     /** Serialized agent definition for framework-backed agents; {@code null} on the native path. */
-    @JsonProperty("rawConfig")
     private final Object rawConfig;
 
     // ── Execution fields (only meaningful for /start) ────────────────────
-    @JsonProperty("prompt")
     private final String prompt;
 
-    @JsonProperty("sessionId")
     private final String sessionId;
 
-    @JsonProperty("runId")
     private final String runId;
 
     @JsonProperty("static_plan")
     private final Object staticPlan;
 
     // ── Optional fields ──────────────────────────────────────────────────
-    @JsonProperty("media")
     private final List<String> media;
 
-    @JsonProperty("context")
     private final Map<String, Object> context;
 
-    @JsonProperty("idempotencyKey")
     private final String idempotencyKey;
 
-    @JsonProperty("credentials")
     private final List<String> credentials;
 
-    @JsonProperty("timeoutSeconds")
     private final Integer timeoutSeconds;
 
     private AgentRequest(Builder b) {

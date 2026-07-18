@@ -42,6 +42,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class RespondBody {
 
+    // This write-only DTO intentionally has no accessors, so these annotations provide field
+    // visibility in addition to naming the properties.
     @JsonProperty("approved")
     private final Boolean approved;
 
