@@ -17,6 +17,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 
@@ -48,7 +49,8 @@ public final class RespondBody {
     private final String reason;
 
     /** Arbitrary extra fields serialized at the top level via {@link JsonAnyGetter}. */
-    @Getter(onMethod_ = @JsonAnyGetter)
+    @JsonAnyGetter
+    @Getter(AccessLevel.NONE)
     private final Map<String, Object> extraFields;
 
     private RespondBody(Boolean approved, String reason, Map<String, Object> extraFields) {

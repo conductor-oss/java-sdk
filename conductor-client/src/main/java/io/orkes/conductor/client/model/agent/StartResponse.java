@@ -24,8 +24,8 @@ import lombok.Data;
 /**
  * Response from {@code POST /api/agent/deploy} and {@code POST /api/agent/start}.
  *
- * <p>For deploy, {@link #getExecutionId()} is {@code null} — no execution was started.
- * For start, {@link #getExecutionId()} is the Conductor workflow ID to pass to
+ * <p>For deploy, the execution ID is {@code null} — no execution was started. For start, the
+ * execution ID is the Conductor workflow ID to pass to
  * {@link io.orkes.conductor.client.AgentClient#getAgentStatus(String)} and {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)

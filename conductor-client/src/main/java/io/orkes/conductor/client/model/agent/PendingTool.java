@@ -21,8 +21,8 @@ import lombok.Data;
 /**
  * Details of the HITL task that is currently paused, embedded in {@link AgentStatusResponse}.
  *
- * <p>Present only when {@link AgentStatusResponse#isWaiting()} is {@code true}.
- * Pass {@link #getTaskRefName()} back to the server via
+ * <p>Present only when the enclosing agent status is waiting. Pass its task reference name back to
+ * the server via
  * {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)} to resume execution.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
