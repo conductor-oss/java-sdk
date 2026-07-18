@@ -26,12 +26,13 @@ import lombok.ToString;
  * <p>All three endpoints share the same server-side {@code StartRequest} DTO. The agent
  * definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by
  * the agent SDK ({@code conductor-client-ai}), keeping this transport DTO free of agent types.
- * Native agents carry it under {@code "agentConfig"}; framework-backed agents under
- * {@code "framework"} + {@code "rawConfig"}.
+ * Deployed agents carry {@code "name"} + optional {@code "version"}; native agents carry their
+ * definition under {@code "agentConfig"}; framework-backed agents use {@code "framework"} plus
+ * {@code "rawConfig"} or {@code "skillRef"}.
  *
- * <p>Build via {@link #nativeAgent(Object)} or {@link #frameworkAgent(String, Object)},
- * then chain builder methods for execution-specific fields. Unset ({@code null}) fields
- * are omitted from the JSON body.
+ * <p>Build via {@link #deployedAgent(String, Integer)}, {@link #nativeAgent(Object)}, or {@link
+ * #frameworkAgent(String, Object)}, then chain builder methods for execution-specific fields.
+ * Unset ({@code null}) fields are omitted from the JSON body.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
@@ -39,6 +40,12 @@ import lombok.ToString;
 public final class AgentRequest {
 
     // ── Agent definition (mutually exclusive shapes) ─────────────────────
+    /** Name of an already-deployed agent; {@code null} for inline definitions. */
+    private final String name;
+
+    /** Optional version of an already-deployed agent. */
+    private final Integer version;
+
     /** Serialized agent definition for native agents; {@code null} on the framework path. */
     private final Object agentConfig;
 
@@ -47,6 +54,12 @@ public final class AgentRequest {
 
     /** Serialized agent definition for framework-backed agents; {@code null} on the native path. */
     private final Object rawConfig;
+
+    /** Optional model override understood by the server's agent control plane. */
+    private final String model;
+
+    /** Skill reference for framework-backed agents that do not provide {@code rawConfig}. */
+    private final Map<String, Object> skillRef;
 
     // ── Execution fields (only meaningful for /start) ────────────────────
     private final String prompt;
@@ -70,9 +83,13 @@ public final class AgentRequest {
     private final Integer timeoutSeconds;
 
     private AgentRequest(Builder b) {
+        this.name = b.name;
+        this.version = b.version;
         this.agentConfig = b.agentConfig;
         this.framework = b.framework;
         this.rawConfig = b.rawConfig;
+        this.model = b.model;
+        this.skillRef = b.skillRef;
         this.prompt = b.prompt;
         this.sessionId = b.sessionId;
         this.runId = b.runId;
@@ -84,22 +101,31 @@ public final class AgentRequest {
         this.timeoutSeconds = b.timeoutSeconds;
     }
 
+    /** Build a request that starts an already-deployed agent by name and optional version. */
+    public static Builder deployedAgent(String name, Integer version) {
+        return new Builder(name, version, null, null, null);
+    }
+
     /** Build a request for a native (non-framework) agent from its serialized definition. */
     public static Builder nativeAgent(Object agentConfig) {
-        return new Builder(agentConfig, null, null);
+        return new Builder(null, null, agentConfig, null, null);
     }
 
     /** Build a request for a framework-backed agent (OpenAI, ADK, Skill) from its serialized definition. */
     public static Builder frameworkAgent(String framework, Object rawConfig) {
-        return new Builder(null, framework, rawConfig);
+        return new Builder(null, null, null, framework, rawConfig);
     }
 
     // ── Builder ──────────────────────────────────────────────────────────
 
     public static final class Builder {
+        private final String name;
+        private final Integer version;
         private final Object agentConfig;
         private final String framework;
         private final Object rawConfig;
+        private String model;
+        private Map<String, Object> skillRef;
         private String prompt;
         private String sessionId;
         private String runId;
@@ -110,10 +136,27 @@ public final class AgentRequest {
         private List<String> credentials;
         private Integer timeoutSeconds;
 
-        private Builder(Object agentConfig, String framework, Object rawConfig) {
+        private Builder(
+                String name,
+                Integer version,
+                Object agentConfig,
+                String framework,
+                Object rawConfig) {
+            this.name = name;
+            this.version = version;
             this.agentConfig = agentConfig;
             this.framework = framework;
             this.rawConfig = rawConfig;
+        }
+
+        public Builder model(String v) {
+            this.model = v;
+            return this;
+        }
+
+        public Builder skillRef(Map<String, Object> v) {
+            this.skillRef = v;
+            return this;
         }
 
         public Builder prompt(String v) {

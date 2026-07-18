@@ -22,11 +22,72 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AgentModelJsonTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    public void serializesDeployedAgentNameAndVersionAtTopLevel() {
+        AgentRequest request = AgentRequest.deployedAgent("researcher", 7).build();
+
+        JsonNode json = objectMapper.valueToTree(request);
+
+        assertEquals(
+                objectMapper.createObjectNode().put("name", "researcher").put("version", 7),
+                json);
+        assertEquals("researcher", request.getName());
+        assertEquals(7, request.getVersion());
+        assertNull(request.getAgentConfig());
+        assertNull(request.getFramework());
+        assertNull(request.getRawConfig());
+
+        JsonNode unversioned =
+                objectMapper.valueToTree(AgentRequest.deployedAgent("researcher", null).build());
+        assertEquals(objectMapper.createObjectNode().put("name", "researcher"), unversioned);
+    }
+
+    @Test
+    public void serializesModelAndSkillRefWithExactPropertyNames() {
+        AgentRequest request =
+                AgentRequest.frameworkAgent("skill", null)
+                        .model("claude-sonnet")
+                        .skillRef(Map.of("name", "code-review", "version", 2))
+                        .build();
+
+        JsonNode json = objectMapper.valueToTree(request);
+
+        assertEquals("skill", json.get("framework").asText());
+        assertEquals("claude-sonnet", json.get("model").asText());
+        assertEquals("code-review", json.get("skillRef").get("name").asText());
+        assertEquals(2, json.get("skillRef").get("version").asInt());
+        assertFalse(json.has("rawConfig"));
+        assertFalse(json.has("skill_ref"));
+    }
+
+    @Test
+    public void nativeAndFrameworkAgentShapesRemainUnchangedAndNullsAreOmitted() {
+        JsonNode nativeJson = objectMapper.valueToTree(
+                AgentRequest.nativeAgent(Map.of("goal", "review")).build());
+        JsonNode frameworkJson = objectMapper.valueToTree(
+                AgentRequest.frameworkAgent("openai", Map.of("model", "gpt-4o")).build());
+
+        assertEquals(
+                objectMapper.createObjectNode()
+                        .set("agentConfig", objectMapper.createObjectNode().put("goal", "review")),
+                nativeJson);
+        assertEquals(
+                objectMapper.createObjectNode()
+                        .put("framework", "openai")
+                        .set("rawConfig", objectMapper.createObjectNode().put("model", "gpt-4o")),
+                frameworkJson);
+        for (String field : List.of("name", "version", "model", "skillRef")) {
+            assertFalse(nativeJson.has(field));
+            assertFalse(frameworkJson.has(field));
+        }
+    }
 
     @Test
     public void serializesAgentRequestWithDefaultNamesAndExplicitWireExceptions() throws Exception {
@@ -71,6 +132,7 @@ public class AgentModelJsonTest {
     public void retainsAnnotationsWhereJavaAndWireNamesDiffer() throws Exception {
         AgentStatusResponse status = objectMapper.readValue(
                 "{\"executionId\":\"execution-1\",\"status\":\"PAUSED\","
+                        + "\"startTime\":1710000000000,\"endTime\":1710000005000,"
                         + "\"isComplete\":false,\"isRunning\":true,\"isWaiting\":true,"
                         + "\"pendingTool\":{\"taskRefName\":\"approve_ref\","
                         + "\"tool_name\":\"approve\",\"parameters\":{\"amount\":42},"
@@ -79,6 +141,8 @@ public class AgentModelJsonTest {
                 AgentStatusResponse.class);
 
         assertEquals("execution-1", status.getExecutionId());
+        assertEquals(1710000000000L, status.getStartTime());
+        assertEquals(1710000005000L, status.getEndTime());
         assertTrue(status.isRunning());
         assertTrue(status.isWaiting());
         assertFalse(status.isComplete());

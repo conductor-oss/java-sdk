@@ -33,6 +33,10 @@ public final class AgentStatusResponse {
 
     private String status;
 
+    private Long startTime;
+
+    private Long endTime;
+
     @JsonProperty("isComplete")
     private boolean complete;
 
