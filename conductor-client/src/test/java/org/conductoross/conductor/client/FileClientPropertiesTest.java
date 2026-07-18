@@ -12,17 +12,18 @@
  */
 package org.conductoross.conductor.client;
 
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FileClientPropertiesTest {
 
     @Test
-    void defaultCacheDirectoryIsUnderJavaTmpDir() {
-        String expected = Path.of(System.getProperty("java.io.tmpdir")).toString();
-        assertTrue(new FileClientProperties().getLocalCacheDirectory().startsWith(expected));
+    void defaultsAreSuitableForAutomaticMultipartUploads() {
+        FileClientProperties properties = new FileClientProperties();
+
+        assertEquals(3, properties.getRetryCount());
+        assertEquals(10L * 1024 * 1024, properties.getMultipartPartSize());
+        assertEquals(100L * 1024 * 1024, properties.getMultipartThreshold());
     }
 }

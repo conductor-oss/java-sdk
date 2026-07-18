@@ -22,10 +22,12 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - The source-less publishing shim modules `java-sdk` (`org.conductoross:java-sdk`), `orkes-client` (`io.orkes.conductor:orkes-conductor-client`), and `orkes-spring` (`io.orkes.conductor:orkes-conductor-client-spring`) are deleted — depend on `org.conductoross:conductor-client` / `conductor-client-spring` directly instead
+- File lifecycle objects and automatic worker integration (`FileHandler`, `ManagedFileHandler`, `LocalFileHandler`, `FileUploader`, `WorkflowFileClient`, `Task.getFileUploader()`, `Task.getInputFileHandler()`, and `TaskRunnerConfigurer.withFileClient()`) are removed. Workers now inject `FileClient` and explicitly upload/download opaque handle strings.
 
 ### Changed
 
 - `useEnvVariables(true)` (and the `new ApiClient()` no-arg constructor) no longer throws when `CONDUCTOR_SERVER_URL` is unset — it falls back to `AGENTSPAN_SERVER_URL`, then `http://localhost:8080/api`; the resolved URL is normalized to end in `/api`, and credentials gain the `AGENTSPAN_AUTH_KEY`/`AGENTSPAN_AUTH_SECRET` fallback
+- `FileClient` now requires workflow context for every operation, returns raw `conductor://file/<id>` strings from uploads, selects multipart automatically, and performs atomic explicit downloads. Existing workflows that exchange `{fileHandleId, fileName, contentType}` objects must be drained or upgraded in coordination because new workers exchange raw strings. See the [FileClient guide](docs/file-client.md) and [design note](docs/design/file-client.md).
 
 ## [5.1.0]
 

@@ -17,12 +17,17 @@ import java.io.InputStream;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
-import org.conductoross.conductor.sdk.file.FileHandler;
+import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
 
 public class UploadPrimaryVideoWorker implements Worker {
 
     private static final String RESOURCE_PATH = "/data/primary_video.mov";
+    private final FileClient fileClient;
+
+    public UploadPrimaryVideoWorker(FileClient fileClient) {
+        this.fileClient = fileClient;
+    }
 
     @Override
     public String getTaskDefName() {
@@ -40,13 +45,14 @@ public class UploadPrimaryVideoWorker implements Worker {
 
             FileUploadOptions options = new FileUploadOptions()
                     .setFileName("primary_video.mov")
-                    .setContentType("video/quicktime");
-            FileHandler uploaded = task.getFileUploader().upload(in, options);
+                    .setContentType("video/quicktime")
+                    .setTaskId(task.getTaskId());
+            String uploaded = fileClient.upload(task.getWorkflowInstanceId(), in, options);
 
             result.getOutputData().put("primary_video", uploaded);
             result.setStatus(TaskResult.Status.COMPLETED);
 
-            System.out.println("[upload_primary_video] Uploaded: " + uploaded.getFileHandleId());
+            System.out.println("[upload_primary_video] Uploaded: " + uploaded);
         } catch (Exception e) {
             result.setStatus(TaskResult.Status.FAILED);
             result.setReasonForIncompletion(e.getMessage());

@@ -77,8 +77,7 @@ class TaskRunnerFatalAuthTest {
                 100,
                 List.of(),
                 eventDispatcher,
-                false,
-                null);
+                false);
 
         CountDownLatch exitLatch = new CountDownLatch(1);
         runner.setExitAction(exitLatch::countDown);
@@ -144,8 +143,7 @@ class TaskRunnerFatalAuthTest {
                     100,
                     List.of(),
                     eventDispatcher,
-                    false,
-                    null);
+                    false);
 
             CountDownLatch exitLatch = new CountDownLatch(1);
             runner.setExitAction(exitLatch::countDown);

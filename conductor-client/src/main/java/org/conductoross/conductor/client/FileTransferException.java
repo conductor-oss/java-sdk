@@ -10,20 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.client.model.file;
+package org.conductoross.conductor.client;
 
-/**
- * Storage backend identifier. Shared vocabulary between server and SDK — the server stamps its
- * configured type onto every file in {@code FileUploadResponse} and {@code FileHandle}; the SDK
- * selects a matching {@code FileStorageBackend} for byte transfer.
- */
-public enum StorageType {
-    /** AWS S3 (and S3-compatible services such as MinIO). */
-    S3,
-    /** Azure Blob Storage. */
-    AZURE_BLOB,
-    /** Google Cloud Storage. */
-    GCS,
-    /** Server-local filesystem. Does not support multipart. */
-    LOCAL
+import java.io.IOException;
+
+/** HTTP transfer failure whose message deliberately excludes the signed URL. */
+final class FileTransferException extends IOException {
+
+    private final int statusCode;
+
+    FileTransferException(String operation, int statusCode) {
+        super(operation + " failed with HTTP status " + statusCode);
+        this.statusCode = statusCode;
+    }
+
+    int statusCode() {
+        return statusCode;
+    }
 }

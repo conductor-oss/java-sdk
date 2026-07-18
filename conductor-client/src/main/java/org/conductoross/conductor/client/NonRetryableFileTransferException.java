@@ -10,19 +10,14 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.sdk.file;
+package org.conductoross.conductor.client;
 
-/**
- * Per-worker download status for a {@link ManagedFileHandler}. SDK-only — not exchanged with
- * the server (the server tracks upload status, not download status).
- */
-public enum FileDownloadStatus {
-    /** No download has been attempted yet. */
-    NOT_STARTED,
-    /** A download is in progress under {@code ManagedFileHandler.downloadLock}. */
-    DOWNLOADING,
-    /** Content has been cached locally and is ready for repeated reads. */
-    DOWNLOADED,
-    /** The download exhausted its retries and failed. */
-    FAILED
+import java.io.IOException;
+
+/** Deterministic transfer contract failure that a refreshed URL cannot fix. */
+final class NonRetryableFileTransferException extends IOException {
+
+    NonRetryableFileTransferException(String message) {
+        super(message);
+    }
 }

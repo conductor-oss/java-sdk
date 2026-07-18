@@ -12,18 +12,22 @@
  */
 package io.conductor.example.mediatranscoder.workers;
 
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
-import org.conductoross.conductor.sdk.file.FileHandler;
+import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
-import org.conductoross.conductor.sdk.file.FileUploader;
 
 public class ThumbnailWorker implements Worker {
+
+    private final FileClient fileClient;
+
+    public ThumbnailWorker(FileClient fileClient) {
+        this.fileClient = fileClient;
+    }
 
     @Override
     public String getTaskDefName() { return "extract_thumbnail"; }
@@ -31,23 +35,38 @@ public class ThumbnailWorker implements Worker {
     @Override
     public TaskResult execute(Task task) {
         TaskResult result = new TaskResult(task);
-        FileHandler primary = task.getInputFileHandler("primary_video");
+        String primary = (String) task.getInputData().get("primary_video");
+        Path downloaded = null;
+        Path thumbnail = null;
 
-        try (InputStream in = primary.getInputStream()) {
-            Path thumbnail = Files.createTempFile("thumb-", ".png");
+        try {
+            downloaded = Files.createTempFile("primary-", ".mov");
+            fileClient.download(task.getWorkflowInstanceId(), primary, downloaded);
+            thumbnail = Files.createTempFile("thumb-", ".png");
             Files.write(thumbnail, "PNG_THUMBNAIL_DATA".getBytes());
 
             FileUploadOptions options = new FileUploadOptions().setContentType("image/png").setTaskId(task.getTaskId());
-            FileHandler uploaded = task.getFileUploader().upload(thumbnail, options);
-            result.getOutputData().put("output_file", uploaded.getFileHandleId());
+            String uploaded = fileClient.upload(task.getWorkflowInstanceId(), thumbnail, options);
+            result.getOutputData().put("output_file", uploaded);
             result.setStatus(TaskResult.Status.COMPLETED);
 
-            System.out.println("[extract_thumbnail] Uploaded: " + uploaded.getFileHandleId());
+            System.out.println("[extract_thumbnail] Uploaded: " + uploaded);
         } catch (Exception e) {
             result.setStatus(TaskResult.Status.FAILED);
             result.setReasonForIncompletion(e.getMessage());
             e.printStackTrace();
+        } finally {
+            delete(downloaded);
+            delete(thumbnail);
         }
         return result;
+    }
+
+    private static void delete(Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (Exception ignored) {
+        }
     }
 }

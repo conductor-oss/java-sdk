@@ -20,6 +20,7 @@ If you find [Conductor](https://github.com/conductor-oss/conductor) useful, plea
   * [Workers](#workers)
   * [Monitoring Workers](#monitoring-workers)
   * [Workflows](#workflows)
+  * [File Storage](#file-storage)
   * [Troubleshooting](#troubleshooting)
   * [AI & LLM Workflows](#ai--llm-workflows)
   * [Examples](#examples)
@@ -390,6 +391,24 @@ workflowClient.restartWorkflow(workflowId, false);
 - [Workflow SDK Guide](docs/workflow_sdk.md) — Workflow-as-code documentation
 - [Workflow Testing](docs/testing_framework.md) — Unit testing workflows
 
+## File Storage
+
+Use `FileClient` to upload and download workflow-scoped binary payloads. Workflow inputs and outputs carry only opaque `conductor://file/<id>` strings:
+
+```java
+FileClient files = new FileClient(client);
+
+String handle = files.upload(
+        workflowId,
+        Path.of("report.pdf"),
+        new FileUploadOptions().setContentType("application/pdf"));
+
+FileMetadata metadata = files.getMetadata(workflowId, handle);
+Path local = files.download(workflowId, handle, Path.of("downloads/report.pdf"));
+```
+
+Multipart is selected automatically for supported providers. See the [FileClient guide](docs/file-client.md) for every upload/download form and the [Media Transcoder](examples/file-storage/media-transcoder/) for a complete workflow.
+
 ## Troubleshooting
 
 **Worker stops polling or crashes:**
@@ -522,6 +541,7 @@ See the [Examples Guide](examples/README.md) for the full catalog. Key examples:
 | [Workflow Operations](examples/src/main/java/io/orkes/conductor/sdk/examples/workflowops/) | Pause, resume, terminate workflows | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.workflowops.Main` |
 | [Shipment Workflow](examples/src/main/java/com/netflix/conductor/sdk/examples/shipment/) | Real-world order processing | `./gradlew :examples:run -PmainClass=com.netflix.conductor.sdk.examples.shipment.Main` |
 | [Events](examples/src/main/java/com/netflix/conductor/sdk/examples/events/) | Event-driven workflows | `./gradlew :examples:run -PmainClass=com.netflix.conductor.sdk.examples.events.EventHandlerExample` |
+| [FileClient Media Transcoder](examples/file-storage/media-transcoder/) | Path/stream upload, metadata, atomic download, handle passing | See example README |
 | [All AI examples](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/AgenticExamplesRunner.java) | All agentic/LLM workflows | `./gradlew :examples:run --args="--all"` |
 | [RAG Workflow](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/RagWorkflowExample.java) | RAG pipeline (index → search → answer) | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.agentic.RagWorkflowExample` |
 
@@ -542,6 +562,8 @@ End-to-end examples covering all APIs for each domain:
 |----------|-------------|
 | [Worker SDK](docs/worker_sdk.md) | Complete worker framework guide |
 | [Workflow SDK](docs/workflow_sdk.md) | Workflow-as-code documentation |
+| [FileClient](docs/file-client.md) | Workflow-scoped upload, download, metadata, and worker examples |
+| [FileClient Design](docs/design/file-client.md) | Transfer adapters, retry ownership, multipart, and security boundaries |
 | [Testing Framework](docs/testing_framework.md) | Unit testing workflows and workers |
 | [Conductor Client](conductor-client/README.md) | HTTP client library documentation |
 | [Client Metrics](conductor-client-metrics/README.md) | Prometheus metrics collection |

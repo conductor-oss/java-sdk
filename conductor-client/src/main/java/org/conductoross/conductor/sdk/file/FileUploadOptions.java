@@ -13,21 +13,14 @@
 package org.conductoross.conductor.sdk.file;
 
 /**
- * Optional metadata to attach to a file upload. {@code workflowId} is supplied as the explicit
- * first argument on {@link FileUploader#upload}; this type carries everything else.
- *
- * <p>When uploading inside a worker, {@code taskId} is populated automatically from the active
- * {@link com.netflix.conductor.sdk.workflow.executor.task.TaskContext} if not set here.
- * Providing it explicitly overrides the auto-detected value.
- *
- * <p>Set {@link #setMultipart(boolean) multipart=true} to force multipart upload when the
- * underlying backend supports it; otherwise the SDK falls back to a single-request upload.
+ * Optional metadata to attach to a file upload. The owning workflow is always supplied directly
+ * to {@code FileClient}; multipart selection is automatic and is not part of this API.
  *
  * <pre>{@code
  * FileUploadOptions options = new FileUploadOptions()
  *         .setContentType("application/pdf")
- *         .setMultipart(true);
- * FileHandler handler = fileUploader.upload(workflowId, path, options);
+ *         .setTaskId(taskId);
+ * String fileHandleId = fileClient.upload(workflowId, path, options);
  * }</pre>
  */
 public class FileUploadOptions {
@@ -35,7 +28,6 @@ public class FileUploadOptions {
     private String taskId;
     private String fileName;
     private String contentType;
-    private boolean multipart;
 
     public String getTaskId() {
         return taskId;
@@ -64,12 +56,4 @@ public class FileUploadOptions {
         return this;
     }
 
-    public boolean isMultipart() {
-        return multipart;
-    }
-
-    public FileUploadOptions setMultipart(boolean multipart) {
-        this.multipart = multipart;
-        return this;
-    }
 }

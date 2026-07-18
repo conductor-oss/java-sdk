@@ -10,19 +10,27 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.conductoross.conductor.client.model.file;
+package org.conductoross.conductor.client;
 
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Path;
 
-/**
- * Payload for {@code POST /api/files/{workflowId}/{fileId}/multipart/{uploadId}/complete}.
- * {@code partETags} is the ordered list of provider completion tokens returned by each part
- * transfer.
- */
-public class MultipartCompleteRequest {
+/** Performs one provider-specific transfer attempt against a server-issued URL. */
+interface FileTransferAdapter {
 
-    private List<String> partETags;
+    String storageType();
 
-    public List<String> getPartETags() { return partETags; }
-    public void setPartETags(List<String> partETags) { this.partETags = partETags; }
+    void upload(String signedUrl, Path source) throws IOException;
+
+    void download(String signedUrl, Path destination) throws IOException;
+
+    boolean supportsMultipart();
+
+    String uploadPart(
+            String signedUrl,
+            Path source,
+            long offset,
+            long length,
+            int partNumber)
+            throws IOException;
 }

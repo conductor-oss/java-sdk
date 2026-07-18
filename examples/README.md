@@ -26,6 +26,14 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 
 ---
 
+## File Storage
+
+| Example | Description |
+|---|---|
+| [media-transcoder](file-storage/media-transcoder/) | Complete `FileClient` workflow covering path and stream uploads, metadata, downloads, raw and annotated workers, handle passing, and automatic multipart selection. |
+
+---
+
 ## Advanced (50)
 
 | Example | Description |

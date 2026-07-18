@@ -13,31 +13,21 @@
 package io.orkes.conductor.client.filestorage;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 
 import org.conductoross.conductor.client.FileClient;
-import org.conductoross.conductor.sdk.file.FileHandler;
+import org.conductoross.conductor.client.model.file.FileMetadata;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
-import org.conductoross.conductor.sdk.file.FileUploader;
-import org.conductoross.conductor.sdk.file.ManagedFileHandler;
-import org.conductoross.conductor.sdk.file.WorkflowFileClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
@@ -58,11 +48,7 @@ public class FileStorageIntegrationTest {
 
     private static final String WAIT_WF_NAME = "file_storage_integration_wait_wf";
 
-    private static final ObjectMapper MAPPER = new ObjectMapperProvider().getObjectMapper();
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
-
-    @TempDir
-    static Path tempDir;
+    @TempDir static Path tempDir;
 
     private static FileClient fileClient;
     private static OrkesWorkflowClient workflowClient;
@@ -76,19 +62,19 @@ public class FileStorageIntegrationTest {
         metadataClient = ClientTestUtil.getOrkesClients().getMetadataClient();
 
         WorkflowExecutor executor = new WorkflowExecutor(ClientTestUtil.getClient(), 10);
-        ConductorWorkflow<Object> wf = new ConductorWorkflow<>(executor);
-        wf.setName(WAIT_WF_NAME);
-        wf.setVersion(1);
-        wf.add(new Wait("wait_task", Duration.ofSeconds(300)));
-        wf.setTimeoutPolicy(WorkflowDef.TimeoutPolicy.TIME_OUT_WF);
-        wf.setTimeoutSeconds(600);
-        wf.registerWorkflow(true, true);
+        ConductorWorkflow<Object> workflow = new ConductorWorkflow<>(executor);
+        workflow.setName(WAIT_WF_NAME);
+        workflow.setVersion(1);
+        workflow.add(new Wait("wait_task", Duration.ofSeconds(300)));
+        workflow.setTimeoutPolicy(WorkflowDef.TimeoutPolicy.TIME_OUT_WF);
+        workflow.setTimeoutSeconds(600);
+        workflow.registerWorkflow(true, true);
 
-        StartWorkflowRequest req = new StartWorkflowRequest();
-        req.setName(WAIT_WF_NAME);
-        req.setVersion(1);
-        req.setInput(Map.of());
-        workflowId = workflowClient.startWorkflow(req);
+        StartWorkflowRequest request = new StartWorkflowRequest();
+        request.setName(WAIT_WF_NAME);
+        request.setVersion(1);
+        request.setInput(Map.of());
+        workflowId = workflowClient.startWorkflow(request);
         assertNotNull(workflowId);
     }
 
@@ -105,101 +91,51 @@ public class FileStorageIntegrationTest {
     }
 
     @Test
-    @DisplayName("upload(Path) returns prefixed handle and preserves filename + content type")
-    void uploadFromPath() throws Exception {
-        Path file = writeFile("hello.txt", "hello world");
-
-        FileHandler handler = fileClient.upload(workflowId, file,
+    void pathUploadReturnsRawHandleAndMetadata() throws Exception {
+        String handle = fileClient.upload(
+                workflowId,
+                writeFile("hello.txt", "hello world"),
                 new FileUploadOptions().setContentType("text/plain"));
 
-        assertNotNull(handler.getFileHandleId());
-        assertTrue(handler.getFileHandleId().startsWith(FileHandler.PREFIX));
-        assertEquals("hello.txt", handler.getFileName());
-        assertEquals("text/plain", handler.getContentType());
+        assertTrue(handle.startsWith("conductor://file/"));
+        FileMetadata metadata = fileClient.getMetadata(workflowId, handle);
+        assertEquals("hello.txt", metadata.getFileName());
+        assertEquals("text/plain", metadata.getContentType());
+        assertEquals(11L, metadata.getFileSize());
     }
 
     @Test
-    @DisplayName("upload(InputStream) buffers to temp file and uploads")
-    void uploadFromInputStream() {
-        byte[] payload = "stream payload".getBytes(StandardCharsets.UTF_8);
+    void streamUploadDoesNotRequireAWorkerFileObject() {
+        String handle = fileClient.upload(
+                workflowId,
+                new ByteArrayInputStream("stream payload".getBytes(StandardCharsets.UTF_8)),
+                new FileUploadOptions()
+                        .setFileName("stream.txt")
+                        .setContentType("text/plain"));
 
-        FileHandler handler = fileClient.upload(workflowId, new ByteArrayInputStream(payload),
-                new FileUploadOptions().setFileName("stream.txt").setContentType("text/plain"));
-
-        assertNotNull(handler.getFileHandleId());
-        assertTrue(handler.getFileHandleId().startsWith(FileHandler.PREFIX));
+        assertTrue(handle.startsWith("conductor://file/"));
     }
 
     @Test
-    @DisplayName("a fresh ManagedFileHandler downloads the bytes uploaded under the same handle id")
-    void downloadRoundTripsContent() throws Exception {
-        Path file = writeFile("data.bin", "round-trip content 12345");
-
-        FileHandler uploaded = fileClient.upload(workflowId, file,
+    void explicitDownloadRoundTripsContent() throws Exception {
+        String handle = fileClient.upload(
+                workflowId,
+                writeFile("data.bin", "round-trip content"),
                 new FileUploadOptions().setContentType("application/octet-stream"));
+        Path destination = tempDir.resolve("downloaded/data.bin");
 
-        ManagedFileHandler downloaded = new ManagedFileHandler(
-                uploaded.getFileHandleId(), new WorkflowFileClient(fileClient, workflowId));
-
-        try (InputStream in = downloaded.getInputStream()) {
-            assertEquals("round-trip content 12345", new String(in.readAllBytes(), StandardCharsets.UTF_8));
-        }
+        assertEquals(
+                destination.toAbsolutePath(),
+                fileClient.download(workflowId, handle, destination));
+        assertEquals("round-trip content", Files.readString(destination));
     }
 
     @Test
-    @DisplayName("multiple uploads produce distinct handle ids")
-    void multipleUploadsProduceDistinctHandleIds() throws Exception {
-        FileHandler h1 = fileClient.upload(workflowId, writeFile("doc1.pdf", "pdf 1"),
-                new FileUploadOptions().setContentType("application/pdf"));
-        FileHandler h2 = fileClient.upload(workflowId, writeFile("doc2.pdf", "pdf 2"),
-                new FileUploadOptions().setContentType("application/pdf"));
+    void multipleUploadsProduceDistinctRawHandles() throws Exception {
+        String first = fileClient.upload(workflowId, writeFile("doc1.pdf", "pdf 1"));
+        String second = fileClient.upload(workflowId, writeFile("doc2.pdf", "pdf 2"));
 
-        assertNotEquals(h1.getFileHandleId(), h2.getFileHandleId());
-    }
-
-    @Test
-    @DisplayName("FileUploader interface (WorkflowFileClient) yields the same handle shape as FileClient")
-    void uploadViaFileUploaderInterface() throws Exception {
-        FileUploader uploader = new WorkflowFileClient(fileClient, workflowId);
-
-        FileHandler handler = uploader.upload(writeFile("via-interface.txt", "interface test"),
-                new FileUploadOptions().setContentType("text/plain"));
-
-        assertNotNull(handler.getFileHandleId());
-        assertTrue(handler.getFileHandleId().startsWith(FileHandler.PREFIX));
-    }
-
-    @Test
-    @DisplayName("multipart=false (default) uploads via single-request path")
-    void singleRequestUploadIsDefault() throws Exception {
-        FileHandler handler = fileClient.upload(workflowId, writeFile("default.txt", "single"),
-                new FileUploadOptions().setContentType("text/plain"));
-
-        assertNotNull(handler.getFileHandleId());
-    }
-
-    @Test
-    @DisplayName("multipart=true uploads succeed (multipart path on capable backends; falls back otherwise)")
-    void multipartFlagTrueDoesNotFail() throws Exception {
-        FileHandler handler = fileClient.upload(workflowId, writeFile("mp.bin", "multipart payload"),
-                new FileUploadOptions().setContentType("application/octet-stream").setMultipart(true));
-
-        assertNotNull(handler.getFileHandleId());
-        assertTrue(handler.getFileHandleId().startsWith(FileHandler.PREFIX));
-    }
-
-    @Test
-    @DisplayName("FileHandler serializes to the fixed three-field shape")
-    void fileHandlerSerializesToThreeFields() throws Exception {
-        FileHandler uploaded = fileClient.upload(workflowId, writeFile("ser.txt", "json shape"),
-                new FileUploadOptions().setContentType("text/plain"));
-
-        Map<String, Object> json = MAPPER.convertValue(uploaded, MAP_TYPE);
-
-        assertEquals(Set.of("fileHandleId", "contentType", "fileName"), json.keySet());
-        assertEquals(uploaded.getFileHandleId(), json.get("fileHandleId"));
-        assertEquals("text/plain", json.get("contentType"));
-        assertEquals("ser.txt", json.get("fileName"));
+        assertNotEquals(first, second);
     }
 
     private static Path writeFile(String name, String content) throws Exception {

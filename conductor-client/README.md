@@ -90,3 +90,16 @@ public class HelloWorker implements Worker {
 ```
 
 > **Note:** The full code for the above examples can be found [here](../examples/src/main/java/com/netflix/conductor/gettingstarted).
+
+## File uploads and downloads
+
+`FileClient` explicitly transfers workflow-scoped files and returns opaque `conductor://file/<id>` strings:
+
+```java
+FileClient files = new FileClient(client);
+String handle = files.upload(workflowId, Path.of("input.csv"));
+FileMetadata metadata = files.getMetadata(workflowId, handle);
+Path local = files.download(workflowId, handle, Path.of("work/input.csv"));
+```
+
+For path metadata, caller-owned streams, automatic multipart, atomic replacement, raw workers, and annotated workers, see the [FileClient guide](../docs/file-client.md) and [media-transcoder example](../examples/file-storage/media-transcoder/).

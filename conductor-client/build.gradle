@@ -15,7 +15,7 @@ ext {
 apply plugin: 'publish-config'
 
 dependencies {
-    implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
+    api "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
     // test dependencies
     testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
