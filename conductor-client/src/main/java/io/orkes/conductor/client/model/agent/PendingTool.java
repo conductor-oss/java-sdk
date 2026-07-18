@@ -16,6 +16,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
  * Details of the HITL task that is currently paused, embedded in {@link AgentStatusResponse}.
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)} to resume execution.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public final class PendingTool {
 
     private String taskRefName;
@@ -40,35 +42,4 @@ public final class PendingTool {
     @JsonProperty("response_ui_schema")
     private Object responseUiSchema;
 
-    public PendingTool() {}
-
-    /** Conductor task reference name — echoed back in the respond body when needed. */
-    public String getTaskRefName() {
-        return taskRefName;
-    }
-
-    /** Logical tool name shown to the human reviewer. */
-    public String getToolName() {
-        return toolName;
-    }
-
-    /** Arguments the agent passed to the tool (what the human is being asked to approve). */
-    public Map<String, Object> getParameters() {
-        return parameters;
-    }
-
-    /** JSON Schema the response body must conform to, or {@code null} if unconstrained. */
-    public Object getResponseSchema() {
-        return responseSchema;
-    }
-
-    /** UI rendering hints for approval form rendering, or {@code null} if absent. */
-    public Object getResponseUiSchema() {
-        return responseUiSchema;
-    }
-
-    @Override
-    public String toString() {
-        return "PendingTool{toolName=" + toolName + ", taskRefName=" + taskRefName + "}";
-    }
 }

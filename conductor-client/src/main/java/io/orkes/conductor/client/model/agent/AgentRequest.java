@@ -15,9 +15,10 @@ package io.orkes.conductor.client.model.agent;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.ToString;
 
 /**
  * Request payload for {@code POST /api/agent/compile}, {@code /deploy}, and {@code /start}.
@@ -33,7 +34,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * are omitted from the JSON body.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@Data
+@ToString(onlyExplicitlyIncluded = true)
 public final class AgentRequest {
 
     // ── Agent definition (mutually exclusive shapes) ─────────────────────

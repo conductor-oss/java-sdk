@@ -16,9 +16,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.Getter;
 
 /**
  * Request body for {@code POST /api/agent/{executionId}/respond}.
@@ -35,22 +35,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *       {@link #of(Map)} with the schema-defined keys.</li>
  * </ul>
  *
- * <p>{@code @JsonAnyGetter} / {@code @JsonAnySetter} flatten {@code extraFields}
- * into the top-level JSON object so all fields appear at the root level, matching
- * how the server reads the body as a plain {@code Map<String,Object>}.
+ * <p>{@code @JsonAnyGetter} flattens {@code extraFields} into the top-level JSON object so all
+ * fields appear at the root level, matching how the server reads the body as a plain {@code
+ * Map<String,Object>}.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Data
 public final class RespondBody {
 
-    // This write-only DTO intentionally has no accessors, so these annotations provide field
-    // visibility in addition to naming the properties.
-    @JsonProperty("approved")
     private final Boolean approved;
 
-    @JsonProperty("reason")
     private final String reason;
 
     /** Arbitrary extra fields serialized at the top level via {@link JsonAnyGetter}. */
+    @Getter(onMethod_ = @JsonAnyGetter)
     private final Map<String, Object> extraFields;
 
     private RespondBody(Boolean approved, String reason, Map<String, Object> extraFields) {
@@ -84,21 +82,4 @@ public final class RespondBody {
         return new RespondBody(null, null, data != null ? new LinkedHashMap<>(data) : null);
     }
 
-    // ── Jackson ───────────────────────────────────────────────────────────
-
-    @JsonAnyGetter
-    public Map<String, Object> getExtraFields() {
-        return extraFields;
-    }
-
-    @JsonAnySetter
-    void setExtraField(String key, Object value) {
-        // no-op: this class is write-only (we never deserialize RespondBody)
-    }
-
-    @Override
-    public String toString() {
-        if (extraFields != null) return "RespondBody" + extraFields;
-        return "RespondBody{approved=" + approved + ", reason=" + reason + "}";
-    }
 }

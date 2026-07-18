@@ -17,6 +17,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import lombok.Data;
 
 /**
  * Response from {@code POST /api/agent/deploy} and {@code POST /api/agent/start}.
@@ -26,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * {@link io.orkes.conductor.client.AgentClient#getAgentStatus(String)} and {@link io.orkes.conductor.client.AgentClient#respond(String, RespondBody)}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public final class StartResponse {
 
     /** Current canonical field name. {@code @JsonAlias} handles older server versions. */
@@ -34,30 +38,6 @@ public final class StartResponse {
 
     private String agentName;
 
-    private List<String> requiredWorkers;
-
-    public StartResponse() {}
-
-    /** Conductor workflow ID for this execution, or {@code null} for deploy-only calls. */
-    public String getExecutionId() {
-        return executionId;
-    }
-
-    /** The registered workflow name on the server. */
-    public String getAgentName() {
-        return agentName;
-    }
-
-    /**
-     * Task type names the SDK must have workers polling before the agent can progress.
-     * Handled automatically by the runtime.
-     */
-    public List<String> getRequiredWorkers() {
-        return requiredWorkers != null ? requiredWorkers : Collections.emptyList();
-    }
-
-    @Override
-    public String toString() {
-        return "StartResponse{executionId=" + executionId + ", agentName=" + agentName + "}";
-    }
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    private List<String> requiredWorkers = Collections.emptyList();
 }

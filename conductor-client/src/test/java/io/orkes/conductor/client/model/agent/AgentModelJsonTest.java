@@ -96,4 +96,17 @@ public class AgentModelJsonTest {
         assertEquals("legacy-execution", response.getExecutionId());
         assertEquals("researcher", response.getAgentName());
     }
+
+    @Test
+    public void serializesRespondBodyThroughLombokGeneratedAccessors() {
+        JsonNode approval = objectMapper.valueToTree(RespondBody.approve("looks good"));
+        JsonNode custom = objectMapper.valueToTree(RespondBody.of(Map.of("selected", "writer")));
+
+        assertEquals(objectMapper.createObjectNode()
+                        .put("approved", true)
+                        .put("reason", "looks good"),
+                approval);
+        assertEquals(objectMapper.createObjectNode().put("selected", "writer"), custom);
+        assertFalse(custom.has("extraFields"));
+    }
 }

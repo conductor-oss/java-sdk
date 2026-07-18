@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import lombok.Data;
 
 /**
  * Response from {@code POST /api/agent/compile}.
@@ -24,30 +27,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p>Returned by the agent runtime's {@code plan(Agent)}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public final class CompileResponse {
 
-    private Map<String, Object> workflowDef;
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    private Map<String, Object> workflowDef = Collections.emptyMap();
 
-    private List<String> requiredWorkers;
-
-    public CompileResponse() {}
-
-    /** The compiled Conductor workflow definition. */
-    public Map<String, Object> getWorkflowDef() {
-        return workflowDef != null ? workflowDef : Collections.emptyMap();
-    }
-
-    /**
-     * Task type names the SDK must register local workers for before the agent
-     * can make progress. The SDK handles this automatically inside
-     * {@code AgentRuntime#run}.
-     */
-    public List<String> getRequiredWorkers() {
-        return requiredWorkers != null ? requiredWorkers : Collections.emptyList();
-    }
-
-    @Override
-    public String toString() {
-        return "CompileResponse{requiredWorkers=" + getRequiredWorkers() + "}";
-    }
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    private List<String> requiredWorkers = Collections.emptyList();
 }
