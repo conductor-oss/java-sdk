@@ -148,7 +148,7 @@ public class Example38TechTrends {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .timeout(Duration.ofSeconds(10))
-            .header("User-Agent", "agentspan-java-example/1.0")
+            .header("User-Agent", "conductor-java-example/1.0")
             .GET()
             .build();
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()).body();

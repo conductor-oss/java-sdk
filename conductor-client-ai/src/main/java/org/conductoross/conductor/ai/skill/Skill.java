@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import org.conductoross.conductor.ai.Agent;
 
 /**
- * Load an Agent Skills directory as an Agentspan Agent.
+ * Load an Agent Skills directory as a Conductor Agent.
  *
  * <p>A skill directory must contain a {@code SKILL.md} file with YAML frontmatter (including a
  * {@code name} field) followed by the skill body. Optionally it may contain {@code *-agent.md}

@@ -166,7 +166,7 @@ See [Guardrails](guardrails.md).
 
 ### Credentials
 
-Declare which secrets the agent's tools require. The SDK fetches them from the Agentspan secrets store at runtime and injects them into tool context.
+Declare which secrets the agent's tools require. The SDK receives them from the Conductor secrets store at runtime and injects them into tool context.
 
 ```java
 Agent agent = Agent.builder()
@@ -256,7 +256,7 @@ try (AgentRuntime runtime = new AgentRuntime()) {
 | `deploy(Agent...)` | `List<DeploymentInfo>` | Register workflow definitions without running them. |
 | `serve(Agent...)` | `void` | Long-running worker mode — keeps polling indefinitely. |
 | `resume(executionId, agent)` | `AgentHandle` | Resume a suspended execution. |
-| `schedules()` | `Schedules` | Access the scheduling API. |
+| `getSchedulerClient()` | `SchedulerClient` | Access typed workflow-scheduling APIs. |
 
 ### AgentResult
 

@@ -34,6 +34,11 @@ import com.google.adk.tools.FunctionTool;
  */
 public class Example19SupplyChain {
 
+    @Schema(description = "List all the warehouses")
+    public static List<String> listWarehouses() {
+        return List.of("east","west");
+    }
+
     @Schema(description = "Get current inventory levels at a warehouse.")
     public static Map<String, Object> getInventoryLevels(
             @Schema(name = "warehouse", description = "Warehouse name") String warehouse) {
@@ -123,7 +128,8 @@ public class Example19SupplyChain {
             .instruction("Check inventory levels and supplier status. Flag items below reorder points.")
             .tools(
                 FunctionTool.create(Example19SupplyChain.class, "getInventoryLevels"),
-                FunctionTool.create(Example19SupplyChain.class, "checkSupplierStatus"))
+                FunctionTool.create(Example19SupplyChain.class, "checkSupplierStatus"),
+                FunctionTool.create(Example19SupplyChain.class, "listWarehouses"))
             .build();
 
         LlmAgent logisticsAgent = LlmAgent.builder()

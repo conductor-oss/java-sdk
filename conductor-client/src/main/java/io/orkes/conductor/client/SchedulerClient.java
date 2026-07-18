@@ -93,6 +93,19 @@ public interface SchedulerClient {
     void pauseSchedule(String name);
 
     /**
+     * Pauses a specific schedule and records an optional human-readable reason.
+     *
+     * <p>The default preserves source and binary compatibility for custom client
+     * implementations that only support pausing without a reason.
+     *
+     * @param name the name of the schedule to pause
+     * @param reason optional reason for pausing the schedule
+     */
+    default void pauseSchedule(String name, String reason) {
+        pauseSchedule(name);
+    }
+
+    /**
      * Resumes a paused schedule, allowing new workflow executions.
      *
      * @param name the name of the schedule to resume

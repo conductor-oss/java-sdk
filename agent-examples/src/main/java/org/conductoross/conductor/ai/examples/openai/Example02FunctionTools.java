@@ -29,19 +29,19 @@ import org.conductoross.conductor.ai.model.AgentResult;
  *
  * <p>Demonstrates: an OpenAI Agents SDK-style agent that calls multiple
  * function-tools (weather, calculator, population lookup). Each tool method
- * carries an Agentspan {@link Tool} annotation — the {@link OpenAIAgent}
- * reflection bridge wraps them as Agentspan worker tools.
+ * carries an Conductor {@link Tool} annotation — the {@link OpenAIAgent}
+ * reflection bridge wraps them as Conductor worker tools.
  *
  * <p>Note on annotation choice: the Python example uses
  * {@code @function_tool}; in Java the {@code OpenAIAgent} factory accepts
  * both {@code @org.conductoross.conductor.ai.annotations.Tool} and
- * {@code @dev.langchain4j.agent.tool.Tool}. We use the Agentspan annotation
+ * {@code @dev.langchain4j.agent.tool.Tool}. We use the Conductor annotation
  * here because LangChain4j is only a {@code compileOnly} SDK dependency.
  *
  * <p>Requirements:
  * <ul>
- *   <li>AGENTSPAN_SERVER_URL=http://localhost:6767/api</li>
- *   <li>AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767/api</li>
+ *   <li>CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini</li>
  * </ul>
  */
 public class Example02FunctionTools {

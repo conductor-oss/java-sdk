@@ -17,7 +17,7 @@ import json, os, re, sys, importlib.util, dataclasses
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
 SCHEMA = os.path.join(ROOT, "sdk/java/docs/agent-schema.json")
-MODEL_DIR = os.path.join(ROOT, "server/conductor-agentspan/src/main/java/dev/agentspan/runtime/model")
+MODEL_DIR = os.environ.get("CONDUCTOR_AGENT_MODEL_DIR", "")
 
 schema = json.load(open(SCHEMA))
 defs = schema["$defs"]
@@ -99,8 +99,11 @@ try:
 except ImportError:
     print("[b] skipped (pip install jsonschema to run)")
 
-# (c) every server AgentConfig field (root + nested) is present in the schema
+# (c) every server AgentConfig field (root + nested) is present in the schema.
+# Set CONDUCTOR_AGENT_MODEL_DIR to the server model source directory to enable this check.
 def server_fields(cls):
+    if not MODEL_DIR:
+        return None
     p = os.path.join(MODEL_DIR, cls + ".java")
     if not os.path.exists(p): return None
     src = open(p).read()

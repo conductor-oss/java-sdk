@@ -41,12 +41,12 @@ class AgentAutoConfigurationTest {
     @Test
     void wiresConfigAndRuntimeWithDefaults() {
         runner.run(ctx -> {
-            assertTrue(ctx.containsBean("agentspanConfig"), "AgentConfig bean must be present");
+            assertTrue(ctx.containsBean("conductorAgentConfig"), "AgentConfig bean must be present");
             assertTrue(ctx.containsBean("agentRuntime"), "AgentRuntime bean must be present");
 
-            // No agentspanConductorClient bean — ApiClient comes from conductor-client-spring.
+            // No agent-specific client bean — ApiClient comes from conductor-client-spring.
             assertFalse(
-                    ctx.containsBean("agentspanConductorClient"),
+                    ctx.containsBean("conductorAgentClient"),
                     "auto-config must NOT create its own ApiClient — "
                             + "that is OrkesConductorClientAutoConfiguration's job");
 
@@ -58,7 +58,7 @@ class AgentAutoConfigurationTest {
 
     @Test
     void respectsWorkerTuningProperties() {
-        runner.withPropertyValues("agentspan.worker-thread-count=4", "agentspan.worker-poll-interval-ms=250")
+        runner.withPropertyValues("conductor.agent.worker-thread-count=4", "conductor.agent.worker-poll-interval-ms=250")
                 .run(ctx -> {
                     AgentConfig config = ctx.getBean(AgentConfig.class);
                     assertEquals(4, config.getWorkerThreadCount());
@@ -68,9 +68,9 @@ class AgentAutoConfigurationTest {
 
     @Test
     void serverUrlPropertiesAreNotAccepted() {
-        // agentspan.server-url no longer exists — setting it must not cause an error
+        // conductor.agent.server-url does not exist — setting it must not cause an error
         // (Spring ignores unknown properties by default) and must not affect the client.
-        runner.withPropertyValues("agentspan.server-url=http://ignored:9090")
+        runner.withPropertyValues("conductor.agent.server-url=http://ignored:9090")
                 .run(ctx -> assertFalse(
                         ctx.getStartupFailure() != null, "unknown property must not break context startup"));
     }

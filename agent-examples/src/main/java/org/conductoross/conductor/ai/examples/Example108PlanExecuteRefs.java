@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.conductoross.conductor.ai.Agent;
-import org.conductoross.conductor.ai.AgentConfig;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.model.AgentResult;
@@ -32,6 +31,7 @@ import org.conductoross.conductor.ai.plans.Ref;
 import org.conductoross.conductor.ai.plans.Step;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 /**
  * 108 — Plan-Execute with cross-step output piping via {@link Ref}.
@@ -55,10 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Example108PlanExecuteRefs {
 
     private static final String MODEL =
-        System.getenv().getOrDefault("AGENTSPAN_LLM_MODEL", "anthropic/claude-sonnet-4-6");
-    private static final String BASE_URL =
-        System.getenv().getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:6767/api")
-            .replace("/api", "");
+        System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "anthropic/claude-sonnet-4-6");
 
     public static void main(String[] args) throws Exception {
         ToolDef produce = ToolDef.builder()
@@ -165,11 +162,7 @@ public class Example108PlanExecuteRefs {
                 .build())
             .build();
 
-        try (AgentRuntime runtime = new AgentRuntime(
-                io.orkes.conductor.client.ApiClient.builder()
-                        .basePath(BASE_URL + "/api")
-                        .build(),
-                new AgentConfig(100, 1))) {
+        try (AgentRuntime runtime = new AgentRuntime()) {
             AgentResult result = runtime.run(harness, "demo", plan);
             System.out.println("status=" + result.getStatus()
                 + " executionId=" + result.getExecutionId());
@@ -205,7 +198,9 @@ public class Example108PlanExecuteRefs {
             }
         }
     }
-
+    private static final String BASE_URL =
+            System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api")
+                    .replace("/api", "");
     @SuppressWarnings("unchecked")
     private static Map<String, Object> fetchWorkflow(
             HttpClient http, ObjectMapper mapper, String id) throws Exception {

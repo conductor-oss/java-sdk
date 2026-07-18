@@ -27,25 +27,25 @@ import org.conductoross.conductor.ai.model.GuardrailResult;
 import com.google.adk.agents.LlmAgent;
 
 /**
- * Example Adk 38 — Agentspan guardrails on a native ADK agent
+ * Example ADK 38 — Conductor guardrails on a native ADK agent
  *
  * <p>ADK itself doesn't ship a guardrail abstraction — its safety story is
  * {@code beforeModelCallback} returning a short-circuit response, which the
- * server doesn't yet compile into hook tasks (see Example23). Agentspan
+ * server doesn't yet compile into hook tasks (see Example23). Conductor
  * provides a separate, server-compiled guardrail mechanism that runs as a
  * Conductor task inside the agent's loop. This example shows how to attach
- * Agentspan guardrails to a pure ADK agent without giving up the drop-in
+ * Conductor guardrails to a pure ADK agent without giving up the drop-in
  * pattern.
  *
  * <p>Pattern:
  * <ol>
  *   <li>Build the native ADK {@link LlmAgent} exactly as you would for ADK.</li>
- *   <li>Hand it to {@link AdkBridge#agentBuilder} (NOT {@code toAgentspan} —
+ *   <li>Hand it to {@link AdkBridge#agentBuilder} (NOT {@code toConductor} —
  *       the builder variant lets you decorate before building).</li>
  *   <li>Attach a {@link GuardrailDef} with a validation function that
  *       returns {@link GuardrailResult#pass()}, {@link GuardrailResult#fail
  *       fail(message)}, or {@link GuardrailResult#fix fix(rewrittenOutput)}.</li>
- *   <li>{@link Agentspan#run} executes the agent with the guardrail running
+ *   <li>{@link AgentRuntime#run} executes the agent with the guardrail running
  *       server-side after each LLM turn; failures retry (up to
  *       {@code maxRetries}) or fix-substitute depending on {@link OnFail}.</li>
  * </ol>
@@ -54,7 +54,7 @@ import com.google.adk.agents.LlmAgent;
  * model's response using {@code OnFail.FIX} so the LLM doesn't have to
  * regenerate — the guardrail rewrites the output in place.
  */
-public class Example38AgentspanGuardrails {
+public class Example38ConductorGuardrails {
 
     private static final Pattern EMAIL = Pattern.compile(
             "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b");
@@ -101,10 +101,10 @@ public class Example38AgentspanGuardrails {
                 .position(Position.OUTPUT)
                 .onFail(OnFail.FIX)
                 .maxRetries(1)
-                .func(Example38AgentspanGuardrails::redactPii)
+                .func(Example38ConductorGuardrails::redactPii)
                 .build();
 
-        // Drop in the native ADK agent, then bolt Agentspan's server-side
+        // Drop in the native ADK agent, then bolt Conductor's server-side
         // guardrail onto the bridged builder before .build().
         Agent guarded = AdkBridge.agentBuilder(helper)
                 .guardrails(piiRedaction)

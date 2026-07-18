@@ -78,3 +78,20 @@ Agent agent = Agent.builder()
     .termination(either)
     .build();
 ```
+
+## Stopping a running execution
+
+Termination conditions are part of an agent definition. Operator-driven execution control uses
+`AgentClient` instead:
+
+```java
+// Graceful: finish the current iteration, then stop.
+agentClient.stopAgent(executionId);
+
+// Immediate: terminate now and record an optional reason.
+agentClient.cancelAgent(executionId, "Superseded by a newer run");
+```
+
+`stopAgent` sends `POST /agent/{id}/stop`. `cancelAgent` sends
+`DELETE /agent/{id}/cancel` and omits the `reason` query parameter when it is null or blank.
+See the [AgentClient reference](../agent-client-api.md#cancelagent).

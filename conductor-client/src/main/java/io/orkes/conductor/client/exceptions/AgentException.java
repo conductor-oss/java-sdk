@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Conductor Authors.
+ * Copyright 2026 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,16 +12,14 @@
  */
 package io.orkes.conductor.client.exceptions;
 
-/**
- * Base exception for all Agentspan SDK errors.
- */
-public class AgentspanException extends RuntimeException {
+/** Base exception for Conductor agent SDK errors. */
+public class AgentException extends RuntimeException {
 
-    public AgentspanException(String message) {
+    public AgentException(String message) {
         super(message);
     }
 
-    public AgentspanException(String message, Throwable cause) {
+    public AgentException(String message, Throwable cause) {
         super(message, cause);
     }
 }

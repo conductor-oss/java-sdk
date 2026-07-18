@@ -44,7 +44,7 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
  * here returns {@code leaseExtendEnabled() == true}). A handler that blocks for
  * minutes keeps its lease alive instead of being reclaimed and re-dispatched.
  *
- * <p>Agentspan registers workers incrementally (per run, sometimes under a
+ * <p>The agent runtime registers workers incrementally (per run, sometimes under a
  * per-execution domain), whereas a {@link TaskRunnerConfigurer} is built from a
  * fixed worker set. We bridge the two models by (re)building the configurer in
  * {@link #startAll()} whenever a <i>new</i> task type has been registered since
@@ -60,7 +60,7 @@ import com.netflix.conductor.common.metadata.tasks.TaskResult;
  *
  * <p>Credentials ride the {@code runtimeMetadata} contract (spec R6): declared
  * secret names are stamped on {@code TaskDef.runtimeMetadata} at registration;
- * a capable host (agentspan &gt; 0.4.2, conductor-oss PR #1255) resolves them at
+ * a capable Conductor OSS host (PR #1255) resolves them at
  * poll time and delivers the values on the wire-only
  * {@code Task.runtimeMetadata} map. There is no fetch call, no execution token,
  * and ambient process env is never read — a declared-but-undelivered name fails
@@ -169,6 +169,16 @@ public class WorkerManager {
 
     /** Visible for testing: the domain a task is currently registered under (or null). */
     String getTaskDomain(String taskName) {
+        return taskDomains.get(taskName);
+    }
+
+    /** Whether a handler has been registered for the supplied task type. */
+    public boolean isRegistered(String taskName) {
+        return handlers.containsKey(taskName);
+    }
+
+    /** Returns the worker domain assigned during registration, if any. */
+    public String getRegisteredTaskDomain(String taskName) {
         return taskDomains.get(taskName);
     }
 
@@ -331,7 +341,7 @@ public class WorkerManager {
 
             TaskRunnerConfigurer.Builder builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                     .withThreadCount(threadCount)
-                    .withWorkerNamePrefix("agentspan-worker-");
+                    .withWorkerNamePrefix("conductor-agent-worker-");
             if (!taskToDomain.isEmpty()) {
                 builder.withTaskToDomain(taskToDomain);
             }
@@ -421,7 +431,7 @@ public class WorkerManager {
                 result.setReasonForIncompletion("Missing credentials " + missing
                         + ": not delivered by the server on this task. Ensure each secret is stored and "
                         + "declared on the tool/agent, and that the server supports runtimeMetadata "
-                        + "delivery (agentspan > 0.4.2 / conductor-oss PR #1255).");
+                        + "delivery (Conductor OSS with PR #1255).");
                 return result;
             }
             resolvedSecrets = resolved;
@@ -440,7 +450,7 @@ public class WorkerManager {
                 Object out = handler.apply(inputData);
                 result.setStatus(TaskResult.Status.COMPLETED);
                 result.setOutputData(buildOutput(out));
-                logger.debug("Completed task {} ({})", taskName, task.getTaskId());
+                logger.trace("Completed task {} ({})", taskName, task.getTaskId());
             } finally {
                 CredentialContext.clear();
             }

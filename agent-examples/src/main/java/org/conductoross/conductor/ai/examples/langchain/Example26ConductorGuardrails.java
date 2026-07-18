@@ -27,25 +27,25 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 
 /**
- * Example LangChain 26 — Agentspan guardrails on a native LangChain4j agent.
+ * Example LangChain4j 26 — Conductor guardrails on a native LangChain4j agent.
  *
- * <p>LangChain4j has no built-in guardrail abstraction. Agentspan provides a
+ * <p>LangChain4j has no built-in guardrail abstraction. Conductor provides a
  * server-compiled guardrail mechanism that runs as a Conductor task inside the
  * agent's loop. This example attaches a PII-redaction guardrail to a pure
  * LangChain4j agent built from a native {@code ChatModel}.
  *
  * <p>Pattern (same as
- * {@code adk.Example38AgentspanGuardrails}):
+ * {@code adk.Example38ConductorGuardrails}):
  * <ol>
  *   <li>Build native LangChain4j {@code ChatModel}.</li>
  *   <li>Hand it to {@link LangChainBridge#agentBuilder} (the builder variant
  *       lets you decorate before building).</li>
  *   <li>Attach a {@link GuardrailDef} with {@link OnFail#FIX} so the
  *       guardrail rewrites the output in place.</li>
- *   <li>{@link Agentspan#run}.</li>
+ *   <li>{@link AgentRuntime#run}.</li>
  * </ol>
  */
-public class Example26AgentspanGuardrails {
+public class Example26ConductorGuardrails {
 
     private static final Pattern EMAIL = Pattern.compile(
             "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b");
@@ -64,10 +64,10 @@ public class Example26AgentspanGuardrails {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 
@@ -76,7 +76,7 @@ public class Example26AgentspanGuardrails {
                 .position(Position.OUTPUT)
                 .onFail(OnFail.FIX)
                 .maxRetries(1)
-                .func(Example26AgentspanGuardrails::redactPii)
+                .func(Example26ConductorGuardrails::redactPii)
                 .build();
 
         Agent guarded = LangChainBridge.agentBuilder(

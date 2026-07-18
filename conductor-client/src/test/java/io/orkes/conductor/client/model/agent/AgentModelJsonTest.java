@@ -95,6 +95,7 @@ public class AgentModelJsonTest {
                 .prompt("hello")
                 .sessionId("session-1")
                 .staticPlan(Map.of("step", 1))
+                .idempotencyKey("logical-run-123")
                 .timeoutSeconds(30)
                 .build();
 
@@ -105,9 +106,11 @@ public class AgentModelJsonTest {
         assertEquals("hello", json.get("prompt").asText());
         assertEquals("session-1", json.get("sessionId").asText());
         assertEquals(1, json.get("static_plan").get("step").asInt());
+        assertEquals("logical-run-123", json.get("idempotencyKey").asText());
         assertEquals(30, json.get("timeoutSeconds").asInt());
         assertFalse(json.has("staticPlan"));
         assertFalse(json.has("agentConfig"));
+        assertFalse(json.get("rawConfig").has("idempotencyKey"));
     }
 
     @Test

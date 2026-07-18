@@ -24,9 +24,9 @@ import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration;
 
 /**
- * Spring Boot auto-configuration for the Agentspan SDK.
+ * Spring Boot auto-configuration for the Conductor agent SDK.
  *
- * <p>This configuration wires two beans from {@code agentspan.*} properties:
+ * <p>This configuration wires two beans from {@code conductor.agent.*} properties:
  * <ul>
  *   <li>{@link AgentConfig} — worker-runner tuning (poll interval, thread count)</li>
  *   <li>{@link AgentRuntime} — the SDK entry point</li>
@@ -50,7 +50,7 @@ public class AgentAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AgentConfig agentspanConfig(AgentProperties props) {
+    public AgentConfig conductorAgentConfig(AgentProperties props) {
         return new AgentConfig(props.getWorkerPollIntervalMs(), props.getWorkerThreadCount());
     }
 

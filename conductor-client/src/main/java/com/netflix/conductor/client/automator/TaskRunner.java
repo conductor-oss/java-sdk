@@ -290,7 +290,7 @@ class TaskRunner {
             permits.release(pollCount - tasks.size());        //release extra permits
             stopwatch.stop();
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-            LOGGER.debug("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
+            LOGGER.trace("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
             eventDispatcher.publish(new PollCompleted(taskType, elapsed));
         } catch (Throwable e) {
             permits.release(pollCount - tasks.size());

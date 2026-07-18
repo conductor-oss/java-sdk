@@ -17,29 +17,29 @@ package org.conductoross.conductor.ai.examples;
  *
  * <p>Set these before running examples:
  * <pre>
- * export AGENTSPAN_SERVER_URL=http://localhost:6767/api
- * export AGENTSPAN_LLM_MODEL=openai/gpt-4o
- * export AGENTSPAN_AUTH_KEY=your-key       # optional
- * export AGENTSPAN_AUTH_SECRET=your-secret # optional
+ * export CONDUCTOR_SERVER_URL=http://localhost:6767/api
+ * export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o
+ * export CONDUCTOR_AUTH_KEY=your-key       # optional
+ * export CONDUCTOR_AUTH_SECRET=your-secret # optional
  * </pre>
  */
 public class Settings {
     private static final java.util.Map<String, String> ENV = System.getenv();
 
     public static final String SERVER_URL =
-        ENV.getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:6767/api");
+        ENV.getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:6767/api");
 
     public static final String LLM_MODEL =
-        ENV.getOrDefault("AGENTSPAN_LLM_MODEL", "openai/gpt-4o");
+        ENV.getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-4o");
 
     public static final String SECONDARY_LLM_MODEL =
-        ENV.getOrDefault("AGENT_SECONDARY_LLM_MODEL", "anthropic/claude-sonnet-4-6");
+        ENV.getOrDefault("AGENT_SECONDARY_LLM_MODEL", "openai/gpt-4o");
 
     public static final String AUTH_KEY =
-        ENV.get("AGENTSPAN_AUTH_KEY");
+        ENV.get("CONDUCTOR_AUTH_KEY");
 
     public static final String AUTH_SECRET =
-        ENV.get("AGENTSPAN_AUTH_SECRET");
+        ENV.get("CONDUCTOR_AUTH_SECRET");
 
     private Settings() {}
 }

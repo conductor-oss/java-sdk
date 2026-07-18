@@ -39,15 +39,15 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 public abstract class BaseTest {
 
-    /** API URL for the Agentspan server (includes /api suffix). */
+    /** API URL for the Conductor server (includes /api suffix). */
     protected static final String SERVER_URL =
-            System.getenv().getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:8080/api");
+            System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
 
     /** Base URL (without /api) for health checks and workflow fetches. */
     protected static final String BASE_URL = SERVER_URL.replace("/api", "");
 
     /** LLM model to use in e2e tests. */
-    protected static final String MODEL = System.getenv().getOrDefault("AGENTSPAN_LLM_MODEL", "openai/gpt-4o-mini");
+    protected static final String MODEL = System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-4o-mini");
 
     private static final HttpClient HTTP_CLIENT =
             HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();

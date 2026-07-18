@@ -30,9 +30,8 @@ workers or start anything. Idempotent — safe to call on every startup.
 ```java
 List<DeploymentInfo> infos = runtime.deploy(agentA, agentB);
 
-// Deploy + reconcile cron schedules in one call (see Scheduling):
-runtime.deploy(agent, List.of(
-    Schedule.builder().name("daily").cron("0 9 * * *").build()));
+// Schedule deployment is explicit through the typed SchedulerClient.
+runtime.deploy(agent);
 ```
 
 ## serve — run the workers
@@ -47,6 +46,21 @@ runtime.serve(agentA, agentB);   // blocks until the process is killed
 
 A typical production split: one process calls `deploy(...)` at release time; one or more worker
 processes call `serve(...)`; executions are triggered by schedules or API.
+
+An external service can start the deployed definition directly through the low-level control-plane
+client without serializing or redeploying it:
+
+```java
+AgentClient agents = new OrkesClients(conductorClient).getAgentClient();
+StartResponse started = agents.startAgent(
+    AgentRequest.deployedAgent("researcher", 3)
+        .prompt("Summarize today's incidents")
+        .build());
+System.out.println(started.getExecutionId());
+```
+
+See [AgentClient](../agent-client-api.md#startagent) for deployed, native-inline, and framework
+request forms.
 
 ## run — register, start, and wait
 

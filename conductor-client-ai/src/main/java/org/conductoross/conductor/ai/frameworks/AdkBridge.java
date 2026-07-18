@@ -47,7 +47,7 @@ import com.google.genai.types.Schema;
 
 /**
  * Adapter that takes a native Google ADK {@link BaseAgent} and produces an
- * Agentspan {@link Agent} configured so the durable Agentspan runtime can
+ * Conductor {@link Agent} configured so the durable agent runtime can
  * execute the agent server-side.
  *
  * <p>This bridge extracts every field the server's
@@ -74,7 +74,7 @@ import com.google.genai.types.Schema;
  * </ul>
  *
  * <p>Symmetry with the Python {@code google.adk} serializer in
- * {@code sdk/python/src/agentspan/agents/frameworks/serializer.py} — both walk
+ * {@code sdk/python/src/agent_sdk/frameworks/serializer.py} — both walk
  * the native agent tree and emit the same wire shape consumed by the server's
  * {@code GoogleADKNormalizer}.
  */
@@ -99,15 +99,15 @@ public final class AdkBridge {
     /**
      * Convert any native ADK {@link BaseAgent} ({@code LlmAgent},
      * {@code SequentialAgent}, {@code ParallelAgent}, {@code LoopAgent}, …)
-     * into an Agentspan {@link Agent} ready for {@code runtime.run(...)}.
+     * into a Conductor {@link Agent} ready for {@code runtime.run(...)}.
      */
-    public static Agent toAgentspan(BaseAgent adk) {
+    public static Agent toConductor(BaseAgent adk) {
         return agentBuilder(adk).build();
     }
 
     /**
-     * Same as {@link #toAgentspan} but returns the populated
-     * {@link Agent.Builder} so callers can attach Agentspan-only features
+     * Same as {@link #toConductor} but returns the populated
+     * {@link Agent.Builder} so callers can attach Conductor-specific features
      * (guardrails, gate, termination conditions, callbacks, …) on top of a
      * native ADK agent before building.
      *
@@ -125,7 +125,7 @@ public final class AdkBridge {
         return agentBuilder(adk, new java.util.IdentityHashMap<>());
     }
 
-    private static Agent toAgentspan(BaseAgent adk, java.util.IdentityHashMap<BaseAgent, Boolean> visited) {
+    private static Agent toConductor(BaseAgent adk, java.util.IdentityHashMap<BaseAgent, Boolean> visited) {
         return agentBuilder(adk, visited).build();
     }
 
@@ -137,7 +137,7 @@ public final class AdkBridge {
 
         Agent.Builder b = Agent.builder().name(adk.name()).framework("google_adk");
 
-        // Model + instruction live at the Agentspan top level so the
+        // Model + instruction live at the Conductor agent top level so the
         // worker poller / debug tools see them directly. Everything else
         // goes into frameworkConfig (flattened by AgentConfigSerializer into
         // the rawConfig the server consumes).
@@ -155,13 +155,13 @@ public final class AdkBridge {
         // sub_agents Map list below.
         List<Agent> subAgentChildren = new ArrayList<>();
         for (BaseAgent sub : safeSubAgents(adk)) {
-            subAgentChildren.add(toAgentspan(sub, visited));
+            subAgentChildren.add(toConductor(sub, visited));
         }
         if (!subAgentChildren.isEmpty()) {
             b.agents(subAgentChildren.toArray(new Agent[0]));
         }
 
-        // Callbacks: wrap ADK callbacks as an Agentspan CallbackHandler so the
+        // Callbacks: wrap ADK callbacks as a Conductor CallbackHandler so the
         // runtime registers worker handlers and the server schedules hook tasks
         // at the right positions. Best-effort — contexts are stubbed; see
         // wrapCallbacks() for the constraint matrix.
@@ -273,7 +273,7 @@ public final class AdkBridge {
 
             // Callbacks: emit `_worker_ref` placeholders for each non-empty
             // callback list. The matching CallbackHandler attached on the
-            // Agent.Builder (see toAgentspan) registers the local worker so
+            // Agent.Builder (see toConductor) registers the local worker so
             // any server-scheduled hook task lands somewhere.
             //
             // KNOWN SERVER LIMITATION (matches Python — see python ADK
@@ -335,7 +335,7 @@ public final class AdkBridge {
 
     /**
      * Top-level tools — extracted from {@code LlmAgent.tools()} and wrapped as
-     * {@link ToolDef} so the Agentspan worker poller registers handlers AND
+     * {@link ToolDef} so the Conductor worker poller registers handlers AND
      * the serializer emits the expected {@code _worker_ref} / {@code _type:
      * AgentTool} wire shape.
      */
@@ -482,9 +482,9 @@ public final class AdkBridge {
 
     private static ToolDef agentToolToDef(AgentTool at, java.util.IdentityHashMap<BaseAgent, Boolean> visited) {
         BaseAgent inner = at.getAgent();
-        Agent childAgent = toAgentspan(inner, visited);
+        Agent childAgent = toConductor(inner, visited);
         // AgentTool produces an empty input schema in ADK by default; the
-        // Agentspan serializer's AgentTool path builds a stock {request:
+        // The Conductor serializer's AgentTool path builds a stock {request:
         // string} schema for us.
         return new ToolDef.Builder()
                 .name(at.name())
@@ -657,7 +657,7 @@ public final class AdkBridge {
 
     /**
      * Wrap any ADK callbacks attached to {@code llm} as a single
-     * {@link CallbackHandler} that the Agentspan runtime can dispatch to.
+     * {@link CallbackHandler} that the Conductor agent runtime can dispatch to.
      *
      * <p>Returns {@code null} if no callbacks are attached.
      *

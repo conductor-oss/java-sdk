@@ -27,7 +27,7 @@ import org.conductoross.conductor.ai.model.ToolContext;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.junit.jupiter.api.*;
 
-import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.exceptions.AgentException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * {@code Task.runtimeMetadata}. This is the test that would catch stamp drift,
  * fail-open regressions in {@code WorkerManager}, or any future "tool gets the
  * wrong value" bug. A capability probe skips the suite on servers that drop the
- * field (agentspan ≤ 0.4.2) — those failures would be the server's, not the SDK's.</p>
+ * field on servers without Conductor OSS PR #1255 — those failures would be the server's, not the SDK's.</p>
  */
 @Tag("e2e")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -92,7 +92,7 @@ class Suite2ToolCallingCredentials extends BaseTest {
 
     /**
      * Register a probe TaskDef with {@code runtimeMetadata} and read it back —
-     * servers without conductor-oss PR #1255 (agentspan ≤ 0.4.2) silently drop
+     * servers without conductor-oss PR #1255 silently drop
      * the field, and every wire-delivery assertion below would then fail for a
      * server reason, not an SDK one.
      */
@@ -126,8 +126,8 @@ class Suite2ToolCallingCredentials extends BaseTest {
                 readBack != null
                         && readBack.getRuntimeMetadata() != null
                         && readBack.getRuntimeMetadata().contains("E2E_PROBE_SECRET"),
-                "Server does not persist TaskDef.runtimeMetadata (needs agentspan > 0.4.2 / "
-                        + "conductor-oss PR #1255) — skipping credential wire-delivery suite");
+                "Server does not persist TaskDef.runtimeMetadata (needs Conductor OSS PR #1255) "
+                        + "— skipping credential wire-delivery suite");
     }
 
     @AfterAll
@@ -285,11 +285,11 @@ class Suite2ToolCallingCredentials extends BaseTest {
                 // set/update lifecycle steps cannot run (a server-flavor
                 // capability, not an SDK regression). The fail-closed steps
                 // still run everywhere; the full lifecycle runs on the
-                // writable-store (agentspan) flavor.
+                // writable-store flavor.
                 Assumptions.assumeFalse(
                         resp.body() != null && resp.body().contains("read-only"),
                         "server secret store is read-only (env-backed) — skipping write-dependent step");
-                throw new AgentspanException(
+                throw new AgentException(
                         "PUT /api/secrets/" + name + " failed: HTTP " + resp.statusCode() + " " + resp.body());
             }
         } catch (org.opentest4j.TestAbortedException skip) {

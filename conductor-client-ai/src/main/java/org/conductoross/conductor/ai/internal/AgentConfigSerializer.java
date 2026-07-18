@@ -120,7 +120,7 @@ public class AgentConfigSerializer {
                 map.put("tools", toolsList);
             }
             // Guardrails — emit so framework normalizers can preserve
-            // Agentspan-side safety hooks. Without this, attaching
+            // Server-side safety hooks. Without this, attaching
             // .guardrails(...) to a bridged ADK / OpenAI agent silently
             // drops them at the wire layer.
             if (agent.getGuardrails() != null && !agent.getGuardrails().isEmpty()) {

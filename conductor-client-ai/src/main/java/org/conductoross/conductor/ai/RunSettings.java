@@ -16,13 +16,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Per-invocation LLM overrides applied on top of an {@link Agent}'s settings.
+ * Per-invocation settings applied when an {@link Agent} is executed.
  *
  * <p>Pass to {@code run}/{@code start}/{@code stream} (and their async
- * variants). Only non-{@code null} fields override the agent; everything else
- * is left as the agent defined it. Overrides mutate the serialized <b>root</b>
- * agent config before compile+register+start, so they flow into the LLM tasks
- * without a new server field — sub-agents keep their own settings.
+ * variants). LLM fields override the serialized <b>root</b> agent config before
+ * compile+register+start, while execution metadata such as {@link
+ * #idempotencyKey(String)} is sent at the top level of the start request.
+ * Unset fields leave the agent and request unchanged; sub-agents keep their own
+ * settings.
  *
  * <p>Example:
  * <pre>{@code
@@ -39,6 +40,7 @@ public class RunSettings {
     private Integer maxTokens;
     private String reasoningEffort;
     private Integer thinkingBudgetTokens;
+    private String idempotencyKey;
 
     /** Provider/model id (e.g. {@code "openai/gpt-4o"}). */
     public RunSettings model(String model) {
@@ -70,6 +72,16 @@ public class RunSettings {
         return this;
     }
 
+    /**
+     * Stable key used by the server to deduplicate starts of the same logical
+     * execution. The runtime omits {@code null}, empty, and whitespace-only
+     * values; it never generates a key automatically.
+     */
+    public RunSettings idempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+        return this;
+    }
+
     public String getModel() {
         return model;
     }
@@ -90,11 +102,16 @@ public class RunSettings {
         return thinkingBudgetTokens;
     }
 
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
     /**
-     * Map the set fields to {@code agentConfig} wire keys — mirrors the Python
-     * SDK's {@code RunSettings.to_config_overrides} so wire-key names match
-     * across SDKs. Uses {@code != null} so {@code temperature(0.0)} and
-     * {@code maxTokens(0)} are honored.
+     * Map only the LLM override fields to {@code agentConfig} wire keys —
+     * mirrors the Python SDK's {@code RunSettings.to_config_overrides} so
+     * wire-key names match across SDKs. Execution metadata such as the
+     * idempotency key is deliberately excluded. Uses {@code != null} so
+     * {@code temperature(0.0)} and {@code maxTokens(0)} are honored.
      */
     public Map<String, Object> toConfigOverrides() {
         Map<String, Object> overrides = new LinkedHashMap<>();

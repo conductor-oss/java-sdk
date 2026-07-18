@@ -25,7 +25,7 @@ import org.conductoross.conductor.ai.internal.ToolRegistry;
 import org.conductoross.conductor.ai.model.ToolDef;
 
 /**
- * Bridges LangChain4j tool objects to Agentspan {@link Agent}.
+ * Bridges LangChain4j tool objects to Conductor {@link Agent}.
  *
  * <p>Users who have existing POJOs annotated with
  * {@code @dev.langchain4j.agent.tool.Tool} can hand them directly to
@@ -55,13 +55,13 @@ public class LangChain4jAgent {
     // ── Public API ───────────────────────────────────────────────────────────
 
     /**
-     * Create an Agentspan {@link Agent} from one or more LangChain4j tool objects.
+     * Create a Conductor {@link Agent} from one or more LangChain4j tool objects.
      *
      * @param name         agent name (must match {@code ^[a-zA-Z_][a-zA-Z0-9_-]*$})
      * @param model        LLM model string, e.g. {@code "anthropic/claude-sonnet-4-6"}
      * @param instructions system prompt / instructions for the agent
      * @param toolObjects  objects with {@code @dev.langchain4j.agent.tool.Tool} methods
-     * @return an Agentspan Agent ready to pass to
+     * @return a Conductor Agent ready to pass to
      *         {@link org.conductoross.conductor.ai.AgentRuntime#plan(Agent)} or
      *         {@link org.conductoross.conductor.ai.AgentRuntime#run(Agent, String)}
      */
@@ -99,7 +99,7 @@ public class LangChain4jAgent {
     // ── Package-private helpers (visible to tests) ───────────────────────────
 
     /**
-     * Extract Agentspan {@link ToolDef} objects from an array of LangChain4j
+     * Extract Conductor {@link ToolDef} objects from an array of LangChain4j
      * {@code @Tool}-annotated objects.
      *
      * @param toolObjects objects to inspect via reflection

@@ -75,7 +75,7 @@ public class LocalCodeExecutor extends CodeExecutor {
 
         Path tempFile = null;
         try {
-            tempFile = Files.createTempFile("agentspan_code_", fileExtension(language));
+            tempFile = Files.createTempFile("conductor_agent_code_", fileExtension(language));
             Files.writeString(tempFile, code);
 
             List<String> command = new ArrayList<>(interpreter);

@@ -63,7 +63,7 @@ public final class ServerLivenessMonitor implements AutoCloseable {
 
     /** Start the background check thread (no-op transport errors, see class doc). */
     public void start() {
-        Thread t = new Thread(this::loop, "agentspan-liveness-" + executionId);
+        Thread t = new Thread(this::loop, "conductor-agent-liveness-" + executionId);
         t.setDaemon(daemon);
         t.start();
         thread = t;

@@ -32,31 +32,28 @@ If you find [Conductor](https://github.com/conductor-oss/conductor) useful, plea
 <!-- TOC -->
 
 
+## Install Conductor CLI
+```shell
+npm install -g @conductor-oss/conductor-cli
+``` 
+> [!TIP]
+> Alternatively, you can use a hosted Conductor at https://developer.orkescloud.com/
+
 ## Start Conductor server
 
 If you don't already have a Conductor server running, pick one:
-
-**Docker (recommended, includes UI):**
-
 ```shell
-docker run -p 8080:8080 conductoross/conductor:latest
-```
-The UI will be available at `http://localhost:8080` and the API at `http://localhost:8080/api`
-
-**MacOS / Linux (one-liner):** (If you don't want to use docker, you can install and run the binary directly)
-```shell
-curl -sSL https://raw.githubusercontent.com/conductor-oss/conductor/main/conductor_server.sh | sh
-```
-
-**Conductor CLI**
-```shell
-# Installs conductor cli
-npm install -g @conductor-oss/conductor-cli
-
-# Start the open source conductor server
+# Use CLI to start the server -- recommended
+# use --help for all the options including port override
 conductor server start
-# see conductor server --help for all the available commands
+
+# Alternatively, if you prefer to use docker use:
+# docker run -p 8080:8080 conductoross/conductor:latest
+
+# And if you really want, you can install and download binaries to run locally
+# curl -sSL https://raw.githubusercontent.com/conductor-oss/conductor/main/conductor_server.sh | sh
 ```
+Once the server starts, navigate to http://localhost:8080/ for the UI
 
 ## Install the SDK
 
@@ -66,10 +63,10 @@ The SDK requires Java 17+. Add the following dependency to your project:
 
 ```gradle
 dependencies {
-    implementation 'org.conductoross:conductor-client:5.0.0'
+    implementation 'org.conductoross:conductor-client:<VERSION>'
 
     // Optionally, you can also add spring module for auto configuration
-    // implementation 'org.conductoross:conductor-client-spring:5.0.0'
+    // implementation 'org.conductoross:conductor-client-spring:<VERSION>'
 }
 ```
 
@@ -79,7 +76,7 @@ dependencies {
 <dependency>
     <groupId>org.conductoross</groupId>
     <artifactId>conductor-client</artifactId>
-    <version>5.0.0</version>
+    <version>VERSION</version>
 </dependency>
 ```
 *Optionally, you can also add spring module for auto configuration*
@@ -87,10 +84,10 @@ dependencies {
 <dependency>
     <groupId>org.conductoross</groupId>
     <artifactId>conductor-client-spring</artifactId>
-    <version>5.0.0</version>
+    <version>VERSION</version>
 </dependency>
 ```
-
+**For the latest release version, see https://github.com/conductor-oss/java-sdk/releases**
 
 ## 60-Second Quickstart
 
@@ -445,7 +442,7 @@ Conductor supports AI-native workflows including agentic tool calling, RAG pipel
 
 **Durable AI Agents**
 
-The `conductor-client-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-client-ai-spring` and 150+ runnable examples in `agent-examples`. Start with the [agent docs](docs/agents/index.md).
+The `conductor-client-ai` module is a full agent SDK on top of Conductor: `Agent`, `AgentRuntime`, `@Tool` functions, guardrails, handoffs, and multi-agent strategies, with Spring Boot auto-configuration in `conductor-client-ai-spring` and 150+ runnable examples in `agent-examples`. Start with the [agent docs](docs/agents/index.md), or use the low-level [AgentClient control-plane API](docs/agents/agent-client-api.md) to start deployed agents and stop or cancel executions.
 
 **Agentic Workflows**
 

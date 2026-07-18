@@ -15,6 +15,7 @@ package io.orkes.conductor.client.http;
 import java.util.List;
 import java.util.Map;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientRequest.Method;
@@ -104,13 +105,24 @@ public class SchedulerResource {
     }
 
     public void pauseSchedule(String name) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        pauseSchedule(name, null);
+    }
+
+    public void pauseSchedule(String name, String reason) {
+        ConductorClientRequest getRequest = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/scheduler/schedules/{name}/pause")
                 .addPathParam("name", name)
+                .addQueryParam("reason", reason)
+                .build();
+        ConductorClientRequest putRequest = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/scheduler/schedules/{name}/pause")
+                .addPathParam("name", name)
+                .addQueryParam("reason", reason)
                 .build();
 
-        client.execute(request);
+        executeGetThenPutOnMethodNotAllowed(getRequest, putRequest);
     }
 
     public Map<String, Object> requeueAllExecutionRecords() {
@@ -138,13 +150,35 @@ public class SchedulerResource {
     }
 
     public void resumeSchedule(String name) {
-        ConductorClientRequest request = ConductorClientRequest.builder()
+        ConductorClientRequest getRequest = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/scheduler/schedules/{name}/resume")
                 .addPathParam("name", name)
                 .build();
+        ConductorClientRequest putRequest = ConductorClientRequest.builder()
+                .method(Method.PUT)
+                .path("/scheduler/schedules/{name}/resume")
+                .addPathParam("name", name)
+                .build();
 
-        client.execute(request);
+        executeGetThenPutOnMethodNotAllowed(getRequest, putRequest);
+    }
+
+    /**
+     * Enterprise scheduler endpoints accept GET while OSS accepts PUT. Retry only
+     * a method-not-allowed response so application and authentication failures
+     * retain their original behavior.
+     */
+    private void executeGetThenPutOnMethodNotAllowed(
+            ConductorClientRequest getRequest, ConductorClientRequest putRequest) {
+        try {
+            client.execute(getRequest);
+        } catch (ConductorClientException e) {
+            if (e.getStatus() != 405) {
+                throw e;
+            }
+            client.execute(putRequest);
+        }
     }
 
     public void saveSchedule(SaveScheduleRequest saveScheduleRequest) {

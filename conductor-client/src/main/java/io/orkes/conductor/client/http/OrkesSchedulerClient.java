@@ -64,7 +64,12 @@ public class OrkesSchedulerClient implements SchedulerClient {
 
     @Override
     public void pauseSchedule(String name) {
-        schedulerResource.pauseSchedule(name);
+        pauseSchedule(name, null);
+    }
+
+    @Override
+    public void pauseSchedule(String name, String reason) {
+        schedulerResource.pauseSchedule(name, reason);
     }
 
     @Override

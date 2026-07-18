@@ -42,7 +42,7 @@ import org.conductoross.conductor.ai.tools.AgentTool;
  *
  * <p>To trigger condensation, add to server's {@code application.properties}:
  * <pre>
- *   agentspan.default-context-window=10000
+ *   conductor.default-context-window=10000
  * </pre>
  */
 public class Example68ContextCondensation {

@@ -2,7 +2,7 @@ name: Agent E2E
 
 # Runs the agent e2e suites (e2e/) against the Conductor OSS
 # server boot JAR (Maven Central) — the server this SDK ships against, with
-# the agent runtime on by default from 3.32.0-rc.8 onward. The Agentspan
+# the agent runtime on by default from 3.32.0-rc.8 onward. A separate agent
 # server JAR is no longer used here.
 #
 # These tests call real LLMs via the OPENAI_API_KEY / ANTHROPIC_API_KEY
@@ -30,7 +30,7 @@ jobs:
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      AGENTSPAN_SERVER_URL: http://localhost:8080/api
+      CONDUCTOR_SERVER_URL: http://localhost:8080/api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

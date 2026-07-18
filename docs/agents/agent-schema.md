@@ -18,9 +18,9 @@ is the reconciliation of three sources:
 
 | Source | File |
 |---|---|
-| Server model (deserialization target) | `server/conductor-agentspan/src/main/java/dev/agentspan/runtime/model/AgentConfig.java` (+ nested `*Config` models) |
+| Server model (deserialization target) | Conductor server `AgentConfig` model (+ nested `*Config` models) |
 | Java SDK emit | `conductor-client-ai/src/main/java/org/conductoross/conductor/ai/internal/AgentConfigSerializer.java` |
-| Python SDK emit | `sdk/python/src/agentspan/agents/config_serializer.py` |
+| Python SDK emit | Python agent SDK `config_serializer.py` |
 
 ## Proof of correctness
 

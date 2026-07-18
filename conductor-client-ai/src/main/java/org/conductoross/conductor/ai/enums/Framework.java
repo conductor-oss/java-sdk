@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  *
  * <p>The server routes each framework through a matching {@code AgentConfigNormalizer}
  * before compilation. Every value here corresponds to a {@code frameworkId()} in the
- * server's normalizer registry. Native Agentspan agents have no framework — their
+ * server's normalizer registry. Native Conductor agents have no framework — their
  * config is sent as {@code agentConfig}.
  *
  * <p>Known server normalizers and their IDs:

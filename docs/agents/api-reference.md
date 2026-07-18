@@ -1,6 +1,6 @@
 # API Reference
 
-Complete method signatures for the Agentspan Java SDK public API.
+Complete method signatures for the Conductor Java Agent SDK public API.
 
 ## AgentRuntime
 
@@ -17,7 +17,7 @@ AgentRuntime(ApiClient client, AgentConfig config)
 Build the `ApiClient` with its own builder (construction lives in the client
 layer): `ApiClient.builder().basePath("http://host:8080/api").credentials(key, secret).build()`,
 or `ApiClient.builder().useEnvVariables(true).build()` for the
-`CONDUCTOR_SERVER_URL` → `AGENTSPAN_SERVER_URL` → `http://localhost:8080/api` chain.
+`CONDUCTOR_SERVER_URL` → `http://localhost:8080/api` chain.
 
 ### Run
 
@@ -49,7 +49,6 @@ CompletableFuture<AgentStream>  streamAsync(Agent agent, String prompt)
 ```java
 CompileResponse            plan(Agent agent)                    // compile only, no run
 List<DeploymentInfo>       deploy(Agent... agents)
-DeploymentInfo             deploy(Agent agent, List<Schedule> schedules)
 CompletableFuture<List<DeploymentInfo>>  deployAsync(Agent... agents)
 void                       serve(Agent... agents)               // blocks indefinitely
 ```
@@ -59,7 +58,7 @@ void                       serve(Agent... agents)               // blocks indefi
 ```java
 AgentHandle                         resume(String executionId, Agent agent)
 CompletableFuture<AgentHandle>      resumeAsync(String executionId, Agent agent)
-Schedules                           schedules()
+SchedulerClient                     getSchedulerClient()
 ```
 
 ### Lifecycle
@@ -68,6 +67,43 @@ Schedules                           schedules()
 void  shutdown()      // stop workers, release HTTP connections
 void  close()         // alias for shutdown(); implements AutoCloseable
 ```
+
+---
+
+## AgentClient control plane
+
+Low-level access to `/api/agent/*`. Obtain it from
+`new OrkesClients(conductorClient).getAgentClient()`. See the complete
+[AgentClient reference](agent-client-api.md) for wire shapes and error mapping.
+
+```java
+CompileResponse     compileAgent(AgentRequest request)
+StartResponse       deployAgent(AgentRequest request)
+StartResponse       startAgent(AgentRequest request)
+AgentStatusResponse getAgentStatus(String executionId)
+Map<String,Object>  getExecution(String executionId)
+Map<String,Object>  listExecutions(Map<String,Object> params)
+void                respond(String executionId, RespondBody body)
+void                cancelAgent(String executionId, String reason)  // immediate DELETE
+void                stopAgent(String executionId)                    // graceful POST
+void                signalAgent(String executionId, String message)
+SseClient           streamSse(String executionId, String lastEventId)
+```
+
+`AgentRequest` supports three mutually exclusive definition forms:
+
+```java
+AgentRequest.deployedAgent(String name, Integer version)
+AgentRequest.nativeAgent(Object agentConfig)
+AgentRequest.frameworkAgent(String framework, Object rawConfig)
+
+// Additional builder fields
+.model(String model)
+.skillRef(Map<String,Object> skillRef)
+```
+
+Null fields are omitted. `AgentStatusResponse.getStartTime()` and `getEndTime()` return nullable
+epoch-millisecond timestamps.
 
 ---
 
@@ -382,33 +418,19 @@ new OnCondition(String targetAgent, Function<Map<String,Object>,Boolean> predica
 
 ---
 
-## Schedules
+## SchedulerClient
 
 ```java
-Schedules schedules = runtime.schedules();
+SchedulerClient schedules = runtime.getSchedulerClient();
 
-schedules.save(Schedule schedule, String agentName)
-schedules.get(String wireName)                         // → ScheduleInfo
-schedules.list(String agentName)                       // → List<ScheduleInfo>
-schedules.runNow(ScheduleInfo info)                    // → String executionId
-schedules.pause(String wireName)
-schedules.pause(String wireName, String reason)
-schedules.resume(String wireName)
-schedules.delete(String wireName)
-schedules.previewNext(String cron, int n)              // → List<Long> (epoch ms)
-
-// Schedule.builder()
-Schedule.builder()
-    .name(String)         // required
-    .cron(String)         // required; standard 5-field cron
-    .timezone(String)     // default "UTC"
-    .input(Map)
-    .description(String)
-    .paused(boolean)
-    .catchup(boolean)
-    .startAt(long)        // epoch ms
-    .endAt(long)          // epoch ms
-    .build()
+schedules.saveSchedule(SaveScheduleRequest request)
+schedules.getSchedule(String name)                    // → WorkflowSchedule
+schedules.getAllSchedules(String workflowName)        // → List<WorkflowSchedule>
+schedules.pauseSchedule(String name)
+schedules.pauseSchedule(String name, String reason)
+schedules.resumeSchedule(String name)
+schedules.deleteSchedule(String name)
+schedules.getNextFewSchedules(cron, null, null, 5)    // → List<Long> (epoch ms)
 ```
 
 ---
@@ -432,7 +454,7 @@ public String fetchIssue(String repo, ToolContext ctx) {
 Agent.builder().credentials("GITHUB_TOKEN", "JIRA_API_KEY")...
 
 // Store the secret once via the CLI:
-// agentspan secrets set GITHUB_TOKEN ghp_xxxxx
+// conductor secret put GITHUB_TOKEN <token>
 ```
 
 `ToolContext` also exposes `getSessionId()`, `getExecutionId()`, `getTaskId()`, and a
@@ -466,7 +488,7 @@ OpenAIAgent.builder()
     .build()
 
 // Google ADK
-Agent AdkBridge.toAgentspan(BaseAgent adkAgent)
+Agent AdkBridge.toConductor(BaseAgent adkAgent)
 Agent.Builder AdkBridge.agentBuilder(BaseAgent adkAgent)
 
 // LangChain4j ChatModel
@@ -484,7 +506,7 @@ or a LangGraph4j `AgentExecutor.Builder` (the latter two take trailing `@Tool` P
 ```java
 new AgentConfig()                                 // defaults: 100ms poll, 1 thread
 new AgentConfig(int pollIntervalMs, int threads)
-AgentConfig.fromEnv()                             // reads AGENTSPAN_WORKER_* env vars
+AgentConfig.fromEnv()                             // reads CONDUCTOR_AGENT_WORKER_* env vars
 
 config.getWorkerPollIntervalMs()
 config.getWorkerThreadCount()

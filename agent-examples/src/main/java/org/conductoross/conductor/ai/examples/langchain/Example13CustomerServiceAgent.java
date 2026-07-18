@@ -99,10 +99,10 @@ public class Example13CustomerServiceAgent {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 

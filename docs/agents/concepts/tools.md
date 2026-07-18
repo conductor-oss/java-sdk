@@ -1,6 +1,6 @@
 # Tools
 
-Tools give agents the ability to take actions. In Agentspan, each tool invocation runs as a Conductor task — distributed, retryable, and observable in the workflow audit log.
+Tools give agents the ability to take actions. In Conductor, each tool invocation runs as a task — distributed, retryable, and observable in the workflow audit log.
 
 ## Java method tools (`@Tool`)
 
@@ -90,7 +90,7 @@ Agent agent = Agent.builder()
     .build();
 
 // Store the secret once via the CLI or API:
-// agentspan secrets set GITHUB_TOKEN ghp_xxxxx
+// conductor secret put GITHUB_TOKEN <token>
 ```
 
 The worker fetches each declared secret from the server (via the execution token) before the

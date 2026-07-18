@@ -27,7 +27,7 @@ import com.google.adk.tools.FunctionTool;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Server-free unit tests for the Google ADK bridge ({@link AdkBridge#toAgentspan}).
+ * Server-free unit tests for the Google ADK bridge ({@link AdkBridge#toConductor}).
  *
  * <p>Mirrors how Python's framework e2e validates serialization (framework tagging,
  * identity, tool extraction with a valid JSON Schema) without needing the model
@@ -54,8 +54,8 @@ class AdkBridgeTest {
     }
 
     @Test
-    void toAgentspanTagsFrameworkAndCopiesIdentity() {
-        Agent a = AdkBridge.toAgentspan(buildAdkAgent());
+    void toConductorTagsFrameworkAndCopiesIdentity() {
+        Agent a = AdkBridge.toConductor(buildAdkAgent());
         assertEquals(
                 "google_adk",
                 a.getFramework(),
@@ -69,8 +69,8 @@ class AdkBridgeTest {
     }
 
     @Test
-    void toAgentspanExtractsFunctionToolWithSchema() {
-        Agent a = AdkBridge.toAgentspan(buildAdkAgent());
+    void toConductorExtractsFunctionToolWithSchema() {
+        Agent a = AdkBridge.toConductor(buildAdkAgent());
         List<ToolDef> tools = a.getTools();
         assertNotNull(tools, "tools list must not be null");
         assertFalse(

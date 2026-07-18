@@ -1,12 +1,12 @@
-# Agentspan Java SDK
+# Conductor Java Agent SDK
 
-Java SDK for [Agentspan](https://agentspan.ai) — a durable runtime for AI agents, built for Conductor. Build, deploy, and run agents that survive crashes, scale across machines, and pause for human approval.
+Java SDK for Conductor — a durable runtime for AI agents. Build, deploy, and run agents that survive crashes, scale across machines, and pause for human approval.
 
 ## Requirements
 
 - Java 21+
 - Maven 3.6+ or Gradle 7+
-- A running Agentspan server
+- A running Conductor server
 
 ## Installation
 
@@ -76,7 +76,7 @@ Set environment variables:
 export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 export CONDUCTOR_AUTH_KEY=your-key
 export CONDUCTOR_AUTH_SECRET=your-secret
-export AGENTSPAN_LLM_MODEL=openai/gpt-4o
+export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o
 ```
 
 Or configure programmatically. Connection (server URL + auth) is owned by the
@@ -98,8 +98,7 @@ AgentRuntime runtime = new AgentRuntime(client, new AgentConfig(100, 5));
 
 > Or just `new AgentRuntime()` / `new AgentRuntime(new AgentConfig(100, 5))` to
 > build the client from `CONDUCTOR_SERVER_URL` / `CONDUCTOR_AUTH_KEY` /
-> `CONDUCTOR_AUTH_SECRET` (the legacy `AGENTSPAN_*` names are honored as
-> fallbacks).
+> `CONDUCTOR_AUTH_SECRET`.
 
 ## Tools
 

@@ -32,14 +32,14 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  * <p>Demonstrates mixing:
  * <ul>
  *   <li>Native LangChain4j {@code @Tool} methods that perform pure computation (no secrets)</li>
- *   <li>An Agentspan {@link Tool}-annotated method that reads a credential injected
+ *   <li>An Conductor {@link Tool}-annotated method that reads a credential injected
  *       as an environment variable by the server (via the {@code credentials} field)</li>
  * </ul>
  *
  * <p>Credential injection pattern:
  * <ol>
  *   <li>Declare credential names in {@code @Tool(credentials = {"MY_API_KEY"})}</li>
- *   <li>Store the secret once via the CLI: {@code agentspan credentials set --name MY_API_KEY}</li>
+ *   <li>Store the secret once via the CLI: {@code conductor credentials set --name MY_API_KEY}</li>
  *   <li>At runtime, the server resolves the credential and injects it as
  *       an environment variable before invoking the worker. Read it with
  *       {@code System.getenv("MY_API_KEY")}.</li>
@@ -49,10 +49,10 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767}</li>
  *   <li>langchain4j on the classpath (see examples/build.gradle)</li>
- *   <li>Agentspan server with OpenAI credentials configured server-side.</li>
- *   <li>Credential {@code WEATHER_API_KEY} registered in Agentspan (optional — example
+ *   <li>Conductor server with OpenAI credentials configured server-side.</li>
+ *   <li>Credential {@code WEATHER_API_KEY} registered in Conductor (optional — example
  *       works without it, falling back to a stubbed response)</li>
  * </ul>
  */
@@ -79,14 +79,14 @@ public class ExampleCredentials {
         }
     }
 
-    // ── Agentspan @Tool class: reads a credential injected by the server ──────
+    // ── Conductor @Tool class: reads a credential injected by the server ──────
 
     static class WeatherTools {
 
         /**
          * Fetches current weather for a city.
          *
-         * <p>The server resolves {@code WEATHER_API_KEY} from the Agentspan credential
+         * <p>The server resolves {@code WEATHER_API_KEY} from the Conductor credential
          * store and injects it as an environment variable before calling this worker.
          * The tool reads it via {@code System.getenv("WEATHER_API_KEY")}.
          */
@@ -111,16 +111,16 @@ public class ExampleCredentials {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 
         // Build the LangChain4j-backed agent (unit conversion tools) via the
         // advanced LangChainBridge.agentBuilder(...) path so we can merge in
-        // Agentspan @Tool credential-aware tools before .build().
+        // Conductor @Tool credential-aware tools before .build().
         Agent lc4jAgent = LangChainBridge.agentBuilder(
             "lc4j_weather_agent",
             model,
@@ -129,7 +129,7 @@ public class ExampleCredentials {
             new UnitTools())
             .build();
 
-        // Agentspan @Tool tools (credential-aware) — build separately and merge in.
+        // Conductor @Tool tools (credential-aware) — build separately and merge in.
         List<ToolDef> credentialTools = ToolRegistry.fromInstance(new WeatherTools());
 
         // Merge the credential-aware tool into the agent by rebuilding it.

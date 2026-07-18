@@ -55,7 +55,7 @@ public class DockerCodeExecutor extends CodeExecutor {
         Path tempFile = null;
         try {
             String extension = getExtension(language);
-            tempFile = Files.createTempFile("agentspan_code_", extension);
+            tempFile = Files.createTempFile("conductor_agent_code_", extension);
             Files.writeString(tempFile, code);
 
             String containerPath = "/tmp/code" + extension;

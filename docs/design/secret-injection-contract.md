@@ -2,7 +2,7 @@
 
 How worker tools receive declared credentials, end to end. This is the wire
 contract shared with the Python SDK (see the Agent SDK Porting Spec, R6) and
-implemented server-side by conductor-oss PR #1255 (agentspan > 0.4.2,
+implemented server-side by conductor-oss PR #1255 (Conductor OSS builds with
 conductor-oss ≥ 3.32.0-rc).
 
 ## The contract
@@ -44,19 +44,18 @@ delivered fails the task even though `PATH` exists in the environment.
 
 ## What this replaced
 
-Earlier versions fetched secrets per call via `POST /workers/secrets`
-authenticated with an execution token mined from
-`inputData["__agentspan_ctx__"]`. That fetch path (and its transport
-exceptions) is deleted (porting spec R12): there is no separate fetch call, no
-execution token, and no second token authority. `CredentialNotFoundException`
-remains as the public `ToolContext.getCredential` miss signal.
+Earlier versions fetched secrets per call via `POST /workers/secrets` using a
+task context token. That fetch path (and its transport exceptions) is deleted
+(porting spec R12): there is no separate fetch call, no execution token, and
+no second token authority. `CredentialNotFoundException` remains as the public
+`ToolContext.getCredential` miss signal.
 
 ## Server capability
 
 | Server | `runtimeMetadata` delivery |
 |---|---|
-| agentspan ≤ 0.4.2 | ✗ (field dropped on registration) |
-| agentspan ≥ 0.4.3 | ✓ |
+| Conductor OSS before PR #1255 | ✗ (field dropped on registration) |
+| Conductor OSS with PR #1255 | ✓ |
 | conductor-oss ≥ 3.32.0-rc | ✓ (standalone flavor's secret store is env-backed and read-only via the API) |
 
 The credential e2e suite probes capability first (register a `TaskDef` with

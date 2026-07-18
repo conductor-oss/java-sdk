@@ -22,12 +22,12 @@ import com.google.adk.agents.LlmAgent;
  * Example Adk 00 — Hello World using the native Google ADK Java SDK.
  *
  * <p>Defines a real {@link LlmAgent} with {@code com.google.adk.agents.LlmAgent.builder()},
- * and hands it directly to {@link org.conductoross.conductor.ai.Agentspan#run(Object, String)}
- * for execution on the durable Agentspan runtime.
+ * and hands it directly to {@link org.conductoross.conductor.ai.AgentRuntime#run(Object, String)}
+ * for execution on the durable Conductor runtime.
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
  *   <li>OpenAI/Gemini key configured in server credentials</li>
  * </ul>
  */

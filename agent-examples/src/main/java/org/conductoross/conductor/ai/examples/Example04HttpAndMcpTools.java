@@ -45,7 +45,7 @@ import org.conductoross.conductor.ai.tools.McpTool;
  * <ul>
  *   <li>Conductor server with LLM support</li>
  *   <li>MCP weather server on http://localhost:3001/mcp</li>
- *   <li>AGENTSPAN_SERVER_URL=http://localhost:6767</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767</li>
  * </ul>
  */
 public class Example04HttpAndMcpTools {

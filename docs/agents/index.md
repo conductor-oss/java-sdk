@@ -1,6 +1,6 @@
-# Agentspan Java SDK
+# Conductor Java Agent SDK
 
-Build long-running, dynamic plan-execute, and event-driven AI agents in Java on [Agentspan](https://agentspan.ai) — a durable runtime built for Conductor. Your agents survive process crashes, run on cron, trigger from events, and execute dynamic plans deterministically — all without managing state yourself.
+Build long-running, dynamic plan-execute, and event-driven AI agents in Java on Conductor. Your agents survive process crashes, run on cron, trigger from events, and execute dynamic plans deterministically — all without managing state yourself.
 
 ```java
 Agent agent = Agent.builder()
@@ -39,7 +39,7 @@ The docs are organized into five areas:
 
 ### c) Framework agents
 
-Run agents authored in another framework on the durable Agentspan runtime.
+Run agents authored in another framework on the durable Conductor runtime.
 
 - **[OpenAI Agents SDK](frameworks/openai.md)** · **[Google ADK](frameworks/google-adk.md)** · **[LangChain4j](frameworks/langchain4j.md)** · **[LangGraph4j](frameworks/langgraph4j.md)**.
 
@@ -53,7 +53,8 @@ Run agents authored in another framework on the durable Agentspan runtime.
 
 - **[Public API summary](api-reference.md)** — every public signature on one page.
 - **[AgentRuntime](agent-runtime-api.md)** — the entry-point class in detail.
-- **[AgentClient](agent-client-api.md)** — the `/api/agent/*` control plane (`io.orkes.conductor.client.AgentClient`, in `conductor-client`).
+- **[AgentClient](agent-client-api.md)** — the `/api/agent/*` control plane: start deployed or inline agents, inspect status timestamps, respond, gracefully stop, or immediately cancel.
+- **[Control-plane example](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example71AgentControlPlane.java)** — runnable deployed-agent start/status/stop/cancel flow.
 
 ## Installation
 
@@ -73,11 +74,11 @@ Run agents authored in another framework on the durable Agentspan runtime.
     </dependency>
     ```
 
-**Requirements:** Java 21+ · a Agentspan server (see [Getting Started](getting-started.md)).
+**Requirements:** Java 21+ · a Conductor server (see [Getting Started](getting-started.md)).
 
 ## What makes it different
 
-| Feature | Agentspan | Thread-based SDKs |
+| Feature | Conductor | Thread-based SDKs |
 |---|---|---|
 | Survives crashes | ✅ Conductor workflow | ❌ State lost |
 | Tool workers | ✅ Distributed tasks | ❌ In-process only |

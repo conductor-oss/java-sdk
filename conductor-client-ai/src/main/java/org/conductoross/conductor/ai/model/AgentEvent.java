@@ -154,7 +154,7 @@ public class AgentEvent {
      */
     /** Internal keys injected by the server that should not be shown as tool arguments. */
     private static final Set<String> INTERNAL_KEYS =
-            new HashSet<>(Arrays.asList("__agentspan_ctx__", "_agent_state", "method"));
+            new HashSet<>(Arrays.asList("_agent_state", "method"));
 
     @SuppressWarnings("unchecked")
     public static AgentEvent fromMap(Map<String, Object> data) {

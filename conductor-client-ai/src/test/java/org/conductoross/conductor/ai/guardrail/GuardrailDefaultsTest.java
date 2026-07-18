@@ -82,4 +82,10 @@ class GuardrailDefaultsTest {
         assertEquals(OnFail.HUMAN, g.getOnFail());
         assertEquals(Position.OUTPUT, g.getPosition());
     }
+
+    @Test
+    void core_builder_rejects_blank_names_and_negative_retries() {
+        assertThrows(IllegalArgumentException.class, () -> GuardrailDef.builder().name("  ").build());
+        assertThrows(IllegalArgumentException.class, () -> GuardrailDef.builder().name("g").maxRetries(-1).build());
+    }
 }

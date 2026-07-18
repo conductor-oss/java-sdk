@@ -735,14 +735,13 @@ public class ConductorClient {
 
         /**
          * Resolves the server base path from environment: {@code CONDUCTOR_SERVER_URL}
-         * → {@code AGENTSPAN_SERVER_URL} (legacy fallback) → {@code http://localhost:8080/api}.
+         * → {@code http://localhost:8080/api}.
          * Blank values are treated as unset. The resolved URL is normalized to end in
          * {@code /api}, so both {@code http://host:8080} and {@code http://host:8080/api}
          * forms are accepted.
          */
         protected void applyEnvVariables() {
-            String serverUrl = envOrDefault("CONDUCTOR_SERVER_URL",
-                    envOrDefault("AGENTSPAN_SERVER_URL", null));
+            String serverUrl = envOrDefault("CONDUCTOR_SERVER_URL", null);
             this.basePath(normalizeServerUrl(serverUrl));
         }
 

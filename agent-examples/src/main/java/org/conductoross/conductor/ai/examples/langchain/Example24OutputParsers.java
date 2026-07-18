@@ -39,7 +39,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  * {@code PydanticOutputParser}. The Java port uses prompt-based JSON return
  * shapes plus consumer-side Jackson deserialization — LangChain4j's
  * {@code AiServices} typed-return analog isn't applicable in
- * {@link Agentspan#run(ChatModel, String, Object...)} extraction mode
+ * {@link AgentRuntime#run(ChatModel, String, Object...)} extraction mode
  * (server-side LLM loop).
  */
 public class Example24OutputParsers {
@@ -163,10 +163,10 @@ public class Example24OutputParsers {
         @SuppressWarnings("unused")
         ExtractedFields example = new ExtractedFields("2025-03-15", "$249.99", "billing@example.com");
 
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 

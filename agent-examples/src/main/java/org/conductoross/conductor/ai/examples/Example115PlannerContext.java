@@ -59,9 +59,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Example115PlannerContext {
 
     private static final String MODEL =
-        System.getenv().getOrDefault("AGENTSPAN_LLM_MODEL", "anthropic/claude-sonnet-4-6");
+        System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "anthropic/claude-sonnet-4-6");
     private static final String BASE_URL =
-        System.getenv().getOrDefault("AGENTSPAN_SERVER_URL", "http://localhost:6767/api")
+        System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api")
             .replace("/api", "");
 
     public static void main(String[] args) throws Exception {

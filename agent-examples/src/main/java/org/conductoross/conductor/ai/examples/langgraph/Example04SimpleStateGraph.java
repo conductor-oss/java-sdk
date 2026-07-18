@@ -26,7 +26,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Conceptually mirrors <code>sdk/python/examples/langgraph/04_simple_stategraph.py</code>
  * which builds a 3-node {@code StateGraph<State>} pipeline. In the LangGraph4j
- * agent-executor + Agentspan pattern, multi-node pipelines are most cleanly
+ * agent-executor + Conductor pattern, multi-node pipelines are most cleanly
  * expressed by giving the ReAct loop a small set of pipeline-stage tools and
  * letting the LLM walk through them in order — the agent still produces the
  * same query -> refined -> answer flow as the Python pipeline.
@@ -37,7 +37,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *   <li>Tool-sequencing instructions folded into the user message
  *       (validate -> refine -> answer)</li>
  *   <li>Building the LangGraph4j {@code AgentExecutor.Builder} and handing it
- *       straight to {@link Agentspan#run}</li>
+ *       straight to {@link AgentRuntime#run}</li>
  * </ul>
  */
 public class Example04SimpleStateGraph {
@@ -69,10 +69,10 @@ public class Example04SimpleStateGraph {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

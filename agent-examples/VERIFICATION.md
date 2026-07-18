@@ -1,13 +1,13 @@
 # Java Examples — Verification Report
 
 End-to-end verification of every example in this module, run against a
-live Agentspan server and inspected at the Conductor workflow level to
+live Conductor server and inspected at the Conductor workflow level to
 confirm LLM calls, tool calls, sub-agent orchestration, and guardrails
 all execute **server-side**.
 
 - **Last full run:** 2026-05-21 against a local server at `localhost:6767`
 - **Model:** `anthropic/claude-sonnet-4-6` for every example (configurable via
-  `AGENTSPAN_LLM_MODEL`)
+  `CONDUCTOR_AGENT_LLM_MODEL`)
 - **Examples covered:** 88 (39 ADK + 28 LangChain + 11 LangGraph + 10 OpenAI)
 - **Workflow-level pass rate:** 88 / 88 COMPLETED
 - **Sub-task error rate:** 1 example with errored sub-tasks
@@ -16,7 +16,7 @@ all execute **server-side**.
 > **Note on OpenAI Agents:** Unlike ADK / LangChain4j / LangGraph4j, there
 > is **no native OpenAI Agents Java SDK** at the time of this writing —
 > only the raw `com.openai:openai-java` HTTP client, which has zero agent
-> abstractions. The OpenAI examples therefore use Agentspan' own
+> abstractions. The OpenAI examples therefore use Conductor' own
 > `OpenAIAgent.builder()` (in `org.conductoross.conductor.ai.frameworks`) — that builder
 > IS the Java equivalent of the Python `openai-agents` library, not a
 > bridge over something native. The same bug-bounty fixes applied to
@@ -49,13 +49,13 @@ each verified row landed with the expected shape.
 ## How to reproduce
 
 ```bash
-# 1. Start the Agentspan server (separate terminal)
+# 1. Start the Conductor server (separate terminal)
 cd server && ./gradlew bootJar
-java -jar build/libs/agentspan-runtime.jar
+java -jar build/libs/conductor-runtime.jar
 
 # 2. Run a single example
 cd sdk/java
-AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini \
+CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini \
   ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.adk.Example02FunctionTools
 
 # 3. Inspect the workflow
@@ -146,7 +146,7 @@ not bridge-side. Tracked separately.
 | 36 | adk.Example35RagAgent | `b6fae52b-dec8-4996-bc80-9b526ec0892a` | rag_assistant | COMPLETED | 22 | 0 |
 | 37 | adk.Example36BuiltInTools | `8208d703-5ad2-4508-ae12-1f7faffec862` | research_assistant | COMPLETED | 60 | **12** ⚠️ |
 | 38 | adk.Example37DeployAndServe | `554e7495-8042-437f-9132-36d2c081f809` | deploy_demo_agent | COMPLETED | 15 | 0 |
-| 39 | adk.Example38AgentspanGuardrails | `8d6b96ea-00bb-4bf1-8b99-d3d05aa3b432` | contact_directory | COMPLETED | 8 | 0 |
+| 39 | adk.Example38ConductorGuardrails | `8d6b96ea-00bb-4bf1-8b99-d3d05aa3b432` | contact_directory | COMPLETED | 8 | 0 |
 | 40 | langchain.Example01HelloWorld | `e3bc9290-4c66-4418-ab53-0b9d930e03a4` | langchain_agent | COMPLETED | 1 | 0 |
 | 41 | langchain.Example02ReactWithTools | `ffad44aa-b457-4194-9930-fe5343df4d00` | langchain_agent | COMPLETED | 17 | 0 |
 | 42 | langchain.Example03CustomTools | `3e65dca9-8b8a-4b24-9298-c2869da45673` | langchain_agent | COMPLETED | 17 | 0 |
@@ -172,7 +172,7 @@ not bridge-side. Tracked separately.
 | 62 | langchain.Example23RecommendationAgent | `f976873e-a9c5-4934-b4cb-ea1a140413a5` | langchain_agent | COMPLETED | 25 | 0 |
 | 63 | langchain.Example24OutputParsers | `4a2785b1-30d1-4642-a948-dfece8c99185` | langchain_agent | COMPLETED | 25 | 0 |
 | 64 | langchain.Example25AdvancedOrchestration | `6f783be7-2540-477a-ab1b-1c69c48d61c7` | langchain_agent | COMPLETED | **240** | 0 |
-| 65 | langchain.Example26AgentspanGuardrails | `43a161fd-42f9-4ce1-9124-a614a720cc09` | contact_directory_lc | COMPLETED | 8 | 0 |
+| 65 | langchain.Example26ConductorGuardrails | `43a161fd-42f9-4ce1-9124-a614a720cc09` | contact_directory_lc | COMPLETED | 8 | 0 |
 | 66 | langchain.ExampleCredentials | `e8faaffa-69f1-409c-9c25-796d444cc1c5` | lc4j_weather_agent | COMPLETED | 16 | 0 |
 | 67 | langchain.ExamplePipeline | `dca4108c-d748-4127-87e6-93829fe92e5d` | data_gatherer_report_writer | COMPLETED | 9 | 0 |
 | 68 | langgraph.Example01HelloWorld | `bb744b58-00dc-4f7c-a469-483e9f4dd345` | langgraph_agent | COMPLETED | 1 | 0 |

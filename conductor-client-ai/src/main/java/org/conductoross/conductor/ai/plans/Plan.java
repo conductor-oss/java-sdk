@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * and run a fully deterministic pipeline.
  *
  * <p>The {@code toJson()} output is the wire format PAC consumes —
- * identical to what the Python {@code agentspan.agents.plans.Plan} and
+ * identical to the Python agent SDK's {@code Plan} and
  * TypeScript {@code Plan} emit.
  */
 public final class Plan {

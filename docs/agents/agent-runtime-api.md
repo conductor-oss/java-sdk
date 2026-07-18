@@ -1,6 +1,6 @@
 # AgentRuntime — API Reference
 
-`AgentRuntime` is the primary entry point for the Agentspan Java SDK. It manages the connection to the Agentspan server, registers local tool workers, and exposes every operation for running, streaming, deploying, and serving agents.
+`AgentRuntime` is the primary entry point for the Conductor Java Agent SDK. It manages the connection to the Conductor server, registers local tool workers, and exposes every operation for running, streaming, deploying, and serving agents.
 
 Implements `AutoCloseable` — always use try-with-resources or call `shutdown()` explicitly.
 
@@ -58,22 +58,21 @@ Fully explicit — the canonical constructor all others delegate to.
 
 ### Environment variables
 
-Standard Conductor variables win; the legacy Agentspan names are honored as
-fallbacks. Invalid or empty values fall back to the default.
+Invalid or empty values fall back to the default.
 
 | Variable | Default | Description |
 |---|---|---|
-| `CONDUCTOR_SERVER_URL` → `AGENTSPAN_SERVER_URL` | `http://localhost:8080` | Conductor server base URL |
-| `CONDUCTOR_AUTH_KEY` → `AGENTSPAN_AUTH_KEY` | _(none)_ | API key (optional) |
-| `CONDUCTOR_AUTH_SECRET` → `AGENTSPAN_AUTH_SECRET` | _(none)_ | API secret (optional) |
-| `AGENTSPAN_WORKER_POLL_INTERVAL` | `100` | Worker poll interval (ms) |
-| `AGENTSPAN_WORKER_THREADS` | `1` | Worker thread count |
-| `AGENTSPAN_AUTO_START_WORKERS` | `true` | Register + start workers on `run`/`start`/`stream` (`serve` always starts) |
-| `AGENTSPAN_DAEMON_WORKERS` | `true` | SDK-owned background threads (SSE reader, liveness monitor) run as daemons |
-| `AGENTSPAN_STREAMING_ENABLED` | `true` | Use SSE for `stream()`; `false` degrades to status polling |
-| `AGENTSPAN_LIVENESS_ENABLED` | `true` | Watch stateful runs for worker stalls (`WorkerStallError`) |
-| `AGENTSPAN_LIVENESS_STALL_SECONDS` | `30.0` | Seconds a task may sit unpolled before it counts as a stall |
-| `AGENTSPAN_LIVENESS_CHECK_INTERVAL_SECONDS` | `10.0` | Seconds between liveness checks |
+| `CONDUCTOR_SERVER_URL` | `http://localhost:8080` | Conductor server base URL |
+| `CONDUCTOR_AUTH_KEY` | _(none)_ | API key (optional) |
+| `CONDUCTOR_AUTH_SECRET` | _(none)_ | API secret (optional) |
+| `CONDUCTOR_AGENT_WORKER_POLL_INTERVAL` | `100` | Worker poll interval (ms) |
+| `CONDUCTOR_AGENT_WORKER_THREADS` | `1` | Worker thread count |
+| `CONDUCTOR_AGENT_AUTO_START_WORKERS` | `true` | Register + start workers on `run`/`start`/`stream` (`serve` always starts) |
+| `CONDUCTOR_AGENT_DAEMON_WORKERS` | `true` | SDK-owned background threads (SSE reader, liveness monitor) run as daemons |
+| `CONDUCTOR_AGENT_STREAMING_ENABLED` | `true` | Use SSE for `stream()`; `false` degrades to status polling |
+| `CONDUCTOR_AGENT_LIVENESS_ENABLED` | `true` | Watch stateful runs for worker stalls (`WorkerStallError`) |
+| `CONDUCTOR_AGENT_LIVENESS_STALL_SECONDS` | `30.0` | Seconds a task may sit unpolled before it counts as a stall |
+| `CONDUCTOR_AGENT_LIVENESS_CHECK_INTERVAL_SECONDS` | `10.0` | Seconds between liveness checks |
 
 ---
 
@@ -82,7 +81,7 @@ fallbacks. Invalid or empty values fall back to the default.
 Build an `ApiClient` (via its own builder — client construction lives in the client layer, not on the runtime) to pass to the `AgentRuntime(ApiClient)` constructor. The `ApiClient` owns server URL, auth, and HTTP timeouts.
 
 ```java
-// From environment: CONDUCTOR_SERVER_URL → AGENTSPAN_SERVER_URL → http://localhost:8080/api
+// From environment: CONDUCTOR_SERVER_URL → http://localhost:8080/api
 // (same resolution the no-arg AgentRuntime() constructor uses internally)
 ApiClient client = ApiClient.builder().useEnvVariables(true).build();
 
@@ -119,7 +118,7 @@ AgentResult run(Agent agent, String prompt)
 // For PLAN_EXECUTE strategy — bypasses the planner LLM entirely
 AgentResult run(Agent agent, String prompt, Plan plan)
 
-// Per-run LLM overrides — only non-null fields override the agent's settings.
+// Per-run settings — LLM overrides plus optional execution metadata.
 // Also available on start()/stream() and every async variant.
 AgentResult run(Agent agent, String prompt, RunSettings runSettings)
 ```
@@ -128,8 +127,14 @@ AgentResult run(Agent agent, String prompt, RunSettings runSettings)
 runtime.run(agent, "Summarize this document", new RunSettings()
         .model("openai/gpt-4o")
         .temperature(0.2)
-        .maxTokens(2048));
+        .maxTokens(2048)
+        .idempotencyKey("summarize-document-123"));
 ```
+
+`idempotencyKey` is optional execution metadata. It is sent as a top-level
+field on `/api/agent/start`, never inside `agentConfig`. Reuse the same stable
+key when retrying one logical execution. The runtime does not generate a key;
+null, empty, and whitespace-only values are omitted.
 
 **What happens internally:**
 1. Workers for the agent's tools are registered with the Conductor task runner.
@@ -349,21 +354,19 @@ CompletableFuture<AgentHandle> resumeAsync(String executionId, Agent agent)
 
 ---
 
-## schedules
+## getSchedulerClient
 
-Access the scheduling API lazily (created on first call, shared thereafter).
+Access the shared typed workflow scheduler client.
 
 ```java
-Schedules schedules = runtime.schedules();
-
-schedules.list("my_agent");                       // List<ScheduleInfo>
-schedules.runNow(schedules.get("my_agent-daily")); // trigger immediately (takes ScheduleInfo)
-schedules.pause("my_agent-daily");
-schedules.resume("my_agent-daily");
-schedules.delete("my_agent-daily");
+SchedulerClient schedules = runtime.getSchedulerClient();
+List<WorkflowSchedule> schedulesForAgent = schedules.getAllSchedules("my_agent");
+schedules.pauseSchedule("my_agent-daily", "maintenance");
+schedules.resumeSchedule("my_agent-daily");
+schedules.deleteSchedule("my_agent-daily");
 ```
 
-See [Scheduling concepts](concepts/scheduling.md) for the full `Schedules` API.
+See [Scheduling concepts](concepts/scheduling.md) for direct `SaveScheduleRequest` usage.
 
 ---
 
@@ -388,13 +391,13 @@ Worker-runner tuning. **Does not hold server URL or auth** — those are on `Api
 ```java
 new AgentConfig()                  // defaults: 100ms poll, 1 thread
 new AgentConfig(pollMs, threads)   // explicit
-AgentConfig.fromEnv()              // reads AGENTSPAN_WORKER_* env vars
+AgentConfig.fromEnv()              // reads CONDUCTOR_AGENT_WORKER_* env vars
 ```
 
 | Parameter | Env var | Default | Description |
 |---|---|---|---|
-| `workerPollIntervalMs` | `AGENTSPAN_WORKER_POLL_INTERVAL` | `100` | How often workers poll for tasks (ms). 100ms is fast for dev; raise to 500–1000ms in production to reduce server load. |
-| `workerThreadCount` | `AGENTSPAN_WORKER_THREADS` | `1` | Thread pool size. The actual pool is `max(configured, numWorkerTypes)` so every task type gets at least one thread. |
+| `workerPollIntervalMs` | `CONDUCTOR_AGENT_WORKER_POLL_INTERVAL` | `100` | How often workers poll for tasks (ms). 100ms is fast for dev; raise to 500–1000ms in production to reduce server load. |
+| `workerThreadCount` | `CONDUCTOR_AGENT_WORKER_THREADS` | `1` | Thread pool size. The actual pool is `max(configured, numWorkerTypes)` so every task type gets at least one thread. |
 
 ---
 

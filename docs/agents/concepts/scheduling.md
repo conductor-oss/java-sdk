@@ -1,11 +1,14 @@
 # Scheduling
 
-Run agents on a cron schedule. Schedules are stored in Conductor and survive server restarts — no cron daemon or external scheduler needed.
+Run agents on a cron schedule. Schedules are stored in Conductor and survive server restarts — no cron daemon or external scheduler needed. Use the SDK's typed `SchedulerClient` directly.
 
 ## Deploy an agent with a schedule
 
 ```java
-import org.conductoross.conductor.ai.schedule.Schedule;
+import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
+
+import io.orkes.conductor.client.SchedulerClient;
+import io.orkes.conductor.client.model.SaveScheduleRequest;
 
 Agent reportAgent = Agent.builder()
     .name("daily_report")
@@ -13,14 +16,17 @@ Agent reportAgent = Agent.builder()
     .instructions("Generate a daily sales summary.")
     .build();
 
-Schedule daily = Schedule.builder()
-    .name("daily")
-    .cron("0 9 * * *")              // 9 AM every day
-    .timezone("America/New_York")
-    .build();
-
 try (AgentRuntime runtime = new AgentRuntime()) {
-    runtime.deploy(reportAgent, List.of(daily));
+    runtime.deploy(reportAgent);
+
+    StartWorkflowRequest workflow = new StartWorkflowRequest();
+    workflow.setName(reportAgent.getName());
+    SchedulerClient schedules = runtime.getSchedulerClient();
+    schedules.saveSchedule(new SaveScheduleRequest()
+        .name("daily_report-daily")
+        .cronExpression("0 9 * * *") // 9 AM every day
+        .zoneId("America/New_York")
+        .startWorkflowRequest(workflow));
 }
 ```
 
@@ -29,52 +35,44 @@ try (AgentRuntime runtime = new AgentRuntime()) {
 Pass a fixed prompt or parameters to the scheduled run:
 
 ```java
-Schedule weeklyDigest = Schedule.builder()
-    .name("weekly")
-    .cron("0 8 * * MON")
-    .input(Map.of("report_type", "weekly", "include_charts", true))
+StartWorkflowRequest workflow = new StartWorkflowRequest();
+workflow.setName("daily_report");
+workflow.setInput(Map.of("report_type", "weekly", "include_charts", true));
+
+SaveScheduleRequest weeklyDigest = new SaveScheduleRequest()
+    .name("daily_report-weekly")
+    .cronExpression("0 8 * * MON")
+    .zoneId("UTC")
     .description("Monday morning executive digest")
-    .build();
+    .startWorkflowRequest(workflow);
 ```
 
 ## Manage schedules
 
 ```java
-Schedules schedules = runtime.schedules();
+SchedulerClient schedules = runtime.getSchedulerClient();
 
 // List all schedules for an agent
-List<ScheduleInfo> all = schedules.list("daily_report");
+List<WorkflowSchedule> all = schedules.getAllSchedules("daily_report");
 
-// Get a specific schedule by its wire name (agent-name-schedule-name)
-ScheduleInfo info = schedules.get("daily_report-daily");
-
-// Trigger immediately (ignores cron timing) — runNow takes the ScheduleInfo
-String executionId = schedules.runNow(info);
-
-// Pause and resume (by wire name)
-schedules.pause("daily_report-daily");
-schedules.resume("daily_report-daily");
+// Pause and resume (by wire name). A pause reason is retained by Conductor.
+schedules.pauseSchedule("daily_report-daily", "quarter-end freeze");
+schedules.resumeSchedule("daily_report-daily");
 
 // Delete (by wire name)
-schedules.delete("daily_report-daily");
+schedules.deleteSchedule("daily_report-daily");
 
 // Preview the next N fire times for a cron expression
-List<Long> next = schedules.previewNext("0 9 * * *", 5);   // epoch millis
+List<Long> next = schedules.getNextFewSchedules("0 9 * * *", null, null, 5); // epoch millis
 ```
 
-## Schedule.builder() options
+## Native schedule fields
 
-| Method | Type | Default | Description |
-|---|---|---|---|
-| `name(String)` | `String` | **required** | Unique name within the agent. |
-| `cron(String)` | `String` | **required** | Standard 5-field cron expression. |
-| `timezone(String)` | `String` | `"UTC"` | IANA timezone (e.g. `"Europe/London"`). |
-| `input(Map)` | `Map<String,Object>` | `{}` | Fixed input passed to the agent on each run. |
-| `description(String)` | `String` | `null` | Human-readable description. |
-| `paused(boolean)` | `boolean` | `false` | Create in paused state. |
-| `catchup(boolean)` | `boolean` | `false` | Run missed executions after a server downtime. |
-| `startAt(long)` | `long` | `null` | Epoch milliseconds — schedule not active before this time. |
-| `endAt(long)` | `long` | `null` | Epoch milliseconds — schedule disabled after this time. |
+`SaveScheduleRequest` accepts the schedule name, cron expression, timezone, pause/catchup flags, optional start/end timestamps, description, and a `StartWorkflowRequest`. The `StartWorkflowRequest` identifies the deployed agent workflow and carries its fixed input.
+
+## Migration from the AI scheduling facade
+
+`AgentRuntime.schedules()`, `Schedule`, and `ScheduleInfo` are not part of the AI SDK. Obtain the shared client with `runtime.getSchedulerClient()`, build a `SaveScheduleRequest` directly, and use `WorkflowSchedule` for retrieved schedules. Schedule creation, update, and deletion are explicit; deploying an agent does not reconcile schedules.
 
 ## Cron syntax
 

@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Suite 8: LangChain4j framework integration.
  *
  * <p>Validates that {@link LangChain4jAgent} correctly bridges LangChain4j
- * {@code @Tool}-annotated POJOs to Agentspan agents:
+ * {@code @Tool}-annotated POJOs to Conductor agents:
  * <ol>
  *   <li>Framework detection — {@link LangChain4jAgent#isLangChain4jTools} works</li>
  *   <li>Tool extraction — correct names, descriptions, and JSON Schema</li>

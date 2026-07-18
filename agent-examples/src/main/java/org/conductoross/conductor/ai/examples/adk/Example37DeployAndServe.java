@@ -28,17 +28,17 @@ import com.google.adk.tools.FunctionTool;
 /**
  * Example Adk 37 — deploy + serve + run round-trip
  *
- * <p>Demonstrates the three Agentspan entry points working together with a
+ * <p>Demonstrates the three Conductor entry points working together with a
  * native ADK {@link LlmAgent} and zero bridge calls in user code:
  *
  * <ol>
- *   <li>{@link Agentspan#deploy(Object...)} — register the agent on the
+ *   <li>{@link AgentRuntime#deploy(Object...)} — register the agent on the
  *       server. CI/CD step; idempotent; no workers polled.</li>
- *   <li>{@link Agentspan#serve(Object...)} — register local worker handlers
+ *   <li>{@link AgentRuntime#serve(Object...)} — register local worker handlers
  *       and keep them polling. Long-running; normally a separate process.
  *       This example runs it on a daemon thread so a single JVM can play
  *       both client and worker roles.</li>
- *   <li>{@link Agentspan#start(Object, String)} — trigger an execution
+ *   <li>{@link AgentRuntime#start(Object, String)} — trigger an execution
  *       against the deployed agent and stream events back.</li>
  * </ol>
  *
@@ -52,7 +52,7 @@ import com.google.adk.tools.FunctionTool;
  *   $ java -cp ... WorkerProcess      // runtime.serve(rootAgent)
  *
  *   # any caller, e.g. an HTTP handler
- *   $ curl -X POST .../api/agent/start -d '{"agentName":"deploy_demo_agent",...}'
+ *   $ curl -X POST .../api/agent/start -d '{"name":"deploy_demo_agent","prompt":"..."}'
  * }</pre>
  */
 public class Example37DeployAndServe {

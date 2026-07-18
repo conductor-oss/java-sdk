@@ -24,14 +24,14 @@ import org.conductoross.conductor.ai.model.AgentResult;
  * <p>Java port of <code>sdk/python/examples/openai/01_basic_agent.py</code>.
  *
  * <p>Demonstrates: the simplest possible OpenAI Agents SDK agent — no tools,
- * just a name + instructions + model — wired through the Agentspan
+ * just a name + instructions + model — wired through the Conductor
  * {@link OpenAIAgent} factory so the server normalizes it into a Conductor
  * workflow.
  *
  * <p>Requirements:
  * <ul>
- *   <li>AGENTSPAN_SERVER_URL=http://localhost:6767/api</li>
- *   <li>AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767/api</li>
+ *   <li>CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini</li>
  * </ul>
  */
 public class Example01BasicAgent {

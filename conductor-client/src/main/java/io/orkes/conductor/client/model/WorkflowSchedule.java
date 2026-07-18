@@ -56,6 +56,8 @@ public class WorkflowSchedule {
 
     private String description;
 
+    private Long nextRunTime;
+
     public WorkflowSchedule createTime(Long createTime) {
         this.createTime = createTime;
         return this;
@@ -121,6 +123,11 @@ public class WorkflowSchedule {
 
     public WorkflowSchedule zoneId(String zoneId) {
         this.zoneId = zoneId;
+        return this;
+    }
+
+    public WorkflowSchedule nextRunTime(Long nextRunTime) {
+        this.nextRunTime = nextRunTime;
         return this;
     }
 }

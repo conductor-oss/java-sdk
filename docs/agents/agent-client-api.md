@@ -1,6 +1,6 @@
 # AgentClient — Control-Plane API Reference
 
-`AgentClient` (`io.orkes.conductor.client.AgentClient`, in the `conductor-client` module) is the Java SDK's interface to the agent control-plane (`/api/agent/*`). Strictly scoped to five endpoints — compile, deploy, start, status, respond. Standard Conductor endpoints (`/api/workflow/*`, `/api/tasks`, etc.) are handled by the SDK's own typed clients (`WorkflowClient`, `TaskClient`, `MetadataClient`). Obtain one with `new AgentClient(conductorClient)` or `OrkesClients.getAgentClient()`.
+`AgentClient` (`io.orkes.conductor.client.AgentClient`, in the `conductor-client` module) is the Java SDK's interface to the agent control-plane (`/api/agent/*`). Standard Conductor endpoints (`/api/workflow/*`, `/api/tasks`, etc.) remain on the SDK's typed clients (`WorkflowClient`, `TaskClient`, `MetadataClient`). Obtain an agent client with `new OrkesClients(conductorClient).getAgentClient()` or construct `OrkesAgentClient` directly.
 
 Every request goes through the shared `ConductorClient`'s native HTTP + auth + serialization layer. No hand-rolled HTTP. `ConductorClientException` is mapped to the typed `AgentAPIException` / `AgentNotFoundException` (`io.orkes.conductor.client.exceptions`).
 
@@ -12,7 +12,13 @@ Every request goes through the shared `ConductorClient`'s native HTTP + auth + s
 | [`deployAgent`](#deployagent) | `POST /api/agent/deploy` | `AgentRequest` | `StartResponse` | Register workflow def without starting |
 | [`startAgent`](#startagent) | `POST /api/agent/start` | `AgentRequest` | `StartResponse` | Compile + register + start execution |
 | [`getAgentStatus`](#getagentstatus) | `GET /api/agent/{id}/status` | path: `executionId` | `AgentStatusResponse` | Poll execution status; includes HITL pending-tool |
+| `getExecution` | `GET /api/agent/execution/{id}` | path: `executionId` | `Map<String,Object>` | Fetch the full execution tree |
+| `listExecutions` | `GET /api/agent/executions` | query parameter map | `Map<String,Object>` | Search agent executions |
 | [`respond`](#respond) | `POST /api/agent/{id}/respond` | `RespondBody` | `void` | Resume a paused HITL task |
+| [`cancelAgent`](#cancelagent) | `DELETE /api/agent/{id}/cancel` | path: `executionId`; optional `reason` query | `void` | Immediately cancel/terminate an execution |
+| [`stopAgent`](#stopagent) | `POST /api/agent/{id}/stop` | path: `executionId` | `void` | Gracefully stop after the current iteration |
+| `signalAgent` | `POST /api/agent/{id}/signal` | path: `executionId`; message body | `void` | Inject persistent context |
+| `streamSse` | `GET /api/agent/stream/{id}` | path: `executionId`; optional last event ID | `SseClient` | Open the resumable SSE event stream |
 
 ---
 
@@ -21,6 +27,11 @@ Every request goes through the shared `ConductorClient`'s native HTTP + auth + s
 Input to `compileAgent`, `deployAgent`, and `startAgent` (`io.orkes.conductor.client.model.agent.AgentRequest`). A pure transport DTO: the agent definition arrives pre-serialized as a JSON-ready map — domain serialization is owned by `conductor-client-ai` (`AgentRuntime.agentRequest(agent)` calls `AgentConfigSerializer.serialize(agent)` and resolves the `Framework` discriminator before building the request).
 
 ```java
+// Already-deployed agent — version is optional
+AgentRequest.deployedAgent("researcher", 3)
+    .prompt("Summarize the release risks")
+    .build()
+
 // Native agent — AgentRuntime passes the serialized agent map
 AgentRequest.nativeAgent(serializedAgent).build()
 
@@ -28,12 +39,19 @@ AgentRequest.nativeAgent(serializedAgent).build()
 AgentRequest.frameworkAgent("openai", serializedAgent).build()
 AgentRequest.frameworkAgent("langchain", serializedAgent).build()
 
+// Framework skill reference instead of rawConfig
+AgentRequest.frameworkAgent("skill", null)
+    .model("anthropic/claude-sonnet-4-6")
+    .skillRef(Map.of("name", "code-review", "version", 2))
+    .build()
+
 // With execution fields (for /start only)
 AgentRequest.nativeAgent(serializedAgent)
     .prompt("What is the capital of France?")
     .sessionId("session-abc")
     .runId("a1b2c3...")           // per-execution domain UUID for stateful agents
     .staticPlan(plan.toJson())    // pre-serialized map, written as "static_plan"
+    .idempotencyKey("question-123")
     .build()
 ```
 
@@ -41,16 +59,22 @@ AgentRequest.nativeAgent(serializedAgent)
 
 | Factory | JSON emitted |
 |---|---|
+| `deployedAgent(name, version)` | `"name": name, "version": version` (version omitted when null) |
 | `nativeAgent(config)` | `"agentConfig": config` |
 | `frameworkAgent(framework, config)` | `"framework": framework, "rawConfig": config` |
+| `frameworkAgent(framework, null).skillRef(ref)` | `"framework": framework, "skillRef": ref` |
 
 **Field mapping to server `StartRequest`:**
 
 | `AgentRequest` field | Java type | JSON key | Server `StartRequest` field | Used by |
 |---|---|---|---|---|
+| `name` | `String` | `"name"` | `name` | deployed agents |
+| `version` | `Integer` | `"version"` | `version` | deployed agents (optional) |
 | `agentConfig` | `Object` (map) | `"agentConfig"` (native path) | `agentConfig` | native agents |
 | `framework` | `String` | `"framework"` (framework path) | `framework` | framework agents |
 | `rawConfig` | `Object` (map) | `"rawConfig"` (framework path) | `rawConfig` | framework agents |
+| `model` | `String` | `"model"` | `model` | optional model override |
+| `skillRef` | `Map<String,Object>` | `"skillRef"` | `skillRef` | framework skill agents |
 | `prompt` | `String` | `"prompt"` | `prompt` | start only |
 | `sessionId` | `String` | `"sessionId"` | `sessionId` | start (stateful) |
 | `runId` | `String` | `"runId"` | `runId` | start (stateful isolation) |
@@ -61,7 +85,7 @@ AgentRequest.nativeAgent(serializedAgent)
 | `credentials` | `List<String>` | `"credentials"` | `credentials` | compile / start |
 | `timeoutSeconds` | `Integer` | `"timeoutSeconds"` | `timeoutSeconds` | compile / start |
 
-Null fields are never written — the class is annotated `@JsonInclude(NON_NULL)`.
+Null fields are never written — the class is annotated `@JsonInclude(NON_NULL)`. The three request forms are mutually exclusive: use deployed `name`/`version`, inline native `agentConfig`, or framework `framework` plus `rawConfig`/`skillRef`.
 
 **`Framework` enum** — all seven values map 1-to-1 with the server's normalizer registry:
 
@@ -184,15 +208,38 @@ Used by `AgentRuntime.startAsync(agent, prompt, plan)`.
 
 ### Request body — `AgentRequest`
 
+Start an already-deployed agent without resending its definition:
+
+```java
+StartResponse response = client.startAgent(
+    AgentRequest.deployedAgent("researcher", 3)
+        .prompt("What changed in the latest release?")
+        .build());
+```
+
+```json
+{
+  "name": "researcher",
+  "version": 3,
+  "prompt": "What changed in the latest release?"
+}
+```
+
+Inline definitions remain supported:
+
 ```json
 {
   "agentConfig": { ... },
   "prompt": "What is the capital of France?",
   "sessionId": "session-abc",
   "runId": "a1b2c3d4e5f6...",
-  "static_plan": { "steps": [...] }
+  "static_plan": { "steps": [...] },
+  "idempotencyKey": "question-123"
 }
 ```
+
+The idempotency key is optional. Callers that retry the same logical start
+should reuse the same stable value; the client does not generate one.
 
 ### Response — `StartResponse`
 
@@ -221,7 +268,7 @@ Used by `AgentHandle.waitForResult()` and `AgentHandle.waitUntilWaiting()`.
 ### Response — `AgentStatusResponse`
 
 ```json
-{ "executionId": "...", "status": "COMPLETED", "isComplete": true, "isRunning": false, "output": { ... } }
+{ "executionId": "...", "status": "COMPLETED", "startTime": 1710000000000, "endTime": 1710000005000, "isComplete": true, "isRunning": false, "output": { ... } }
 ```
 
 HITL paused:
@@ -235,6 +282,8 @@ HITL paused:
 |---|---|---|---|---|
 | `executionId` | `getExecutionId()` | `String` | path param | — |
 | `status` | `getStatus()` | `String` | `workflow.getStatus().name()` | `RUNNING`, `COMPLETED`, `FAILED`, `TERMINATED`, `TIMED_OUT`, `PAUSED` |
+| `startTime` | `getStartTime()` | `Long` | workflow start timestamp | Epoch milliseconds; nullable until supplied by the server |
+| `endTime` | `getEndTime()` | `Long` | workflow end timestamp | Epoch milliseconds; nullable while execution is active |
 | `isComplete` | `isComplete()` | `boolean` | `workflow.getStatus().isTerminal()` | `true` for all terminal statuses |
 | `isRunning` | `isRunning()` | `boolean` | `status == RUNNING` | — |
 | `output` | `getOutput()` | `Map<String,Object>` | `workflow.getOutput()` | Only present when `isComplete() == true` |
@@ -273,6 +322,34 @@ Used by `AgentHandle.approve()`, `.reject()`, `.respond(Map)` and `AgentStream.a
 ### Response
 
 `void` — returns nothing. Throws `AgentAPIException` if no pending HUMAN task exists.
+
+---
+
+## cancelAgent
+
+Immediately cancel an agent execution. This is distinct from graceful stopping: cancellation terminates now and may record an operator reason.
+
+```java
+client.cancelAgent(executionId, "Superseded by a newer request");
+```
+
+**HTTP:** `DELETE /api/agent/{executionId}/cancel?reason=Superseded%20by%20a%20newer%20request`
+
+The `reason` query parameter is omitted when the Java argument is `null`, empty, or blank. HTTP 404 maps to `AgentNotFoundException`; other HTTP failures map to `AgentAPIException` through the normal client transport.
+
+---
+
+## stopAgent
+
+Request a graceful deterministic stop after the current agent iteration finishes. Unlike cancellation, this preserves the current iteration and does not take a reason.
+
+```java
+client.stopAgent(executionId);
+```
+
+**HTTP:** `POST /api/agent/{executionId}/stop`
+
+Use `stopAgent` when the current iteration should finish cleanly; use `cancelAgent` when work must terminate immediately.
 
 ---
 

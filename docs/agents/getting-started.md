@@ -4,10 +4,10 @@
 
 - Java 21+
 - Gradle 7+ or Maven 3.6+
-- A running Agentspan server — see the [Agentspan repo](https://github.com/agentspan-ai/agentspan) or start one locally:
+- A running Conductor server — see the [Conductor repo](https://github.com/conductor-oss/conductor) or start one locally:
 
 ```bash
-docker run -p 8080:8080 agentspan/server:latest
+docker run -p 8080:8080 conductoross/conductor:latest
 ```
 
 ## Add the dependency
@@ -37,7 +37,7 @@ The SDK reads connection settings from environment variables by default:
 ```bash
 export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 export OPENAI_API_KEY=<YOUR-KEY>
-export AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini
+export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini
 export CONDUCTOR_AUTH_KEY=your-key                 # optional
 export CONDUCTOR_AUTH_SECRET=your-secret           # optional
 ```
