@@ -122,83 +122,53 @@ files.download(workflowId, modelHandle, existing);
 
 The download first goes to a unique sibling `.part` file. Only a complete transfer atomically replaces `current-model.bin`. Failure removes the partial file and preserves the existing destination. A filesystem that cannot perform atomic replacement is rejected explicitly.
 
-## Raw worker example
+## Recommended annotated worker pattern
 
 ```java
-public final class ConvertWorker implements Worker {
+public final class ConvertWorker {
     private final FileClient files;
 
     public ConvertWorker(FileClient files) {
         this.files = files;
     }
 
-    @Override
-    public String getTaskDefName() {
-        return "convert_document";
+    public static class ConvertInput {
+        public String document;
     }
 
-    @Override
-    public TaskResult execute(Task task) {
-        TaskResult result = new TaskResult(task);
-        Path input = null;
-        Path output = null;
+    @WorkerTask("convert_document")
+    public @OutputParam("document") String convert(
+            ConvertInput input,
+            @WorkflowInstanceIdInputParam String workflowId) throws IOException {
+        Path source = Files.createTempFile("document-", ".bin");
+        Path output = Files.createTempFile("converted-", ".pdf");
         try {
-            String workflowId = task.getWorkflowInstanceId();
-            String inputHandle = (String) task.getInputData().get("document");
-            input = Files.createTempFile("document-", ".bin");
-            output = Files.createTempFile("converted-", ".pdf");
-
-            files.download(workflowId, inputHandle, input);
-            convertToPdf(input, output);
-
-            String outputHandle = files.upload(
+            files.download(workflowId, input.document, source);
+            convertToPdf(source, output);
+            return files.upload(
                     workflowId,
                     output,
                     new FileUploadOptions()
                             .setFileName("converted.pdf")
-                            .setContentType("application/pdf")
-                            .setTaskId(task.getTaskId()));
-
-            result.setStatus(TaskResult.Status.COMPLETED);
-            result.addOutputData("document", outputHandle);
-        } catch (Exception e) {
-            result.setStatus(TaskResult.Status.FAILED);
-            result.setReasonForIncompletion(e.getMessage());
+                            .setContentType("application/pdf"));
         } finally {
-            deleteQuietly(input);
-            deleteQuietly(output);
+            Files.deleteIfExists(source);
+            Files.deleteIfExists(output);
         }
-        return result;
     }
 }
 ```
 
-The task input and output are strings. No task-runner file integration is required.
+`@WorkerTask` names the `SIMPLE` task, the unannotated POJO receives the full resolved input map, `@WorkflowInstanceIdInputParam` supplies the workflow context required by `FileClient`, and `@OutputParam` maps the returned handle to `output.document`. Thrown exceptions become failed task results.
 
-## Annotated worker example
+Register already-constructed worker instances so normal constructor injection continues to work:
 
 ```java
-public record ConvertInput(String document) {}
-
-@WorkerTask("convert_document")
-public @OutputParam("document") String convert(
-        ConvertInput input,
-        @WorkflowInstanceIdInputParam String workflowId) throws IOException {
-    Path source = Files.createTempFile("document-", ".bin");
-    Path output = Files.createTempFile("converted-", ".pdf");
-    try {
-        files.download(workflowId, input.document(), source);
-        convertToPdf(source, output);
-        return files.upload(
-                workflowId,
-                output,
-                new FileUploadOptions().setContentType("application/pdf"));
-    } finally {
-        Files.deleteIfExists(source);
-        Files.deleteIfExists(output);
-    }
-}
+AnnotatedWorkerExecutor workers = new AnnotatedWorkerExecutor(taskClient);
+workers.initWorkersFromInstances(List.of(new ConvertWorker(files)));
 ```
+
+The annotation value must exactly match both the workflow task's `name` and a registered task definition. The task input and output remain plain strings; no task-runner file integration is required. Implement the lower-level `Worker` interface only when the method-binding model is insufficient and direct access to the full `Task` or `TaskResult` is necessary.
 
 ## Retry and security behavior
 

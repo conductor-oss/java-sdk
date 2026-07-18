@@ -30,7 +30,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 
 | Example | Description |
 |---|---|
-| [media-transcoder](file-storage/media-transcoder/) | Complete `FileClient` workflow covering path and stream uploads, metadata, downloads, raw and annotated workers, handle passing, and automatic multipart selection. |
+| [media-transcoder](file-storage/media-transcoder/) | Complete `FileClient` workflow covering path and stream uploads, metadata, downloads, a consistent `@WorkerTask` pattern, handle passing, and automatic multipart selection. |
 
 ---
 

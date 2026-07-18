@@ -12,16 +12,17 @@
  */
 package io.conductor.example.mediatranscoder.workers;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.netflix.conductor.client.worker.Worker;
-import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.sdk.workflow.task.OutputParam;
+import com.netflix.conductor.sdk.workflow.task.WorkerTask;
+import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
 
-public class ThumbnailWorker implements Worker {
+public class ThumbnailWorker {
 
     private final FileClient fileClient;
 
@@ -29,37 +30,32 @@ public class ThumbnailWorker implements Worker {
         this.fileClient = fileClient;
     }
 
-    @Override
-    public String getTaskDefName() { return "extract_thumbnail"; }
+    public static class ThumbnailInput {
+        public String primary_video;
+    }
 
-    @Override
-    public TaskResult execute(Task task) {
-        TaskResult result = new TaskResult(task);
-        String primary = (String) task.getInputData().get("primary_video");
+    @WorkerTask("extract_thumbnail")
+    public @OutputParam("output_file") String extract(
+            ThumbnailInput input,
+            @WorkflowInstanceIdInputParam String workflowId) throws IOException {
         Path downloaded = null;
         Path thumbnail = null;
 
         try {
             downloaded = Files.createTempFile("primary-", ".mov");
-            fileClient.download(task.getWorkflowInstanceId(), primary, downloaded);
+            fileClient.download(workflowId, input.primary_video, downloaded);
             thumbnail = Files.createTempFile("thumb-", ".png");
             Files.write(thumbnail, "PNG_THUMBNAIL_DATA".getBytes());
 
-            FileUploadOptions options = new FileUploadOptions().setContentType("image/png").setTaskId(task.getTaskId());
-            String uploaded = fileClient.upload(task.getWorkflowInstanceId(), thumbnail, options);
-            result.getOutputData().put("output_file", uploaded);
-            result.setStatus(TaskResult.Status.COMPLETED);
+            FileUploadOptions options = new FileUploadOptions().setContentType("image/png");
+            String uploaded = fileClient.upload(workflowId, thumbnail, options);
 
             System.out.println("[extract_thumbnail] Uploaded: " + uploaded);
-        } catch (Exception e) {
-            result.setStatus(TaskResult.Status.FAILED);
-            result.setReasonForIncompletion(e.getMessage());
-            e.printStackTrace();
+            return uploaded;
         } finally {
             delete(downloaded);
             delete(thumbnail);
         }
-        return result;
     }
 
     private static void delete(Path path) {

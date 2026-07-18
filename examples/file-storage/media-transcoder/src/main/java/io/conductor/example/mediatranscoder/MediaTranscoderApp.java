@@ -20,18 +20,16 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskDef.RetryLogic;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
-import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorker;
+import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 import io.conductor.example.mediatranscoder.workers.ManifestWorker;
 import io.conductor.example.mediatranscoder.workers.ThumbnailWorker;
 import io.conductor.example.mediatranscoder.workers.TranscodeWorker;
@@ -69,25 +67,14 @@ public class MediaTranscoderApp {
         // 2. Start workers. upload_primary_video runs first inside the workflow and publishes
         // the primary video handle; downstream tasks consume it via
         // ${upload_primary_video_ref.output.primary_video}.
-        // TranscodeWorker is an @WorkerTask-annotated bean. Both raw and annotated workers inject
-        // FileClient explicitly and exchange only opaque handle strings.
-        TranscodeWorker transcodeBean = new TranscodeWorker(fileClient);
-        AnnotatedWorker transcodeWorker = new AnnotatedWorker(
-                "transcode_video",
-                TranscodeWorker.class.getMethod(
-                        "transcode", TranscodeWorker.TranscodeInput.class, String.class),
-                transcodeBean);
-
-        List<Worker> workers = List.of(
+        // Every worker is an ordinary dependency-injected object whose work method is annotated
+        // with @WorkerTask. The executor discovers those methods and handles input/output binding.
+        AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(taskClient);
+        workerExecutor.initWorkersFromInstances(List.of(
                 new UploadPrimaryVideoWorker(fileClient),
-                transcodeWorker,
+                new TranscodeWorker(fileClient),
                 new ThumbnailWorker(fileClient),
-                new ManifestWorker(fileClient));
-
-        TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
-                .withThreadCount(4)
-                .build();
-        configurer.init();
+                new ManifestWorker(fileClient)));
         System.out.println("Workers started: upload_primary_video, transcode_video, extract_thumbnail, create_manifest");
 
         // 3. Start workflow — no inputs; upload_primary_video publishes primaryVideo.
@@ -99,7 +86,7 @@ public class MediaTranscoderApp {
         String workflowId = workflowClient.startWorkflow(request);
         System.out.println("Workflow started: " + workflowId);
 
-        // 5. Poll for completion
+        // 4. Poll for completion.
         System.out.println("Waiting for workflow to complete...");
         for (int i = 0; i < 30; i++) {
             Thread.sleep(2000);
@@ -108,13 +95,13 @@ public class MediaTranscoderApp {
             if (workflow.getStatus().isTerminal()) {
                 System.out.println("Workflow " + workflow.getStatus() + "!");
                 System.out.println("Output: " + workflow.getOutput());
-                configurer.shutdown();
+                workerExecutor.shutdown();
                 System.exit(workflow.getStatus().isSuccessful() ? 0 : 1);
             }
         }
 
         System.err.println("Workflow did not complete in 60s");
-        configurer.shutdown();
+        workerExecutor.shutdown();
         System.exit(1);
     }
 

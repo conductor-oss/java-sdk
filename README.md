@@ -259,7 +259,7 @@ public class Workers {
 }
 ```
 
-**Start workers** with `TaskRunnerConfigurer` or `WorkflowExecutor`:
+**Start workers** with `TaskRunnerConfigurer` or `AnnotatedWorkerExecutor`:
 
 ```java
 // Option 1: Using TaskRunnerConfigurer
@@ -272,9 +272,9 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(
 .build();
 configurer.init();
 
-// Option 2: Using WorkflowExecutor (auto-discovers @WorkerTask annotations)
-WorkflowExecutor executor = new WorkflowExecutor(client, 10);
-executor.initWorkers("com.mycompany.workers");  // Package to scan for @WorkerTask
+// Option 2: Register dependency-injected @WorkerTask instances
+AnnotatedWorkerExecutor executor = new AnnotatedWorkerExecutor(taskClient);
+executor.initWorkersFromInstances(List.of(new Workers()));
 ```
 
 **Worker Design Principles:**

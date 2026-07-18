@@ -17,14 +17,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.netflix.conductor.client.worker.Worker;
-import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.sdk.workflow.task.OutputParam;
+import com.netflix.conductor.sdk.workflow.task.WorkerTask;
+import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.client.model.file.FileMetadata;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
 
-public class ManifestWorker implements Worker {
+public class ManifestWorker {
 
     private static final String MANIFEST = "{\"video\":\"%s\",\"videoName\":\"%s\",\"videoSize\":%d,\"thumbnail\":\"%s\",\"thumbName\":\"%s\",\"thumbSize\":%d}";
     private final FileClient fileClient;
@@ -33,20 +33,20 @@ public class ManifestWorker implements Worker {
         this.fileClient = fileClient;
     }
 
-    @Override
-    public String getTaskDefName() {
-        return "create_manifest";
+    public static class ManifestInput {
+        public String transcoded_video;
+        public String thumbnail;
     }
 
-    @Override
-    public TaskResult execute(Task task) {
-        TaskResult result = new TaskResult(task);
-        String video = (String) task.getInputData().get("transcoded_video");
-        String thumb = (String) task.getInputData().get("thumbnail");
+    @WorkerTask("create_manifest")
+    public @OutputParam("output_file") String create(
+            ManifestInput input,
+            @WorkflowInstanceIdInputParam String workflowId) throws IOException {
+        String video = input.transcoded_video;
+        String thumb = input.thumbnail;
         Path manifestFile = null;
 
         try {
-            String workflowId = task.getWorkflowInstanceId();
             System.out.println("[create_manifest] Inputs:");
             FileMetadata videoMetadata = describe(workflowId, video);
             FileMetadata thumbMetadata = describe(workflowId, thumb);
@@ -59,17 +59,12 @@ public class ManifestWorker implements Worker {
             manifestFile = Files.createTempFile("manifest-", ".json");
             Files.writeString(manifestFile, manifest);
 
-            FileUploadOptions options = new FileUploadOptions().setContentType("application/json").setTaskId(task.getTaskId());
+            FileUploadOptions options = new FileUploadOptions().setContentType("application/json");
             String uploaded = fileClient.upload(workflowId, manifestFile, options);
-            result.getOutputData().put("output_file", uploaded);
-            result.setStatus(TaskResult.Status.COMPLETED);
 
             System.out.println("[create_manifest] Uploaded: " + uploaded);
             System.out.println("[create_manifest] Content: " + manifest);
-        } catch (Exception e) {
-            result.setStatus(TaskResult.Status.FAILED);
-            result.setReasonForIncompletion(e.getMessage());
-            e.printStackTrace();
+            return uploaded;
         } finally {
             if (manifestFile != null) {
                 try {
@@ -78,7 +73,6 @@ public class ManifestWorker implements Worker {
                 }
             }
         }
-        return result;
     }
 
     private FileMetadata describe(String workflowId, String fileHandleId) throws IOException {
