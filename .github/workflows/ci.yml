@@ -36,7 +36,7 @@ jobs:
 
       - name: Reject retired README references
         run: |
-          if rg -n ':examples:run|examples/old|LlmIndexDocument|\.topK\(' README.md; then
+          if grep -En ':examples:run|examples/old|LlmIndexDocument|\.topK\(' README.md; then
             echo "README references a retired command, path, or API."
             exit 1
           fi
@@ -60,9 +60,9 @@ jobs:
           CONDUCTOR_UI_PORT: 11234
         run: |
           timeout 240 ./run.sh
-          curl --fail --retry 10 --retry-delay 2 --retry-all-errors http://localhost:18080/health
-          curl --fail --retry 10 --retry-delay 2 --retry-all-errors http://localhost:11234/
-          docker compose ps --status running --services | rg --fixed-strings --line-regexp conductor
+          curl --fail --silent --show-error --output /dev/null --retry 10 --retry-delay 2 --retry-all-errors http://localhost:18080/health
+          curl --fail --silent --show-error --output /dev/null --retry 10 --retry-delay 2 --retry-all-errors http://localhost:11234/
+          docker compose ps --status running --services | grep -Fx conductor
 
       - name: Stop documented core quickstart
         if: always()
