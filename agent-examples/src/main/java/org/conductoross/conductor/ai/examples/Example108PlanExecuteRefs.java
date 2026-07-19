@@ -12,10 +12,6 @@
  */
 package org.conductoross.conductor.ai.examples;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +25,13 @@ import org.conductoross.conductor.ai.plans.Op;
 import org.conductoross.conductor.ai.plans.Plan;
 import org.conductoross.conductor.ai.plans.Ref;
 import org.conductoross.conductor.ai.plans.Step;
+
+import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.run.Workflow;
+
+import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.OrkesClients;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,7 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * to format a final summary. The plan is fully deterministic — no planner
  * LLM required — because we pass it directly to {@code runtime.run}.
  *
- * <p>Run: {@code ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example108PlanExecuteRefs}
+ * <p>Run: {@code ./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example108PlanExecuteRefs}
  */
 public class Example108PlanExecuteRefs {
 
@@ -162,54 +165,39 @@ public class Example108PlanExecuteRefs {
                 .build())
             .build();
 
-        try (AgentRuntime runtime = new AgentRuntime()) {
+        ApiClient transport = new ApiClient();
+        WorkflowClient workflows = new OrkesClients(transport).getWorkflowClient();
+        try (AgentRuntime runtime = new AgentRuntime(transport)) {
             AgentResult result = runtime.run(harness, "demo", plan);
             System.out.println("status=" + result.getStatus()
                 + " executionId=" + result.getExecutionId());
-            showPipelineOutputs(result.getExecutionId());
+            showPipelineOutputs(workflows, result.getExecutionId());
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static void showPipelineOutputs(String executionId) throws Exception {
-        HttpClient http = HttpClient.newHttpClient();
+    private static void showPipelineOutputs(WorkflowClient workflows, String executionId) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        Map<String, Object> parent = fetchWorkflow(http, mapper, executionId);
+        Workflow parent = workflows.getWorkflow(executionId, true);
         String subId = null;
-        for (Map<String, Object> t : (List<Map<String, Object>>) parent.getOrDefault("tasks", List.of())) {
-            String ref = String.valueOf(t.getOrDefault("referenceTaskName", ""));
+        for (Task task : parent.getTasks()) {
+            String ref = task.getReferenceTaskName();
             if (ref.endsWith("_plan_exec")) {
-                Map<String, Object> out = (Map<String, Object>) t.get("outputData");
-                subId = out == null ? null : (String) out.get("subWorkflowId");
+                subId = (String) task.getOutputData().get("subWorkflowId");
                 break;
             }
         }
         if (subId == null) return;
 
-        Map<String, Object> sub = fetchWorkflow(http, mapper, subId);
+        Workflow sub = workflows.getWorkflow(subId, true);
         System.out.println("\n── pipeline trace (Ref data flow) ────────────────────────");
-        for (Map<String, Object> t : (List<Map<String, Object>>) sub.getOrDefault("tasks", List.of())) {
-            String name = String.valueOf(t.get("taskDefName"));
+        for (Task task : sub.getTasks()) {
+            String name = task.getTaskDefName();
             if (name.equals("produce") || name.equals("enrich") || name.equals("report")) {
                 System.out.println("\n" + name + ":");
-                System.out.println(
-                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(t.get("outputData")));
+                System.out.println(mapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(task.getOutputData()));
             }
         }
-    }
-    private static final String BASE_URL =
-            System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api")
-                    .replace("/api", "");
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> fetchWorkflow(
-            HttpClient http, ObjectMapper mapper, String id) throws Exception {
-        HttpResponse<String> resp = http.send(
-            HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/workflow/" + id + "?includeTasks=true"))
-                .GET()
-                .build(),
-            HttpResponse.BodyHandlers.ofString());
-        return mapper.readValue(resp.body(), Map.class);
     }
 }

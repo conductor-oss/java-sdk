@@ -12,10 +12,6 @@
  */
 package org.conductoross.conductor.ai.examples;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +23,12 @@ import org.conductoross.conductor.ai.model.AgentResult;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.plans.Context;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.run.Workflow;
+
+import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.OrkesClients;
 
 /**
  * 115 — Plan-Execute with {@code plannerContext}: customer onboarding plan.
@@ -54,16 +55,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <p>Mirrors sdk/python/examples/115_plan_execute_planner_context.py and
  * sdk/typescript/examples/115-plan-execute-planner-context.ts.
  *
- * <p>Run: {@code ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example115PlannerContext}
+ * <p>Run: {@code ./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example115PlannerContext}
  */
 public class Example115PlannerContext {
 
     private static final String MODEL =
         System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "anthropic/claude-sonnet-4-6");
-    private static final String BASE_URL =
-        System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api")
-            .replace("/api", "");
-
     public static void main(String[] args) throws Exception {
         // ── Onboarding tools (deterministic, no external calls) ──────
 
@@ -206,38 +203,26 @@ public class Example115PlannerContext {
         String prompt = "Onboard customer cust-001 at tier 'enterprise'. "
             + "Use customer_id='cust-001' and tier='enterprise' for the tools.";
 
-        try (AgentRuntime runtime = new AgentRuntime()) {
+        ApiClient transport = new ApiClient();
+        WorkflowClient workflows = new OrkesClients(transport).getWorkflowClient();
+        try (AgentRuntime runtime = new AgentRuntime(transport)) {
             AgentResult result = runtime.run(harness, prompt);
             System.out.println("status: " + result.getStatus());
             System.out.println("output: " + result.getOutput());
-            showExecutedSteps(result.getExecutionId());
+            showExecutedSteps(workflows, result.getExecutionId());
         }
     }
 
-    private static void showExecutedSteps(String executionId) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpRequest parentReq = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/api/workflow/" + executionId + "?includeTasks=true"))
-            .build();
-        HttpResponse<String> parentResp =
-            client.send(parentReq, HttpResponse.BodyHandlers.ofString());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> parent = mapper.readValue(parentResp.body(), Map.class);
+    private static void showExecutedSteps(WorkflowClient workflows, String executionId) {
+        Workflow parent = workflows.getWorkflow(executionId, true);
 
         System.out.println("\n=== Executed onboarding plan ===");
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> parentTasks =
-            (List<Map<String, Object>>) parent.getOrDefault("tasks", List.of());
         String subId = null;
-        for (Map<String, Object> t : parentTasks) {
-            String ref = (String) t.getOrDefault("referenceTaskName", "");
+        for (Task task : parent.getTasks()) {
+            String ref = task.getReferenceTaskName();
             if (ref.endsWith("_plan_exec")) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> out = (Map<String, Object>) t.get("outputData");
-                if (out != null) subId = (String) out.get("subWorkflowId");
+                subId = (String) task.getOutputData().get("subWorkflowId");
                 break;
             }
         }
@@ -246,27 +231,18 @@ public class Example115PlannerContext {
             return;
         }
 
-        HttpRequest subReq = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/api/workflow/" + subId + "?includeTasks=true"))
-            .build();
-        HttpResponse<String> subResp =
-            client.send(subReq, HttpResponse.BodyHandlers.ofString());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> sub = mapper.readValue(subResp.body(), Map.class);
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> subTasks =
-            (List<Map<String, Object>>) sub.getOrDefault("tasks", List.of());
+        Workflow sub = workflows.getWorkflow(subId, true);
 
         java.util.Set<String> expected = java.util.Set.of(
             "validate_kyc", "create_account", "send_welcome_email", "schedule_kickoff_call");
         int count = 0;
         boolean sawKickoff = false;
-        for (Map<String, Object> t : subTasks) {
-            String name = (String) t.getOrDefault("taskDefName", "");
+        for (Task task : sub.getTasks()) {
+            String name = task.getTaskDefName();
             if (expected.contains(name)) {
                 count++;
                 if ("schedule_kickoff_call".equals(name)) sawKickoff = true;
-                System.out.printf("    %-10s %s%n", t.get("status"), name);
+                System.out.printf("    %-10s %s%n", task.getStatus(), name);
             }
         }
         System.out.println("  " + count + " step(s) executed");
