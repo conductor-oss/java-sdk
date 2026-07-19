@@ -9,6 +9,8 @@ The Java SDK for [Conductor](https://www.conductor-oss.org/) lets you build dura
 
 **Get involved:** [⭐ Conductor OSS](https://github.com/conductor-oss/conductor) · [Choose a Conductor OSS contribution](https://github.com/conductor-oss/conductor/contribute) · [Contribution guide](https://github.com/conductor-oss/conductor/blob/main/CONTRIBUTING.md)
 
+**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor workflows: `npm install -g @conductor-oss/conductor-skills && conductor-skills --all`.
+
 ## Choose your path
 
 | I want to… | Start here |
@@ -16,7 +18,8 @@ The Java SDK for [Conductor](https://www.conductor-oss.org/) lets you build dura
 | Build a durable AI agent with tools and human approval | [Run an AI agent example](#ai-agent-quickstart) |
 | Bring an existing Google ADK or LangChain4j agent | [Use framework bridges](#google-adk-and-langchain4j) |
 | Build a durable workflow and Java worker | [Run the core hello-world example](#workflow-and-worker-quickstart) |
-| Browse all examples | [AI agent guide](docs/agents/index.md) · [Core examples](examples/README.md) |
+| Browse all examples | [AI agent guide](docs/agents/README.md) · [Core examples](examples/README.md) |
+| Navigate the SDK documentation | [Documentation hub](docs/README.md) |
 
 ## Why Conductor?
 
@@ -38,7 +41,7 @@ Prefer to construct the graph in code? [`Example108PlanExecuteRefs`](agent-examp
 ## Requirements and compatibility
 
 - Java 21+
-- Docker for the standalone core quickstart, or a running OSS/Orkes Conductor server.
+- A running OSS/Orkes Conductor server. For local development, use the [Conductor CLI](docs/server-setup.md) (`npm install -g @conductor-oss/conductor-cli`; then `conductor server start`). Docker remains available for containerized examples.
 - Maven 3.8+ when running standalone core examples without their launcher script; Gradle is included for this repository's agent examples.
 
 The CI workflows are the source of truth for the server versions exercised by this SDK. See the [agent E2E matrix](.github/workflows/agent-e2e.yml) for its pinned server version.
@@ -105,7 +108,7 @@ export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini
   -PmainClass=org.conductoross.conductor.ai.examples.Example01BasicAgent
 ```
 
-Expected outcome: the example prints an `AgentResult` containing the model response. See the [AI agent guide](docs/agents/index.md), [tools guide](docs/agents/concepts/tools.md), and [agent examples](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/) for the next step.
+Expected outcome: the example prints an `AgentResult` containing the model response. See the [AI agent guide](docs/agents/README.md), [tools guide](docs/agents/concepts/tools.md), and [agent examples](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/) for the next step.
 
 ### Google ADK and LangChain4j
 
@@ -117,8 +120,14 @@ Start with the [Google ADK examples](agent-examples/src/main/java/org/conductoro
 
 This maintained example registers a workflow, starts a Java worker, executes the workflow, and prints `Result: PASSED`.
 
+### Recommended: use a CLI-managed server
+
 ```shell
-# The launcher starts Conductor, builds the example with Maven/JDK 21, and runs it.
+# Start the local server once (see docs/server-setup.md).
+conductor server start
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+
+# The launcher reuses the explicitly configured server.
 cd examples/basics/hello-world
 ./run.sh
 ```
@@ -131,13 +140,17 @@ Output: {greeting=Hello, Developer! Welcome to Conductor.}
 Result: PASSED
 ```
 
-The managed Conductor server remains running after the example completes. Open the UI at [http://localhost:1234](http://localhost:1234), then stop it when finished:
+Open the CLI-managed server UI at [http://localhost:8080](http://localhost:8080), then stop it when finished:
 
 ```shell
-docker compose down
+conductor server stop
 ```
 
-To use an existing server instead, set `CONDUCTOR_SERVER_URL` explicitly before running the launcher. For worker patterns, workflow definitions, and testing, continue with the [core examples catalog](examples/README.md), [worker guide](docs/worker_sdk.md), and [workflow guide](docs/workflow_sdk.md).
+### Optional: let the launcher manage Docker
+
+Leave `CONDUCTOR_SERVER_URL` unset and run the same launcher. It starts the example's Docker Compose server; its UI is [http://localhost:1234](http://localhost:1234). Stop that path with `docker compose down` from `examples/basics/hello-world`.
+
+For any existing server, set `CONDUCTOR_SERVER_URL` explicitly before running the launcher. For worker patterns, workflow definitions, and testing, continue with the [core examples catalog](examples/README.md), [worker guide](docs/workers.md), and [workflow guide](docs/workflows.md).
 
 ## Common tasks
 
@@ -147,10 +160,10 @@ To use an existing server instead, set `CONDUCTOR_SERVER_URL` explicitly before 
 | Add tools and human approval | [Agent tools](docs/agents/concepts/tools.md) |
 | Use another agent framework | [Google ADK](docs/agents/frameworks/google-adk.md) · [LangChain4j](docs/agents/frameworks/langchain4j.md) · [LangGraph4j](docs/agents/frameworks/langgraph4j.md) |
 | Deploy, serve, and run agents | [Agent runtime modes](docs/agents/concepts/deploy-serve-run.md) |
-| Implement and scale Java workers | [Worker SDK guide](docs/worker_sdk.md) |
-| Define workflows in Java | [Workflow SDK guide](docs/workflow_sdk.md) |
+| Implement and scale Java workers | [Workers guide](docs/workers.md) |
+| Define workflows in Java | [Workflows guide](docs/workflows.md) |
 | Upload/download workflow-scoped files | [FileClient guide](docs/file-client.md) |
-| Test workflows and workers | [Testing framework](docs/testing_framework.md) |
+| Test workflows and workers | [Workflow test harness](docs/workflow-testing.md) |
 | Expose worker metrics | [Client metrics](conductor-client-metrics/README.md) |
 | Configure Spring applications | [Core Spring integration](conductor-client-spring/README.md) · [AI Spring guide](docs/agents/spring-boot.md) |
 | Manage schedules | [Typed `SchedulerClient`](conductor-client/src/main/java/io/orkes/conductor/client/SchedulerClient.java) |

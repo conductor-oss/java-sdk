@@ -5,9 +5,11 @@ Use Google's Agent Development Kit (ADK) agents directly with Conductor. The `Ad
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-client-ai:5.1.0'
-compileOnly 'com.google.adk:google-adk:1.3.0'
+implementation 'org.conductoross:conductor-client-ai:<VERSION>'
+implementation 'com.google.adk:google-adk:1.3.0'
 ```
+
+`1.3.0` is the version exercised by this repository's agent examples. Replace `<VERSION>` with a published SDK version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
 ## Usage
 
@@ -15,9 +17,11 @@ compileOnly 'com.google.adk:google-adk:1.3.0'
 import com.google.adk.agents.LlmAgent;
 import com.google.adk.tools.Annotations;
 import com.google.adk.tools.FunctionTool;
+import java.util.Map;
 import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.frameworks.AdkBridge;
+import org.conductoross.conductor.ai.model.AgentResult;
 
 // A FunctionTool target — ADK reflects the method and its @Schema params
 public static class WeatherService {
@@ -78,5 +82,4 @@ Agent agent = AdkBridge.agentBuilder(adkAgent)
 | Sub-agents (`.subAgents()`) | `Agent.agents` |
 | `LoopAgent` / `SequentialAgent` | `Strategy.SEQUENTIAL` |
 
-!!! note "Model requirement"
-    Google ADK agents require a Gemini model (e.g. `gemini-2.0-flash`). Make sure your Conductor server has a Google AI or Vertex AI provider configured with the appropriate API key.
+> **Model requirement:** Google ADK agents require a Gemini model (for example, `gemini-2.0-flash`). Configure the Google AI or Vertex AI credential on the Conductor server.

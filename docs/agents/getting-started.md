@@ -1,66 +1,67 @@
-# Getting Started
+# Run your first durable AI agent
+
+This path starts a local Conductor server with an LLM provider credential, then runs the maintained basic-agent example from this repository. The LLM credential belongs to the **server process** because Conductor performs the model call.
 
 ## Prerequisites
 
 - Java 21+
-- Gradle 7+ or Maven 3.6+
-- A running Conductor server — see the [Conductor repo](https://github.com/conductor-oss/conductor) or start one locally:
+- Node.js and npm for the recommended local-server path
+- An OpenAI API key, or an existing Conductor server that already has an LLM provider configured
+
+## 1. Start a server with a provider credential
+
+Install the [Conductor CLI](https://github.com/conductor-oss/conductor-cli) with npm, then start the local server. Configure the provider key in the server process environment before starting it:
 
 ```bash
-docker run -p 8080:8080 conductoross/conductor:latest
+export OPENAI_API_KEY='set-this-in-your-shell'
+npm install -g @conductor-oss/conductor-cli
+conductor server start
 ```
 
-## Add the dependency
+Wait until the server is healthy:
 
-=== "Gradle"
+```bash
+curl --fail http://localhost:8080/health
+```
 
-    ```groovy
-    dependencies {
-        implementation 'org.conductoross:conductor-client-ai:5.1.0'
-    }
-    ```
+If you need a containerized server, use the optional [Docker setup](../server-setup.md#optional-docker). If you use an existing OSS or Orkes server, use its URL and authentication instead. The selected `provider/model` must be configured on that server.
 
-=== "Maven"
+## 2. Add the dependency
 
-    ```xml
-    <dependency>
-        <groupId>org.conductoross</groupId>
-        <artifactId>conductor-client-ai</artifactId>
-        <version>5.1.0</version>
-    </dependency>
-    ```
+### Gradle
 
-## Configure the connection
+```groovy
+dependencies {
+    implementation 'org.conductoross:conductor-client-ai:<VERSION>'
+}
+```
 
-The SDK reads connection settings from environment variables by default:
+### Maven
+
+```xml
+<dependency>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-client-ai</artifactId>
+    <version>&lt;VERSION&gt;</version>
+</dependency>
+```
+
+Replace `<VERSION>` with a published version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
+
+## 3. Run the maintained example
+
+From this SDK repository, in a second terminal:
 
 ```bash
 export CONDUCTOR_SERVER_URL=http://localhost:8080/api
-export OPENAI_API_KEY=<YOUR-KEY>
-export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini
-export CONDUCTOR_AUTH_KEY=your-key                 # optional
-export CONDUCTOR_AUTH_SECRET=your-secret           # optional
+CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini \
+  ./gradlew :agent-examples:run \
+  -PmainClass=org.conductoross.conductor.ai.examples.Example01BasicAgent
 ```
 
-Or construct an `ApiClient` explicitly:
+`CONDUCTOR_AGENT_LLM_MODEL` is read by this repository's examples; it is not an `AgentRuntime` configuration variable. The expected result is an `AgentResult` with a completed status and a response to the capital-of-France question.
 
-```java
-import io.orkes.conductor.client.ApiClient;
-import org.conductoross.conductor.ai.AgentRuntime;
-
-// No auth (local dev)
-ApiClient client = ApiClient.builder().basePath("http://localhost:8080/api").build();
-
-// With key/secret
-ApiClient client = ApiClient.builder()
-        .basePath("http://myserver:8080/api")
-        .credentials("key", "secret")
-        .build();
-
-AgentRuntime runtime = new AgentRuntime(client);
-```
-
-## Run your first agent
+## 4. Create the same agent in your application
 
 ```java
 import org.conductoross.conductor.ai.Agent;
@@ -68,74 +69,31 @@ import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.model.AgentResult;
 
 Agent agent = Agent.builder()
-    .name("hello_agent")
-    .model("anthropic/claude-sonnet-4-6")
-    .instructions("You are a concise assistant. Answer in one sentence.")
-    .build();
+        .name("hello_agent")
+        .model("openai/gpt-4o-mini")
+        .instructions("You are a concise assistant. Answer in one sentence.")
+        .build();
 
 try (AgentRuntime runtime = new AgentRuntime()) {
     AgentResult result = runtime.run(agent, "What is 2 + 2?");
     System.out.println(result.getOutput());
-    // → "2 + 2 equals 4."
 }
 ```
 
-## Add a tool
+`AgentRuntime` reads `CONDUCTOR_SERVER_URL`, `CONDUCTOR_AUTH_KEY`, and `CONDUCTOR_AUTH_SECRET`. It normalizes either `http://host:8080` or `http://host:8080/api` to the API endpoint.
 
-Tools are Java methods wrapped as Conductor worker tasks. The method runs locally in your process; the agent calls it remotely via Conductor.
+## First troubleshooting steps
 
-```java
-import org.conductoross.conductor.ai.internal.ToolRegistry;
-import org.conductoross.conductor.ai.annotations.Tool;
-
-public class WeatherTools {
-
-    @Tool(name = "get_weather", description = "Get current weather for a city")
-    public String getWeather(String city) {
-        // real implementation would call a weather API
-        return "Sunny, 22°C in " + city;
-    }
-}
-
-Agent agent = Agent.builder()
-    .name("weather_agent")
-    .model("anthropic/claude-sonnet-4-6")
-    .instructions("Answer weather questions using the get_weather tool.")
-    .tools(ToolRegistry.fromInstance(new WeatherTools()))
-    .build();
-
-try (AgentRuntime runtime = new AgentRuntime()) {
-    AgentResult result = runtime.run(agent, "What's the weather in Tokyo?");
-    System.out.println(result.getOutput());
-}
-```
-
-!!! tip "Tool methods run as Conductor tasks"
-    The `@Tool` method executes in your local JVM, but Conductor manages its lifecycle. If your process restarts mid-run, Conductor re-dispatches the task to the next available worker.
-
-## Streaming
-
-Use `stream()` to get events as they happen:
-
-```java
-import org.conductoross.conductor.ai.model.AgentStream;
-import org.conductoross.conductor.ai.model.AgentEvent;
-import org.conductoross.conductor.ai.enums.EventType;
-
-try (AgentRuntime runtime = new AgentRuntime();
-     AgentStream stream = runtime.stream(agent, "Tell me a story")) {
-
-    for (AgentEvent event : stream) {
-        if (event.getType() == EventType.MESSAGE) {
-            System.out.print(event.getContent());
-        }
-    }
-}
-```
+| Symptom | Check |
+|---|---|
+| Connection failure | `curl --fail http://localhost:8080/health` succeeds and `CONDUCTOR_SERVER_URL` points to `/api`. |
+| Authentication failure | Set the client key and secret for the target server; do not place them in source. |
+| Model/provider error | The server container or remote server—not only the Java client—has the provider credential and supports the selected model. |
+| Tool task stays scheduled | Keep the process containing `AgentRuntime` alive so its local tool workers can poll. |
 
 ## Next steps
 
-- [Concepts → Agents](concepts/agents.md) — full builder API reference
-- [Concepts → Tools](concepts/tools.md) — tool types: HTTP, MCP, human, CLI
-- [Concepts → Multi-Agent](concepts/multi-agent.md) — sequential, parallel, handoff, swarm
-- [Spring Boot](spring-boot.md) — auto-configuration for Spring Boot apps
+- [Add Java tools](concepts/tools.md)
+- [Build multi-agent and plan-execute systems](concepts/multi-agent.md)
+- [Deploy or serve agents](concepts/deploy-serve-run.md)
+- [Use Google ADK, LangChain4j, LangGraph4j, or OpenAI-style bridges](README.md#framework-bridges)

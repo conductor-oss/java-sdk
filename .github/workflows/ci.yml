@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  readme-validation:
+  documentation-validation:
     runs-on: ubuntu-latest
-    name: README validation
+    name: Documentation validation
     timeout-minutes: 15
 
     steps:
@@ -29,17 +29,47 @@ jobs:
           distribution: "zulu"
           java-version: "21"
 
-      - name: Validate README links
+      - name: Validate documentation links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --offline --no-progress README.md
+          args: --offline --no-progress README.md docs
 
-      - name: Reject retired README references
+      - name: Reject retired documentation references
         run: |
-          if grep -En ':examples:run|examples/old|LlmIndexDocument|\.topK\(' README.md; then
-            echo "README references a retired command, path, or API."
+          if grep -REn ':examples:run|examples/old|LlmIndexDocument|\.topK\(|runtime\.schedules\(|Schedule\.builder|conductor\.netflix\.com|^=== "|compileOnly .*langchain|compileOnly .*google\.adk|compileOnly .*langgraph|docs/agents/index\.md|docs/agents/agent-(runtime-api|client-api|structure|schema)\.md|docs/agents/api-reference\.md|docs/testing_framework\.md' README.md docs; then
+            echo "Documentation references a retired command, path, API, or renderer-specific construct."
             exit 1
           fi
+
+      - name: Validate documented source links and test-server version
+        run: |
+          curl --fail --silent --show-error --location --retry 3 --retry-all-errors --output /dev/null \
+            https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/main/java/com/netflix/conductor/sdk/workflow/executor/WorkflowExecutor.java
+          curl --fail --silent --show-error --location --retry 3 --retry-all-errors --output /dev/null \
+            https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java
+          server_version="$(sed -n 's/.*new WorkflowTestRunner(8080, "\([^"]*\)").*/\1/p' conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java)"
+          test -n "$server_version"
+          grep -Fq "$server_version" docs/workflow-testing.md
+
+      - name: Verify agent configuration schema
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run agent configuration schema verifier
+        run: |
+          python -m pip install --disable-pip-version-check -r tools/agent-schema/requirements.txt
+          python tools/agent-schema/verify.py
+          test ! -d docs/agents/generated
+          test -f docs/agents/reference/agent-schema.json
+          test ! -f docs/agents/concepts/skills.md
+
+      - name: Verify documented example targets
+        run: |
+          test -f examples/basics/hello-world/run.sh
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example01BasicAgent.java
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example108PlanExecuteRefs.java
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example115PlannerContext.java
 
       - name: Compile documented AI example target
         run: ./gradlew :agent-examples:compileJava

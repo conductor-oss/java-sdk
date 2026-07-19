@@ -7,7 +7,7 @@ This module provides the core client library to interact with Conductor through 
 ### Prerequisites
 - Java 11 or higher
 - A Gradle or Maven project properly set up
-- A running Conductor server (local or remote)
+- A running Conductor server ([start one locally with the CLI](../docs/server-setup.md), or use a remote server)
 
 ### Using Conductor Client
 

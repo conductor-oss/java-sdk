@@ -6,9 +6,24 @@ Every example in this repository follows the same structure and can be run the s
 
 - **Java 21+**: verify with `java -version`
 - **Maven 3.8+**: verify with `mvn -version`
-- **Docker**: to run Conductor
+- **Node.js and npm**: for the recommended local Conductor CLI
 
-## Option 1: Docker Compose
+## Option 1: Conductor CLI (recommended)
+
+Install the [Conductor CLI](https://github.com/conductor-oss/conductor-cli), start the server, and then run an example:
+
+```bash
+npm install -g @conductor-oss/conductor-cli
+conductor server start
+
+cd examples/<category>/<example>
+mvn package -DskipTests
+java -jar target/<example>-1.0.0.jar
+```
+
+Stop the server when finished with `conductor server stop`.
+
+## Option 2: Docker Compose
 
 Each example includes a `docker-compose.yml` that starts both Conductor and the example:
 
@@ -19,7 +34,7 @@ docker compose up --build
 
 Conductor UI will be available at `http://localhost:1234`.
 
-## Option 2: Run Locally
+## Option 3: Docker container
 
 Start Conductor:
 
@@ -35,7 +50,7 @@ mvn package -DskipTests
 java -jar target/<example>-1.0.0.jar
 ```
 
-## Option 3: Launcher Script
+## Option 4: Launcher Script
 
 ```bash
 cd examples/<category>/<example>
@@ -67,6 +82,15 @@ Check status:
 
 ```bash
 conductor workflow get-execution <workflow_id>
+```
+
+## AI coding agents
+
+Install [Conductor Skills](https://github.com/conductor-oss/conductor-skills) to give a supported coding agent Conductor workflow and operations guidance:
+
+```bash
+npm install -g @conductor-oss/conductor-skills
+conductor-skills --all
 ```
 
 ## Configuration

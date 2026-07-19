@@ -5,8 +5,9 @@
 ## Quick Start
 
 ```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:latest
+# Recommended: install the CLI once, then start Conductor locally.
+npm install -g @conductor-oss/conductor-cli
+conductor server start
 
 # Pick any example and run it
 cd examples/basics/hello-world
@@ -18,7 +19,9 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 
 - Java 21+
 - Maven 3.8+
-- Conductor server (local Docker or [Orkes Cloud](https://orkes.io))
+- Conductor server ([local CLI](../docs/server-setup.md), optional Docker, or [Orkes Cloud](https://orkes.io))
+
+Use an AI coding agent? Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) before asking it to work with these examples: `npm install -g @conductor-oss/conductor-skills && conductor-skills --all`.
 
 ## Machine-Readable Metadata
 

@@ -1,4 +1,4 @@
-# AgentRuntime — API Reference
+# AgentRuntime reference
 
 `AgentRuntime` is the primary entry point for the Conductor Java Agent SDK. It manages the connection to the Conductor server, registers local tool workers, and exposes every operation for running, streaming, deploying, and serving agents.
 
@@ -29,7 +29,7 @@ try (AgentRuntime runtime = new AgentRuntime()) {
 | [`serve`](#serve) | `void` | Long-running worker mode (blocks) |
 | [`resume`](#resume) | `AgentHandle` | Re-attach to an existing execution |
 | [`resumeAsync`](#resumeasync) | `CompletableFuture<AgentHandle>` | Async re-attach |
-| [`schedules`](#schedules) | `Schedules` | Access the scheduling API |
+| [`getSchedulerClient`](#getschedulerclient) | `SchedulerClient` | Access typed workflow scheduling APIs |
 | [`shutdown`](#shutdown) | `void` | Stop workers and release HTTP connections |
 
 ---
@@ -62,7 +62,7 @@ Invalid or empty values fall back to the default.
 
 | Variable | Default | Description |
 |---|---|---|
-| `CONDUCTOR_SERVER_URL` | `http://localhost:8080` | Conductor server base URL |
+| `CONDUCTOR_SERVER_URL` | `http://localhost:8080/api` | Conductor server base URL |
 | `CONDUCTOR_AUTH_KEY` | _(none)_ | API key (optional) |
 | `CONDUCTOR_AUTH_SECRET` | _(none)_ | API secret (optional) |
 | `CONDUCTOR_AGENT_WORKER_POLL_INTERVAL` | `100` | Worker poll interval (ms) |
@@ -159,7 +159,7 @@ null, empty, and whitespace-only values are omitted.
 
 ## runAsync
 
-Non-blocking variant of `run`. Uses the common `ForkJoinPool`.
+Non-blocking variant of `run`.
 
 ```java
 CompletableFuture<AgentResult> runAsync(Agent agent, String prompt)
@@ -298,9 +298,10 @@ Register workflow definition(s) on the server without starting an execution. Ide
 List<DeploymentInfo> infos = runtime.deploy(agentA, agentB);
 infos.forEach(i -> System.out.println(i.getRegisteredName()));
 
-// With schedules — deploys the agent and reconciles its cron schedules
-Schedule daily = Schedule.builder().name("daily").cron("0 9 * * *").build();
-runtime.deploy(agent, List.of(daily));
+// Scheduling is explicit after deployment:
+runtime.deploy(agent);
+SchedulerClient schedules = runtime.getSchedulerClient();
+// Build a SaveScheduleRequest and call schedules.saveSchedule(request).
 ```
 
 **`DeploymentInfo` fields:** `getRegisteredName()` (server workflow name), `getAgentName()` (SDK agent name).
@@ -366,13 +367,13 @@ schedules.resumeSchedule("my_agent-daily");
 schedules.deleteSchedule("my_agent-daily");
 ```
 
-See [Scheduling concepts](concepts/scheduling.md) for direct `SaveScheduleRequest` usage.
+See [Scheduling concepts](../concepts/scheduling.md) for direct `SaveScheduleRequest` usage.
 
 ---
 
 ## shutdown
 
-Stop all worker threads, drain in-flight tasks, and release HTTP connections (OkHttp connection pool + dispatcher thread pool).
+Stop local workers and release runtime-owned HTTP resources.
 
 ```java
 runtime.shutdown();
@@ -380,7 +381,7 @@ runtime.shutdown();
 runtime.close();   // AutoCloseable — called automatically by try-with-resources
 ```
 
-Without explicit shutdown, OkHttp's thread pool keeps threads alive for ~60s after the last request. In tests or short-lived processes, always close the runtime.
+In tests or short-lived processes, always close the runtime.
 
 ---
 
@@ -413,4 +414,4 @@ private static final AgentRuntime RUNTIME = new AgentRuntime();
 Runtime.getRuntime().addShutdownHook(new Thread(RUNTIME::shutdown));
 ```
 
-Do not create one `AgentRuntime` per request — each instance owns its own OkHttp connection pool and worker thread pool.
+Do not create one `AgentRuntime` per request — each instance owns client and worker resources.

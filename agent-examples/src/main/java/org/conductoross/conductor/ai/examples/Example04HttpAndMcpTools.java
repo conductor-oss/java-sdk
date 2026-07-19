@@ -45,7 +45,7 @@ import org.conductoross.conductor.ai.tools.McpTool;
  * <ul>
  *   <li>Conductor server with LLM support</li>
  *   <li>MCP weather server on http://localhost:3001/mcp</li>
- *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:8080/api</li>
  * </ul>
  */
 public class Example04HttpAndMcpTools {
@@ -62,57 +62,36 @@ public class Example04HttpAndMcpTools {
         // Local worker tool
         List<ToolDef> localTools = ToolRegistry.fromInstance(new ReportTools());
 
-        // HTTP tool — executes server-side via Conductor HttpTask
-        ToolDef weatherApi = HttpTool.builder()
-            .name("get_current_weather")
-            .description("Get current weather for a city from the weather API")
-            .url("http://localhost:3001/mcp")
-            .method("POST")
-            .accept("text/event-stream", "application/json")
-            .contentType("application/json")
+        // HTTP tool — uses the regular REST endpoint on the same test server, not /mcp.
+        ToolDef httpWeather = HttpTool.builder()
+            .name("get_current_weather_http")
+            .description("Get the current weather for a city through the test server's HTTP API")
+            .url("http://localhost:3001/api/weather")
+            .method("GET")
             .inputSchema(Map.of(
                 "type", "object",
-                "properties", Map.of(
-                    "jsonrpc", Map.of("type", "string", "const", "2.0"),
-                    "id",      Map.of("const", 1),
-                    "method",  Map.of("type", "string", "const", "tools/call"),
-                    "params",  Map.of(
-                        "type", "object",
-                        "additionalProperties", false,
-                        "properties", Map.of(
-                            "name",      Map.of("type", "string", "const", "get_current_weather"),
-                            "arguments", Map.of(
-                                "type", "object",
-                                "additionalProperties", false,
-                                "properties", Map.of("city", Map.of("type", "string")),
-                                "required", List.of("city")
-                            )
-                        ),
-                        "required", List.of("name", "arguments")
-                    )
-                ),
-                "required", List.of("jsonrpc", "id", "method", "params")
+                "properties", Map.of("city", Map.of("type", "string")),
+                "required", List.of("city")
             ))
             .build();
 
-        // MCP tool — discovered from MCP server at runtime
+        // MCP tool — Conductor discovers and calls the weather tools through the MCP protocol.
         ToolDef mcpWeather = McpTool.builder()
-            .name("github")
-            .description("GitHub operations via MCP")
+            .name("weather_mcp")
+            .description("Weather tools for retrieving the current weather by city")
             .serverUrl("http://localhost:3001/mcp")
             .build();
 
         Agent agent = Agent.builder()
             .name("api_assistant")
             .model(Settings.LLM_MODEL)
-            .instructions("You have access to weather data, GitHub, and report formatting.")
-            .tools(localTools)
-            .tools(weatherApi)
+            .instructions("Use weather_mcp for weather requests.")
+            .tools(mcpWeather)
             .maxTokens(102040)
             .build();
 
         AgentResult result = runtime.run(agent,
-            "Get the weather in London and format it as a report.");
+            "Get the weather in London");
         result.printResult();
 
         runtime.shutdown();

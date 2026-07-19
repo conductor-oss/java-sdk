@@ -5,9 +5,11 @@ Use LangChain4j `@Tool`-annotated POJOs directly with Conductor. The bridge refl
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-client-ai:5.1.0'
-compileOnly 'dev.langchain4j:langchain4j:1.0.0'
+implementation 'org.conductoross:conductor-client-ai:<VERSION>'
+implementation 'dev.langchain4j:langchain4j:1.0.0'
 ```
+
+`1.0.0` is the version exercised by this repository's agent examples. Replace `<VERSION>` with a published SDK version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
 ## Usage
 
@@ -17,6 +19,7 @@ import dev.langchain4j.agent.tool.P;
 import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.frameworks.LangChain4jAgent;
+import org.conductoross.conductor.ai.model.AgentResult;
 
 // Your existing LangChain4j tool POJO — no changes needed
 public class CalculatorTools {
@@ -68,12 +71,16 @@ boolean isTools = LangChain4jAgent.isLangChain4jTools(new Object());           /
 
 For `ChatModel`-based agents (not `@Tool` POJOs):
 
+**Fragment — `SearchTools` is an application class.** The local `ChatModel` supplies provider and model metadata; Conductor performs the LLM call with the credential configured on the server.
+
 ```java
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.conductoross.conductor.ai.frameworks.LangChainBridge;
+import org.conductoross.conductor.ai.internal.ToolRegistry;
 
 ChatModel model = OpenAiChatModel.builder()
-    .apiKey(System.getenv("OPENAI_API_KEY"))
+    .apiKey("server-configured-credential")
     .modelName("gpt-4o-mini")
     .build();
 

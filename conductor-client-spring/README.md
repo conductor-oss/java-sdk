@@ -8,7 +8,7 @@ in Spring-based applications.
 ### Prerequisites
 - Java 17 or higher
 - A Spring boot Project Gradle properly setup with Gradle or Maven
-- A running Conductor server (local or remote)
+- A running Conductor server ([start one locally with the CLI](../docs/server-setup.md), or use a remote server)
 
 ### Using Conductor Client Spring
 

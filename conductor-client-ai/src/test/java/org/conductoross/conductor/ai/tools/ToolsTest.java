@@ -54,6 +54,7 @@ class ToolsTest {
                 .build();
         assertEquals("mcp", t.getToolType());
         assertEquals("m", t.getName());
+        assertEquals("http://mcp", t.getConfig().get("server_url"));
     }
 
     @Test

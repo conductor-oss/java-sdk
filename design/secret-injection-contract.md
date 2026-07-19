@@ -1,4 +1,4 @@
-# Secret Injection Contract (`runtimeMetadata`)
+# Secret injection contract (`runtimeMetadata`)
 
 How worker tools receive declared credentials, end to end. This is the wire
 contract shared with the Python SDK (see the Agent SDK Porting Spec, R6) and

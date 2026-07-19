@@ -166,7 +166,7 @@ See [Guardrails](guardrails.md).
 
 ### Credentials
 
-Declare which secrets the agent's tools require. The SDK receives them from the Conductor secrets store at runtime and injects them into tool context.
+Declare which secrets the agent's tools require. A capable Conductor server resolves the declared names at poll time and delivers them to the tool's per-call context; plaintext values never enter workflow input or output.
 
 ```java
 Agent agent = Agent.builder()
@@ -233,73 +233,15 @@ Agent agent = Agent.builder()
 
 ## Running an agent
 
-### AgentRuntime
-
-`AgentRuntime` is the SDK entry point. Use try-with-resources — `close()` stops worker threads and releases HTTP connections.
+Use `AgentRuntime` as the SDK entry point and close it when the application stops. For a simple request/response flow:
 
 ```java
 try (AgentRuntime runtime = new AgentRuntime()) {
     AgentResult result = runtime.run(agent, "Hello!");
+    System.out.println(result.getOutput());
 }
 ```
 
-| Method | Returns | Description |
-|---|---|---|
-| `run(agent, prompt)` | `AgentResult` | Blocking — waits for completion. |
-| `run(agent, prompt, plan)` | `AgentResult` | Blocking with a deterministic plan. |
-| `runAsync(agent, prompt)` | `CompletableFuture<AgentResult>` | Non-blocking. |
-| `start(agent, prompt)` | `AgentHandle` | Fire-and-forget; returns a handle to poll or approve. |
-| `startAsync(agent, prompt)` | `CompletableFuture<AgentHandle>` | Non-blocking start. |
-| `stream(agent, prompt)` | `AgentStream` | Blocking iterator over events. |
-| `streamAsync(agent, prompt)` | `CompletableFuture<AgentStream>` | Non-blocking stream. |
-| `plan(agent)` | `CompileResponse` | Compile only — returns `getWorkflowDef()` + `getRequiredWorkers()` without executing. |
-| `deploy(Agent...)` | `List<DeploymentInfo>` | Register workflow definitions without running them. |
-| `serve(Agent...)` | `void` | Long-running worker mode — keeps polling indefinitely. |
-| `resume(executionId, agent)` | `AgentHandle` | Resume a suspended execution. |
-| `getSchedulerClient()` | `SchedulerClient` | Access typed workflow-scheduling APIs. |
+`AgentResult` contains the output, terminal status, execution ID, tool calls, events, token usage, and any error. For background work use `start` and its `AgentHandle`; for incremental output use `stream`. `AgentRuntime` is thread-safe, so share it instead of creating one per request.
 
-### AgentResult
-
-```java
-AgentResult result = runtime.run(agent, "prompt");
-
-result.getOutput();          // Object — final LLM output (String or structured object)
-result.getStatus();          // AgentStatus.COMPLETED / FAILED / TERMINATED / TIMED_OUT
-result.getExecutionId();     // String — Conductor workflow ID
-result.getToolCalls();       // List<Map<String,Object>> — all tool invocations
-result.getEvents();          // List<AgentEvent> — full event log
-result.getTokenUsage();      // TokenUsage — prompt/completion/total tokens
-result.isSuccess();          // true if status == COMPLETED
-result.getError();           // String — error message if failed
-```
-
-### AgentHandle
-
-Returned by `start()` — lets you poll, approve, or stream after the fact:
-
-```java
-AgentHandle handle = runtime.start(agent, "prompt");
-String executionId = handle.getExecutionId();
-
-// Poll until done (blocks the calling thread)
-AgentResult result = handle.waitForResult();
-
-// Or approve a human-in-the-loop step
-handle.approve("Looks good");
-handle.reject("Not acceptable");
-```
-
-### Concurrency
-
-`AgentRuntime` is thread-safe. Share one instance across threads rather than creating one per request.
-
-```java
-// Good — one shared runtime
-private static final AgentRuntime runtime = new AgentRuntime();
-
-// Run multiple agents concurrently
-List<CompletableFuture<AgentResult>> futures = prompts.stream()
-    .map(p -> runtime.runAsync(agent, p))
-    .toList();
-CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-```
+See [AgentRuntime](../reference/runtime.md) for every overload, deployment and serve modes, scheduling, and lifecycle details. See [Deploy · Serve · Run · Plan](deploy-serve-run.md) to choose an execution mode.

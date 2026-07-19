@@ -1,4 +1,4 @@
-# Agent — Field Reference
+# Agent definition fields
 
 `Agent` is the declarative configuration you build with `Agent.builder()`. Each field
 below lists its builder method, the JSON key it serializes to, and any behavior notes.
@@ -25,7 +25,7 @@ below lists its builder method, the JSON key it serializes to, and any behavior 
 | `outputType` | `outputType(Class<?>)` | `outputType` | Structured-output class name. |
 | `handoffs` | `handoffs(Handoff...)` | `handoffs` | SWARM triggers: `OnTextMention`, `OnToolResult`, `OnCondition`. |
 | `allowedTransitions` | `allowedTransitions(Map)` | `allowedTransitions` | SWARM: restricts which agents may transfer to which. |
-| `credentials` | `credentials(String...)` | `credentials` | Secret names fetched from the secrets store at runtime. |
+| `credentials` | `credentials(String...)` | `credentials` | Secret names resolved by a capable server and delivered to tool context at runtime. |
 | `requiredTools` | `requiredTools(String...)` | `requiredTools` | Tool names that must be called during the run. |
 | `metadata` | `metadata(Map)` | `metadata` | Arbitrary key-values stored with the workflow definition. |
 | `synthesize` | `synthesize(boolean)` | `synthesize` | Emitted only when `false` (default `true`). |

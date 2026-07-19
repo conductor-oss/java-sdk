@@ -42,7 +42,7 @@ import org.conductoross.conductor.ai.model.ToolDef;
  * runtime, so unlike Python/.NET/TypeScript there is no env-injection mode.
  * Tools MUST read declared credentials via {@code ctx.getCredential(name)}; reading
  * via {@code System.getenv} would only see whatever the JVM inherited from
- * the shell at startup. See {@code docs/design/secret-injection-contract.md} §6.
+ * the shell at startup. See {@code design/secret-injection-contract.md} §6.
  *
  * <p>Setup (one-time, via CLI):
  * <pre>

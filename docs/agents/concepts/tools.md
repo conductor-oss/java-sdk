@@ -48,20 +48,20 @@ public String createIssue(
 
 ### ToolContext
 
-Inject `ToolContext` as the last parameter to access execution metadata, shared state, and credentials:
+Inject `ToolContext` to access shared state and declared credentials:
 
 ```java
 @Tool(name = "send_email", description = "Send an email", credentials = {"SENDGRID_API_KEY"})
 public String sendEmail(String to, String subject, String body, ToolContext ctx) {
-    String apiKey       = ctx.getCredential("SENDGRID_API_KEY");
-    String executionId  = ctx.getExecutionId();
-    String sessionId    = ctx.getSessionId();
+    String apiKey = ctx.getCredential("SENDGRID_API_KEY");
     // ...
 }
 ```
 
 `ToolContext.getState()` is a mutable `Map<String,Object>` that persists across tool calls
 within the same execution — use it to pass data between tools without routing it through the LLM.
+
+Do not rely on `getExecutionId()`, `getSessionId()`, or `getTaskId()` for injected method tools yet: those identity values are not populated by the current runtime. If a tool needs an identifier, declare it as an explicit tool argument.
 
 ### Credentials in tools
 
@@ -89,13 +89,15 @@ Agent agent = Agent.builder()
     .tools(ToolRegistry.fromInstance(new GitHubTools()))
     .build();
 
-// Store the secret once via the CLI or API:
-// conductor secret put GITHUB_TOKEN <token>
+// Configure GITHUB_TOKEN in the Conductor server's secret store.
+// The setup mechanism depends on the server distribution and its secret provider.
 ```
 
-The worker fetches each declared secret from the server (via the execution token) before the
-handler runs; if a declared secret is missing on the server, the task fails terminally before
-your code executes.
+At worker registration, the SDK declares the required secret names on task-definition
+`runtimeMetadata`. A capable Conductor server resolves those names at poll time and sends values
+only on the wire-only task `runtimeMetadata` map. There is no per-call secret-fetch request or
+execution token. If a declared secret is missing or the server does not support this capability,
+the task fails terminally before your code executes. See the [credential delivery contract](../../../design/secret-injection-contract.md).
 
 ---
 
@@ -156,8 +158,7 @@ Agent agent = Agent.builder()
     .build();
 ```
 
-!!! warning "Security"
-    Use `allowedCommands` to restrict which commands the agent can execute. Without a whitelist, the agent can run any command the JVM user has permission to execute.
+> **Security:** Use `allowedCommands` to restrict which commands the agent can execute. Without a whitelist, the agent can run any command the JVM user has permission to execute.
 
 ---
 

@@ -1,4 +1,4 @@
-# AgentClient — Control-Plane API Reference
+# AgentClient control-plane reference
 
 `AgentClient` (`io.orkes.conductor.client.AgentClient`, in the `conductor-client` module) is the Java SDK's interface to the agent control-plane (`/api/agent/*`). Standard Conductor endpoints (`/api/workflow/*`, `/api/tasks`, etc.) remain on the SDK's typed clients (`WorkflowClient`, `TaskClient`, `MetadataClient`). Obtain an agent client with `new OrkesClients(conductorClient).getAgentClient()` or construct `OrkesAgentClient` directly.
 
@@ -87,22 +87,21 @@ AgentRequest.nativeAgent(serializedAgent)
 
 Null fields are never written — the class is annotated `@JsonInclude(NON_NULL)`. The three request forms are mutually exclusive: use deployed `name`/`version`, inline native `agentConfig`, or framework `framework` plus `rawConfig`/`skillRef`.
 
-**`Framework` enum** — all seven values map 1-to-1 with the server's normalizer registry:
+**Framework wire values:**
 
-| Enum constant | Wire value | Server normalizer |
-|---|---|---|
-| `Framework.OPENAI` | `"openai"` | `OpenAINormalizer` |
-| `Framework.GOOGLE_ADK` | `"google_adk"` | `GoogleADKNormalizer` |
-| `Framework.LANGCHAIN` | `"langchain"` | `LangChainNormalizer` |
-| `Framework.LANGGRAPH` | `"langgraph"` | `LangGraphNormalizer` |
-| `Framework.SKILL` | `"skill"` | `SkillNormalizer` |
-| `Framework.VERCEL_AI` | `"vercel_ai"` | `VercelAINormalizer` |
-| `Framework.CLAUDE_AGENT_SDK` | `"claude_agent_sdk"` | `ClaudeAgentSdkNormalizer` |
+| Enum constant | Wire value |
+|---|---|
+| `Framework.OPENAI` | `"openai"` |
+| `Framework.GOOGLE_ADK` | `"google_adk"` |
+| `Framework.LANGCHAIN` | `"langchain"` |
+| `Framework.LANGGRAPH` | `"langgraph"` |
+| `Framework.SKILL` | `"skill"` |
+| `Framework.VERCEL_AI` | `"vercel_ai"` |
+| `Framework.CLAUDE_AGENT_SDK` | `"claude_agent_sdk"` |
 
 `AgentRuntime` resolves `agent.getFramework()` → `Framework` via `Framework.of(String)` (returns `Optional.empty()` for unrecognised strings, routing them through the native path).
 
-**Structural proof — `static_plan` key:**
-The server field is `staticPlan` annotated `@JsonProperty("static_plan")`. The SDK's `AgentRequest.staticPlan` field carries the same `@JsonProperty("static_plan")` — both sides agree on the JSON key.
+`staticPlan` is serialized as `"static_plan"`.
 
 ---
 

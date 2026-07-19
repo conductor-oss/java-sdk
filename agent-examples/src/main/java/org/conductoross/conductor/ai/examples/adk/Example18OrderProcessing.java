@@ -40,7 +40,13 @@ public class Example18OrderProcessing {
     public static Map<String, Object> searchCatalog(
             @Schema(name = "query", description = "Search query") String query,
             @Schema(name = "category", description = "Product category") String category) {
-        String cat = category == null || category.isEmpty() ? "all" : category;
+        String cat = category == null ? "all" : category.trim().toLowerCase();
+        // Models often use broad labels such as "electronics" or "computers". Treat an
+        // unknown category as an all-catalog search so a valid text query still produces a useful
+        // observation instead of sending the agent into a retry loop with an empty result.
+        if (!List.of("all", "laptops", "accessories", "monitors").contains(cat)) {
+            cat = "all";
+        }
         List<Map<String, Object>> catalog = List.of(
             Map.of("sku", "LAP-001", "name", "ProBook Laptop 15\"", "category", "laptops", "price", 1299.99, "stock", 23),
             Map.of("sku", "LAP-002", "name", "UltraSlim Notebook 13\"", "category", "laptops", "price", 899.99, "stock", 45),

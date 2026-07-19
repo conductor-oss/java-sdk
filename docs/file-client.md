@@ -2,11 +2,14 @@
 
 `FileClient` uploads, downloads, and inspects workflow-scoped binary files. Workflow data contains only opaque strings such as `conductor://file/<id>`; workers never pass storage URLs or SDK file objects to one another.
 
-The Conductor server must have file storage enabled and must expose the workflow-scoped File API.
+The Conductor server must have file storage enabled and must expose the workflow-scoped File API. For local setup, use the [Conductor CLI guide](server-setup.md).
 
 ## Create a client
 
 ```java
+import com.netflix.conductor.client.http.ConductorClient;
+import org.conductoross.conductor.client.FileClient;
+
 ConductorClient conductor = ConductorClient.builder()
         .basePath("http://localhost:8080/api")
         .build();
@@ -179,4 +182,4 @@ The annotation value must exactly match both the workflow task's `name` and a re
 - Signed requests use a separate raw HTTP client with redirects disabled and no Conductor authentication, cookies, or application interceptors.
 - Unknown server storage types can use the generic adapter only when the supplied signed URL is HTTP(S).
 
-See [FileClient Design](design/file-client.md) for component boundaries and [Media Transcoder](../examples/file-storage/media-transcoder/) for a complete multi-worker workflow.
+See [File client design](../design/file-client.md) for component boundaries and [Media Transcoder](../examples/file-storage/media-transcoder/) for a complete multi-worker workflow.

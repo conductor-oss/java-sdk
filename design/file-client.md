@@ -1,4 +1,4 @@
-# FileClient Design
+# File client design
 
 ## Decision
 

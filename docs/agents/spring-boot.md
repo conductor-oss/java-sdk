@@ -4,21 +4,23 @@ The `conductor-client-ai-spring` module provides Spring Boot auto-configuration.
 
 ## Dependency
 
-=== "Gradle"
+### Gradle
 
-    ```groovy
-    implementation 'org.conductoross:conductor-client-ai-spring:5.1.0'
-    ```
+```groovy
+implementation 'org.conductoross:conductor-client-ai-spring:<VERSION>'
+```
 
-=== "Maven"
+### Maven
 
-    ```xml
-    <dependency>
-        <groupId>org.conductoross</groupId>
-        <artifactId>conductor-client-ai-spring</artifactId>
-        <version>5.1.0</version>
-    </dependency>
-    ```
+```xml
+<dependency>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-client-ai-spring</artifactId>
+    <version>&lt;VERSION&gt;</version>
+</dependency>
+```
+
+Replace `<VERSION>` with a published version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
 This pulls in both `conductor-client-ai` and `conductor-client-spring` (which wires the `ApiClient`).
 

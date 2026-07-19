@@ -59,7 +59,7 @@ StartResponse started = agents.startAgent(
 System.out.println(started.getExecutionId());
 ```
 
-See [AgentClient](../agent-client-api.md#startagent) for deployed, native-inline, and framework
+See [AgentClient](../reference/client.md#startagent) for deployed, native-inline, and framework
 request forms.
 
 ## run — register, start, and wait
@@ -86,4 +86,4 @@ AgentResult result = handle.waitForResult();
 ```
 
 Every operation has an `…Async` variant returning a `CompletableFuture` (`runAsync`, `startAsync`,
-`streamAsync`, `deployAsync`, `resumeAsync`). See the [AgentRuntime API reference](../agent-runtime-api.md).
+`streamAsync`, `deployAsync`, `resumeAsync`). See the [AgentRuntime reference](../reference/runtime.md).

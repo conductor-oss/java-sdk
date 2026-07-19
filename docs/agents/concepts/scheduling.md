@@ -24,7 +24,7 @@ try (AgentRuntime runtime = new AgentRuntime()) {
     SchedulerClient schedules = runtime.getSchedulerClient();
     schedules.saveSchedule(new SaveScheduleRequest()
         .name("daily_report-daily")
-        .cronExpression("0 9 * * *") // 9 AM every day
+        .cronExpression("0 0 9 * * ?") // 9 AM every day
         .zoneId("America/New_York")
         .startWorkflowRequest(workflow));
 }
@@ -41,7 +41,7 @@ workflow.setInput(Map.of("report_type", "weekly", "include_charts", true));
 
 SaveScheduleRequest weeklyDigest = new SaveScheduleRequest()
     .name("daily_report-weekly")
-    .cronExpression("0 8 * * MON")
+    .cronExpression("0 0 8 ? * MON")
     .zoneId("UTC")
     .description("Monday morning executive digest")
     .startWorkflowRequest(workflow);
@@ -63,7 +63,7 @@ schedules.resumeSchedule("daily_report-daily");
 schedules.deleteSchedule("daily_report-daily");
 
 // Preview the next N fire times for a cron expression
-List<Long> next = schedules.getNextFewSchedules("0 9 * * *", null, null, 5); // epoch millis
+List<Long> next = schedules.getNextFewSchedules("0 0 9 * * ?", null, null, 5); // epoch millis
 ```
 
 ## Native schedule fields
@@ -76,11 +76,11 @@ List<Long> next = schedules.getNextFewSchedules("0 9 * * *", null, null, 5); // 
 
 ## Cron syntax
 
-Standard 5-field: `minute hour day-of-month month day-of-week`
+Quartz cron: `second minute hour day-of-month month day-of-week [year]`
 
 ```
-0 9 * * *         every day at 9:00 AM
-0 */6 * * *       every 6 hours
-0 8 * * MON-FRI   weekdays at 8 AM
-30 17 1 * *       1st of every month at 5:30 PM
+0 0 9 * * ?         every day at 9:00 AM
+0 0 */6 * * ?       every 6 hours
+0 0 8 ? * MON-FRI   weekdays at 8 AM
+0 30 17 1 * ?       1st of every month at 5:30 PM
 ```

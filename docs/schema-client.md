@@ -1,6 +1,12 @@
-# SchemaClient
+# Schema client
 
 The `SchemaClient` provides operations to manage schemas in Conductor. Schemas define the structure of workflow inputs, outputs, and task data using JSON Schema, Avro, or Protobuf formats.
+
+## Prerequisites
+
+- Java 21+
+- A running Conductor server with schema APIs enabled ([start one locally with the CLI](server-setup.md), or use an existing server)
+- `org.conductoross:conductor-client:<VERSION>` from [Maven Central](https://search.maven.org/search?q=g:org.conductoross)
 
 ## Setup
 

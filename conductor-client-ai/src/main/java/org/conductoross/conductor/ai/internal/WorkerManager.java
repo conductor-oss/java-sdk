@@ -408,7 +408,7 @@ public class WorkerManager {
         // (wire-only Task.runtimeMetadata) BEFORE invoking the handler. Fail closed:
         // a declared-but-undelivered name is a terminal failure so Conductor doesn't
         // burn retries on a config problem — ambient process env is NEVER read.
-        // See docs/design/secret-injection-contract.md.
+        // See design/secret-injection-contract.md.
         Map<String, String> resolvedSecrets = Collections.emptyMap();
         List<String> declared = taskCredentials.getOrDefault(taskName, Collections.emptyList());
         if (!declared.isEmpty()) {

@@ -94,4 +94,4 @@ agentClient.cancelAgent(executionId, "Superseded by a newer run");
 
 `stopAgent` sends `POST /agent/{id}/stop`. `cancelAgent` sends
 `DELETE /agent/{id}/cancel` and omits the `reason` query parameter when it is null or blank.
-See the [AgentClient reference](../agent-client-api.md#cancelagent).
+See the [AgentClient reference](../reference/client.md#cancelagent).

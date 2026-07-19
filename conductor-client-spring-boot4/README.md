@@ -9,7 +9,7 @@ For Spring Boot 3 consumers, use `org.conductoross:conductor-client-spring` inst
 ### Prerequisites
 - Java 21 or higher
 - A Spring Boot 4 project
-- A running Conductor server (local or remote)
+- A running Conductor server ([start one locally with the CLI](../docs/server-setup.md), or use a remote server)
 
 ### Usage
 
