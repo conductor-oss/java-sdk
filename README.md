@@ -9,7 +9,11 @@ The Java SDK for [Conductor](https://www.conductor-oss.org/) lets you build dura
 
 **Get involved:** [⭐ Conductor OSS](https://github.com/conductor-oss/conductor) · [Choose a Conductor OSS contribution](https://github.com/conductor-oss/conductor/contribute) · [Contribution guide](https://github.com/conductor-oss/conductor/blob/main/CONTRIBUTING.md)
 
-**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor workflows: `npm install -g @conductor-oss/conductor-skills && conductor-skills --all`.
+**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor workflows:
+
+```shell
+npm install -g @conductor-oss/conductor-skills && conductor-skills --all
+```
 
 ## Choose your path
 
