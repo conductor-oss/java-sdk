@@ -2,7 +2,7 @@
 
 `WorkflowTestRunner` downloads and starts a real Conductor server, then registers annotated workers and workflow metadata against it. It is an integration-test harness, not a mock-only unit-test framework.
 
-Use it to verify input/output wiring, retries, dynamic branches, and worker behavior without managing a separate server process.
+Use it to verify input/output wiring, dynamic branches, and worker behavior without managing a separate server process. Test retry policy separately with a concrete `SIMPLE` task definition; older server versions do not apply the resolved worker task's retry policy through a `DYNAMIC` wrapper.
 
 ## JUnit setup
 
@@ -55,7 +55,7 @@ assertEquals(Workflow.WorkflowStatus.COMPLETED, workflow.getStatus());
 assertNotNull(workflow.getOutput());
 ```
 
-The full maintained example is [WorkflowTestFrameworkTests](https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java).
+The full maintained example is [WorkflowTestFrameworkTests](https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java). Its dynamic-task path and missing-input failure path are run in this repository's test suite.
 
 ## What to cover
 

@@ -17,8 +17,8 @@ Every request goes through the shared `ConductorClient`'s native HTTP + auth + s
 | [`respond`](#respond) | `POST /api/agent/{id}/respond` | `RespondBody` | `void` | Resume a paused HITL task |
 | [`cancelAgent`](#cancelagent) | `DELETE /api/agent/{id}/cancel` | path: `executionId`; optional `reason` query | `void` | Immediately cancel/terminate an execution |
 | [`stopAgent`](#stopagent) | `POST /api/agent/{id}/stop` | path: `executionId` | `void` | Gracefully stop after the current iteration |
-| `signalAgent` | `POST /api/agent/{id}/signal` | path: `executionId`; message body | `void` | Inject persistent context |
-| `streamSse` | `GET /api/agent/stream/{id}` | path: `executionId`; optional last event ID | `SseClient` | Open the resumable SSE event stream |
+| [`signalAgent`](#signalagent) | `POST /api/agent/{id}/signal` | path: `executionId`; message body | `void` | Inject persistent context |
+| [`streamSse`](#streamsse) | `GET /api/agent/stream/{id}` | path: `executionId`; optional last event ID | `SseClient` | Open the resumable SSE event stream |
 
 ---
 
@@ -349,6 +349,45 @@ client.stopAgent(executionId);
 **HTTP:** `POST /api/agent/{executionId}/stop`
 
 Use `stopAgent` when the current iteration should finish cleanly; use `cancelAgent` when work must terminate immediately.
+
+---
+
+## signalAgent
+
+Inject a durable text message into a running agent's context. This is an agent-control-plane signal, not a response to a pending human approval; use [`respond`](#respond) for a HUMAN task.
+
+**Fragment — obtain `client` as shown in the [control-plane overview](#agentclient-control-plane-reference).**
+
+```java
+client.signalAgent(executionId, "Customer supplied order number 12345");
+```
+
+**HTTP:** `POST /api/agent/{executionId}/signal`
+
+The body is the message accepted by the agent control plane. The method returns `void`; `AgentNotFoundException` represents a missing execution and `AgentAPIException` represents another server failure. Do not put credentials or sensitive raw customer data in a signal.
+
+---
+
+## streamSse
+
+Open the resumable server-sent event stream for an agent execution. `AgentRuntime.stream(...)` uses this method; direct users must close the returned `SseClient`.
+
+**Fragment — obtain `client` as shown in the [control-plane overview](#agentclient-control-plane-reference).**
+
+```java
+import java.util.Map;
+
+try (SseClient stream = client.streamSse(executionId, null)) {
+    Map<String, Object> event;
+    while ((event = stream.nextEvent()) != null) {
+        System.out.println(event);
+    }
+}
+```
+
+**HTTP:** `GET /api/agent/stream/{executionId}`
+
+Pass the last received event ID as the second argument to resume after a reconnect. The client reconnects mid-stream with `Last-Event-ID`; if the server rejects streaming altogether it throws `SSEUnavailableException`. Fall back to `getAgentStatus` polling in that case. Treat streamed content as potentially sensitive and redact it before logging.
 
 ---
 

@@ -164,13 +164,14 @@ For any existing server, set `CONDUCTOR_SERVER_URL` explicitly before running th
 | Add tools and human approval | [Agent tools](docs/agents/concepts/tools.md) |
 | Use another agent framework | [Google ADK](docs/agents/frameworks/google-adk.md) · [LangChain4j](docs/agents/frameworks/langchain4j.md) · [LangGraph4j](docs/agents/frameworks/langgraph4j.md) |
 | Deploy, serve, and run agents | [Agent runtime modes](docs/agents/concepts/deploy-serve-run.md) |
-| Implement and scale Java workers | [Workers guide](docs/workers.md) |
-| Define workflows in Java | [Workflows guide](docs/workflows.md) |
+| Implement and scale Java workers | [Workers guide](docs/workers.md) · [reliability](docs/reliability.md) |
+| Define and evolve workflows | [Workflows guide](docs/workflows.md) · [lifecycle/versioning](docs/workflow-lifecycle.md) |
 | Upload/download workflow-scoped files | [FileClient guide](docs/file-client.md) |
 | Test workflows and workers | [Workflow test harness](docs/workflow-testing.md) |
 | Expose worker metrics | [Client metrics](conductor-client-metrics/README.md) |
-| Configure Spring applications | [Core Spring integration](conductor-client-spring/README.md) · [AI Spring guide](docs/agents/spring-boot.md) |
-| Manage schedules | [Typed `SchedulerClient`](conductor-client/src/main/java/io/orkes/conductor/client/SchedulerClient.java) |
+| Configure Spring applications | [Boot 3](conductor-client-spring/README.md) · [Boot 4](conductor-client-spring-boot4/README.md) · [AI Spring guide](docs/agents/spring-boot.md) |
+| Manage schedules and events | [Schedules/events guide](docs/schedules-events.md) |
+| Find typed clients and Javadocs | [Core API map](docs/api-map.md) |
 
 ## Troubleshooting
 
