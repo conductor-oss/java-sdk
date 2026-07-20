@@ -77,7 +77,7 @@ public class Example17SwarmOrchestration {
 
         System.out.println("=== Refund Scenario ===");
         AgentResult refundResult = runtime.run(support,
-            "I bought a product last week and it arrived damaged. I want my money back.");
+            "I bought a product last week and it arrived damaged. I want my money back. my order number is O123 and product SKU is S124");
         refundResult.printResult();
 
         System.out.println("\n=== Technical Issue Scenario ===");

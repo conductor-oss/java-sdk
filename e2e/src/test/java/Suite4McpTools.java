@@ -182,11 +182,11 @@ class Suite4McpTools extends BaseTest {
                         + ". COUNTERFACTUAL: if serializer drops it, server won't treat it as MCP.");
 
         Map<String, Object> config = (Map<String, Object>) tool.get("config");
-        assertNotNull(config, "MCP tool plan must carry config (serverUrl, headers). Got null config.");
+        assertNotNull(config, "MCP tool plan must carry config (server_url, headers). Got null config.");
         assertEquals(
                 "http://localhost:9999/mcp",
-                config.get("serverUrl"),
-                "config.serverUrl should round-trip. Got: " + config.get("serverUrl"));
+                config.get("server_url"),
+                "config.server_url should round-trip. Got: " + config.get("server_url"));
 
         Map<String, Object> headers = (Map<String, Object>) config.get("headers");
         assertNotNull(headers, "config.headers should be present.");
