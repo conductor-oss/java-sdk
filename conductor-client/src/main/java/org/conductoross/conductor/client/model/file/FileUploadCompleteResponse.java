@@ -13,7 +13,7 @@
 package org.conductoross.conductor.client.model.file;
 
 /**
- * Response to {@code POST /api/files/{fileId}/upload-complete}. Status is
+ * Response to {@code POST /api/files/{workflowId}/{fileId}/upload-complete}. Status is
  * {@link FileUploadStatus#UPLOADED} on success; {@code contentHash} is the backend-reported
  * hash (or {@code null} for backends that do not expose one).
  */

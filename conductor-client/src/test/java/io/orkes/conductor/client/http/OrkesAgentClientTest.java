@@ -140,6 +140,32 @@ public class OrkesAgentClientTest {
     }
 
     @Test
+    public void cancelAgentDeletesWithReasonQueryParameter() throws InterruptedException {
+        server.enqueue(json("{}"));
+
+        agentClient.cancelAgent("e1", "cancelled by user");
+
+        RecordedRequest request = takeRequest();
+        assertEquals("DELETE", request.getMethod());
+        assertEquals("/api/agent/e1/cancel?reason=cancelled%20by%20user", request.getPath());
+        assertEquals("cancelled by user", request.getRequestUrl().queryParameter("reason"));
+        assertEquals("", request.getBody().readUtf8());
+    }
+
+    @Test
+    public void cancelAgentOmitsNullAndBlankReasons() throws InterruptedException {
+        for (String reason : new String[] {null, "", "   "}) {
+            server.enqueue(json("{}"));
+
+            agentClient.cancelAgent("e1", reason);
+
+            RecordedRequest request = takeRequest();
+            assertEquals("DELETE", request.getMethod());
+            assertEquals("/api/agent/e1/cancel", request.getPath());
+        }
+    }
+
+    @Test
     public void signalAgentPostsMessageBody() throws InterruptedException {
         server.enqueue(json("{}"));
 
@@ -163,6 +189,21 @@ public class OrkesAgentClientTest {
         server.enqueue(json("{\"message\":\"boom\"}").setResponseCode(500));
 
         AgentAPIException ex = assertThrows(AgentAPIException.class, () -> agentClient.stopAgent("e1"));
+        assertEquals(500, ex.getStatusCode());
+    }
+
+    @Test
+    public void cancelAgentMapsHttpErrorsToTypedExceptions() {
+        server.enqueue(json("{\"message\":\"missing\"}").setResponseCode(404));
+        assertThrows(
+                AgentNotFoundException.class,
+                () -> agentClient.cancelAgent("missing", "no longer needed"));
+
+        server.enqueue(json("{\"message\":\"boom\"}").setResponseCode(500));
+        AgentAPIException ex =
+                assertThrows(
+                        AgentAPIException.class,
+                        () -> agentClient.cancelAgent("e1", "no longer needed"));
         assertEquals(500, ex.getStatusCode());
     }
 

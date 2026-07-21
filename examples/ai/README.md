@@ -10,6 +10,8 @@ These examples demonstrate LLM integration patterns with Conductor workflows: pr
  conductor server start
  ```
 
+   For a containerized server instead, use the optional Docker setup in [Running Conductor Examples](../RUNNING.md#option-2-docker-compose).
+
 2. **Java 21+** and **Maven 3.8+**
 
 3. **LLM API key** (see table below). `first-ai-workflow` runs in **demo mode by default** (no API key needed). Other examples require an API key, set the appropriate environment variable before running.
@@ -49,6 +51,8 @@ CONDUCTOR_OPENAI_API_KEY=sk-... java -jar target/first-ai-workflow-1.0.0.jar
 
 All examples print `Result: PASSED` on success, whether in demo or live mode.
 
+Use an AI coding agent? Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) before working with these examples: `npm install -g @conductor-oss/conductor-skills && conductor-skills --all`.
+
 ---
 
-> **How to run this example:** See [RUNNING.md](../RUNNING.md) for prerequisites, build commands, Docker setup, and CLI usage.
+> **How to run this example:** See [RUNNING.md](../RUNNING.md) for CLI-first setup, build commands, and optional Docker setup.

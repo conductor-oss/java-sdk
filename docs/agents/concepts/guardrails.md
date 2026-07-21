@@ -10,6 +10,31 @@ There are several kinds, each producing a `GuardrailDef`:
 - `Guardrail.of(name, func)` — shorthand builder for a custom Java function
 - `Guardrail.external(name)` — reference an existing Conductor worker as a guardrail
 
+## Ownership and worker names
+
+- A guardrail with `func(...)` is **local**. `AgentRuntime` registers and starts its worker.
+  Agent-level workers are named `{agentName}_output_guardrail`; tool-level workers are named
+  `{toolName}_output_guardrail`. Multiple local guardrails at one scope run in declaration order.
+- Regex and LLM-as-judge guardrails have no Java function, so they are **server-owned** and do
+  not start a Java worker.
+- `Guardrail.external(name)` is **externally owned**: start a worker for the named task yourself;
+  the runtime deliberately does not duplicate it.
+
+Tool-scoped local guardrails work on every tool type, including HTTP, API, MCP, human, media,
+RAG, and agent tools:
+
+```java
+ToolDef guardedHttp = HttpTool.builder()
+    .name("lookup_customer")
+    .url("https://api.example.com/customers")
+    .method("GET")
+    .build()
+    .withGuardrails(List.of(Guardrail.of("no_pii", content ->
+        content.contains("ssn") ? GuardrailResult.fail("PII in tool output") : GuardrailResult.pass())
+        .onFail(OnFail.RAISE)
+        .build()));
+```
+
 ## Quick example
 
 ```java

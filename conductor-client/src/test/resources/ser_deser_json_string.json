@@ -1978,6 +1978,7 @@
     "WorkflowSchedule": {
       "content": {
         "updatedTime": 123,
+        "nextRunTime": 123,
         "paused": true,
         "updatedBy": "sample_updatedBy",
         "description": "sample_description",

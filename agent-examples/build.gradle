@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// Run individual examples via:
+//   ./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.openai.Example01BasicAgent
+application {
+    mainClass = project.findProperty('mainClass') ?: 'org.conductoross.conductor.ai.examples.Example01BasicAgent'
+}
+
+dependencies {
+    implementation project(':conductor-client-ai')
+
+    // Native framework SDKs used by the adk/, langchain/, langgraph/, openai/
+    // subpackages. @Tool / @P annotations are RUNTIME-retained, so these must be
+    // implementation — compileOnly alone drops them at class-load and reflection
+    // returns empty.
+    implementation "com.google.adk:google-adk:${versions.googleAdk}"
+    implementation "dev.langchain4j:langchain4j:${versions.langchain4j}"
+    implementation "dev.langchain4j:langchain4j-open-ai:${versions.langchain4j}"
+    implementation "org.bsc.langgraph4j:langgraph4j-core:${versions.langgraph4j}"
+    implementation "org.bsc.langgraph4j:langgraph4j-langchain4j:${versions.langgraph4j}"
+    implementation "org.bsc.langgraph4j:langgraph4j-agent-executor:${versions.langgraph4j}"
+    implementation "ch.qos.logback:logback-classic:1.5.6"
+}
+
+// tool/agent parameter names are read reflectively at runtime
+compileJava.options.compilerArgs << '-parameters'

@@ -5,17 +5,19 @@ This module provides the core client library to interact with Conductor through 
 ## Getting Started
 
 ### Prerequisites
-- Java 11 or higher
+- Java 21 or higher
 - A Gradle or Maven project properly set up
-- A running Conductor server (local or remote)
+- A running Conductor server ([start one locally with the CLI](../docs/server-setup.md), or use a remote server)
 
 ### Using Conductor Client
+
+Use the published version from [Maven Central](https://search.maven.org/artifact/org.conductoross/conductor-client).
 
 1. **Add `conductor-client` dependency to your project**
 
 For Gradle:
 ```groovy
-implementation 'org.conductoross:conductor-client:4.0.0'
+implementation 'org.conductoross:conductor-client:<VERSION>'
 ```
 
 For Maven:
@@ -23,7 +25,7 @@ For Maven:
 <dependency>
     <groupId>org.conductoross</groupId>
     <artifactId>conductor-client</artifactId>
-    <version>4.0.0</version>
+    <version>&lt;VERSION&gt;</version>
 </dependency>
 ```
 
@@ -89,4 +91,17 @@ public class HelloWorker implements Worker {
 }
 ```
 
-> **Note:** The full code for the above examples can be found [here](../examples/src/main/java/com/netflix/conductor/gettingstarted).
+> **Note:** For a maintained end-to-end worker example, see [Hello World](../examples/basics/hello-world/).
+
+## File uploads and downloads
+
+`FileClient` explicitly transfers workflow-scoped files and returns opaque `conductor://file/<id>` strings:
+
+```java
+FileClient files = new FileClient(client);
+String handle = files.upload(workflowId, Path.of("input.csv"));
+FileMetadata metadata = files.getMetadata(workflowId, handle);
+Path local = files.download(workflowId, handle, Path.of("work/input.csv"));
+```
+
+For path metadata, caller-owned streams, automatic multipart, atomic replacement, raw workers, and annotated workers, see the [FileClient guide](../docs/file-client.md) and [media-transcoder example](../examples/file-storage/media-transcoder/).

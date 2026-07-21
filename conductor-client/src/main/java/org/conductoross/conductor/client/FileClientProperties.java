@@ -12,27 +12,20 @@
  */
 package org.conductoross.conductor.client;
 
-import java.nio.file.Path;
-
 /**
  * Configuration for {@link FileClient}. Populated from {@code conductor.file-client.*}
  * properties when using Spring auto-configuration.
  */
 public class FileClientProperties {
 
-    /** Upload and download retry count on transient failures. Default: 3. */
+    /** Number of retries after the initial signed transfer attempt. Default: 3. */
     private int retryCount = 3;
 
-    /**
-     * Local directory under which downloaded content is cached. Default:
-     * {@code ${java.io.tmpdir}/conductor/files-cache}. Files are never deleted — by design
-     * the SDK does not clean up cached content.
-     */
-    private String localCacheDirectory =
-            Path.of(getTempDirectory(), "conductor", "files-cache").toString();
-
-    /** Multipart upload part size in bytes. Default: 10 MiB (S3 minimum). */
+    /** Multipart upload part size in bytes. Default: 10 MiB. */
     private long multipartPartSize = 10L * 1024 * 1024;
+
+    /** Files larger than this value use multipart when the provider supports it. Default: 100 MiB. */
+    private long multipartThreshold = 100L * 1024 * 1024;
 
     public int getRetryCount() {
         return retryCount;
@@ -40,14 +33,6 @@ public class FileClientProperties {
 
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
-    }
-
-    public String getLocalCacheDirectory() {
-        return localCacheDirectory;
-    }
-
-    public void setLocalCacheDirectory(String localCacheDirectory) {
-        this.localCacheDirectory = localCacheDirectory;
     }
 
     public long getMultipartPartSize() {
@@ -58,7 +43,11 @@ public class FileClientProperties {
         this.multipartPartSize = multipartPartSize;
     }
 
-    private static String getTempDirectory() {
-        return System.getProperty("java.io.tmpdir");
+    public long getMultipartThreshold() {
+        return multipartThreshold;
+    }
+
+    public void setMultipartThreshold(long multipartThreshold) {
+        this.multipartThreshold = multipartThreshold;
     }
 }

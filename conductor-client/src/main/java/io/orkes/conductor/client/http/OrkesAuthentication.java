@@ -48,6 +48,7 @@ public class OrkesAuthentication implements HeaderSupplier {
     // Guarded by refreshLock.
     private int tokenRefreshFailures = 0;
     private long lastTokenRefreshAttempt = 0;
+    private volatile boolean authenticationDisabled;
 
     private TokenResource tokenResource;
 
@@ -95,18 +96,28 @@ public class OrkesAuthentication implements HeaderSupplier {
 
     @Override
     public Map<String, String> get(String method, String path) {
-        if ("/token".equalsIgnoreCase(path)) {
+        if (authenticationDisabled || "/token".equalsIgnoreCase(path)) {
             return Map.of();
         }
 
-        return Map.of("X-Authorization", getToken());
+        String token = getToken();
+        return token == null ? Map.of() : Map.of("X-Authorization", token);
     }
 
     public String getToken() {
+        if (authenticationDisabled) {
+            return null;
+        }
+
         try {
             return tokenCache.get(TOKEN_CACHE_KEY, this::refreshToken);
         } catch (ExecutionException e) {
             return null;
+        } catch (RuntimeException e) {
+            if (authenticationDisabled) {
+                return null;
+            }
+            throw e;
         }
     }
 
@@ -120,13 +131,24 @@ public class OrkesAuthentication implements HeaderSupplier {
      */
     public String refreshIfStale(String staleToken) {
         synchronized (refreshLock) {
+            if (authenticationDisabled) {
+                return null;
+            }
+
             String current = tokenCache.getIfPresent(TOKEN_CACHE_KEY);
             if (current != null && !current.equals(staleToken)) {
                 return current; // another thread already rotated it
             }
-            String fresh = refreshToken();
-            tokenCache.put(TOKEN_CACHE_KEY, fresh); // resets TTL and unblocks others
-            return fresh;
+            try {
+                String fresh = refreshToken();
+                tokenCache.put(TOKEN_CACHE_KEY, fresh); // resets TTL and unblocks others
+                return fresh;
+            } catch (RuntimeException e) {
+                if (authenticationDisabled) {
+                    return null;
+                }
+                throw e;
+            }
         }
     }
 
@@ -171,11 +193,27 @@ public class OrkesAuthentication implements HeaderSupplier {
                 tokenRefreshFailures = 0;
                 return response.getToken();
             } catch (RuntimeException e) {
+                if (isUnsupportedTokenEndpoint(e)) {
+                    authenticationDisabled = true;
+                    tokenRefreshFailures = 0;
+                    LOGGER.warn("Token endpoint is unavailable (404); disabling key/secret authentication for this client");
+                    throw e;
+                }
                 tokenRefreshFailures++;
                 LOGGER.error("Failed to refresh authentication token (attempt {}): {}",
                         tokenRefreshFailures, e.getMessage());
                 throw e;
             }
         }
+    }
+
+    private boolean isUnsupportedTokenEndpoint(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof ConductorClientException
+                    && ((ConductorClientException) cause).getStatus() == 404) {
+                return true;
+            }
+        }
+        return false;
     }
 }

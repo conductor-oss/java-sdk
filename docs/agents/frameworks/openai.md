@@ -1,18 +1,20 @@
 # OpenAI Agents SDK
 
-Use the Agentspan Java SDK with OpenAI Agents SDK-style tool definitions. The `OpenAIAgent` bridge accepts `@Tool`-annotated POJOs and registers them as Conductor worker tasks, routing the agent through the server's `OpenAINormalizer`.
+Use the Conductor Java Agent SDK with OpenAI Agents SDK-style tool definitions. The `OpenAIAgent` bridge accepts `@Tool`-annotated POJOs and registers them as Conductor worker tasks, routing the agent through the server's `OpenAINormalizer`.
 
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-ai:5.1.0'
+implementation 'org.conductoross:conductor-client-ai:<VERSION>'
 ```
 
 The bridge uses the LangChain4j `@Tool` annotation as a practical equivalent of the Python OpenAI Agents SDK `@function_tool` decorator — add it if you need the annotation:
 
 ```groovy
-compileOnly 'dev.langchain4j:langchain4j:1.0.0'
+implementation 'dev.langchain4j:langchain4j:1.0.0'
 ```
+
+`1.0.0` is the version exercised by this repository's agent examples. Replace `<VERSION>` with a published SDK version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
 ## Usage
 
@@ -22,6 +24,7 @@ import dev.langchain4j.agent.tool.P;
 import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.frameworks.OpenAIAgent;
+import org.conductoross.conductor.ai.model.AgentResult;
 
 public class ShoppingTools {
 
@@ -38,7 +41,7 @@ public class ShoppingTools {
 
 Agent agent = OpenAIAgent.builder()
     .name("shopping_assistant")
-    .model("anthropic/claude-sonnet-4-6")
+    .model("openai/gpt-4o-mini")
     .instructions("Help users find and purchase products.")
     .tools(new ShoppingTools())
     .build();
@@ -56,13 +59,13 @@ OpenAI Agents SDK-style handoffs let the LLM transfer control to a specialist ag
 ```java
 Agent billingAgent = Agent.builder()
     .name("billing_agent")
-    .model("anthropic/claude-sonnet-4-6")
+    .model("openai/gpt-4o-mini")
     .instructions("Handle billing and payment questions.")
     .build();
 
 Agent supportAgent = OpenAIAgent.builder()
     .name("support_agent")
-    .model("anthropic/claude-sonnet-4-6")
+    .model("openai/gpt-4o-mini")
     .instructions("Handle general support. Transfer billing issues to the billing agent.")
     .handoffs(billingAgent)                      // adds billing_agent as a handoff target
     .build();
@@ -73,7 +76,7 @@ Agent supportAgent = OpenAIAgent.builder()
 ```java
 Agent agent = OpenAIAgent.builder()
     .name("classifier")
-    .model("anthropic/claude-sonnet-4-6")
+    .model("openai/gpt-4o-mini")
     .instructions("Classify the sentiment of the input.")
     .outputType("SentimentResult")               // server-side structured output type name
     .build();

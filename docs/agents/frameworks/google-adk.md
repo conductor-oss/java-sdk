@@ -1,13 +1,15 @@
 # Google ADK
 
-Use Google's Agent Development Kit (ADK) agents directly with Agentspan. The `AdkBridge` converts a native `LlmAgent` (or any `BaseAgent`) into an `Agent`, serialising its tools, instructions, and sub-agent graph into the format the server's `GoogleADKNormalizer` understands.
+Use Google's Agent Development Kit (ADK) agents directly with Conductor. The `AdkBridge` converts a native `LlmAgent` (or any `BaseAgent`) into an `Agent`, serialising its tools, instructions, and sub-agent graph into the format the server's `GoogleADKNormalizer` understands.
 
 ## Dependency
 
 ```groovy
-implementation 'org.conductoross:conductor-ai:5.1.0'
-compileOnly 'com.google.adk:google-adk:1.3.0'
+implementation 'org.conductoross:conductor-client-ai:<VERSION>'
+implementation 'com.google.adk:google-adk:1.3.0'
 ```
+
+`1.3.0` is the version exercised by this repository's agent examples. Replace `<VERSION>` with a published SDK version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
 ## Usage
 
@@ -15,9 +17,11 @@ compileOnly 'com.google.adk:google-adk:1.3.0'
 import com.google.adk.agents.LlmAgent;
 import com.google.adk.tools.Annotations;
 import com.google.adk.tools.FunctionTool;
+import java.util.Map;
 import org.conductoross.conductor.ai.Agent;
 import org.conductoross.conductor.ai.AgentRuntime;
 import org.conductoross.conductor.ai.frameworks.AdkBridge;
+import org.conductoross.conductor.ai.model.AgentResult;
 
 // A FunctionTool target — ADK reflects the method and its @Schema params
 public static class WeatherService {
@@ -36,7 +40,7 @@ LlmAgent adkAgent = LlmAgent.builder()
     .build();
 
 // Convert to an Agent
-Agent agent = AdkBridge.toAgentspan(adkAgent);
+Agent agent = AdkBridge.toConductor(adkAgent);
 
 // Run via AgentRuntime
 try (AgentRuntime runtime = new AgentRuntime()) {
@@ -45,9 +49,9 @@ try (AgentRuntime runtime = new AgentRuntime()) {
 }
 ```
 
-## agentBuilder — attach extra Agentspan features
+## agentBuilder — attach extra Conductor features
 
-If you want to mix ADK agent structure with Agentspan–only features (guardrails, credentials, callbacks), use `agentBuilder()` which returns an `Agent.Builder` you can continue configuring:
+If you want to mix ADK agent structure with Conductor-specific features (guardrails, credentials, callbacks), use `agentBuilder()` which returns an `Agent.Builder` you can continue configuring:
 
 ```java
 import org.conductoross.conductor.ai.guardrail.RegexGuardrail;
@@ -66,7 +70,7 @@ Agent agent = AdkBridge.agentBuilder(adkAgent)
 
 ## What gets mapped
 
-| ADK concept | Agentspan mapping |
+| ADK concept | Conductor mapping |
 |---|---|
 | `LlmAgent.name()` | `Agent.name` |
 | `LlmAgent.model()` | `Agent.model` |
@@ -78,5 +82,4 @@ Agent agent = AdkBridge.agentBuilder(adkAgent)
 | Sub-agents (`.subAgents()`) | `Agent.agents` |
 | `LoopAgent` / `SequentialAgent` | `Strategy.SEQUENTIAL` |
 
-!!! note "Model requirement"
-    Google ADK agents require a Gemini model (e.g. `gemini-2.0-flash`). Make sure your Agentspan server has a Google AI or Vertex AI provider configured with the appropriate API key.
+> **Model requirement:** Google ADK agents require a Gemini model (for example, `gemini-2.0-flash`). Configure the Google AI or Vertex AI credential on the Conductor server.

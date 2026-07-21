@@ -136,6 +136,18 @@ public class OrkesAgentClient implements AgentClient {
     }
 
     @Override
+    public void cancelAgent(String executionId, String reason) {
+        ConductorClientRequest.Builder builder = ConductorClientRequest.builder()
+                .method(Method.DELETE)
+                .path("/agent/{executionId}/cancel")
+                .addPathParam("executionId", executionId);
+        if (reason != null && !reason.isBlank()) {
+            builder.addQueryParam("reason", reason);
+        }
+        execute(builder.build());
+    }
+
+    @Override
     public void signalAgent(String executionId, String message) {
         ConductorClientRequest req = ConductorClientRequest.builder()
                 .method(Method.POST)

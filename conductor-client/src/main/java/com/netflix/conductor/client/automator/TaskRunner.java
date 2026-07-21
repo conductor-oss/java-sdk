@@ -14,7 +14,6 @@ package com.netflix.conductor.client.automator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -35,11 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.conductoross.conductor.client.FileClient;
-import org.conductoross.conductor.sdk.file.FileHandler;
-import org.conductoross.conductor.sdk.file.FileUploadOptions;
-import org.conductoross.conductor.sdk.file.LocalFileHandler;
-import org.conductoross.conductor.sdk.file.WorkflowFileClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +83,6 @@ class TaskRunner {
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final LinkedBlockingQueue<Task> tasksTobeExecuted;
     private final boolean enableUpdateV2;
-    private final FileClient fileClient;
     private static final int LEASE_EXTEND_RETRY_COUNT = 3;
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
     private final ScheduledExecutorService leaseExtendExecutorService;
@@ -106,11 +99,9 @@ class TaskRunner {
                int taskPollTimeout,
                List<PollFilter> pollFilters,
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
-               boolean useVirtualThreads,
-               FileClient fileClient) {
+               boolean useVirtualThreads) {
         this.worker = worker;
         this.taskClient = taskClient;
-        this.fileClient = fileClient;
         this.updateRetryCount = updateRetryCount;
         this.taskPollTimeout = taskPollTimeout;
         this.pollingIntervalInMillis = worker.getPollingInterval();
@@ -299,7 +290,7 @@ class TaskRunner {
             permits.release(pollCount - tasks.size());        //release extra permits
             stopwatch.stop();
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-            LOGGER.debug("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
+            LOGGER.trace("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
             eventDispatcher.publish(new PollCompleted(taskType, elapsed));
         } catch (Throwable e) {
             permits.release(pollCount - tasks.size());
@@ -408,11 +399,6 @@ class TaskRunner {
             return;
         }
 
-        // Set FileClient on task for file storage support
-        if (fileClient != null) {
-            task.setWorkflowFileClient(new WorkflowFileClient(fileClient, task.getWorkflowInstanceId()));
-        }
-
         // Calculate  inbound network latency
         try {
             if(task.getExecutionMetadata().getServerSendTime() != null ){
@@ -435,7 +421,6 @@ class TaskRunner {
                     worker.getIdentity());
             result = worker.execute(task);
             stopwatch.stop();
-            uploadFilesToFileStorage(result, task.getWorkflowInstanceId(), task.getTaskId());
             eventDispatcher.publish(new TaskExecutionCompleted(taskType, task.getTaskId(), worker.getIdentity(), stopwatch.elapsed(TimeUnit.MILLISECONDS)));
             // record execution end time in task
             task.getExecutionMetadata().setExecutionEndTime(System.currentTimeMillis());
@@ -534,26 +519,6 @@ class TaskRunner {
                             "Failed to update result: %s for task: %s in worker: %s",
                             result.toString(), task.getTaskDefName(), worker.getIdentity()),
                     e);
-        }
-    }
-
-    @VisibleForTesting
-    void uploadFilesToFileStorage(TaskResult result, String workflowId, String taskId) {
-        if (fileClient == null || result.getOutputData() == null) {
-            return;
-        }
-        for (var entry : result.getOutputData().entrySet()) {
-            if (!(entry.getValue() instanceof FileHandler fh)) {
-                continue;
-            }
-            if (fh.getFileHandleId() == null) {
-                Path path = ((LocalFileHandler) fh).getPath();
-                FileUploadOptions options = new FileUploadOptions()
-                        .setContentType(fh.getContentType())
-                        .setTaskId(taskId);
-                FileHandler uploaded = fileClient.upload(workflowId, path, options);
-                entry.setValue(uploaded);
-            }
         }
     }
 

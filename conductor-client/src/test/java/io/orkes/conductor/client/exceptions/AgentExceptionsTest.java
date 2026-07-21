@@ -24,7 +24,7 @@ class AgentExceptionsTest {
         AgentAPIException e = new AgentAPIException(500, "boom");
         assertEquals(500, e.getStatusCode());
         assertEquals("boom", e.getResponseBody());
-        assertInstanceOf(AgentspanException.class, e);
+        assertInstanceOf(AgentException.class, e);
     }
 
     @Test
@@ -32,13 +32,13 @@ class AgentExceptionsTest {
         AgentNotFoundException e = new AgentNotFoundException(404, "missing");
         assertEquals(404, e.getStatusCode());
         assertInstanceOf(AgentAPIException.class, e);
-        assertInstanceOf(AgentspanException.class, e);
+        assertInstanceOf(AgentException.class, e);
     }
 
     @Test
     void baseExceptionKeepsMessageAndCause() {
         Throwable cause = new IllegalStateException("c");
-        AgentspanException e = new AgentspanException("m", cause);
+        AgentException e = new AgentException("m", cause);
         assertEquals("m", e.getMessage());
         assertSame(cause, e.getCause());
     }

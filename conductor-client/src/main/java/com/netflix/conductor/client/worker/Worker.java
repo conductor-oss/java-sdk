@@ -86,7 +86,7 @@ public interface Worker {
             serverId = System.getenv("HOSTNAME");
         }
 
-        LoggerHolder.logger.debug("Setting worker id to {}", serverId);
+        LoggerHolder.logger.trace("Setting worker id to {}", serverId);
         return serverId;
     }
 

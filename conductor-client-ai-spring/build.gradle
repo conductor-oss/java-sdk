@@ -1,0 +1,47 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'signing'
+}
+
+ext {
+    artifactName = 'Conductor AI Agent SDK Spring'
+    artifactDescription = 'Spring Boot auto-configuration for the Conductor AI Agent SDK'
+}
+
+apply plugin: 'publish-config'
+
+dependencies {
+    api project(":conductor-client-ai")
+    // Conductor Spring auto-configuration — wires ApiClient from conductor.* properties
+    // so callers don't need to hand-roll the client bean themselves.
+    api project(":conductor-client-spring")
+
+    // Starter semantics: don't pin consumers' Boot — runtime Boot arrives
+    // transitively via conductor-client-spring's starter.
+    compileOnly 'org.springframework.boot:spring-boot-autoconfigure:3.3.5'
+    compileOnly 'org.springframework.boot:spring-boot:3.3.5'
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:3.3.5'
+
+    testImplementation 'org.springframework.boot:spring-boot-test:3.3.5'
+    testImplementation 'org.springframework.boot:spring-boot-autoconfigure:3.3.5'
+    testImplementation 'org.springframework:spring-test:6.1.14'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+    testImplementation 'org.assertj:assertj-core:3.26.3'
+    testRuntimeOnly "ch.qos.logback:logback-classic:1.5.32"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// tool/agent parameter names are read reflectively at runtime
+compileJava.options.compilerArgs << '-parameters'
+
+test {
+    useJUnitPlatform()
+}

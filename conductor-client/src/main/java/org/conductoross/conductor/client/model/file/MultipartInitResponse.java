@@ -12,12 +12,15 @@
  */
 package org.conductoross.conductor.client.model.file;
 
-/** Response to {@code POST /api/files/{fileId}/multipart} — initiates a multipart upload. */
+/**
+ * Response to {@code POST /api/files/{workflowId}/{fileId}/multipart} — initiates a multipart
+ * upload.
+ */
 public class MultipartInitResponse {
 
     /** Prefixed handle: {@code conductor://file/<fileId>}. */
     private String fileHandleId;
-    /** Backend-specific multipart identifier (S3 {@code UploadId}, GCS resumable session ID). */
+    /** Backend-specific multipart identifier. */
     private String uploadId;
 
     public String getFileHandleId() { return fileHandleId; }

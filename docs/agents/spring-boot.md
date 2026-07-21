@@ -1,26 +1,28 @@
 # Spring Boot
 
-The `conductor-ai-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
+The `conductor-client-ai-spring` module provides Spring Boot auto-configuration. Add it and your `AgentRuntime` is wired automatically from `application.properties`.
 
 ## Dependency
 
-=== "Gradle"
+### Gradle
 
-    ```groovy
-    implementation 'org.conductoross:conductor-ai-spring:5.1.0'
-    ```
+```groovy
+implementation 'org.conductoross:conductor-client-ai-spring:<VERSION>'
+```
 
-=== "Maven"
+### Maven
 
-    ```xml
-    <dependency>
-        <groupId>org.conductoross</groupId>
-        <artifactId>conductor-ai-spring</artifactId>
-        <version>5.1.0</version>
-    </dependency>
-    ```
+```xml
+<dependency>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-client-ai-spring</artifactId>
+    <version>&lt;VERSION&gt;</version>
+</dependency>
+```
 
-This pulls in both `conductor-ai` and `conductor-client-spring` (which wires the `ApiClient`).
+Replace `<VERSION>` with a published version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
+
+This pulls in both `conductor-client-ai` and `conductor-client-spring` (which wires the `ApiClient`).
 
 ## Configuration
 
@@ -32,9 +34,9 @@ conductor.root-uri=http://localhost:8080/api
 conductor.security.client.key-id=your-key      # optional
 conductor.security.client.secret=your-secret   # optional
 
-# Agentspan worker tuning
-agentspan.worker-poll-interval-ms=100
-agentspan.worker-thread-count=1
+# Conductor agent worker tuning
+conductor.agent.worker-poll-interval-ms=100
+conductor.agent.worker-thread-count=1
 ```
 
 ## Inject and use
@@ -109,7 +111,7 @@ The catalog scans lazily on first access; only beans whose class declares `@Agen
 | Bean type | Bean name | Condition |
 |---|---|---|
 | `ApiClient` | `orkesConductorClient` | From `conductor-client-spring`; `@ConditionalOnMissingBean` |
-| `AgentConfig` | `agentspanConfig` | From `agentspan.*` properties; `@ConditionalOnMissingBean` |
+| `AgentConfig` | `conductorAgentConfig` | From `conductor.agent.*` properties; `@ConditionalOnMissingBean` |
 | `AgentRuntime` | `agentRuntime` | Wires `ApiClient` + `AgentConfig`; `@ConditionalOnMissingBean` |
 | `AgentCatalog` | `agentCatalog` | Collects `@AgentDef` agents from all beans; `@ConditionalOnMissingBean` |
 
@@ -121,10 +123,10 @@ To connect to multiple servers or use custom TLS:
 
 ```java
 @Configuration
-public class MyAgentspanConfig {
+public class MyConductorAgentConfig {
 
     @Bean
-    public ApiClient agentspanClient() {
+    public ApiClient conductorAgentClient() {
         return ApiClient.builder()
                 .basePath("http://myserver:8080/api")
                 .credentials("key", "secret")
@@ -137,7 +139,7 @@ public class MyAgentspanConfig {
 
 ```java
 @Bean
-public AgentConfig agentspanConfig() {
+public AgentConfig conductorAgentConfig() {
     return new AgentConfig(500, 4);   // 500ms poll, 4 worker threads
 }
 ```

@@ -143,6 +143,6 @@ public class OrkesConductorClientAutoConfiguration {
     @ConditionalOnBean(ApiClient.class)
     @ConditionalOnMissingBean
     public FileClient fileClient(ApiClient client, FileClientProperties fileClientProperties) {
-        return new FileClient(client, fileClientProperties, null);
+        return new FileClient(client, fileClientProperties);
     }
 }
