@@ -24,7 +24,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Mirrors <code>sdk/python/examples/langgraph/07_system_prompt.py</code>
  * which passes a {@code system_prompt=...} to {@code create_agent}. The
- * drop-in {@link Agentspan#run} overload takes a single user prompt — fold
+ * drop-in {@link AgentRuntime#run} overload takes a single user prompt — fold
  * the persona into that prompt as a leading section so it steers every reply.
  *
  * <p>Demonstrates:
@@ -53,10 +53,10 @@ public class Example07SystemPrompt {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

@@ -23,23 +23,23 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Builds a real {@code dev.langchain4j.model.openai.OpenAiChatModel}
  * (the canonical LangChain4j chat-model class) and hands it directly to
- * {@link Agentspan#run(ChatModel, String)} via the drop-in overload so the
- * agent runs on the durable Agentspan runtime.
+ * {@link AgentRuntime#run(ChatModel, String)} via the drop-in overload so the
+ * agent runs on the durable Conductor runtime.
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767/api}</li>
- *   <li>Agentspan server with OpenAI credentials configured server-side.</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  * </ul>
  */
 public class Example01HelloWorld {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

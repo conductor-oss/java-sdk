@@ -25,7 +25,7 @@ import org.conductoross.conductor.ai.internal.ToolRegistry;
 import org.conductoross.conductor.ai.model.ToolDef;
 
 /**
- * Bridges the OpenAI Agents SDK shape to Agentspan {@link Agent}.
+ * Bridges the OpenAI Agents SDK shape to Conductor {@link Agent}.
  *
  * <p>Mirrors the Python pattern:
  * <pre>{@code
@@ -49,7 +49,7 @@ import org.conductoross.conductor.ai.model.ToolDef;
  * without a provider prefix are auto-prefixed with {@code openai/} server-side.
  *
  * <p>Local @Tool-annotated POJOs are wrapped using the same reflection bridge
- * as {@link LangChain4jAgent} — they are registered as Agentspan worker tools
+ * as {@link LangChain4jAgent} — they are registered as Conductor worker tools
  * and the OpenAI Agents server-side runner calls them via the standard tool-call
  * dispatch.
  */
@@ -84,7 +84,7 @@ public final class OpenAIAgent {
             return this;
         }
 
-        /** Add @Tool-annotated POJO(s); each annotated method becomes an Agentspan worker tool. */
+        /** Add @Tool-annotated POJO(s); each annotated method becomes a Conductor worker tool. */
         public Builder tools(Object... toolObjects) {
             this.tools.addAll(extractTools(toolObjects));
             return this;

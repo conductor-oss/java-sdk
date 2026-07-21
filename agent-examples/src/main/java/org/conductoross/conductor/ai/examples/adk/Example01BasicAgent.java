@@ -24,8 +24,8 @@ import com.google.adk.agents.LlmAgent;
  * <p>Java port of <code>sdk/python/examples/adk/01_basic_agent.py</code>.
  *
  * <p>Demonstrates: the simplest Google ADK agent — defined via the
- * native {@link LlmAgent} builder and bridged to the Agentspan durable
- * runtime via {@link org.conductoross.conductor.ai.Agentspan#run(Object, String)}.
+ * native {@link LlmAgent} builder and bridged to the Conductor durable
+ * runtime via {@link org.conductoross.conductor.ai.AgentRuntime#run(Object, String)}.
  */
 public class Example01BasicAgent {
     public static void main(String[] args) {

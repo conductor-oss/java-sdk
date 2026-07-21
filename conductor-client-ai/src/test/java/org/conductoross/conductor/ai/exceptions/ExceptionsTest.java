@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.exceptions.AgentException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +41,7 @@ class ExceptionsTest {
     }
 
     @Test
-    void credentialNotFoundIsAnAgentspanException() {
-        assertInstanceOf(AgentspanException.class, new CredentialNotFoundException("ONLY"));
+    void credentialNotFoundIsAnAgentException() {
+        assertInstanceOf(AgentException.class, new CredentialNotFoundException("ONLY"));
     }
 }

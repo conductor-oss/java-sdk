@@ -49,14 +49,14 @@ class AgentConfigTest {
     @Test
     void parsesAllKnobsFromEnv() {
         Map<String, String> env = new HashMap<>();
-        env.put("AGENTSPAN_WORKER_POLL_INTERVAL", "250");
-        env.put("AGENTSPAN_WORKER_THREADS", "4");
-        env.put("AGENTSPAN_AUTO_START_WORKERS", "false");
-        env.put("AGENTSPAN_DAEMON_WORKERS", "false");
-        env.put("AGENTSPAN_STREAMING_ENABLED", "false");
-        env.put("AGENTSPAN_LIVENESS_ENABLED", "false");
-        env.put("AGENTSPAN_LIVENESS_STALL_SECONDS", "45.5");
-        env.put("AGENTSPAN_LIVENESS_CHECK_INTERVAL_SECONDS", "2.5");
+        env.put("CONDUCTOR_AGENT_WORKER_POLL_INTERVAL", "250");
+        env.put("CONDUCTOR_AGENT_WORKER_THREADS", "4");
+        env.put("CONDUCTOR_AGENT_AUTO_START_WORKERS", "false");
+        env.put("CONDUCTOR_AGENT_DAEMON_WORKERS", "false");
+        env.put("CONDUCTOR_AGENT_STREAMING_ENABLED", "false");
+        env.put("CONDUCTOR_AGENT_LIVENESS_ENABLED", "false");
+        env.put("CONDUCTOR_AGENT_LIVENESS_STALL_SECONDS", "45.5");
+        env.put("CONDUCTOR_AGENT_LIVENESS_CHECK_INTERVAL_SECONDS", "2.5");
 
         AgentConfig config = fromEnv(env);
 
@@ -73,8 +73,8 @@ class AgentConfigTest {
     @Test
     void invalidNumberFallsBackToDefault() {
         AgentConfig config = fromEnv(Map.of(
-                "AGENTSPAN_WORKER_POLL_INTERVAL", "not-a-number",
-                "AGENTSPAN_LIVENESS_STALL_SECONDS", "soon"));
+                "CONDUCTOR_AGENT_WORKER_POLL_INTERVAL", "not-a-number",
+                "CONDUCTOR_AGENT_LIVENESS_STALL_SECONDS", "soon"));
 
         assertEquals(
                 100,
@@ -86,8 +86,8 @@ class AgentConfigTest {
     @Test
     void emptyStringFallsBackToDefault() {
         Map<String, String> env = new HashMap<>();
-        env.put("AGENTSPAN_WORKER_THREADS", "");
-        env.put("AGENTSPAN_STREAMING_ENABLED", "  ");
+        env.put("CONDUCTOR_AGENT_WORKER_THREADS", "");
+        env.put("CONDUCTOR_AGENT_STREAMING_ENABLED", "  ");
 
         AgentConfig config = fromEnv(env);
 
@@ -97,11 +97,11 @@ class AgentConfigTest {
 
     @Test
     void booleanVariantsParse() {
-        assertFalse(fromEnv(Map.of("AGENTSPAN_AUTO_START_WORKERS", "0")).isAutoStartWorkers());
-        assertTrue(fromEnv(Map.of("AGENTSPAN_AUTO_START_WORKERS", "TRUE")).isAutoStartWorkers());
-        assertFalse(fromEnv(Map.of("AGENTSPAN_AUTO_START_WORKERS", "no")).isAutoStartWorkers());
+        assertFalse(fromEnv(Map.of("CONDUCTOR_AGENT_AUTO_START_WORKERS", "0")).isAutoStartWorkers());
+        assertTrue(fromEnv(Map.of("CONDUCTOR_AGENT_AUTO_START_WORKERS", "TRUE")).isAutoStartWorkers());
+        assertFalse(fromEnv(Map.of("CONDUCTOR_AGENT_AUTO_START_WORKERS", "no")).isAutoStartWorkers());
         assertTrue(
-                fromEnv(Map.of("AGENTSPAN_AUTO_START_WORKERS", "banana")).isAutoStartWorkers(),
+                fromEnv(Map.of("CONDUCTOR_AGENT_AUTO_START_WORKERS", "banana")).isAutoStartWorkers(),
                 "unrecognized boolean falls back to the default");
     }
 

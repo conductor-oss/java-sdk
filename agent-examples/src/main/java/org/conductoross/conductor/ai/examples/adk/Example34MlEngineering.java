@@ -26,7 +26,7 @@ import com.google.adk.agents.LlmAgent;
  * <p>Demonstrates: a multi-agent ML workflow combining sequential, parallel,
  * and loop strategies. The Java port encodes the strategy semantics inline
  * (sub-agents with instructions describing parallel/loop intent) since the
- * Agentspan {@link org.conductoross.conductor.ai.Agentspan#run(Object, String)} currently translates {@link LlmAgent}s with
+ * Conductor {@link org.conductoross.conductor.ai.AgentRuntime#run(Object, String)} currently translates {@link LlmAgent}s with
  * sub-agents but does not extract {@code ParallelAgent}/{@code LoopAgent}
  * primitives directly.
  */

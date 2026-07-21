@@ -26,14 +26,14 @@ import org.conductoross.conductor.ai.tools.AgentTool;
 /**
  * Example 69 — Skills
  *
- * <p>Loads an agentskills.io skill directory as an Agentspan Agent. Skill scripts
+ * <p>Loads an agentskills.io skill directory as an Conductor Agent. Skill scripts
  * become worker tools, and resource files are available through the generated
  * read_skill_file tool.
  *
  * <p>Usage:
  * <pre>
- *   AGENTSPAN_SERVER_URL=http://localhost:6767/api \
- *   AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini \
+ *   CONDUCTOR_SERVER_URL=http://localhost:6767/api \
+ *   CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini \
  *   ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example69Skills \
  *     --args="/path/to/skill 'Review this repository'"
  * </pre>

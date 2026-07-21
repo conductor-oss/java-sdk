@@ -44,8 +44,8 @@ import org.conductoross.conductor.ai.model.AgentResult;
  *
  * <p>Requirements:
  * <ul>
- *   <li>AGENTSPAN_SERVER_URL=http://localhost:6767/api</li>
- *   <li>AGENTSPAN_LLM_MODEL=openai/gpt-4o-mini</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767/api</li>
+ *   <li>CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini</li>
  *   <li>AGENT_SECONDARY_LLM_MODEL=openai/gpt-4o</li>
  * </ul>
  */

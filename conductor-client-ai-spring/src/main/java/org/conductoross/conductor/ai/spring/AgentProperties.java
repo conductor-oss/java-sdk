@@ -15,12 +15,12 @@ package org.conductoross.conductor.ai.spring;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Agentspan-specific tuning knobs for the Spring Boot auto-configuration.
+ * Conductor agent tuning knobs for the Spring Boot auto-configuration.
  *
  * <p>Server connectivity (URL, auth key/secret) is handled by the Conductor
  * Java SDK's own Spring starter via {@code conductor.*} properties — see
  * {@link io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration}.
- * Only the Agentspan worker-runner settings live here.
+ * Only the Conductor agent worker-runner settings live here.
  *
  * <pre>{@code
  * # application.properties
@@ -30,12 +30,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * conductor.security.client.key-id=my-key       # optional
  * conductor.security.client.secret=my-secret    # optional
  *
- * # Agentspan worker tuning (this class):
- * agentspan.worker-poll-interval-ms=100
- * agentspan.worker-thread-count=1
+ * # Conductor agent worker tuning (this class):
+ * conductor.agent.worker-poll-interval-ms=100
+ * conductor.agent.worker-thread-count=1
  * }</pre>
  */
-@ConfigurationProperties(prefix = "agentspan")
+@ConfigurationProperties(prefix = "conductor.agent")
 public class AgentProperties {
 
     private int workerPollIntervalMs = 100;

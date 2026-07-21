@@ -14,20 +14,22 @@ package io.conductor.example.mediatranscoder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.client.worker.Worker;
+import com.netflix.conductor.common.metadata.tasks.TaskDef;
+import com.netflix.conductor.common.metadata.tasks.TaskDef.RetryLogic;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
-import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorker;
+import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 import io.conductor.example.mediatranscoder.workers.ManifestWorker;
 import io.conductor.example.mediatranscoder.workers.ThumbnailWorker;
 import io.conductor.example.mediatranscoder.workers.TranscodeWorker;
@@ -35,6 +37,12 @@ import io.conductor.example.mediatranscoder.workers.UploadPrimaryVideoWorker;
 import org.conductoross.conductor.client.FileClient;
 
 public class MediaTranscoderApp {
+
+    private static final List<String> TASK_TYPES = List.of(
+            "upload_primary_video",
+            "transcode_video",
+            "extract_thumbnail",
+            "create_manifest");
 
     public static void main(String[] args) throws Exception {
         String serverUrl = System.getenv().getOrDefault(
@@ -52,32 +60,21 @@ public class MediaTranscoderApp {
 
         FileClient fileClient = new FileClient(client);
 
-        // 1. Register (or update) the workflow definition.
+        // 1. Register every SIMPLE task definition, then register (or update) the workflow.
+        registerMissingTaskDefinitions(metadataClient);
         WorkflowDef workflowDef = register(metadataClient);
 
         // 2. Start workers. upload_primary_video runs first inside the workflow and publishes
         // the primary video handle; downstream tasks consume it via
         // ${upload_primary_video_ref.output.primary_video}.
-        // TranscodeWorker is an @WorkerTask-annotated bean — wrap it as an AnnotatedWorker so
-        // the TaskRunner treats it like any Worker. Its input is bound to a TranscodeInput POJO
-        // by the SDK's FileHandlerDeserializer, demonstrating FileHandler as a POJO field.
-        TranscodeWorker transcodeBean = new TranscodeWorker();
-        AnnotatedWorker transcodeWorker = new AnnotatedWorker(
-                "transcode_video",
-                TranscodeWorker.class.getMethod("transcode", TranscodeWorker.TranscodeInput.class),
-                transcodeBean);
-
-        List<Worker> workers = List.of(
-                new UploadPrimaryVideoWorker(),
-                transcodeWorker,
-                new ThumbnailWorker(),
-                new ManifestWorker());
-
-        TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
-                .withFileClient(fileClient)
-                .withThreadCount(4)
-                .build();
-        configurer.init();
+        // Every worker is an ordinary dependency-injected object whose work method is annotated
+        // with @WorkerTask. The executor discovers those methods and handles input/output binding.
+        AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(taskClient);
+        workerExecutor.initWorkersFromInstances(List.of(
+                new UploadPrimaryVideoWorker(fileClient),
+                new TranscodeWorker(fileClient),
+                new ThumbnailWorker(fileClient),
+                new ManifestWorker(fileClient)));
         System.out.println("Workers started: upload_primary_video, transcode_video, extract_thumbnail, create_manifest");
 
         // 3. Start workflow — no inputs; upload_primary_video publishes primaryVideo.
@@ -89,7 +86,7 @@ public class MediaTranscoderApp {
         String workflowId = workflowClient.startWorkflow(request);
         System.out.println("Workflow started: " + workflowId);
 
-        // 5. Poll for completion
+        // 4. Poll for completion.
         System.out.println("Waiting for workflow to complete...");
         for (int i = 0; i < 30; i++) {
             Thread.sleep(2000);
@@ -98,13 +95,13 @@ public class MediaTranscoderApp {
             if (workflow.getStatus().isTerminal()) {
                 System.out.println("Workflow " + workflow.getStatus() + "!");
                 System.out.println("Output: " + workflow.getOutput());
-                configurer.shutdown();
+                workerExecutor.shutdown();
                 System.exit(workflow.getStatus().isSuccessful() ? 0 : 1);
             }
         }
 
         System.err.println("Workflow did not complete in 60s");
-        configurer.shutdown();
+        workerExecutor.shutdown();
         System.exit(1);
     }
 
@@ -115,5 +112,36 @@ public class MediaTranscoderApp {
             System.out.println("Registered workflow: " + def.getName() + " v" + def.getVersion());
             return def;
         }
+    }
+
+    private static void registerMissingTaskDefinitions(MetadataClient metadataClient) {
+        Set<String> existing = new HashSet<>();
+        for (TaskDef taskDef : metadataClient.getAllTaskDefs()) {
+            existing.add(taskDef.getName());
+        }
+
+        List<TaskDef> missing = TASK_TYPES.stream()
+                .filter(name -> !existing.contains(name))
+                .map(MediaTranscoderApp::taskDefinition)
+                .toList();
+        if (!missing.isEmpty()) {
+            metadataClient.registerTaskDefs(missing);
+            System.out.println("Registered SIMPLE task definitions: "
+                    + missing.stream().map(TaskDef::getName).toList());
+        }
+    }
+
+    private static TaskDef taskDefinition(String name) {
+        TaskDef taskDef = new TaskDef();
+        taskDef.setName(name);
+        taskDef.setDescription("FileClient media-transcoder example task");
+        taskDef.setOwnerEmail("examples@conductor-oss.org");
+        taskDef.setRetryCount(3);
+        taskDef.setRetryLogic(RetryLogic.EXPONENTIAL_BACKOFF);
+        taskDef.setRetryDelaySeconds(1);
+        taskDef.setPollTimeoutSeconds(60);
+        taskDef.setResponseTimeoutSeconds(30);
+        taskDef.setTimeoutSeconds(300);
+        return taskDef;
     }
 }

@@ -24,15 +24,15 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Inspired by <code>sdk/python/examples/langgraph/03_memory.py</code> which
  * attaches a {@code MemorySaver} checkpointer to {@code create_agent}. In this
- * Java/Agentspan port we demonstrate the same surface — a single agent invoked
+ * Java/Conductor port we demonstrate the same surface — a single agent invoked
  * three times in sequence — but without an in-process checkpointer. The history
  * is passed back to the LLM directly inside the prompt for each turn, which is
- * the simplest portable pattern when running on the durable Agentspan runtime.
+ * the simplest portable pattern when running on the durable Conductor runtime.
  *
  * <p>Demonstrates:
  * <ul>
  *   <li>Reusing a single {@link AgentExecutor.Builder}-built agent for
- *       multiple turns via the drop-in {@link Agentspan#run} overload</li>
+ *       multiple turns via the drop-in {@link AgentRuntime#run} overload</li>
  *   <li>Pure prompt-based history (no in-memory checkpointer required)</li>
  *   <li>How an LLM can recall facts when given prior context</li>
  * </ul>
@@ -41,10 +41,10 @@ public class Example03Memory {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

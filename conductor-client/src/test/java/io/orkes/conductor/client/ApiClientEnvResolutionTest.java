@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Env-based client construction (spec R3): standard Conductor variables win,
- * legacy Agentspan names are honored as fallbacks, and the default is the
- * Conductor-standard {@code http://localhost:8080/api}. Exercised through the
+ * Env-based client construction (spec R3): standard Conductor variables configure
+ * the client, and the default is the Conductor-standard {@code http://localhost:8080/api}.
+ * Exercised through the
  * builder's env seam so process env is never mutated.
  */
 class ApiClientEnvResolutionTest {
@@ -43,19 +43,10 @@ class ApiClientEnvResolutionTest {
     }
 
     @Test
-    void conductorServerUrlWinsOverAgentspan() {
-        ApiClient client = fromEnv(Map.of(
-                "CONDUCTOR_SERVER_URL", "http://conductor-host:9999",
-                "AGENTSPAN_SERVER_URL", "http://agentspan-host:1111"));
+    void conductorServerUrlConfiguresClient() {
+        ApiClient client = fromEnv(Map.of("CONDUCTOR_SERVER_URL", "http://conductor-host:9999"));
 
         assertEquals("http://conductor-host:9999/api", client.getBasePath());
-    }
-
-    @Test
-    void agentspanServerUrlUsedWhenConductorUnset() {
-        ApiClient client = fromEnv(Map.of("AGENTSPAN_SERVER_URL", "http://agentspan-host:1111"));
-
-        assertEquals("http://agentspan-host:1111/api", client.getBasePath());
     }
 
     @Test
@@ -69,15 +60,13 @@ class ApiClientEnvResolutionTest {
     }
 
     @Test
-    void blankConductorUrlFallsThroughToAgentspan() {
-        ApiClient client = fromEnv(Map.of(
-                "CONDUCTOR_SERVER_URL", "   ",
-                "AGENTSPAN_SERVER_URL", "http://agentspan-host:1111"));
+    void blankConductorUrlUsesDefault() {
+        ApiClient client = fromEnv(Map.of("CONDUCTOR_SERVER_URL", "   "));
 
         assertEquals(
-                "http://agentspan-host:1111/api",
+                "http://localhost:8080/api",
                 client.getBasePath(),
-                "an exported-but-blank variable must not clobber the chain");
+                "an exported-but-blank variable must not clobber the default");
     }
 
     @Test
@@ -89,13 +78,13 @@ class ApiClientEnvResolutionTest {
     }
 
     @Test
-    void agentspanAuthKeysUsedAsFallback() {
+    void conductorAuthKeysConfigureAuthentication() {
         ApiClient.ApiClientBuilder builder = builderWithEnv(Map.of(
-                "AGENTSPAN_AUTH_KEY", "legacy-key",
-                "AGENTSPAN_AUTH_SECRET", "legacy-secret"));
+                "CONDUCTOR_AUTH_KEY", "key",
+                "CONDUCTOR_AUTH_SECRET", "secret"));
         builder.build();
 
-        assertNotNull(builder.authentication, "legacy Agentspan credentials must configure authentication");
+        assertNotNull(builder.authentication, "Conductor credentials must configure authentication");
     }
 
     @Test

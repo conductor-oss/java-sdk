@@ -27,7 +27,7 @@ import com.google.adk.tools.FunctionTool;
  *
  * <p>Tools are static methods annotated with {@code @Schema} — the idiomatic
  * ADK pattern — and packaged via {@code FunctionTool.create(Class, "methodName")}.
- * No Agentspan-specific annotations.
+ * No Conductor-specific annotations.
  */
 public class Example02FunctionTools {
 

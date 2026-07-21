@@ -32,6 +32,7 @@ import org.conductoross.conductor.ai.enums.Strategy;
 import org.conductoross.conductor.ai.execution.CliCommandExecutor;
 import org.conductoross.conductor.ai.execution.CliConfig;
 import org.conductoross.conductor.ai.internal.AgentConfigSerializer;
+import org.conductoross.conductor.ai.internal.GuardrailHandlerFactory;
 import org.conductoross.conductor.ai.internal.ServerLivenessMonitor;
 import org.conductoross.conductor.ai.internal.WorkerManager;
 import org.conductoross.conductor.ai.model.AgentHandle;
@@ -39,11 +40,8 @@ import org.conductoross.conductor.ai.model.AgentResult;
 import org.conductoross.conductor.ai.model.AgentStream;
 import org.conductoross.conductor.ai.model.DeploymentInfo;
 import org.conductoross.conductor.ai.model.GuardrailDef;
-import org.conductoross.conductor.ai.model.GuardrailResult;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.plans.Plan;
-import org.conductoross.conductor.ai.schedule.Schedule;
-import org.conductoross.conductor.ai.schedule.Schedules;
 import org.conductoross.conductor.ai.skill.Skill;
 import org.conductoross.conductor.ai.termination.AndTermination;
 import org.conductoross.conductor.ai.termination.MaxMessageTermination;
@@ -58,6 +56,8 @@ import com.netflix.conductor.client.http.WorkflowClient;
 
 import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.OrkesClients;
+import io.orkes.conductor.client.SchedulerClient;
 import io.orkes.conductor.client.SseClient;
 import io.orkes.conductor.client.exceptions.SSEUnavailableException;
 import io.orkes.conductor.client.http.OrkesAgentClient;
@@ -84,16 +84,16 @@ public class AgentRuntime implements AutoCloseable {
 
     private final AgentConfig config;
     /** Single native Conductor client (ApiClient) for the whole runtime — shared by every
-     *  typed client (AgentClient/WorkerManager/Schedules) and the SSE stream. */
+     *  typed client (AgentClient/WorkerManager/SchedulerClient) and the SSE stream. */
     private final ApiClient conductorClient;
     /** Agent control-plane client (/api/agent/*) built on the shared Conductor client. */
     private final AgentClient agentClient;
-    /** Standard Conductor workflow client for /api/workflow/* — used by AgentHandle to
-     *  enrich results with token usage and tool calls after execution completes. */
+    /** Standard Conductor workflow client used by AgentHandle result handling. */
     private final WorkflowClient workflowClient;
+    /** Typed scheduler transport shared by the runtime. */
+    private final SchedulerClient schedulerClient;
 
     private final WorkerManager workerManager;
-    private volatile Schedules schedules;
 
     /** Create a runtime with a Conductor client and worker tuning both from environment. */
     public AgentRuntime() {
@@ -122,10 +122,16 @@ public class AgentRuntime implements AutoCloseable {
      * @param config          worker-runner tuning
      */
     public AgentRuntime(ApiClient conductorClient, AgentConfig config) {
+        this(conductorClient, config, new OrkesClients(conductorClient).getSchedulerClient());
+    }
+
+    /** Package-visible typed-client seam for deterministic runtime scheduling tests. */
+    AgentRuntime(ApiClient conductorClient, AgentConfig config, SchedulerClient schedulerClient) {
         this.config = config;
         this.conductorClient = conductorClient;
         this.agentClient = new OrkesAgentClient(conductorClient);
         this.workflowClient = new WorkflowClient(conductorClient);
+        this.schedulerClient = schedulerClient;
         this.workerManager = new WorkerManager(config, conductorClient);
         logger.info("AgentRuntime initialized: {}", conductorClient.getBasePath());
     }
@@ -138,6 +144,17 @@ public class AgentRuntime implements AutoCloseable {
      */
     public AgentClient getClient() {
         return agentClient;
+    }
+
+    /**
+     * Returns the typed client for workflow schedule management.
+     *
+     * <p>Use this client directly with {@code SaveScheduleRequest} and
+     * {@code WorkflowSchedule}; the agent runtime does not add a separate
+     * schedule abstraction.
+     */
+    public SchedulerClient getSchedulerClient() {
+        return schedulerClient;
     }
 
     /**
@@ -313,6 +330,16 @@ public class AgentRuntime implements AutoCloseable {
      * {@link RunSettings} overrides (either may be null).
      */
     public CompletableFuture<AgentHandle> startAsync(Agent agent, String prompt, Plan plan, RunSettings runSettings) {
+        // Capture execution metadata before scheduling the async request so a
+        // caller mutating a reused RunSettings instance cannot change this
+        // start's deduplication identity after startAsync returns.
+        final String configuredIdempotencyKey =
+                runSettings != null ? runSettings.getIdempotencyKey() : null;
+        final String idempotencyKey =
+                configuredIdempotencyKey == null || configuredIdempotencyKey.isBlank()
+                        ? null
+                        : configuredIdempotencyKey;
+
         // Stateful agents get a per-execution domain UUID. The server uses it
         // as taskToDomain for every worker task in this run; local workers are
         // registered under the same domain so they poll the per-execution
@@ -338,6 +365,7 @@ public class AgentRuntime implements AutoCloseable {
                     .sessionId(sessionId != null && !sessionId.isEmpty() ? sessionId : null)
                     .runId(runId != null && !runId.isEmpty() ? runId : null)
                     .staticPlan(plan != null ? plan.toJson() : null)
+                    .idempotencyKey(idempotencyKey)
                     .build());
             String executionId = response.getExecutionId();
             if (executionId == null) {
@@ -484,40 +512,6 @@ public class AgentRuntime implements AutoCloseable {
     }
 
     /**
-     * Deploy a single agent and reconcile its cron schedules declaratively.
-     *
-     * <p>{@code schedules} semantics:
-     * <ul>
-     *   <li>{@code null} → leave existing schedules untouched.</li>
-     *   <li>empty list → purge all schedules for this agent.</li>
-     *   <li>non-empty list → upsert these and prune any others for this agent.</li>
-     * </ul>
-     *
-     * @param agent the agent to deploy
-     * @param schedules schedules to attach (tri-state semantics above)
-     * @return the {@link DeploymentInfo}
-     */
-    public DeploymentInfo deploy(Agent agent, List<Schedule> schedules) {
-        List<DeploymentInfo> infos = deploy(new Agent[] {agent});
-        if (schedules != null) {
-            schedules().reconcile(agent.getName(), schedules);
-        }
-        return infos.get(0);
-    }
-
-    /** Accessor for the cron-schedule lifecycle API. */
-    public Schedules schedules() {
-        if (schedules == null) {
-            synchronized (this) {
-                if (schedules == null) {
-                    schedules = new Schedules(conductorClient);
-                }
-            }
-        }
-        return schedules;
-    }
-
-    /**
      * Deploy agents, register their workers, and keep polling until interrupted.
      *
      * <p>{@code serve} = deploy + serve (spec R9): each agent is first deployed
@@ -563,7 +557,7 @@ public class AgentRuntime implements AutoCloseable {
             return;
         }
         logger.info("Serving {} agent(s) — waiting for tasks (Ctrl+C to stop)", agents.length);
-        Runtime.getRuntime().addShutdownHook(new Thread(workerManager::stop, "agentspan-serve-shutdown"));
+        Runtime.getRuntime().addShutdownHook(new Thread(workerManager::stop, "conductor-agent-serve-shutdown"));
         try {
             Thread.currentThread().join();
         } catch (InterruptedException e) {
@@ -628,47 +622,47 @@ public class AgentRuntime implements AutoCloseable {
     // ── Drop-in support for native framework agents (run / start / stream /
     //    deploy / serve / plan / resume all accept the raw native object) ──
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public AgentResult run(Object agent, String prompt) {
         return run(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public CompletableFuture<AgentResult> runAsync(Object agent, String prompt) {
         return runAsync(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public AgentHandle start(Object agent, String prompt) {
         return start(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public CompletableFuture<AgentHandle> startAsync(Object agent, String prompt) {
         return startAsync(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public AgentStream stream(Object agent, String prompt) {
         return stream(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public CompletableFuture<AgentStream> streamAsync(Object agent, String prompt) {
         return streamAsync(coerceAgent(agent), prompt);
     }
 
-    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Agentspan {@link Agent}s). */
+    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Conductor {@link Agent}s). */
     public List<DeploymentInfo> deploy(Object... agents) {
         return deploy(coerceAgents(agents));
     }
 
-    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Agentspan {@link Agent}s). */
+    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Conductor {@link Agent}s). */
     public CompletableFuture<List<DeploymentInfo>> deployAsync(Object... agents) {
         return deployAsync(coerceAgents(agents));
     }
 
-    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Agentspan {@link Agent}s). */
+    /** Drop-in: accepts native ADK {@code BaseAgent} instances (or Conductor {@link Agent}s). */
     public void serve(Object... agents) {
         serve(true, coerceAgents(agents));
     }
@@ -678,17 +672,17 @@ public class AgentRuntime implements AutoCloseable {
         serve(blocking, coerceAgents(agents));
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public CompileResponse plan(Object agent) {
         return plan(coerceAgent(agent));
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public AgentHandle resume(String executionId, Object agent) {
         return resume(executionId, coerceAgent(agent));
     }
 
-    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Agentspan {@link Agent}. */
+    /** Drop-in: accepts a native ADK {@code BaseAgent} or any Conductor {@link Agent}. */
     public CompletableFuture<AgentHandle> resumeAsync(String executionId, Object agent) {
         return resumeAsync(executionId, coerceAgent(agent));
     }
@@ -747,7 +741,7 @@ public class AgentRuntime implements AutoCloseable {
     }
 
     /**
-     * Coerce a user-provided agent object to an Agentspan {@link Agent}.
+     * Coerce a user-provided agent object to a Conductor {@link Agent}.
      *
      * <p>Supports {@link Agent} (returned as-is) and these native framework objects, each
      * detected by fully-qualified-name so the core class never hard-references a
@@ -771,7 +765,7 @@ public class AgentRuntime implements AutoCloseable {
             return a;
         }
         if (isInstanceOf(agent, "com.google.adk.agents.BaseAgent")) {
-            return org.conductoross.conductor.ai.frameworks.AdkBridge.toAgentspan(
+            return org.conductoross.conductor.ai.frameworks.AdkBridge.toConductor(
                     (com.google.adk.agents.BaseAgent) agent);
         }
         if (isInstanceOf(agent, "dev.langchain4j.model.chat.ChatModel")) {
@@ -931,6 +925,7 @@ public class AgentRuntime implements AutoCloseable {
             if ("agent_tool".equals(tool.getToolType()) && tool.getAgentRef() != null) {
                 prepareWorkers(tool.getAgentRef());
             }
+            registerLocalGuardrailWorker(tool.getName(), tool.getGuardrails());
         }
 
         // Register callback workers (legacy single-function style)
@@ -997,44 +992,9 @@ public class AgentRuntime implements AutoCloseable {
             }
         }
 
-        // Register combined guardrail worker per agent (matches Python: {agent_name}_output_guardrail)
-        List<GuardrailDef> customGuardrails =
-                agent.getGuardrails().stream().filter(g -> g.getFunc() != null).collect(Collectors.toList());
-        if (!customGuardrails.isEmpty()) {
-            String taskName = agent.getName() + "_output_guardrail";
-            workerManager.register(taskName, inputData -> {
-                Object rawContent = inputData.get("content");
-                String content = rawContent != null ? rawContent.toString() : "";
-                int iteration = inputData.get("iteration") instanceof Number
-                        ? ((Number) inputData.get("iteration")).intValue()
-                        : 0;
-                for (GuardrailDef g : customGuardrails) {
-                    GuardrailResult result = g.getFunc().apply(content);
-                    if (!result.isPassed()) {
-                        String onFail = g.getOnFail().toJsonValue();
-                        String fixedOutput = result.getFixedOutput();
-                        if ("retry".equals(onFail) && iteration >= g.getMaxRetries()) onFail = "raise";
-                        if ("fix".equals(onFail) && fixedOutput == null) onFail = "raise";
-                        Map<String, Object> out = new LinkedHashMap<>();
-                        out.put("passed", false);
-                        out.put("message", result.getMessage() != null ? result.getMessage() : "");
-                        out.put("on_fail", onFail);
-                        out.put("fixed_output", fixedOutput);
-                        out.put("guardrail_name", g.getName());
-                        out.put("should_continue", "retry".equals(onFail));
-                        return out;
-                    }
-                }
-                Map<String, Object> out = new LinkedHashMap<>();
-                out.put("passed", true);
-                out.put("message", "");
-                out.put("on_fail", "pass");
-                out.put("fixed_output", null);
-                out.put("guardrail_name", "");
-                out.put("should_continue", false);
-                return out;
-            });
-        }
+        // A local function owns its guardrail worker; regex, LLM and external guardrails
+        // remain server- or externally-owned. Agent and tool workers share the same protocol.
+        registerLocalGuardrailWorker(agent.getName(), agent.getGuardrails());
 
         // Register termination condition worker for agents that have one
         if (agent.getTermination() != null) {
@@ -1108,6 +1068,24 @@ public class AgentRuntime implements AutoCloseable {
         if (agent.getRouter() != null) {
             prepareWorkers(agent.getRouter());
         }
+    }
+
+    private void registerLocalGuardrailWorker(String scopeName, List<GuardrailDef> guardrails) {
+        List<GuardrailDef> localGuardrails = guardrails.stream()
+                .filter(guardrail -> guardrail.getFunc() != null)
+                .collect(Collectors.toList());
+        if (!localGuardrails.isEmpty()) {
+            workerManager.register(scopeName + "_output_guardrail", GuardrailHandlerFactory.create(localGuardrails));
+        }
+    }
+
+    // Package-visible test hooks. They expose registration state only, not worker mutation.
+    boolean isWorkerRegisteredForTest(String taskName) {
+        return workerManager.isRegistered(taskName);
+    }
+
+    String workerDomainForTest(String taskName) {
+        return workerManager.getRegisteredTaskDomain(taskName);
     }
 
     /**
@@ -1368,7 +1346,7 @@ public class AgentRuntime implements AutoCloseable {
                     interpreter = language;
             }
             // Write code to temp file
-            File tmpFile = File.createTempFile("agentspan_code_", language.startsWith("python") ? ".py" : ".sh");
+            File tmpFile = File.createTempFile("conductor_agent_code_", language.startsWith("python") ? ".py" : ".sh");
             tmpFile.deleteOnExit();
             try (FileWriter fw = new FileWriter(tmpFile)) {
                 fw.write(code);

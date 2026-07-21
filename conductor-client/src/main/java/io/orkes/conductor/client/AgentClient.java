@@ -70,6 +70,17 @@ public interface AgentClient extends AutoCloseable {
     /** {@code POST /api/agent/{executionId}/stop} — graceful deterministic stop. */
     void stopAgent(String executionId);
 
+    /**
+     * {@code DELETE /api/agent/{executionId}/cancel} — immediately cancel an execution and
+     * optionally record a reason.
+     *
+     * <p>The default preserves compatibility for custom {@code AgentClient} implementations
+     * compiled before cancellation was added. Transport implementations should override it.
+     */
+    default void cancelAgent(String executionId, String reason) {
+        throw new UnsupportedOperationException("Agent cancellation is not supported");
+    }
+
     /** {@code POST /api/agent/{executionId}/signal} — inject persistent context. */
     void signalAgent(String executionId, String message);
 

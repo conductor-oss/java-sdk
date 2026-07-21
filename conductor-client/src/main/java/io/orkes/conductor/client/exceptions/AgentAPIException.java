@@ -13,9 +13,9 @@
 package io.orkes.conductor.client.exceptions;
 
 /**
- * Thrown when the Agentspan server returns a non-2xx HTTP response.
+ * Thrown when the Conductor agent server returns a non-2xx HTTP response.
  */
-public class AgentAPIException extends AgentspanException {
+public class AgentAPIException extends AgentException {
     private final int statusCode;
     private final String responseBody;
 

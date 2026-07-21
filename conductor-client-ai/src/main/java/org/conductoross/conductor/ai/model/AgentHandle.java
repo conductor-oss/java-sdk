@@ -398,7 +398,7 @@ public class AgentHandle {
             }
 
             // Tool worker task — capture name, input args (stripping
-            // internal Agentspan context), and output result.
+            // internal runtime fields), and output result.
             // referenceTaskName starts with "call_" for LLM-dispatched tool calls.
             String refName = task.getReferenceTaskName();
             if (refName != null && refName.startsWith("call_") && outputData != null) {
@@ -411,7 +411,6 @@ public class AgentHandle {
                         String k = e.getKey();
                         if (k.startsWith("_")
                                 || "method".equals(k)
-                                || "__agentspan_ctx__".equals(k)
                                 || "evaluatorType".equals(k)
                                 || "expression".equals(k)
                                 || "ctx".equals(k)
@@ -435,8 +434,7 @@ public class AgentHandle {
      * Build an {@link AgentResult} from a terminal {@link Workflow}.
      *
      * <p>Shared workflow → {@link AgentResult} extraction used by callers that
-     * already hold a completed {@link Workflow} (e.g. the scheduler's
-     * {@code runNowAndWait}). Maps the workflow status to an {@link AgentStatus},
+     * already hold a completed {@link Workflow}. Maps the workflow status to an {@link AgentStatus},
      * normalizes the output map, surfaces {@code reasonForIncompletion} as the
      * error for non-completed runs, and reuses {@link #extractFromTasks} for the
      * token-usage and tool-call aggregation.

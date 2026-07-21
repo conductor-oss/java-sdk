@@ -42,11 +42,11 @@ import org.conductoross.conductor.ai.model.ToolDef;
  * runtime, so unlike Python/.NET/TypeScript there is no env-injection mode.
  * Tools MUST read declared credentials via {@code ctx.getCredential(name)}; reading
  * via {@code System.getenv} would only see whatever the JVM inherited from
- * the shell at startup. See {@code docs/design/secret-injection-contract.md} §6.
+ * the shell at startup. See {@code design/secret-injection-contract.md} §6.
  *
  * <p>Setup (one-time, via CLI):
  * <pre>
- *   agentspan secrets set GITHUB_TOKEN ghp_xxx
+ *   conductor secrets set GITHUB_TOKEN ghp_xxx
  * </pre>
  *
  * <p>If the credential isn't set on the server, this tool's task is reported
@@ -78,7 +78,7 @@ public class Example16CredentialsTool {
                         + "/repos?per_page=" + n + "&sort=updated"))
                     .timeout(Duration.ofSeconds(10))
                     .header("Accept", "application/vnd.github+json")
-                    .header("User-Agent", "agentspan-java-example/1.0");
+                    .header("User-Agent", "conductor-java-example/1.0");
                 if (token != null && !token.isEmpty()) {
                     reqBuilder.header("Authorization", "Bearer " + token);
                 }
@@ -111,7 +111,7 @@ public class Example16CredentialsTool {
                     .uri(URI.create("https://api.github.com/users/" + username))
                     .timeout(Duration.ofSeconds(10))
                     .header("Accept", "application/vnd.github+json")
-                    .header("User-Agent", "agentspan-java-example/1.0");
+                    .header("User-Agent", "conductor-java-example/1.0");
                 if (token != null && !token.isEmpty()) {
                     reqBuilder.header("Authorization", "Bearer " + token);
                 }

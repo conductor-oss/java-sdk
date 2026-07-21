@@ -12,6 +12,7 @@
  */
 package org.conductoross.conductor.ai.examples;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,29 @@ import org.conductoross.conductor.ai.tools.AgentTool;
  */
 public class Example58ScatterGather {
 
+    private static final String[] countries = new String[]{
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
+            "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+            "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus",
+            "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+            "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria",
+            "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+            "Chad", "Chile", "China", "Colombia", "Congo",
+            "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+            "Denmark", "Djibouti", "Dominican Republic", "Ecuador", "Egypt",
+            "El Salvador", "Estonia", "Ethiopia", "Fiji", "Finland",
+            "France", "Gabon", "Georgia", "Germany", "Ghana",
+            "Greece", "Guatemala", "Guinea", "Haiti", "Honduras",
+            "Hungary", "Iceland", "India", "Indonesia", "Iran",
+            "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+            "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait",
+            "Laos", "Latvia", "Lebanon", "Libya", "Lithuania",
+            "Luxembourg", "Madagascar", "Malaysia", "Mali", "Malta",
+            "Mexico", "Mongolia", "Morocco", "Mozambique", "Myanmar",
+            "Nepal", "Netherlands", "New Zealand", "Nigeria", "North Korea",
+            "Norway", "Oman", "Pakistan", "Panama", "Paraguay",
+            };
+
     static class ResearchTools {
         @Tool(name = "search_knowledge_base",
               description = "Search the knowledge base for information on a topic")
@@ -63,7 +87,7 @@ public class Example58ScatterGather {
 
         Agent researcher = Agent.builder()
             .name("researcher")
-            .model("anthropic/claude-sonnet-4-20250514")
+            .model("anthropic/claude-sonnet-5")
             .instructions(
                 "You are a country analyst. You will be given the name of a country. "
                 + "Use the search_knowledge_base tool ONCE to research that country, then "
@@ -96,7 +120,7 @@ public class Example58ScatterGather {
         String workerName = researcher.getName();
         String instructions =
             "You are a scatter-gather coordinator. Your job is to:\n"
-            + "1. Decompose the input into N independent sub-problems\n"
+            + "1. Decompose the input into independent sub-problems ONE for each input\n"
             + "2. Call the '" + workerName + "' tool MULTIPLE TIMES IN PARALLEL — once per sub-problem, "
             + "each with a clear, self-contained prompt\n"
             + "3. After all results return, synthesize them into a unified answer\n\n"
@@ -114,7 +138,7 @@ public class Example58ScatterGather {
             .build();
 
         AgentResult result = runtime.run(coordinator,
-            "Create a comprehensive profile for each of the 100 countries listed.");
+            "Create a comprehensive profile for each of the 100 countries listed. " + Arrays.toString(countries));
         result.printResult();
 
         runtime.shutdown();

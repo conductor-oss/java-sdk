@@ -68,16 +68,8 @@ public class Example31ToolInputGuardrail {
             })
             .build();
 
-        // Re-wrap the tool with the guardrail attached at tool level
-        ToolDef guardedTool = ToolDef.builder()
-            .name(rawTool.getName())
-            .description(rawTool.getDescription())
-            .inputSchema(rawTool.getInputSchema())
-            .outputSchema(rawTool.getOutputSchema())
-            .toolType(rawTool.getToolType())
-            .func(rawTool.getFunc())
-            .guardrails(List.of(sqlInjectionGuard))
-            .build();
+        // Preserve all fields discovered from @Tool while attaching the guardrail.
+        ToolDef guardedTool = rawTool.withGuardrails(List.of(sqlInjectionGuard));
 
         Agent agent = Agent.builder()
             .name("db_assistant")

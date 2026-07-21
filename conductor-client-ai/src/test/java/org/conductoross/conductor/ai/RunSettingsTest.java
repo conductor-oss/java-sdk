@@ -67,6 +67,14 @@ class RunSettingsTest {
     }
 
     @Test
+    void idempotencyKeyIsExecutionMetadataNotConfigOverride() {
+        RunSettings settings = new RunSettings().idempotencyKey("logical-run-123");
+
+        assertEquals("logical-run-123", settings.getIdempotencyKey());
+        assertTrue(settings.toConfigOverrides().isEmpty());
+    }
+
+    @Test
     void noTopPKnob() {
         // The spec deliberately omits topP from RunSettings — guard against
         // someone "helpfully" adding it back.

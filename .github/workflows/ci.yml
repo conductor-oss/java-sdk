@@ -14,6 +14,91 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  documentation-validation:
+    runs-on: ubuntu-latest
+    name: Documentation validation
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Zulu JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - name: Validate documentation links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress README.md docs
+
+      - name: Reject retired documentation references
+        run: |
+          if grep -REn ':examples:run|examples/old|LlmIndexDocument|\.topK\(|runtime\.schedules\(|Schedule\.builder|conductor\.netflix\.com|^=== "|compileOnly .*langchain|compileOnly .*google\.adk|compileOnly .*langgraph|docs/agents/index\.md|docs/agents/agent-(runtime-api|client-api|structure|schema)\.md|docs/agents/api-reference\.md|docs/testing_framework\.md' README.md docs; then
+            echo "Documentation references a retired command, path, API, or renderer-specific construct."
+            exit 1
+          fi
+
+      - name: Validate documented source links and test-server version
+        run: |
+          curl --fail --silent --show-error --location --retry 3 --retry-all-errors --output /dev/null \
+            https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/main/java/com/netflix/conductor/sdk/workflow/executor/WorkflowExecutor.java
+          curl --fail --silent --show-error --location --retry 3 --retry-all-errors --output /dev/null \
+            https://github.com/conductor-oss/java-sdk/blob/main/conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java
+          server_version="$(sed -n 's/.*new WorkflowTestRunner(8080, "\([^"]*\)").*/\1/p' conductor-client/src/test/java/com/netflix/conductor/sdk/workflow/testing/WorkflowTestFrameworkTests.java)"
+          test -n "$server_version"
+          grep -Fq "$server_version" docs/workflow-testing.md
+
+      - name: Verify agent configuration schema
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run agent configuration schema verifier
+        run: |
+          python -m pip install --disable-pip-version-check -r tools/agent-schema/requirements.txt
+          python tools/agent-schema/verify.py
+          test ! -d docs/agents/generated
+          test -f docs/agents/reference/agent-schema.json
+          test ! -f docs/agents/concepts/skills.md
+
+      - name: Verify documented example targets
+        run: |
+          test -f examples/basics/hello-world/run.sh
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example01BasicAgent.java
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example108PlanExecuteRefs.java
+          test -f agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example115PlannerContext.java
+
+      - name: Compile documented AI example target
+        run: ./gradlew :agent-examples:compileJava
+
+      - name: Package documented core example
+        run: |
+          docker run --rm \
+            -v "$PWD/examples/basics/hello-world":/work \
+            -v "$HOME/.m2":/root/.m2 \
+            -w /work \
+            maven:3.9-eclipse-temurin-21 \
+            mvn -B package -DskipTests
+
+      - name: Smoke-test documented core quickstart
+        working-directory: examples/basics/hello-world
+        env:
+          CONDUCTOR_PORT: 18080
+          CONDUCTOR_UI_PORT: 11234
+        run: |
+          timeout 240 ./run.sh
+          curl --fail --silent --show-error --output /dev/null --retry 10 --retry-delay 2 --retry-all-errors http://localhost:18080/health
+          curl --fail --silent --show-error --output /dev/null --retry 10 --retry-delay 2 --retry-all-errors http://localhost:11234/
+          docker compose ps --status running --services | grep -Fx conductor
+
+      - name: Stop documented core quickstart
+        if: always()
+        working-directory: examples/basics/hello-world
+        run: docker compose down -v --remove-orphans
+
   build:
     runs-on: ubuntu-latest
     name: Java Client Build
@@ -59,4 +144,3 @@ jobs:
       - name: Check Tests Status
         if: steps.tests.outcome == 'failure'
         run: exit 1
-        

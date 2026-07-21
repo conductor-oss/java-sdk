@@ -351,7 +351,7 @@ class Suite6PdfTools extends BaseTest {
     @Order(7)
     @SuppressWarnings("unchecked")
     void test_pdf_generation_task_completes_and_has_output() {
-        String sampleMarkdown = "# Agentspan Parity Report\n\n"
+        String sampleMarkdown = "# Conductor Parity Report\n\n"
                 + "## Overview\n"
                 + "This PDF validates the GENERATE_PDF pipeline end-to-end.\n\n"
                 + "## Numbers\n"

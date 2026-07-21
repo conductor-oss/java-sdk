@@ -39,7 +39,7 @@ import org.conductoross.conductor.ai.tools.RagTools;
 public class Example56RagAgent {
 
     private static final String VECTOR_DB      = "pgvectordb";
-    private static final String INDEX          = "agentspan_docs_56";
+    private static final String INDEX          = "conductor_docs_56";
     private static final String EMBED_PROVIDER = "openai";
     private static final String EMBED_MODEL    = "text-embedding-3-small";
 
@@ -72,16 +72,16 @@ public class Example56RagAgent {
         System.out.println("=== Phase 1: Indexing documents ===");
         AgentResult indexResult = runtime.run(indexerAgent,
             "Index the following documents:\n\n" +
-            "Title: Agentspan Overview\n" +
-            "Content: Agentspan is a multi-agent orchestration platform built on Conductor. " +
+            "Title: Conductor Overview\n" +
+            "Content: Conductor is a multi-agent orchestration platform built on Conductor. " +
             "It enables developers to build, deploy, and manage AI agent workflows at scale. " +
             "Agents can use tools, call sub-agents, and maintain shared state.\n\n" +
             "Title: Agent Strategies\n" +
-            "Content: Agentspan supports multiple agent strategies: ROUTER (LLM picks the next agent), " +
+            "Content: Conductor supports multiple agent strategies: ROUTER (LLM picks the next agent), " +
             "HANDOFF (transfer control to another agent), SWARM (agents collaborate simultaneously), " +
             "and LOOP (repeat until a condition is met). Each strategy suits different workflow patterns.\n\n" +
             "Title: Tool Types\n" +
-            "Content: Agentspan tools include local Python/Java workers, RAG search/index tools, " +
+            "Content: Conductor tools include local Python/Java workers, RAG search/index tools, " +
             "HTTP tools for calling REST APIs, and AgentTool for calling sub-agents. " +
             "Tools are registered with name, description, and JSON schema for the LLM.\n\n" +
             "Title: Guardrails\n" +
@@ -105,7 +105,7 @@ public class Example56RagAgent {
         System.out.println("\n=== Phase 2: Answering questions from indexed docs ===");
         AgentResult qaResult = runtime.run(qaAgent,
             "Answer these questions using the knowledge base:\n" +
-            "1. What is Agentspan and what platform is it built on?\n" +
+            "1. What is Conductor and what platform is it built on?\n" +
             "2. What agent strategies are available and when would you use HANDOFF?\n" +
             "3. What happens when a guardrail fails?");
         qaResult.printResult();

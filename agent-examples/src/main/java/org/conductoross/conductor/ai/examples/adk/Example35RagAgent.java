@@ -31,7 +31,7 @@ import com.google.adk.tools.FunctionTool;
  * <p>Java port of <code>sdk/python/examples/adk/35_rag_agent.py</code>.
  *
  * <p>Demonstrates: a RAG agent flow with index + search tools. The Python
- * source uses Agentspan's {@code search_tool} / {@code index_tool} factory
+ * source uses Conductor's {@code search_tool} / {@code index_tool} factory
  * helpers (mapped to Conductor's LLM_INDEX_TEXT / LLM_SEARCH_INDEX system
  * tasks).
  *

@@ -76,7 +76,10 @@ public class WorkflowTestFrameworkTests {
         Workflow workflow = executor.executeWorkflow("Decision_TaskExample", 1, input).get();
 
         assertNotNull(workflow);
-        assertEquals(Workflow.WorkflowStatus.COMPLETED, workflow.getStatus());
+        assertEquals(
+                Workflow.WorkflowStatus.COMPLETED,
+                workflow.getStatus(),
+                () -> "workflow failed: " + workflow.getReasonForIncompletion() + "; tasks: " + workflow.getTasks());
         assertNotNull(workflow.getOutput());
         assertNotNull(workflow.getTasks());
         assertFalse(workflow.getTasks().isEmpty());
@@ -84,11 +87,9 @@ public class WorkflowTestFrameworkTests {
                 workflow.getTasks().stream()
                         .anyMatch(task -> task.getTaskDefName().equals("task_6")));
 
-        // task_2's implementation fails at the first try, so we should have to instances of task_2
-        // execution
-        // 2 executions of task_2 should be present
+        // The dynamic task resolves task_2 from workflow input and runs it once.
         assertEquals(
-                2,
+                1,
                 workflow.getTasks().stream()
                         .filter(task -> task.getTaskDefName().equals("task_2"))
                         .count());
@@ -97,11 +98,8 @@ public class WorkflowTestFrameworkTests {
                         .filter(task -> task.getTaskDefName().equals("task_2"))
                         .collect(Collectors.toList());
         assertNotNull(task2Executions);
-        assertEquals(2, task2Executions.size());
-
-        // First instance would have failed and second succeeded.
-        assertEquals(Task.Status.FAILED, task2Executions.get(0).getStatus());
-        assertEquals(Task.Status.COMPLETED, task2Executions.get(1).getStatus());
+        assertEquals(1, task2Executions.size());
+        assertEquals(Task.Status.COMPLETED, task2Executions.get(0).getStatus());
 
         // task10's output
         assertEquals(100, workflow.getOutput().get("c"));
@@ -133,12 +131,6 @@ public class WorkflowTestFrameworkTests {
 
     @WorkerTask("task_2")
     public TaskResult task2(Task task) {
-        if (task.getRetryCount() < 1) {
-            task.setStatus(Task.Status.FAILED);
-            task.setReasonForIncompletion("try again");
-            return new TaskResult(task);
-        }
-
         task.setStatus(Task.Status.COMPLETED);
         return new TaskResult(task);
     }

@@ -19,10 +19,10 @@ import dev.langchain4j.model.chat.ChatModel;
 
 /**
  * Adapter that takes native LangChain4j components (a {@link ChatModel} and
- * {@code @Tool}-annotated POJOs) and produces an Agentspan {@link Agent}.
+ * {@code @Tool}-annotated POJOs) and produces a Conductor {@link Agent}.
  *
  * <p>The model object is used only to extract the {@code provider/model} string
- * that the Agentspan server needs — Agentspan owns the LLM call and the
+ * that the Conductor server needs — it owns the LLM call and the
  * credentials live on the server, so the client never invokes the local
  * {@link ChatModel} directly.
  *
@@ -34,9 +34,9 @@ public final class LangChainBridge {
     private LangChainBridge() {}
 
     /**
-     * Build an Agentspan {@link Agent.Builder} from a native LangChain4j
+     * Build a Conductor {@link Agent.Builder} from a native LangChain4j
      * {@link ChatModel} and {@code @Tool}-annotated POJOs. Returning the
-     * Builder lets callers attach Agentspan-only features (guardrails,
+     * Builder lets callers attach Conductor-specific features (guardrails,
      * gate, termination, callbacks) before {@code .build()}:
      *
      * <pre>{@code
@@ -64,7 +64,7 @@ public final class LangChainBridge {
 
     /**
      * Map a LangChain4j {@link ChatModel} to the {@code provider/model} string
-     * format expected by the Agentspan server (e.g. {@code anthropic/claude-sonnet-4-6}).
+     * format expected by the Conductor server (e.g. {@code anthropic/claude-sonnet-4-6}).
      *
      * <p>The provider id is read from {@link ChatModel#provider()} and the model
      * name from {@code defaultRequestParameters().modelName()}; both are part of

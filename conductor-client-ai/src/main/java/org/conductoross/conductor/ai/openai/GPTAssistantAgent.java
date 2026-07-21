@@ -29,7 +29,7 @@ import org.conductoross.conductor.ai.model.ToolDef;
  * An agent backed by the OpenAI Assistants API.
  *
  * <p>Wraps an OpenAI Assistant (with its own instructions, tools, and file search
- * capabilities) as an Agentspan Agent. The assistant's execution is handled via the
+ * capabilities) as a Conductor Agent. The assistant's execution is handled via the
  * Assistants API Threads and Runs.
  *
  * <pre>{@code

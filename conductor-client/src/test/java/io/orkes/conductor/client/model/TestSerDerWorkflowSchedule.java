@@ -51,6 +51,7 @@ public class TestSerDerWorkflowSchedule {
         assertNotNull(workflowSchedule.getStartWorkflowRequest());
         assertNotNull(workflowSchedule.getUpdatedBy());
         assertNotNull(workflowSchedule.getUpdatedTime());
+        assertNotNull(workflowSchedule.getNextRunTime());
         assertNotNull(workflowSchedule.getZoneId());
 
         // 3. Marshall this POJO to JSON again

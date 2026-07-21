@@ -138,6 +138,33 @@ public class ToolDef {
         return stateful;
     }
 
+    /**
+     * Returns a copy of this tool with the supplied guardrails. Every execution and
+     * serialization field, including credentials, retries, statefulness, configuration and
+     * agent-tool references, is preserved.
+     */
+    public ToolDef withGuardrails(List<GuardrailDef> guardrails) {
+        return builder()
+                .name(name)
+                .description(description)
+                .inputSchema(inputSchema)
+                .outputSchema(outputSchema)
+                .func(func)
+                .approvalRequired(approvalRequired)
+                .timeoutSeconds(timeoutSeconds)
+                .retryCount(retryCount)
+                .retryDelaySeconds(retryDelaySeconds)
+                .retryPolicy(retryPolicy)
+                .toolType(toolType)
+                .config(config)
+                .credentials(credentials)
+                .guardrails(List.copyOf(guardrails))
+                .maxCalls(maxCalls)
+                .agentRef(agentRef)
+                .stateful(stateful)
+                .build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }

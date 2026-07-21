@@ -80,11 +80,16 @@ class AgentRuntimeRunSettingsWireTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> takeStartAgentConfig() throws Exception {
+    private Map<String, Object> takeStartAgentBody() throws Exception {
         RecordedRequest request = server.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request, "expected the start request to reach the stub server");
         assertEquals("/api/agent/start", request.getPath());
-        Map<String, Object> body = MAPPER.readValue(request.getBody().readUtf8(), Map.class);
+        return MAPPER.readValue(request.getBody().readUtf8(), Map.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> takeStartAgentConfig() throws Exception {
+        Map<String, Object> body = takeStartAgentBody();
         Map<String, Object> agentConfig = (Map<String, Object>) body.get("agentConfig");
         assertNotNull(agentConfig, "start payload must carry the serialized agentConfig");
         return agentConfig;
@@ -119,10 +124,31 @@ class AgentRuntimeRunSettingsWireTest {
     void noSettingsLeavesConfigUntouched() throws Exception {
         runtime.start(agent, "hi");
 
-        Map<String, Object> agentConfig = takeStartAgentConfig();
+        Map<String, Object> body = takeStartAgentBody();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> agentConfig = (Map<String, Object>) body.get("agentConfig");
         assertEquals("openai/gpt-4o", agentConfig.get("model"));
         assertFalse(agentConfig.containsKey("thinkingConfig"));
         assertFalse(agentConfig.containsKey("reasoningEffort"));
+        assertFalse(body.containsKey("idempotencyKey"));
+    }
+
+    @Test
+    void idempotencyKeyIsTopLevelExecutionMetadata() throws Exception {
+        runtime.start(agent, "hi", new RunSettings().idempotencyKey("logical-run-123"));
+
+        Map<String, Object> body = takeStartAgentBody();
+        assertEquals("logical-run-123", body.get("idempotencyKey"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> agentConfig = (Map<String, Object>) body.get("agentConfig");
+        assertFalse(agentConfig.containsKey("idempotencyKey"));
+    }
+
+    @Test
+    void blankIdempotencyKeyIsOmitted() throws Exception {
+        runtime.start(agent, "hi", new RunSettings().idempotencyKey("   "));
+
+        assertFalse(takeStartAgentBody().containsKey("idempotencyKey"));
     }
 
     @Test
@@ -137,9 +163,14 @@ class AgentRuntimeRunSettingsWireTest {
     void dropInVarargsExtractRunSettings() throws Exception {
         // Through the Object drop-in, RunSettings arrives in the tools varargs —
         // it must be applied as overrides, not coerced (and dropped) as a tool.
-        runtime.start((Object) agent, "hi", new RunSettings().model("varargs/model"));
+        runtime.start((Object) agent, "hi", new RunSettings()
+                .model("varargs/model")
+                .idempotencyKey("varargs-run-123"));
 
-        Map<String, Object> agentConfig = takeStartAgentConfig();
+        Map<String, Object> body = takeStartAgentBody();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> agentConfig = (Map<String, Object>) body.get("agentConfig");
         assertEquals("varargs/model", agentConfig.get("model"));
+        assertEquals("varargs-run-123", body.get("idempotencyKey"));
     }
 }

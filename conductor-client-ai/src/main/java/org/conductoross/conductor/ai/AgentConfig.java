@@ -15,7 +15,7 @@ package org.conductoross.conductor.ai;
 import java.util.function.Function;
 
 /**
- * Worker-runner tuning for the Agentspan SDK.
+ * Worker-runner tuning for the Conductor agent SDK.
  *
  * <p>Connection details (server URL, auth key/secret) are NOT here — those are
  * transport concerns owned by the Conductor client
@@ -26,15 +26,15 @@ import java.util.function.Function;
  *
  * <p>Environment variables (invalid or empty values fall back to the default):
  * <ul>
- *   <li>{@code AGENTSPAN_WORKER_POLL_INTERVAL} — worker poll interval in ms (default: 100)</li>
- *   <li>{@code AGENTSPAN_WORKER_THREADS} — worker thread count (default: 1)</li>
- *   <li>{@code AGENTSPAN_AUTO_START_WORKERS} — register + start workers on run/start/stream (default: true)</li>
- *   <li>{@code AGENTSPAN_DAEMON_WORKERS} — SDK-owned threads are daemons (default: true)</li>
- *   <li>{@code AGENTSPAN_STREAMING_ENABLED} — use SSE for stream(); false = status polling (default: true)</li>
- *   <li>{@code AGENTSPAN_LIVENESS_ENABLED} — monitor stateful runs for worker stalls (default: true)</li>
- *   <li>{@code AGENTSPAN_LIVENESS_STALL_SECONDS} — seconds a task may sit unpolled before it counts
+ *   <li>{@code CONDUCTOR_AGENT_WORKER_POLL_INTERVAL} — worker poll interval in ms (default: 100)</li>
+ *   <li>{@code CONDUCTOR_AGENT_WORKER_THREADS} — worker thread count (default: 1)</li>
+ *   <li>{@code CONDUCTOR_AGENT_AUTO_START_WORKERS} — register + start workers on run/start/stream (default: true)</li>
+ *   <li>{@code CONDUCTOR_AGENT_DAEMON_WORKERS} — SDK-owned threads are daemons (default: true)</li>
+ *   <li>{@code CONDUCTOR_AGENT_STREAMING_ENABLED} — use SSE for stream(); false = status polling (default: true)</li>
+ *   <li>{@code CONDUCTOR_AGENT_LIVENESS_ENABLED} — monitor stateful runs for worker stalls (default: true)</li>
+ *   <li>{@code CONDUCTOR_AGENT_LIVENESS_STALL_SECONDS} — seconds a task may sit unpolled before it counts
  *       as a stall (default: 30.0)</li>
- *   <li>{@code AGENTSPAN_LIVENESS_CHECK_INTERVAL_SECONDS} — seconds between liveness checks
+ *   <li>{@code CONDUCTOR_AGENT_LIVENESS_CHECK_INTERVAL_SECONDS} — seconds between liveness checks
  *       (default: 10.0)</li>
  * </ul>
  */
@@ -73,14 +73,14 @@ public class AgentConfig {
     /** Env-seam variant so tests can exercise parsing without mutating process env. */
     static AgentConfig fromEnv(Function<String, String> env) {
         AgentConfig config = new AgentConfig(
-                intVar(env, "AGENTSPAN_WORKER_POLL_INTERVAL", 100),
-                intVar(env, "AGENTSPAN_WORKER_THREADS", 1));
-        config.autoStartWorkers = boolVar(env, "AGENTSPAN_AUTO_START_WORKERS", true);
-        config.daemonWorkers = boolVar(env, "AGENTSPAN_DAEMON_WORKERS", true);
-        config.streamingEnabled = boolVar(env, "AGENTSPAN_STREAMING_ENABLED", true);
-        config.livenessEnabled = boolVar(env, "AGENTSPAN_LIVENESS_ENABLED", true);
-        config.livenessStallSeconds = doubleVar(env, "AGENTSPAN_LIVENESS_STALL_SECONDS", 30.0);
-        config.livenessCheckIntervalSeconds = doubleVar(env, "AGENTSPAN_LIVENESS_CHECK_INTERVAL_SECONDS", 10.0);
+                intVar(env, "CONDUCTOR_AGENT_WORKER_POLL_INTERVAL", 100),
+                intVar(env, "CONDUCTOR_AGENT_WORKER_THREADS", 1));
+        config.autoStartWorkers = boolVar(env, "CONDUCTOR_AGENT_AUTO_START_WORKERS", true);
+        config.daemonWorkers = boolVar(env, "CONDUCTOR_AGENT_DAEMON_WORKERS", true);
+        config.streamingEnabled = boolVar(env, "CONDUCTOR_AGENT_STREAMING_ENABLED", true);
+        config.livenessEnabled = boolVar(env, "CONDUCTOR_AGENT_LIVENESS_ENABLED", true);
+        config.livenessStallSeconds = doubleVar(env, "CONDUCTOR_AGENT_LIVENESS_STALL_SECONDS", 30.0);
+        config.livenessCheckIntervalSeconds = doubleVar(env, "CONDUCTOR_AGENT_LIVENESS_CHECK_INTERVAL_SECONDS", 10.0);
         return config;
     }
 

@@ -155,7 +155,7 @@ class CliCommandExecutorTest {
     @DisabledOnOs(OS.WINDOWS)
     void run_commandNotFound() {
         Map<String, Object> result =
-                CliCommandExecutor.run("agentspan_no_such_binary_xyz", null, null, false, List.of(), 30, null, false);
+                CliCommandExecutor.run("conductor_agent_no_such_binary_xyz", null, null, false, List.of(), 30, null, false);
         assertEquals("error", result.get("status"));
         assertTrue(((String) result.get("stderr")).contains("Command not found"), "stderr: " + result.get("stderr"));
     }

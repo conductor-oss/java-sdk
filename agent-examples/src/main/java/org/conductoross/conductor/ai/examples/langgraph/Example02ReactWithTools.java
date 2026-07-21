@@ -29,13 +29,13 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  * <p>Java port (concepts) of
  * <code>sdk/python/examples/langgraph/02_react_with_tools.py</code>. Builds a
  * real LangGraph4j {@code AgentExecutor.Builder} (a ReAct {@code StateGraph})
- * and hands it straight to {@link Agentspan#run} via the drop-in overload.
+ * and hands it straight to {@link AgentRuntime#run} via the drop-in overload.
  *
  * <p>Demonstrates:
  * <ul>
  *   <li>Defining tools with native {@link Tool @Tool} on a POJO</li>
  *   <li>Passing the tool POJO straight to
- *       {@link Agentspan#run(AgentExecutor.Builder, String, Object...)} via
+ *       {@link AgentRuntime#run(AgentExecutor.Builder, String, Object...)} via
  *       the drop-in overload — internally LangGraph4j calls
  *       {@code toolsFromObject(...)}</li>
  *   <li>Calculator, word count, and date utilities</li>
@@ -68,10 +68,10 @@ public class Example02ReactWithTools {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

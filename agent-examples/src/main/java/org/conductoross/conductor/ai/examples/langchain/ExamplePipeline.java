@@ -24,28 +24,28 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  * Example Lc4j 04 — LangChain4j Agent in a Sequential Pipeline (native LangChain4j SDK)
  *
  * <p>Demonstrates interoperability between a LangChain4j-backed agent and a
- * regular Agentspan agent inside a sequential pipeline (using {@link Agent#then}).
+ * regular Conductor agent inside a sequential pipeline (using {@link Agent#then}).
  *
  * <p>Pipeline stages:
  * <ol>
  *   <li><b>data_gatherer</b> — built from native LangChain4j {@code @Tool} methods
  *       that look up product data. The LLM calls the tools and produces
  *       a structured data payload.</li>
- *   <li><b>report_writer</b> — a plain Agentspan agent (no tools) that
+ *   <li><b>report_writer</b> — a plain Conductor agent (no tools) that
  *       receives the data payload as its input and writes a human-readable
  *       report.</li>
  * </ol>
  *
  * <p>This pattern shows that
  * {@link LangChainBridge#agentBuilder} returns a standard {@link Agent} via
- * {@code .build()} — it composes naturally with any other Agentspan agent or
+ * {@code .build()} — it composes naturally with any other Conductor agent or
  * orchestration strategy.
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767}</li>
  *   <li>langchain4j on the classpath (see examples/build.gradle)</li>
- *   <li>Agentspan server with OpenAI credentials configured server-side.</li>
+ *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  * </ul>
  */
 public class ExamplePipeline {
@@ -89,10 +89,10 @@ public class ExamplePipeline {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 
@@ -107,7 +107,7 @@ public class ExamplePipeline {
             new ProductDataTools())
             .build();
 
-        // Stage 2: Plain Agentspan agent (no tools) — receives the data summary and writes a report.
+        // Stage 2: Plain Conductor agent (no tools) — receives the data summary and writes a report.
         // Use the same provider/model string the bridge derived for stage 1.
         Agent reportWriter = Agent.builder()
             .name("report_writer")

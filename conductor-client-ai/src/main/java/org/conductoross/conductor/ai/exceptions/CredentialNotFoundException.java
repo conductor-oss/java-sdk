@@ -14,7 +14,7 @@ package org.conductoross.conductor.ai.exceptions;
 
 import java.util.List;
 
-import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.exceptions.AgentException;
 
 /**
  * One or more declared credentials could not be resolved from the server.
@@ -26,7 +26,7 @@ import io.orkes.conductor.client.exceptions.AgentspanException;
  * <p>Mirrors Python's {@code CredentialNotFoundError} and .NET's
  * {@code CredentialNotFoundException}.</p>
  */
-public class CredentialNotFoundException extends AgentspanException {
+public class CredentialNotFoundException extends AgentException {
 
     private final List<String> missingNames;
 

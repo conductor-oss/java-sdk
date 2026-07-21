@@ -24,17 +24,17 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Builds a real LangGraph4j {@code AgentExecutor.Builder} (the same builder
  * the LangGraph4j docs use for the prebuilt ReAct agent) and hands it directly
- * to {@link Agentspan#run(AgentExecutor.Builder, String, Object...)} via the
- * drop-in overload so it runs on the durable Agentspan runtime.
+ * to {@link AgentRuntime#run(AgentExecutor.Builder, String, Object...)} via the
+ * drop-in overload so it runs on the durable Conductor runtime.
  */
 public class Example01HelloWorld {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-                .apiKey("agentspan-server-handles-credentials")
+                .apiKey("conductor-server-handles-credentials")
                 .modelName("gpt-4o-mini")
                 .build();
 

@@ -19,7 +19,7 @@ import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.exceptions.AgentAPIException;
 import io.orkes.conductor.client.exceptions.AgentNotFoundException;
-import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.exceptions.AgentException;
 import io.orkes.conductor.client.http.OrkesAgentClient;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -52,7 +52,7 @@ class SuiteHttpApi404 extends BaseTest {
                 ex,
                 "404 must surface as AgentNotFoundException, not generic AgentAPIException");
         assertInstanceOf(
-                AgentspanException.class, ex, "AgentNotFoundException must remain catchable as the SDK base type");
+                AgentException.class, ex, "AgentNotFoundException must remain catchable as the SDK base type");
         assertTrue(ex.getStatusCode() == 404, "Expected statusCode=404, got " + ex.getStatusCode());
     }
 }

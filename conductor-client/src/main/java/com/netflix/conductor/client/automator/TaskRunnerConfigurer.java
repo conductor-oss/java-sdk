@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.conductoross.conductor.client.FileClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,6 @@ public class TaskRunnerConfigurer {
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
-    private final FileClient fileClient;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -79,7 +77,6 @@ public class TaskRunnerConfigurer {
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
-        this.fileClient = builder.fileClient;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -182,8 +179,7 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                useVirtualThreads,
-                fileClient);
+                useVirtualThreads);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -216,7 +212,6 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
-        private FileClient fileClient;
 
         /**
          * Returns the event dispatcher used by this builder, allowing direct
@@ -388,9 +383,5 @@ public class TaskRunnerConfigurer {
             return this;
         }
 
-        public Builder withFileClient(FileClient fileClient) {
-            this.fileClient = fileClient;
-            return this;
-        }
     }
 }

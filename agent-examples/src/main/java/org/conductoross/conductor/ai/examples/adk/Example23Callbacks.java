@@ -27,7 +27,7 @@ import io.reactivex.rxjava3.core.Maybe;
  *
  * <p>Demonstrates: native ADK {@code beforeModelCallback} and
  * {@code afterModelCallback} attached to an {@link LlmAgent}. The bridge
- * forwards both as Agentspan {@code CallbackHandler} workers.
+ * forwards both as Conductor {@code CallbackHandler} workers.
  *
  * <p><b>Server-side limitation</b> (matches Python's
  * {@code 14_callbacks.py} comment): the server's workflow compiler does

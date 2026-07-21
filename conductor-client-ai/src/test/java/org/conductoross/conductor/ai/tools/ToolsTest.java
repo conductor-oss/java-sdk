@@ -12,6 +12,12 @@
  */
 package org.conductoross.conductor.ai.tools;
 
+import java.util.List;
+import java.util.Map;
+
+import org.conductoross.conductor.ai.Agent;
+import org.conductoross.conductor.ai.guardrail.Guardrail;
+import org.conductoross.conductor.ai.model.GuardrailResult;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +54,7 @@ class ToolsTest {
                 .build();
         assertEquals("mcp", t.getToolType());
         assertEquals("m", t.getName());
+        assertEquals("http://mcp", t.getConfig().get("server_url"));
     }
 
     @Test
@@ -73,5 +80,50 @@ class ToolsTest {
         ToolDef t = MediaTools.imageTool("img", "d", "openai", "dall-e-3");
         assertEquals("img", t.getName());
         assertNotNull(t.getToolType());
+    }
+
+    @Test
+    void withGuardrails_preserves_every_tool_field() {
+        Agent child = Agent.builder().name("child").model("openai/gpt-4o-mini").build();
+        ToolDef original = ToolDef.builder()
+                .name("complete")
+                .description("original description")
+                .inputSchema(Map.of("type", "object"))
+                .outputSchema(Map.of("type", "string"))
+                .func(input -> "ok")
+                .approvalRequired(true)
+                .timeoutSeconds(42)
+                .retryCount(5)
+                .retryDelaySeconds(7)
+                .retryPolicy("exponential_backoff")
+                .toolType("agent_tool")
+                .config(Map.of("endpoint", "https://example.test"))
+                .credentials(List.of("API_KEY"))
+                .maxCalls(3)
+                .agentRef(child)
+                .stateful(true)
+                .build();
+
+        ToolDef guarded = original.withGuardrails(List.of(
+                Guardrail.of("safe", content -> GuardrailResult.pass()).build()));
+
+        assertEquals(original.getName(), guarded.getName());
+        assertEquals(original.getDescription(), guarded.getDescription());
+        assertEquals(original.getInputSchema(), guarded.getInputSchema());
+        assertEquals(original.getOutputSchema(), guarded.getOutputSchema());
+        assertSame(original.getFunc(), guarded.getFunc());
+        assertEquals(original.isApprovalRequired(), guarded.isApprovalRequired());
+        assertEquals(original.getTimeoutSeconds(), guarded.getTimeoutSeconds());
+        assertEquals(original.getRetryCount(), guarded.getRetryCount());
+        assertEquals(original.getRetryDelaySeconds(), guarded.getRetryDelaySeconds());
+        assertEquals(original.getRetryPolicy(), guarded.getRetryPolicy());
+        assertEquals(original.getToolType(), guarded.getToolType());
+        assertEquals(original.getConfig(), guarded.getConfig());
+        assertEquals(original.getCredentials(), guarded.getCredentials());
+        assertEquals(original.getMaxCalls(), guarded.getMaxCalls());
+        assertSame(original.getAgentRef(), guarded.getAgentRef());
+        assertEquals(original.isStateful(), guarded.isStateful());
+        assertEquals(1, guarded.getGuardrails().size());
+        assertThrows(UnsupportedOperationException.class, () -> guarded.getGuardrails().add(null));
     }
 }

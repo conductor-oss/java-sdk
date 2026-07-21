@@ -34,7 +34,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p><b>LangChain4j adaptation:</b> there is no clean parity for
  * {@code with_structured_output} when the {@code @Tool}-bearing POJO is executed
- * inside Agentspan's server-side LLM loop. The closest semantically-equivalent
+ * inside Conductor's server-side LLM loop. The closest semantically-equivalent
  * shape is to have the tool itself return a structured JSON payload that matches
  * the Pydantic schema — the LLM then receives the same structured-tool-output it
  * would have under Pydantic. Field names, types, and ranges all match the
@@ -49,8 +49,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767/api}</li>
- *   <li>Agentspan server with OpenAI credentials configured server-side.</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  * </ul>
  */
 public class Example04StructuredOutput {
@@ -177,10 +177,10 @@ public class Example04StructuredOutput {
 
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 

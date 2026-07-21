@@ -34,12 +34,12 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p><b>LangChain4j adaptation:</b> with the server-side LLM loop, there is
  * no client-side {@code MessageWindowChatMemory} that survives across
- * {@link Agentspan#run} calls. The closest semantically-equivalent shape is
+ * {@link AgentRuntime#run} calls. The closest semantically-equivalent shape is
  * to mark the agent as {@code stateful(true)} so that the server persists
  * conversation history across runs in a dedicated worker domain. Subsequent
  * runs against the same stateful agent then see prior exchanges. The
  * single-turn driver below mirrors the Python source. Because
- * {@code stateful(true)} is an Agentspan-side flag, we use the advanced
+ * {@code stateful(true)} is an Conductor-side flag, we use the advanced
  * {@link LangChainBridge#agentBuilder} path so we can decorate the agent
  * before {@code .build()}.
  *
@@ -52,8 +52,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code AGENTSPAN_SERVER_URL=http://localhost:6767/api}</li>
- *   <li>Agentspan server with OpenAI credentials configured server-side.</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  * </ul>
  */
 public class Example07MemoryAgent {
@@ -82,16 +82,16 @@ public class Example07MemoryAgent {
         String instructions =
             "You are a helpful HR assistant. Remember information from earlier in the conversation.";
 
-        // apiKey is required by LangChain4j's builder but unused — Agentspan
+        // apiKey is required by LangChain4j's builder but unused — Conductor
         // runs the LLM call on the server with server-registered credentials.
         ChatModel model = OpenAiChatModel.builder()
-            .apiKey("agentspan-server-handles-credentials")
+            .apiKey("conductor-server-handles-credentials")
             .modelName("gpt-4o-mini")
             .build();
 
         // Use the advanced LangChainBridge.agentBuilder(...) path so we can
         // mark the agent stateful(true) — server-side cross-run conversation
-        // persistence is an Agentspan feature on top of LangChain4j.
+        // persistence is an Conductor feature on top of LangChain4j.
         Agent agent = LangChainBridge.agentBuilder(
             "memory_agent",
             model,

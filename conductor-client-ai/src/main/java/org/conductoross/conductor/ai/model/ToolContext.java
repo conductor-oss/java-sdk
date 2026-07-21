@@ -40,7 +40,7 @@ import org.conductoross.conductor.ai.exceptions.CredentialNotFoundException;
  * {@code @Tool(credentials = {...})} and resolved by the runtime for this call. The
  * credential map is an immutable per-call snapshot, so it is safe to read from threads
  * the tool spawns — unlike a thread-local, the values remain valid for the lifetime of
- * this context object. See {@code docs/design/secret-injection-contract.md} for the
+ * this context object. See {@code design/secret-injection-contract.md} for the
  * cross-SDK contract; Java's per-call context mirrors .NET's {@code IToolContext} and
  * Python's contextvars accessor.
  */

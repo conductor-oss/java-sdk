@@ -18,7 +18,7 @@ package io.orkes.conductor.client.exceptions;
  * Python SDK. Callers should degrade to status polling rather than treating
  * the stream as silently empty.
  */
-public class SSEUnavailableException extends AgentspanException {
+public class SSEUnavailableException extends AgentException {
 
     public SSEUnavailableException(String message) {
         super(message);

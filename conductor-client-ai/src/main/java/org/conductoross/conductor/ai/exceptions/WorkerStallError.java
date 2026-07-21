@@ -12,7 +12,7 @@
  */
 package org.conductoross.conductor.ai.exceptions;
 
-import io.orkes.conductor.client.exceptions.AgentspanException;
+import io.orkes.conductor.client.exceptions.AgentException;
 
 /**
  * A worker task in a stateful run sat {@code SCHEDULED} with zero polls beyond
@@ -21,7 +21,7 @@ import io.orkes.conductor.client.exceptions.AgentspanException;
  * is a stateful run whose per-execution domain has no live worker (e.g. the
  * owning process died or never registered under that domain).
  */
-public class WorkerStallError extends AgentspanException {
+public class WorkerStallError extends AgentException {
 
     private final String taskReferenceName;
     private final String executionId;

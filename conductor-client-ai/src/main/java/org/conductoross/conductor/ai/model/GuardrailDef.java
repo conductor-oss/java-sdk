@@ -120,8 +120,14 @@ public class GuardrailDef {
         }
 
         public GuardrailDef build() {
-            if (name == null || name.isEmpty()) {
+            if (name == null || name.trim().isEmpty()) {
                 throw new IllegalArgumentException("GuardrailDef requires a name");
+            }
+            if (maxRetries < 0) {
+                throw new IllegalArgumentException("GuardrailDef maxRetries must be nonnegative");
+            }
+            if (onFail == OnFail.HUMAN && position != Position.OUTPUT) {
+                throw new IllegalArgumentException("onFail=HUMAN is only valid for position=OUTPUT");
             }
             return new GuardrailDef(this);
         }

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <ul>
  *   <li>Debugging agent setup without consuming LLM credits</li>
  *   <li>Validating tool schemas and guardrail definitions</li>
- *   <li>Understanding exactly what gets sent to the Agentspan server</li>
+ *   <li>Understanding exactly what gets sent to the Conductor server</li>
  * </ul>
  *
  * <p>The {@link AgentConfigSerializer} converts the in-memory {@link Agent} into

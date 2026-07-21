@@ -6,9 +6,11 @@ The `conductor-client-metrics` module provides Prometheus metrics for Java SDK c
 
 Add the metrics module to the worker application:
 
+Use the published version from [Maven Central](https://search.maven.org/artifact/org.conductoross/conductor-client-metrics).
+
 ```groovy
 dependencies {
-    implementation 'org.conductoross:conductor-client-metrics:5.1.0'
+    implementation 'org.conductoross:conductor-client-metrics:<VERSION>'
 }
 ```
 

@@ -21,11 +21,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
-import org.conductoross.conductor.sdk.file.FileHandler;
-import org.conductoross.conductor.sdk.file.FileHandlerDeserializer;
-import org.conductoross.conductor.sdk.file.FileStorageException;
-import org.conductoross.conductor.sdk.file.ManagedFileHandler;
-
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -140,7 +135,7 @@ public class AnnotatedWorker implements Worker {
                 Class<?> parameterType = parameterTypes[i];
                 values[i] = getInputValue(task, parameterType, type, paramAnnotation);
             } else {
-                values[i] = convertWithContext(task.getInputData(), parameterTypes[i], task);
+                values[i] = convertValue(task.getInputData(), parameterTypes[i]);
             }
         }
 
@@ -166,23 +161,13 @@ public class AnnotatedWorker implements Worker {
         InputParam ip = findInputParamAnnotation(paramAnnotation);
 
         if (ip == null) {
-            return convertWithContext(task.getInputData(), parameterType, task);
+            return convertValue(task.getInputData(), parameterType);
         }
 
         final String name = ip.value();
         final Object value = task.getInputData().get(name);
         if (value == null) {
             return null;
-        }
-
-        if (parameterType == FileHandler.class) {
-            String fileHandleId = FileHandler.extractFileHandleId(value);
-            if (FileHandler.isFileHandleId(fileHandleId)) {
-                return new ManagedFileHandler(fileHandleId, task.getWorkflowFileClient());
-            }
-            throw new FileStorageException(
-                    "Expected " + FileHandler.PREFIX
-                            + " reference for param '" + name + "', got: " + value);
         }
 
         if (List.class.isAssignableFrom(parameterType)) {
@@ -192,7 +177,7 @@ public class AnnotatedWorker implements Worker {
                 Class<?> typeOfParameter = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                 List<Object> parameterizedList = new ArrayList<>();
                 for (Object item : list) {
-                    parameterizedList.add(convertWithContext(item, typeOfParameter, task));
+                    parameterizedList.add(convertValue(item, typeOfParameter));
                 }
 
                 return parameterizedList;
@@ -200,18 +185,14 @@ public class AnnotatedWorker implements Worker {
                 return list;
             }
         } else {
-            return convertWithContext(value, parameterType, task);
+            return convertValue(value, parameterType);
         }
     }
 
-    private Object convertWithContext(Object source, Class<?> targetType, Task task) {
+    private Object convertValue(Object source, Class<?> targetType) {
         JsonNode tree = om.valueToTree(source);
         try (JsonParser parser = tree.traverse(om)) {
-            return om.readerFor(targetType)
-                    .withAttribute(
-                            FileHandlerDeserializer.WORKFLOW_FILE_CLIENT_ATTR,
-                            task.getWorkflowFileClient())
-                    .readValue(parser);
+            return om.readerFor(targetType).readValue(parser);
         } catch (IOException e) {
             throw new RuntimeException("Failed to bind task input to " + targetType.getName(), e);
         }
@@ -228,15 +209,6 @@ public class AnnotatedWorker implements Worker {
     private TaskResult setValue(Object invocationResult, TaskResult result) {
 
         if (invocationResult == null) {
-            result.setStatus(TaskResult.Status.COMPLETED);
-            return result;
-        }
-
-        if (invocationResult instanceof FileHandler fh) {
-            OutputParam opAnn =
-                    workerMethod.getAnnotatedReturnType().getAnnotation(OutputParam.class);
-            String key = opAnn != null ? opAnn.value() : "result";
-            result.getOutputData().put(key, fh);
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;
         }

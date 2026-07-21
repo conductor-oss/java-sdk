@@ -1,5 +1,5 @@
-// End-to-end suites for the agent SDK. They need a live agentspan server
-// (AGENTSPAN_SERVER_URL) plus server-side LLM credentials, so — like the `tests`
+// End-to-end suites for the agent SDK. They need a live Conductor server
+// (CONDUCTOR_SERVER_URL) plus server-side LLM credentials, so — like the `tests`
 // module — every task is gated behind a property: run with -Pe2e.
 
 plugins {

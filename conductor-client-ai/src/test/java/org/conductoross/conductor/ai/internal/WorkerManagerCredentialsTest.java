@@ -193,7 +193,7 @@ class WorkerManagerCredentialsTest {
         assertFalse(handlerRan.get(), "the handler must not run without its declared credentials");
         assertTrue(result.getReasonForIncompletion().contains("PATH"), "the missing name must be reported");
         assertTrue(
-                result.getReasonForIncompletion().contains("agentspan > 0.4.2"),
+                result.getReasonForIncompletion().contains("Conductor OSS with PR #1255"),
                 "the server capability requirement must be named: " + result.getReasonForIncompletion());
     }
 
