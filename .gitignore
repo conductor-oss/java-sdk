@@ -12,4 +12,7 @@ bin/
 *.db
 *.db-shm
 *.db-wal
+
+# agent e2e bundle staging output (package-e2e-bundle.sh)
+e2e/release/dist/
 /design/openspec
