@@ -1,10 +1,10 @@
 name: Release Agent E2E Bundle
 
-# Packages the agent e2e suite (conductor-ai-e2e/) into a version-stamped,
+# Packages the agent e2e suite (e2e/) into a version-stamped,
 # self-contained tarball and attaches it to the GitHub release, so downstream
 # repos (e.g. orkes-io/orkes-conductor) can pin the e2e suite to the exact
 # java-sdk release they run against. The bundle resolves
-# org.conductoross:conductor-ai at the same version from Maven Central.
+# org.conductoross:conductor-client-ai at the same version from Maven Central.
 #
 # Runs on the same release events as publish-release.yml. Packaging is purely
 # static (no compilation), so it does not race the Maven Central publish —
@@ -43,14 +43,14 @@ jobs:
 
       - name: Package bundle
         run: |
-          ./conductor-ai-e2e/release/package-e2e-bundle.sh --version "${{ steps.version.outputs.version }}"
+          ./e2e/release/package-e2e-bundle.sh --version "${{ steps.version.outputs.version }}"
 
       - name: Validate bundle
         run: |
-          ./conductor-ai-e2e/release/test-package-e2e-bundle.sh
+          ./e2e/release/test-package-e2e-bundle.sh
 
       - name: Generate SHA256 checksums
-        working-directory: conductor-ai-e2e/release/dist
+        working-directory: e2e/release/dist
         run: |
           for f in *.tar.gz; do
             sha256sum "$f" | awk '{print $1}' > "${f}.sha256"
@@ -63,7 +63,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           gh release upload "v${VERSION}" \
-            conductor-ai-e2e/release/dist/*.tar.gz \
-            conductor-ai-e2e/release/dist/*.sha256 \
+            e2e/release/dist/*.tar.gz \
+            e2e/release/dist/*.sha256 \
             --repo "${{ github.repository }}" \
             --clobber

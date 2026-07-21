@@ -4,7 +4,7 @@ set -euo pipefail
 # ── Package the agent e2e suite as a standalone bundle ───────────────────────
 # Builds conductor-ai-e2e-java-<version>.tar.gz: a self-contained Gradle
 # project carrying the conductor-ai-e2e test sources, pinned to the published
-# org.conductoross:conductor-ai:<version> artifact (no SDK source vendored).
+# org.conductoross:conductor-client-ai:<version> artifact (no SDK source vendored).
 #
 # Downstream repos (e.g. orkes-io/orkes-conductor) download the bundle from
 # the java-sdk GitHub release and run it against their own server build. This
@@ -12,7 +12,7 @@ set -euo pipefail
 # agentspan-ai/agentspan — java-sdk is now the canonical home of these suites.
 #
 # Usage:
-#   ./conductor-ai-e2e/release/package-e2e-bundle.sh --version 5.1.0 [--out DIR]
+#   ./e2e/release/package-e2e-bundle.sh --version 6.0.0 [--out DIR]
 #
 # The bundle only references the SDK by Maven coordinate, so packaging needs
 # no compilation and no network — the pinned version does not have to be on
@@ -44,7 +44,7 @@ mkdir -p "$STAGE/src/test/java"
 
 # The e2e sources are in the default package (no package decl), so they live
 # directly under src/test/java in the standalone Gradle layout.
-cp "$REPO_ROOT"/conductor-ai-e2e/src/test/java/*.java "$STAGE/src/test/java/"
+cp "$REPO_ROOT"/e2e/src/test/java/*.java "$STAGE/src/test/java/"
 
 # Standalone build pins the published SDK; framework/test deps mirror
 # conductor-ai-e2e/build.gradle (versions from versions.gradle) so the
@@ -61,8 +61,8 @@ java {
 }
 
 // Pinned to the java-sdk release this bundle was cut from. Override to test
-// an unreleased SDK:  ./gradlew test -PconductorAiVersion=X.Y.Z-SNAPSHOT -PuseMavenLocal
-def conductorAiVersion = project.findProperty('conductorAiVersion') ?: '@VERSION@'
+// an unreleased SDK:  ./gradlew test -PconductorClientAiVersion=X.Y.Z-SNAPSHOT -PuseMavenLocal
+def sdkVersion = project.findProperty('conductorClientAiVersion') ?: '@VERSION@'
 
 repositories {
     if (project.hasProperty('useMavenLocal')) {
@@ -80,7 +80,7 @@ ext {
 }
 
 dependencies {
-    testImplementation "org.conductoross:conductor-ai:${conductorAiVersion}"
+    testImplementation "org.conductoross:conductor-client-ai:${sdkVersion}"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
@@ -115,10 +115,10 @@ test {
     // BaseTest reads these from the environment; a -D on the gradle command
     // line wins over the caller's env, and the defaults apply when neither
     // is set.
-    environment 'AGENTSPAN_SERVER_URL',
-        System.getProperty('AGENTSPAN_SERVER_URL', System.getenv('AGENTSPAN_SERVER_URL') ?: 'http://localhost:8080/api')
-    environment 'AGENTSPAN_LLM_MODEL',
-        System.getProperty('AGENTSPAN_LLM_MODEL', System.getenv('AGENTSPAN_LLM_MODEL') ?: 'openai/gpt-4o-mini')
+    environment 'CONDUCTOR_SERVER_URL',
+        System.getProperty('CONDUCTOR_SERVER_URL', System.getenv('CONDUCTOR_SERVER_URL') ?: 'http://localhost:8080/api')
+    environment 'CONDUCTOR_AGENT_LLM_MODEL',
+        System.getProperty('CONDUCTOR_AGENT_LLM_MODEL', System.getenv('CONDUCTOR_AGENT_LLM_MODEL') ?: 'openai/gpt-4o-mini')
 }
 EOF
 sed -i.bak "s/@VERSION@/$VERSION/g" "$STAGE/build.gradle" && rm "$STAGE/build.gradle.bak"
@@ -144,11 +144,11 @@ set -euo pipefail
 # agentspan.embedded=true).
 #
 # Required services (NOT started by this script):
-#   - Conductor server   → AGENTSPAN_SERVER_URL (default http://localhost:8080/api)
+#   - Conductor server   → CONDUCTOR_SERVER_URL (default http://localhost:8080/api)
 #   - MCP testkit on http://localhost:9999/mcp (Suite4McpTools; URL is fixed
 #     in the suite)
 # Optional:
-#   - AGENTSPAN_LLM_MODEL (default openai/gpt-4o-mini); the matching provider
+#   - CONDUCTOR_AGENT_LLM_MODEL (default openai/gpt-4o-mini); the matching provider
 #     API key must be configured on the SERVER — the suites never read it
 #     (asserted by Suite2ToolCallingCredentials).
 #
@@ -157,8 +157,8 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE"
 ./gradlew test \
-  -DAGENTSPAN_SERVER_URL="${AGENTSPAN_SERVER_URL:-http://localhost:8080/api}" \
-  -DAGENTSPAN_LLM_MODEL="${AGENTSPAN_LLM_MODEL:-openai/gpt-4o-mini}" "$@"
+  -DCONDUCTOR_SERVER_URL="${CONDUCTOR_SERVER_URL:-http://localhost:8080/api}" \
+  -DCONDUCTOR_AGENT_LLM_MODEL="${CONDUCTOR_AGENT_LLM_MODEL:-openai/gpt-4o-mini}" "$@"
 echo "Report: $HERE/build/reports/tests/test/index.html"
 EOF
 chmod +x "$STAGE/run.sh"
@@ -167,10 +167,10 @@ cat > "$STAGE/README.md" <<'EOF'
 # Conductor Agent SDK (java) — E2E suite @VERSION@
 
 Self-contained end-to-end tests for the Conductor Java agent SDK, pinned to
-release **@VERSION@**. Resolves `org.conductoross:conductor-ai:@VERSION@` from
+release **@VERSION@**. Resolves `org.conductoross:conductor-client-ai:@VERSION@` from
 Maven Central — no SDK source is vendored. Cut from
 [conductor-oss/java-sdk](https://github.com/conductor-oss/java-sdk)
-(`conductor-ai-e2e/`); supersedes the `agentspan-sdk-e2e-java-*` bundles
+(`e2e/`); supersedes the `agentspan-sdk-e2e-java-*` bundles
 formerly released from agentspan-ai/agentspan.
 
 ## Prerequisites (you provide these)
@@ -178,8 +178,8 @@ formerly released from agentspan-ai/agentspan.
 | Requirement                     | Env var                | Default                     |
 |---------------------------------|------------------------|-----------------------------|
 | JDK 21 (Gradle wrapper bundled) | —                      | —                           |
-| Conductor server w/ agent runtime | `AGENTSPAN_SERVER_URL` | `http://localhost:8080/api` |
-| LLM model                       | `AGENTSPAN_LLM_MODEL`  | `openai/gpt-4o-mini`        |
+| Conductor server w/ agent runtime | `CONDUCTOR_SERVER_URL` | `http://localhost:8080/api` |
+| LLM model                       | `CONDUCTOR_AGENT_LLM_MODEL` | `openai/gpt-4o-mini`   |
 | MCP testkit (Suite4 only)       | — (fixed in suite)     | `http://localhost:9999/mcp` |
 
 The server needs the agent runtime: conductor-oss `>= 3.32.0-rc.8`, or
@@ -201,7 +201,7 @@ JUnit XML lands in `build/test-results/test/`, HTML report in
 ## Testing an unreleased SDK
 
 ```bash
-./gradlew test -PconductorAiVersion=X.Y.Z-SNAPSHOT -PuseMavenLocal
+./gradlew test -PconductorClientAiVersion=X.Y.Z-SNAPSHOT -PuseMavenLocal
 ```
 EOF
 sed -i.bak "s/@VERSION@/$VERSION/g" "$STAGE/README.md" && rm "$STAGE/README.md.bak"

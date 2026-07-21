@@ -14,5 +14,5 @@ bin/
 *.db-wal
 
 # agent e2e bundle staging output (package-e2e-bundle.sh)
-conductor-ai-e2e/release/dist/
+e2e/release/dist/
 /design/openspec

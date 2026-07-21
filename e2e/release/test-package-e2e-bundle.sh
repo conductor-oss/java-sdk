@@ -10,7 +10,7 @@ set -euo pipefail
 #   - the Gradle wrapper is complete and gradlew is executable
 # All checks are static + deterministic (no network, no live server, no
 # compilation — the pinned SDK version need not exist on Maven Central).
-# Run: ./conductor-ai-e2e/release/test-package-e2e-bundle.sh
+# Run: ./e2e/release/test-package-e2e-bundle.sh
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"
@@ -42,15 +42,15 @@ bash -n "$ROOT/run.sh"  || fail "run.sh has a bash syntax error"
 pass "run.sh + README present and valid"
 
 # Every suite source made it into the bundle.
-SRC_COUNT="$(ls "$REPO_ROOT"/conductor-ai-e2e/src/test/java/*.java | wc -l | tr -d ' ')"
+SRC_COUNT="$(ls "$REPO_ROOT"/e2e/src/test/java/*.java | wc -l | tr -d ' ')"
 BUNDLE_COUNT="$(ls "$ROOT"/src/test/java/*.java | wc -l | tr -d ' ')"
 [[ "$SRC_COUNT" == "$BUNDLE_COUNT" ]] \
   || fail "source parity: repo has $SRC_COUNT test sources, bundle has $BUNDLE_COUNT"
 pass "all $SRC_COUNT test sources present"
 
 # SDK pinned at the packaged version, no unexpanded placeholders anywhere.
-grep -q "org.conductoross:conductor-ai:" "$ROOT/build.gradle" \
-  || fail "build.gradle does not pin org.conductoross:conductor-ai"
+grep -q "org.conductoross:conductor-client-ai:" "$ROOT/build.gradle" \
+  || fail "build.gradle does not pin org.conductoross:conductor-client-ai"
 grep -q "'$VERSION'" "$ROOT/build.gradle" \
   || fail "build.gradle does not pin version $VERSION"
 if grep -rn '@VERSION@' "$ROOT" >/dev/null 2>&1; then
