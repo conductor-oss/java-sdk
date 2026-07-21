@@ -970,5 +970,5 @@ This design document provides a language-agnostic blueprint for implementing a C
 The design works well for stable environments with properly configured token TTLs. For production deployments in varied network conditions, implementing the proposed enhancements (retry logic, circuit breaker, observability) is recommended.
 
 For language-specific implementations, refer to:
-- [Requirements](#requirements) section for functional and non-functional requirements
+- [Current Limitations](#current-limitations) and [Proposed Improvements](#proposed-improvements) for the design rationale and implementation requirements
 - [Java SDK Implementation Reference](#java-sdk-implementation-reference) for concrete examples

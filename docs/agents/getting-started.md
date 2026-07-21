@@ -24,7 +24,7 @@ Wait until the server is healthy:
 curl --fail http://localhost:8080/health
 ```
 
-If you need a containerized server, use the optional [Docker setup](../server-setup.md#optional-docker). If you use an existing OSS or Orkes server, use its URL and authentication instead. The selected `provider/model` must be configured on that server.
+If you need a containerized server, use the [Docker fallback](../server-setup.md#docker-fallback). If you use an existing OSS or Orkes server, use its URL and authentication instead. The selected `provider/model` must be configured on that server.
 
 ## 2. Add the dependency
 

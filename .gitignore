@@ -12,3 +12,4 @@ bin/
 *.db
 *.db-shm
 *.db-wal
+/design/openspec

@@ -9,7 +9,7 @@ The Java SDK for [Conductor](https://www.conductor-oss.org/) lets you build dura
 
 **Get involved:** [⭐ Conductor OSS](https://github.com/conductor-oss/conductor) · [Choose a Conductor OSS contribution](https://github.com/conductor-oss/conductor/contribute) · [Contribution guide](https://github.com/conductor-oss/conductor/blob/main/CONTRIBUTING.md)
 
-**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor workflows:
+**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor Workflows and Agents:
 
 ```shell
 npm install -g @conductor-oss/conductor-skills && conductor-skills --all
@@ -24,6 +24,44 @@ npm install -g @conductor-oss/conductor-skills && conductor-skills --all
 | Build a durable workflow and Java worker | [Run the core hello-world example](#workflow-and-worker-quickstart) |
 | Browse all examples | [AI agent guide](docs/agents/README.md) · [Core examples](examples/README.md) |
 | Navigate the SDK documentation | [Documentation hub](docs/README.md) |
+
+## Choose your Conductor server
+
+Connect to a server before following either quickstart. Use the hosted Developer Edition by default, or run Conductor locally when you need a self-managed development environment.
+
+### Recommended: Orkes Developer Edition
+
+[Orkes Developer Edition](https://developer.orkescloud.com/) is the default hosted option. Create an application and access key in the Developer Edition UI, then configure this SDK with its API endpoint. Keep the key and secret out of source control.
+
+```shell
+export CONDUCTOR_SERVER_URL=https://developer.orkescloud.com/api
+export CONDUCTOR_AUTH_KEY=<your-key-id>
+export CONDUCTOR_AUTH_SECRET=<your-key-secret>
+```
+
+For another hosted or self-managed remote cluster, use that cluster's `/api` URL and its application credentials instead. See [server setup](docs/server-setup.md) for details.
+
+### Local alternative: Conductor CLI
+
+The CLI is the preferred local-server path. It needs Java 21+ and Node.js/npm.
+
+```shell
+npm install -g @conductor-oss/conductor-cli
+conductor server start
+conductor server status
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+```
+
+### Docker fallback
+
+Use Docker when you need a containerized local server instead of the CLI:
+
+```shell
+docker run --rm -p 8080:8080 -p 1234:5000 conductoross/conductor:latest
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+```
+
+The Docker server UI is available at [http://localhost:1234](http://localhost:1234). See [server setup](docs/server-setup.md) for full local, remote, and authentication guidance.
 
 ## Why Conductor?
 
@@ -45,7 +83,8 @@ Prefer to construct the graph in code? [`Example108PlanExecuteRefs`](agent-examp
 ## Requirements and compatibility
 
 - Java 21+
-- A running OSS/Orkes Conductor server. For local development, use the [Conductor CLI](docs/server-setup.md) (`npm install -g @conductor-oss/conductor-cli`; then `conductor server start`). Docker remains available for containerized examples.
+- A running OSS/Orkes Conductor server selected in [Choose your Conductor server](#choose-your-conductor-server).
+- Docker when using the `examples/basics/hello-world/run.sh` launcher; it builds and runs the example in containers even when the server itself is remote or CLI-managed.
 - Maven 3.8+ when running standalone core examples without their launcher script; Gradle is included for this repository's agent examples.
 
 The CI workflows are the source of truth for the server versions exercised by this SDK. See the [agent E2E matrix](.github/workflows/agent-e2e.yml) for its pinned server version.
@@ -101,10 +140,9 @@ dependencies {
 
 ## AI agent quickstart
 
-Use this path when your agent needs LLM reasoning, tools, guardrails, handoffs, or human approval. Configure the LLM provider credential on the **Conductor server process** first—setting it only in the client shell is not enough. The [agent getting-started guide](docs/agents/getting-started.md) covers local and remote server setup.
+Use this path when your agent needs LLM reasoning, tools, guardrails, handoffs, or human approval. Select a server above first. For a local CLI server, configure the LLM provider credential in the server environment **before** starting it. For Developer Edition, configure the provider integration in the hosted cluster. The [agent getting-started guide](docs/agents/getting-started.md) covers both paths.
 
 ```shell
-export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini
 
 # Run the maintained basic-agent example from this repository.
@@ -122,16 +160,9 @@ Start with the [Google ADK examples](agent-examples/src/main/java/org/conductoro
 
 ## Workflow and worker quickstart
 
-This maintained example registers a workflow, starts a Java worker, executes the workflow, and prints `Result: PASSED`.
-
-### Recommended: use a CLI-managed server
+With a server selected above, this maintained example registers a workflow, starts a Java worker, executes the workflow, and prints `Result: PASSED`.
 
 ```shell
-# Start the local server once (see docs/server-setup.md).
-conductor server start
-export CONDUCTOR_SERVER_URL=http://localhost:8080/api
-
-# The launcher reuses the explicitly configured server.
 cd examples/basics/hello-world
 ./run.sh
 ```
@@ -144,17 +175,9 @@ Output: {greeting=Hello, Developer! Welcome to Conductor.}
 Result: PASSED
 ```
 
-Open the CLI-managed server UI at [http://localhost:8080](http://localhost:8080), then stop it when finished:
+The launcher requires Docker to build and run the example. With `CONDUCTOR_SERVER_URL` set, it reuses the selected remote, CLI-managed, or Docker server. If you leave it unset, the launcher starts its own Docker Compose server; stop that server with `docker compose down` from `examples/basics/hello-world`.
 
-```shell
-conductor server stop
-```
-
-### Optional: let the launcher manage Docker
-
-Leave `CONDUCTOR_SERVER_URL` unset and run the same launcher. It starts the example's Docker Compose server; its UI is [http://localhost:1234](http://localhost:1234). Stop that path with `docker compose down` from `examples/basics/hello-world`.
-
-For any existing server, set `CONDUCTOR_SERVER_URL` explicitly before running the launcher. For worker patterns, workflow definitions, and testing, continue with the [core examples catalog](examples/README.md), [worker guide](docs/workers.md), and [workflow guide](docs/workflows.md).
+For worker patterns, workflow definitions, and testing, continue with the [core examples catalog](examples/README.md), [worker guide](docs/workers.md), and [workflow guide](docs/workflows.md).
 
 ## Common tasks
 
