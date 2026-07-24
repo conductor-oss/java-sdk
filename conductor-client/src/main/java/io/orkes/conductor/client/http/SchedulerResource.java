@@ -13,6 +13,7 @@
 package io.orkes.conductor.client.http;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
@@ -30,6 +31,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 
 public class SchedulerResource {
+
+    private static final int HTTP_METHOD_NOT_ALLOWED = 405;
+    private static final String METHOD_NOT_SUPPORTED_MARKER = "request method 'get' is not supported";
 
     private final ConductorClient client;
 
@@ -167,18 +171,25 @@ public class SchedulerResource {
     /**
      * Enterprise scheduler endpoints accept GET while OSS accepts PUT. Retry only
      * a method-not-allowed response so application and authentication failures
-     * retain their original behavior.
+     * retain their original behavior. This also handles OSS servers that return
+     * an HTTP 500 with a "method not supported" message instead of a clean 405.
      */
     private void executeGetThenPutOnMethodNotAllowed(
             ConductorClientRequest getRequest, ConductorClientRequest putRequest) {
         try {
             client.execute(getRequest);
         } catch (ConductorClientException e) {
-            if (e.getStatus() != 405) {
+            if (!isMethodNotSupported(e)) {
                 throw e;
             }
             client.execute(putRequest);
         }
+    }
+
+    private boolean isMethodNotSupported(ConductorClientException e) {
+        return e.getStatus() == HTTP_METHOD_NOT_ALLOWED
+                || (e.getMessage() != null
+                        && e.getMessage().toLowerCase(Locale.ROOT).contains(METHOD_NOT_SUPPORTED_MARKER));
     }
 
     public void saveSchedule(SaveScheduleRequest saveScheduleRequest) {
