@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.orkes.conductor.client.model.agent.CompileResponse;
 
@@ -38,7 +37,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  *   <li>Helper to extract agentDef from a plan() result</li>
  * </ul>
  */
-@ExtendWith(LlmBudgetExhaustionExtension.class)
 public abstract class BaseTest {
 
     /** API URL for the Conductor server (includes /api suffix). */
