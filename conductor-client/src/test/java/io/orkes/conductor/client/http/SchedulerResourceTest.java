@@ -93,8 +93,36 @@ class SchedulerResourceTest {
     }
 
     @Test
+    void pauseScheduleRetriesWithPutOnMethodNotSupported500() throws InterruptedException {
+        server.enqueue(new MockResponse().setResponseCode(500).setBody("Request method 'GET' is not supported"));
+        server.enqueue(new MockResponse().setResponseCode(204));
+
+        schedulerClient.pauseSchedule("nightly");
+
+        RecordedRequest get = takeRequest();
+        RecordedRequest put = takeRequest();
+        assertEquals("GET", get.getMethod());
+        assertEquals("PUT", put.getMethod());
+        assertEquals("/api/scheduler/schedules/nightly/pause", put.getPath());
+    }
+
+    @Test
+    void resumeScheduleRetriesWithPutOnMethodNotSupported500() throws InterruptedException {
+        server.enqueue(new MockResponse().setResponseCode(500).setBody("Request method 'GET' is not supported"));
+        server.enqueue(new MockResponse().setResponseCode(204));
+
+        schedulerClient.resumeSchedule("nightly");
+
+        RecordedRequest get = takeRequest();
+        RecordedRequest put = takeRequest();
+        assertEquals("GET", get.getMethod());
+        assertEquals("PUT", put.getMethod());
+        assertEquals("/api/scheduler/schedules/nightly/resume", put.getPath());
+    }
+
+    @Test
     void pauseScheduleDoesNotRetryNon405Failures() throws InterruptedException {
-        server.enqueue(new MockResponse().setResponseCode(500));
+        server.enqueue(new MockResponse().setResponseCode(500).setBody("Internal server error"));
 
         assertThrows(RuntimeException.class, () -> schedulerClient.pauseSchedule("nightly"));
 
