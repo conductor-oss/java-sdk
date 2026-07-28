@@ -46,3 +46,4 @@ Build durable workflow workers and AI agents with Conductor. This repository doc
 - Runnable commands link to maintained examples and state an expected result. Short Java blocks labeled **Fragment** need surrounding application setup and link to a complete path.
 - Provider credentials belong on the **Conductor server**, not only in the Java client process. Never place secrets in workflow input or source control.
 - Primary guide authors follow the [documentation standard](documentation-standard.md).
+- Maintainers keeping this tree aligned with the Python SDK follow the [documentation parity map](documentation-parity.md).

@@ -32,12 +32,28 @@ jobs:
       - name: Validate documentation links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --offline --no-progress README.md docs
+          args: --offline --no-progress --include-fragments README.md docs
 
       - name: Reject retired documentation references
         run: |
           if grep -REn ':examples:run|examples/old|LlmIndexDocument|\.topK\(|runtime\.schedules\(|Schedule\.builder|conductor\.netflix\.com|^=== "|compileOnly .*langchain|compileOnly .*google\.adk|compileOnly .*langgraph|docs/agents/index\.md|docs/agents/agent-(runtime-api|client-api|structure|schema)\.md|docs/agents/api-reference\.md|docs/testing_framework\.md' README.md docs; then
             echo "Documentation references a retired command, path, API, or renderer-specific construct."
+            exit 1
+          fi
+
+      - name: Reject legacy product branding
+        run: |
+          # Scans the whole tree, not just docs/, because the legacy name also
+          # reached shell and Java comments. The pattern uses a character class
+          # so this workflow file does not match itself.
+          #
+          # Excluded: the `<legacy>.embedded` server boot flag. That property is
+          # owned by orkes-conductor, not this SDK — renaming it here would
+          # document a flag that may not exist upstream.
+          if grep -rIn -iE 'agent[s]pan' . \
+               --exclude-dir=.git --exclude-dir=build --exclude-dir=.gradle \
+               | grep -viE 'agent[s]pan\.embedded'; then
+            echo "Legacy product branding found — use Conductor terminology."
             exit 1
           fi
 
