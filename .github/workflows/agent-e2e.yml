@@ -25,9 +25,6 @@ env:
 
 jobs:
   agent-e2e:
-    # Temporarily disabled until a Conductor server release containing the
-    # required agent-runtime changes is published.
-    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
