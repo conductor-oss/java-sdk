@@ -13,8 +13,9 @@
 package org.conductoross.conductor.client.model.file;
 
 /**
- * Response to {@code GET /api/files/{fileId}/upload-url} — a freshly issued presigned upload
- * URL, used on retry when the original URL from {@code FileUploadResponse} has expired.
+ * Response to {@code GET /api/files/{workflowId}/{fileId}/upload-url} — a freshly issued
+ * presigned upload URL, used on retry when the original URL from {@code FileUploadResponse} has
+ * expired.
  */
 public class FileUploadUrlResponse {
 

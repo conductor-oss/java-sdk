@@ -1,0 +1,124 @@
+name: Agent E2E
+
+# Runs the agent e2e suites (e2e/) against the Conductor OSS
+# server boot JAR (Maven Central) — the server this SDK ships against, with
+# the agent runtime on by default from 3.32.0-rc.8 onward. A separate agent
+# server JAR is no longer used here.
+#
+# These tests call real LLMs via the OPENAI_API_KEY / ANTHROPIC_API_KEY
+# repo secrets. The suites themselves never read the keys (asserted by
+# Suite2ToolCallingCredentials) — only the server process gets them.
+# Fork PRs cannot see repo secrets, so for them the run fails at the
+# silently-empty guard rather than passing vacuously.
+
+on: [pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CONDUCTOR_SERVER_VERSION: "3.32.0-rc18"   # pinned server release — bump deliberately
+
+jobs:
+  agent-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CONDUCTOR_SERVER_URL: http://localhost:8080/api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Python is only needed for mcp-testkit and the XML guard.
+      # No `cache: pip` — it hard-fails without a requirements file.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache server JAR
+        id: jar_cache
+        uses: actions/cache@v4
+        with:
+          path: conductor-server.jar
+          key: conductor-oss-server-${{ env.CONDUCTOR_SERVER_VERSION }}
+
+      - name: Download server JAR from Maven Central
+        if: steps.jar_cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fL --retry 3 -o conductor-server.jar \
+            "https://repo1.maven.org/maven2/org/conductoross/conductor-server/${CONDUCTOR_SERVER_VERSION}/conductor-server-${CONDUCTOR_SERVER_VERSION}-boot.jar"
+
+      - name: Install mcp-testkit
+        run: |
+          python -m pip install --upgrade pip
+          pip install mcp-testkit
+
+      - name: Start mcp-testkit
+        run: |
+          mcp-testkit --transport http --port 3001 &
+          sleep 2
+
+      - name: Start server
+        run: |
+          java -jar conductor-server.jar --server.port=8080 > server.log 2>&1 &
+
+      - name: Wait for server health
+        run: |
+          for i in $(seq 1 45); do
+            if curl -sf http://localhost:8080/health | grep -q '"healthy"[[:space:]]*:[[:space:]]*true'; then
+              echo "server healthy after ~$((i*2))s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::server failed to become healthy within 90s"
+          tail -100 server.log
+          exit 1
+
+      - name: Run e2e suites
+        run: ./gradlew :e2e:test -Pe2e
+
+      # BaseTest assumeTrue-skips every suite when the server is unreachable —
+      # without this guard a boot failure after the health gate (or a future
+      # gate regression) would yield a green job that ran nothing.
+      - name: Guard against silently-empty runs
+        if: always()
+        run: |
+          python - <<'EOF'
+          import glob
+          import sys
+          import xml.etree.ElementTree as ET
+
+          total = executed = 0
+          for path in glob.glob("e2e/build/test-results/test/TEST-*.xml"):
+              root = ET.parse(path).getroot()
+              t = int(root.get("tests", 0))
+              sk = int(root.get("skipped", 0))
+              total += t
+              executed += t - sk
+          print(f"executed {executed}/{total} tests")
+          sys.exit(0 if executed > 0 else 1)
+          EOF
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-e2e-results
+          path: |
+            e2e/build/test-results/test/
+            e2e/build/reports/tests/test/
+            server.log
+          retention-days: 14

@@ -44,7 +44,7 @@ import okhttp3.Response;
  * users of orkes-conductor-client v2.
  */
 @Slf4j
-public final class ApiClient extends ConductorClient {
+public class ApiClient extends ConductorClient {
 
     private final OrkesAuthentication authentication;
 
@@ -207,27 +207,20 @@ public final class ApiClient extends ConductorClient {
             return new ApiClient(this);
         }
 
+        /**
+         * Resolves credentials from environment on top of the base-path chain:
+         * {@code CONDUCTOR_AUTH_KEY} → {@code CONDUCTOR_SERVER_AUTH_KEY}, same order for the secret.
+         */
+        @Override
         protected void applyEnvVariables() {
             super.applyEnvVariables();
 
-            String conductorAuthKey = System.getenv("CONDUCTOR_AUTH_KEY");
-            if (conductorAuthKey == null) {
-                conductorAuthKey = System.getenv("CONDUCTOR_SERVER_AUTH_KEY");
-            }
-            if (conductorAuthKey != null) {
-                conductorAuthKey = conductorAuthKey.trim();
-            }
+            String authKey = envOrDefault("CONDUCTOR_AUTH_KEY", envOrDefault("CONDUCTOR_SERVER_AUTH_KEY", null));
+            String authSecret = envOrDefault(
+                    "CONDUCTOR_AUTH_SECRET", envOrDefault("CONDUCTOR_SERVER_AUTH_SECRET", null));
 
-            String conductorAuthSecret = System.getenv("CONDUCTOR_AUTH_SECRET");
-            if (conductorAuthSecret == null) {
-                conductorAuthSecret = System.getenv("CONDUCTOR_SERVER_AUTH_SECRET");
-            }
-            if (conductorAuthSecret != null) {
-                conductorAuthSecret = conductorAuthSecret.trim();
-            }
-
-            if (conductorAuthKey != null && conductorAuthSecret != null) {
-                this.credentials(conductorAuthKey, conductorAuthSecret);
+            if (authKey != null && authSecret != null) {
+                this.credentials(authKey, authSecret);
             }
         }
     }

@@ -2,601 +2,220 @@
 
 [![CI](https://github.com/conductor-oss/conductor-java-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/conductor-oss/conductor-java-sdk/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/org.conductoross/conductor-client.svg)](https://search.maven.org/search?q=g:org.conductoross)
-[![Java Versions](https://img.shields.io/badge/Java-17%2B-blue)](https://www.oracle.com/java/technologies/downloads/)
+[![Java 21+](https://img.shields.io/badge/Java-21%2B-blue)](https://www.oracle.com/java/technologies/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Java SDK for [Conductor](https://www.conductor-oss.org/) (OSS and Orkes Conductor) — an orchestration platform for building distributed applications, AI agents, and workflow-driven microservices. Define workflows as code, run workers anywhere, and let Conductor handle retries, state management, and observability.
+The Java SDK for [Conductor](https://www.conductor-oss.org/) lets you build durable AI agents and workflow workers. Conductor coordinates retries, state, and observability while your Java code runs wherever you deploy it.
 
-If you find [Conductor](https://github.com/conductor-oss/conductor) useful, please consider giving it a star on GitHub -- it helps the project grow.
+**Get involved:** [⭐ Conductor OSS](https://github.com/conductor-oss/conductor) · [Choose a Conductor OSS contribution](https://github.com/conductor-oss/conductor/contribute) · [Contribution guide](https://github.com/conductor-oss/conductor/blob/main/CONTRIBUTING.md)
 
-[![GitHub stars](https://img.shields.io/github/stars/conductor-oss/conductor.svg?style=social&label=Star&maxAge=)](https://GitHub.com/conductor-oss/conductor/)
-
-<!-- TOC -->
-* [Java SDK for Conductor](#java-sdk-for-conductor)
-  * [Start Conductor server](#start-conductor-server)
-  * [Install the SDK](#install-the-sdk)
-  * [60-Second Quickstart](#60-second-quickstart)
-  * [Comprehensive worker example](#comprehensive-worker-example)
-  * [Workers](#workers)
-  * [Monitoring Workers](#monitoring-workers)
-  * [Workflows](#workflows)
-  * [Troubleshooting](#troubleshooting)
-  * [AI & LLM Workflows](#ai--llm-workflows)
-  * [Examples](#examples)
-  * [API Journey Examples](#api-journey-examples)
-  * [Documentation](#documentation)
-  * [Support](#support)
-  * [Frequently Asked Questions](#frequently-asked-questions)
-  * [License](#license)
-<!-- TOC -->
-
-
-## Start Conductor server
-
-If you don't already have a Conductor server running, pick one:
-
-**Docker (recommended, includes UI):**
+**Using an AI coding agent?** Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) so it can create, run, and operate Conductor Workflows and Agents:
 
 ```shell
-docker run -p 8080:8080 conductoross/conductor:latest
-```
-The UI will be available at `http://localhost:8080` and the API at `http://localhost:8080/api`
-
-**MacOS / Linux (one-liner):** (If you don't want to use docker, you can install and run the binary directly)
-```shell
-curl -sSL https://raw.githubusercontent.com/conductor-oss/conductor/main/conductor_server.sh | sh
+npm install -g @conductor-oss/conductor-skills && conductor-skills --all
 ```
 
-**Conductor CLI**
+## Choose your path
+
+| I want to… | Start here |
+|---|---|
+| Build a durable AI agent with tools and human approval | [Run an AI agent example](#ai-agent-quickstart) |
+| Bring an existing Google ADK or LangChain4j agent | [Use framework bridges](#google-adk-and-langchain4j) |
+| Build a durable workflow and Java worker | [Run the core hello-world example](#workflow-and-worker-quickstart) |
+| Browse all examples | [AI agent guide](docs/agents/README.md) · [Core examples](examples/README.md) |
+| Navigate the SDK documentation | [Documentation hub](docs/README.md) |
+
+## Choose your Conductor server
+
+Connect to a server before following either quickstart. Use the hosted Developer Edition by default, or run Conductor locally when you need a self-managed development environment.
+
+### Recommended: Orkes Developer Edition
+
+[Orkes Developer Edition](https://developer.orkescloud.com/) is the default hosted option. Create an application and access key in the Developer Edition UI, then configure this SDK with its API endpoint. Keep the key and secret out of source control.
+
 ```shell
-# Installs conductor cli
+export CONDUCTOR_SERVER_URL=https://developer.orkescloud.com/api
+export CONDUCTOR_AUTH_KEY=<your-key-id>
+export CONDUCTOR_AUTH_SECRET=<your-key-secret>
+```
+
+For another hosted or self-managed remote cluster, use that cluster's `/api` URL and its application credentials instead. See [server setup](docs/server-setup.md) for details.
+
+### Local alternative: Conductor CLI
+
+The CLI is the preferred local-server path. It needs Java 21+ and Node.js/npm.
+
+```shell
 npm install -g @conductor-oss/conductor-cli
-
-# Start the open source conductor server
 conductor server start
-# see conductor server --help for all the available commands
+conductor server status
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
 ```
+
+### Docker fallback
+
+Use Docker when you need a containerized local server instead of the CLI:
+
+```shell
+docker run --rm -p 8080:8080 -p 1234:5000 conductoross/conductor:latest
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+```
+
+The Docker server UI is available at [http://localhost:1234](http://localhost:1234). See [server setup](docs/server-setup.md) for full local, remote, and authentication guidance.
+
+## Why Conductor?
+
+- **Survive process failures:** execution state is durable, so agents and workflows resume from completed work.
+- **Build dynamic agent graphs:** define workflow graphs in Java or let an LLM plan them at runtime. Conductor executes plans as durable sub-workflows, so agents can plan, execute, observe, and replan complex work instead of relying on a transient in-process loop.
+- **Run tools as distributed tasks:** scale Java workers independently while Conductor manages retries and delivery.
+- **Orchestrate long-running work:** combine AI, schedules, events, and human approval without holding application threads open.
+- **See every execution:** inspect inputs, outputs, tool calls, retries, and status through one execution model.
+
+**See the real graph:** [`Example115PlannerContext`](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example115PlannerContext.java) has an LLM turn onboarding policy into a KYC → account → email → conditional kickoff graph. Conductor compiles the plan into a durable sub-workflow, pipes outputs between steps, executes it, and the example reads back the generated sub-workflow to print the actual task trace.
+
+```shell
+./gradlew :agent-examples:run \
+  -PmainClass=org.conductoross.conductor.ai.examples.Example115PlannerContext
+```
+
+Prefer to construct the graph in code? [`Example108PlanExecuteRefs`](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/Example108PlanExecuteRefs.java) builds a typed `Plan` with dependencies and cross-step output references, then runs it through the same durable sub-workflow execution path.
+
+## Requirements and compatibility
+
+- Java 21+
+- A running OSS/Orkes Conductor server selected in [Choose your Conductor server](#choose-your-conductor-server).
+- Docker when using the `examples/basics/hello-world/run.sh` launcher; it builds and runs the example in containers even when the server itself is remote or CLI-managed.
+- Maven 3.8+ when running standalone core examples without their launcher script; Gradle is included for this repository's agent examples.
+
+The CI workflows are the source of truth for the server versions exercised by this SDK. See the [agent E2E matrix](.github/workflows/agent-e2e.yml) for its pinned server version.
 
 ## Install the SDK
 
-The SDK requires Java 17+. Add the following dependency to your project:
+Replace `<VERSION>` with a published version from [Maven Central](https://search.maven.org/search?q=g:org.conductoross).
 
-**For Gradle:**
+### AI agents
 
 ```gradle
 dependencies {
-    implementation 'org.conductoross:conductor-client:5.0.0'
-
-    // Optionally, you can also add spring module for auto configuration
-    // implementation 'org.conductoross:conductor-client-spring:5.0.0'
+    implementation 'org.conductoross:conductor-client-ai:<VERSION>'
 }
 ```
 
-**For Maven:**
+```xml
+<dependency>
+    <groupId>org.conductoross</groupId>
+    <artifactId>conductor-client-ai</artifactId>
+    <version>&lt;VERSION&gt;</version>
+</dependency>
+```
+
+Google ADK and LangChain4j are optional dependencies; use the versions and setup in the [Google ADK guide](docs/agents/frameworks/google-adk.md) or [LangChain4j guide](docs/agents/frameworks/langchain4j.md).
+
+### Workflows and workers
+
+```gradle
+dependencies {
+    implementation 'org.conductoross:conductor-client:<VERSION>'
+}
+```
 
 ```xml
 <dependency>
     <groupId>org.conductoross</groupId>
     <artifactId>conductor-client</artifactId>
-    <version>5.0.0</version>
-</dependency>
-```
-*Optionally, you can also add spring module for auto configuration*
-```xml
-<dependency>
-    <groupId>org.conductoross</groupId>
-    <artifactId>conductor-client-spring</artifactId>
-    <version>5.0.0</version>
+    <version>&lt;VERSION&gt;</version>
 </dependency>
 ```
 
+### Modules
 
-## 60-Second Quickstart
+| Module | Use it for |
+|---|---|
+| `conductor-client-ai` | Durable AI agents, tools, guardrails, handoffs, and framework bridges |
+| `conductor-client-ai-spring` | Spring auto-configuration for AI agents |
+| `conductor-client` | Workflow, task, worker, metadata, and scheduler clients |
+| `conductor-client-spring` | Spring auto-configuration for the core client |
+| `conductor-client-spring-boot4` | Spring Boot 4 auto-configuration for the core client |
+| `conductor-client-metrics` | Prometheus metrics collection |
 
-**Step 1: Create a workflow**
+## AI agent quickstart
 
-Workflows are definitions that reference task types (e.g., a SIMPLE task called `greet`). We'll build a workflow called
-`greetings` that runs one task and returns its output.
-
-```java
-ConductorWorkflow<WorkflowInput> workflow = new ConductorWorkflow<>(executor);
-workflow.setName("greetings");
-workflow.setVersion(1);
-
-SimpleTask greetTask = new SimpleTask("greet", "greet_ref");
-greetTask.input("name", "${workflow.input.name}");
-
-workflow.add(greetTask);
-workflow.registerWorkflow(true, true);
-```
-
-**Step 2: Write worker**
-
-Workers are Java classes that implement the `Worker` interface and poll Conductor for tasks to execute.
-
-```java
-public class GreetWorker implements Worker {
-    
-    @Override
-    public String getTaskDefName() {
-        return "greet";
-    }
-
-    @Override
-    public TaskResult execute(Task task) {
-        String name = (String) task.getInputData().get("name");
-        TaskResult result = new TaskResult(task);
-        result.setStatus(TaskResult.Status.COMPLETED);
-        result.addOutputData("greeting", "Hello, " + name + "!");
-        return result;
-    }
-}
-```
-
-**Step 3: Run your first workflow app**
-
-Create a `Main.java` with the following:
-
-```java
-import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
-import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.client.http.TaskClient;
-import com.netflix.conductor.client.http.WorkflowClient;
-import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
-
-import java.util.List;
-import java.util.Map;
-
-public class Main {
-    public static void main(String[] args) {
-        // Configure the SDK (reads CONDUCTOR_SERVER_URL from env, defaults to localhost:8080)
-        String serverUrl = System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
-        ConductorClient client = ConductorClient.builder()
-            .basePath(serverUrl)
-            .build();
-
-        // Create workflow executor
-        WorkflowExecutor executor = new WorkflowExecutor(client);
-        
-        // Build and register the workflow
-        ConductorWorkflow<Map> workflow = new ConductorWorkflow<>(executor);
-        workflow.setName("greetings");
-        workflow.setVersion(1);
-        
-        SimpleTask greetTask = new SimpleTask("greet", "greet_ref");
-        greetTask.input("name", "${workflow.input.name}");
-        workflow.add(greetTask);
-        workflow.registerWorkflow(true, true);
-
-        // Start polling for tasks
-        TaskClient taskClient = new TaskClient(client);
-        TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(
-            taskClient,
-            List.of(new GreetWorker())
-        ).withThreadCount(10).build();
-        configurer.init();
-
-        // Run the workflow and get the result
-        WorkflowClient workflowClient = new WorkflowClient(client);
-        String workflowId = workflowClient.startWorkflow("greetings", 1, "", Map.of("name", "Conductor"));
-        
-        System.out.println("Started workflow: " + workflowId);
-        System.out.println("View execution at: " + serverUrl.replace("/api", "") + "/execution/" + workflowId);
-    }
-}
-```
-
-Run it:
+Use this path when your agent needs LLM reasoning, tools, guardrails, handoffs, or human approval. Select a server above first. For a local CLI server, configure the LLM provider credential in the server environment **before** starting it. For Developer Edition, configure the provider integration in the hosted cluster. The [agent getting-started guide](docs/agents/getting-started.md) covers both paths.
 
 ```shell
-./gradlew run
+export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini
+
+# Run the maintained basic-agent example from this repository.
+./gradlew :agent-examples:run \
+  -PmainClass=org.conductoross.conductor.ai.examples.Example01BasicAgent
 ```
 
-> ### Using Orkes Conductor / Remote Server?
-> Export your authentication credentials as well:
->
-> ```shell
-> export CONDUCTOR_SERVER_URL="https://your-cluster.orkesconductor.io/api"
->
-> # If using Orkes Conductor that requires auth key/secret
-> export CONDUCTOR_AUTH_KEY="your-key"
-> export CONDUCTOR_AUTH_SECRET="your-secret"
-> ```
+Expected outcome: the example prints an `AgentResult` containing the model response. See the [AI agent guide](docs/agents/README.md), [tools guide](docs/agents/concepts/tools.md), and [agent examples](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/) for the next step.
 
-That's it -- you just defined a worker, built a workflow, and executed it. Open the Conductor UI (default:
-[http://localhost:8080](http://localhost:8080)) to see the execution.
+### Google ADK and LangChain4j
 
-## Comprehensive worker example
+Keep using the Java agent framework your team already knows. The SDK bridges native [Google ADK](docs/agents/frameworks/google-adk.md) `BaseAgent` and `LlmAgent` instances into durable Conductor agents, including tools and sub-agent graphs. It also turns existing [LangChain4j](docs/agents/frameworks/langchain4j.md) `@Tool`-annotated POJOs into Conductor worker tools and supports LangChain4j `ChatModel`-based agents.
 
-See [examples/src/main/java/com/netflix/conductor/sdk/examples/helloworld/](examples/src/main/java/com/netflix/conductor/sdk/examples/helloworld/) for a complete working example with:
-- Workflow definition using the SDK
-- Worker implementation with annotations
-- Workflow execution and monitoring
+Start with the [Google ADK examples](agent-examples/src/main/java/org/conductoross/conductor/ai/examples/adk/) or the focused [LangChain4j bridge guide](docs/agents/frameworks/langchain4j.md).
 
----
+## Workflow and worker quickstart
 
-## Workers
+With a server selected above, this maintained example registers a workflow, starts a Java worker, executes the workflow, and prints `Result: PASSED`.
 
-Workers are Java classes that execute Conductor tasks. Implement the `Worker` interface or use the `@WorkerTask` annotation:
-
-**Using Worker interface:**
-
-```java
-public class MyWorker implements Worker {
-    
-    @Override
-    public String getTaskDefName() {
-        return "my_task";
-    }
-
-    @Override
-    public TaskResult execute(Task task) {
-        // Your business logic here
-        TaskResult result = new TaskResult(task);
-        result.setStatus(TaskResult.Status.COMPLETED);
-        result.addOutputData("result", "Task completed successfully");
-        return result;
-    }
-}
+```shell
+cd examples/basics/hello-world
+./run.sh
 ```
 
-**Using @WorkerTask annotation:**
+Expected outcome:
 
-```java
-public class Workers {
-    
-    @WorkerTask("greet")
-    public String greet(@InputParam("name") String name) {
-        return "Hello, " + name + "!";
-    }
-    
-    @WorkerTask("process_data")
-    public Map<String, Object> processData(@InputParam("data") Map<String, Object> data) {
-        // Process and return data
-        return Map.of("processed", true, "result", data);
-    }
-}
+```text
+Status: COMPLETED
+Output: {greeting=Hello, Developer! Welcome to Conductor.}
+Result: PASSED
 ```
 
-**Start workers** with `TaskRunnerConfigurer` or `WorkflowExecutor`:
+The launcher requires Docker to build and run the example. With `CONDUCTOR_SERVER_URL` set, it reuses the selected remote, CLI-managed, or Docker server. If you leave it unset, the launcher starts its own Docker Compose server; stop that server with `docker compose down` from `examples/basics/hello-world`.
 
-```java
-// Option 1: Using TaskRunnerConfigurer
-TaskClient taskClient = new TaskClient(client);
-TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(
-    taskClient,
-    List.of(new MyWorker(), new AnotherWorker())
-)
-.withThreadCount(10)
-.build();
-configurer.init();
+For worker patterns, workflow definitions, and testing, continue with the [core examples catalog](examples/README.md), [worker guide](docs/workers.md), and [workflow guide](docs/workflows.md).
 
-// Option 2: Using WorkflowExecutor (auto-discovers @WorkerTask annotations)
-WorkflowExecutor executor = new WorkflowExecutor(client, 10);
-executor.initWorkers("com.mycompany.workers");  // Package to scan for @WorkerTask
-```
+## Common tasks
 
-**Worker Design Principles:**
-
-- Workers should be stateless and idempotent
-- Handle failure scenarios gracefully
-- Report status back to Conductor
-- Complete execution quickly (or use polling for long-running tasks)
-
-**Worker vs. HTTP Endpoints:**
-
-| Feature | Worker | HTTP Endpoint |
-|---------|--------|---------------|
-| Deployment | Embedded in application | Separate service |
-| Scalability | Horizontal (add more instances) | Horizontal (add more instances) |
-| Latency | Lower (direct polling) | Higher (network overhead) |
-| Complexity | Simple | Complex (service mesh, load balancer) |
-
-**Learn more:**
-- [Worker SDK Guide](java-sdk/worker_sdk.md) — Complete worker framework documentation
-- [Worker Examples](examples/) — Sample worker implementations
-
-## Monitoring Workers
-
-Enable Prometheus metrics collection for monitoring workers:
-
-```groovy
-// Using conductor-client-metrics module
-dependencies {
-    implementation 'org.conductoross:conductor-client-metrics:5.1.0'
-}
-```
-
-```java
-import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
-
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(); // http://localhost:9991/metrics
-
-ConductorClient client = ConductorClient.builder()
-    .basePath("...")
-    .withMetricsCollector(metricsCollector)
-    .build();
-
-TaskClient taskClient = new TaskClient(client);
-WorkflowClient workflowClient = new WorkflowClient(client);
-
-TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, workers)
-    .withThreadCount(10)
-    .build();
-```
-
-When a `MetricsCollector` is attached to the `ConductorClient`, downstream clients (`TaskClient`, `WorkflowClient`, `TaskRunnerConfigurer`) automatically register themselves as event listeners.
-
-See [conductor-client-metrics/README.md](conductor-client-metrics/README.md) for the complete metric catalog and setup details.
-
-## Workflows
-
-Define workflows in Java using the `ConductorWorkflow` builder:
-
-```java
-ConductorWorkflow<MyInput> workflow = new ConductorWorkflow<>(executor);
-workflow.setName("my_workflow");
-workflow.setVersion(1);
-workflow.setOwnerEmail("team@example.com");
-
-// Add tasks
-SimpleTask task1 = new SimpleTask("task1", "task1_ref");
-SimpleTask task2 = new SimpleTask("task2", "task2_ref");
-workflow.add(task1);
-workflow.add(task2);
-
-// Register the workflow
-workflow.registerWorkflow(true, true);
-```
-
-**Execute workflows:**
-
-```java
-WorkflowClient workflowClient = new WorkflowClient(client);
-
-// Synchronous (start and poll for completion)
-CompletableFuture<Workflow> future = workflow.execute(input);
-Workflow result = future.get(30, TimeUnit.SECONDS);
-System.out.println("Output: " + result.getOutput());
-
-// Asynchronous (returns workflow ID immediately)
-String workflowId = workflowClient.startWorkflow("my_workflow", 1, "", Map.of("key", "value"));
-
-// Dynamic execution (sends workflow definition with request)
-CompletableFuture<Workflow> dynamicRun = workflow.executeDynamic(input);
-```
-
-**Manage running workflows:**
-
-```java
-WorkflowClient workflowClient = new WorkflowClient(client);
-
-// Get workflow status
-Workflow wf = workflowClient.getWorkflow(workflowId, true);
-System.out.println("Status: " + wf.getStatus());
-
-// Pause, resume, terminate
-workflowClient.pauseWorkflow(workflowId);
-workflowClient.resumeWorkflow(workflowId);
-workflowClient.terminateWorkflow(workflowId, "No longer needed");
-
-// Retry and restart failed workflows
-workflowClient.retryWorkflow(workflowId);
-workflowClient.restartWorkflow(workflowId, false);
-```
-
-**Learn more:**
-- [Workflow SDK Guide](java-sdk/workflow_sdk.md) — Workflow-as-code documentation
-- [Workflow Testing](java-sdk/testing_framework.md) — Unit testing workflows
+| Need | Start with |
+|---|---|
+| Build Java AI agents | [Agent concepts](docs/agents/concepts/agents.md) |
+| Add tools and human approval | [Agent tools](docs/agents/concepts/tools.md) |
+| Use another agent framework | [Google ADK](docs/agents/frameworks/google-adk.md) · [LangChain4j](docs/agents/frameworks/langchain4j.md) · [LangGraph4j](docs/agents/frameworks/langgraph4j.md) |
+| Deploy, serve, and run agents | [Agent runtime modes](docs/agents/concepts/deploy-serve-run.md) |
+| Implement and scale Java workers | [Workers guide](docs/workers.md) · [reliability](docs/reliability.md) |
+| Define and evolve workflows | [Workflows guide](docs/workflows.md) · [lifecycle/versioning](docs/workflow-lifecycle.md) |
+| Upload/download workflow-scoped files | [FileClient guide](docs/file-client.md) |
+| Test workflows and workers | [Workflow test harness](docs/workflow-testing.md) |
+| Expose worker metrics | [Client metrics](conductor-client-metrics/README.md) |
+| Configure Spring applications | [Boot 3](conductor-client-spring/README.md) · [Boot 4](conductor-client-spring-boot4/README.md) · [AI Spring guide](docs/agents/spring-boot.md) |
+| Manage schedules and events | [Schedules/events guide](docs/schedules-events.md) |
+| Find typed clients and Javadocs | [Core API map](docs/api-map.md) |
 
 ## Troubleshooting
 
-**Worker stops polling or crashes:**
-- Check network connectivity to Conductor server
-- Verify `CONDUCTOR_SERVER_URL` is set correctly
-- Ensure sufficient thread pool size for your workload
-- Monitor JVM memory and GC pauses
+| Symptom | Check |
+|---|---|
+| Connection refused | The server is healthy at `http://localhost:8080/health`; `CONDUCTOR_SERVER_URL` ends in `/api`. |
+| Task remains `SCHEDULED` | A worker is polling the exact task type and has enough threads. |
+| Authentication failure | `CONDUCTOR_AUTH_KEY` and `CONDUCTOR_AUTH_SECRET` are set for the target server. |
+| AI agent cannot call a model | The server—not only the client process—has a configured LLM provider and model. |
 
-**Connection refused errors:**
-- Verify Conductor server is running: `curl http://localhost:8080/health`
-- Check firewall rules if connecting to remote server
-- For Orkes Conductor, verify auth credentials are correct
+## Support and project policies
 
-**Tasks stuck in SCHEDULED state:**
-- Ensure workers are polling for the correct task type
-- Check that `getTaskDefName()` matches the task name in workflow
-- Verify worker thread count is sufficient
+**Contribute upstream:** [Choose a Conductor OSS contribution](https://github.com/conductor-oss/conductor/contribute) · [Read the Conductor OSS contribution guide](https://github.com/conductor-oss/conductor/blob/main/CONTRIBUTING.md)
 
-**Workflow execution timeout:**
-- Increase workflow timeout in definition
-- Check if tasks are completing within expected time
-- Monitor Conductor server logs for errors
-
-**Authentication errors with Orkes Conductor:**
-- Verify `CONDUCTOR_AUTH_KEY` and `CONDUCTOR_AUTH_SECRET` are set
-- Ensure the application has required permissions
-- Check that credentials haven't expired
-
----
-
-## AI & LLM Workflows
-
-Conductor supports AI-native workflows including agentic tool calling, RAG pipelines, and multi-agent orchestration.
-
-**Agentic Workflows**
-
-Build AI agents where LLMs dynamically select and call Java workers as tools. All agentic examples live in [`AgenticExamplesRunner.java`](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/AgenticExamplesRunner.java) — a single unified runner.
-
-| Workflow | Description |
-|----------|-------------|
-| `llm_chat_workflow` | Automated multi-turn Q&A using `LLM_CHAT_COMPLETE` system task |
-| `llm_chat_human_in_loop` | Interactive chat with WAIT task pauses for user input |
-| `multiagent_chat_demo` | Multi-agent debate with moderator routing between two LLM panelists |
-| `function_calling_workflow` | LLM picks which Java worker to call, returns JSON, dispatch worker executes it |
-| `mcp_ai_agent` | AI agent using MCP tools (ListMcpTools → LLM plans → CallMcpTool → summarize) |
-
-**LLM and RAG Workflows**
-
-| Example | Description |
-|---------|-------------|
-| [RagWorkflowExample.java](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/RagWorkflowExample.java) | End-to-end RAG: document indexing, semantic search, answer generation |
-| [VectorDbExample.java](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/VectorDbExample.java) | Vector database operations: text indexing, embedding generation, and semantic search |
-
-**Using LLM Tasks in Workflows:**
-
-```java
-// Chat completion task (LLM_CHAT_COMPLETE system task)
-LlmChatComplete chatTask = new LlmChatComplete("chat_assistant", "chat_ref")
-    .llmProvider("openai")
-    .model("gpt-4o-mini")
-    .messages(List.of(
-        Map.of("role", "system", "message", "You are a helpful assistant."),
-        Map.of("role", "user", "message", "${workflow.input.question}")
-    ))
-    .temperature(0.7)
-    .maxTokens(500);
-
-// Text completion task (LLM_TEXT_COMPLETE system task)
-LlmTextComplete textTask = new LlmTextComplete("generate_text", "text_ref")
-    .llmProvider("openai")
-    .model("gpt-4o-mini")
-    .promptName("my-prompt-template")
-    .temperature(0.7);
-
-// Document indexing for RAG (LLM_INDEX_DOCUMENT system task)
-LlmIndexDocument indexTask = new LlmIndexDocument("index_doc", "index_ref")
-    .vectorDb("pinecone")
-    .namespace("my-docs")
-    .index("knowledge-base")
-    .embeddingModel("text-embedding-ada-002")
-    .text("${workflow.input.document}");
-
-// Semantic search (LLM_SEARCH_INDEX system task)
-LlmSearchIndex searchTask = new LlmSearchIndex("search_docs", "search_ref")
-    .vectorDb("pinecone")
-    .namespace("my-docs")
-    .index("knowledge-base")
-    .query("${workflow.input.question}")
-    .topK(5);
-
-// MCP tool discovery (MCP_LIST_TOOLS system task — Orkes Conductor)
-ListMcpTools listTools = new ListMcpTools("discover_tools", "tools_ref")
-    .mcpServer("http://localhost:3001/mcp");
-
-// MCP tool execution (MCP_CALL_TOOL system task — Orkes Conductor)
-CallMcpTool callTool = new CallMcpTool("execute_tool", "tool_ref")
-    .mcpServer("http://localhost:3001/mcp")
-    .method("${tools_ref.output.result.method}")
-    .arguments("${tools_ref.output.result.arguments}");
-
-workflow.add(chatTask);
-workflow.add(textTask);
-workflow.add(indexTask);
-```
-
-Run all agentic examples:
-
-```shell
-export CONDUCTOR_SERVER_URL=http://localhost:8080/api
-export OPENAI_API_KEY=your-key   # or ANTHROPIC_API_KEY
-
-# Run all examples end-to-end
-./gradlew :examples:run --args="--all"
-
-# Run specific workflow
-./gradlew :examples:run --args="--menu"
-```
-
-## Examples
-
-See the [Examples Guide](examples/README.md) for the full catalog. Key examples:
-
-| Example | Description | Run |
-|---------|-------------|-----|
-| [Hello World](examples/src/main/java/com/netflix/conductor/sdk/examples/helloworld/) | Minimal workflow with worker | `./gradlew :examples:run -PmainClass=com.netflix.conductor.sdk.examples.helloworld.Main` |
-| [Workflow Operations](examples/src/main/java/io/orkes/conductor/sdk/examples/workflowops/) | Pause, resume, terminate workflows | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.workflowops.Main` |
-| [Shipment Workflow](examples/src/main/java/com/netflix/conductor/sdk/examples/shipment/) | Real-world order processing | `./gradlew :examples:run -PmainClass=com.netflix.conductor.sdk.examples.shipment.Main` |
-| [Events](examples/src/main/java/com/netflix/conductor/sdk/examples/events/) | Event-driven workflows | `./gradlew :examples:run -PmainClass=com.netflix.conductor.sdk.examples.events.EventHandlerExample` |
-| [All AI examples](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/AgenticExamplesRunner.java) | All agentic/LLM workflows | `./gradlew :examples:run --args="--all"` |
-| [RAG Workflow](examples/src/main/java/io/orkes/conductor/sdk/examples/agentic/RagWorkflowExample.java) | RAG pipeline (index → search → answer) | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.agentic.RagWorkflowExample` |
-
-## API Journey Examples
-
-End-to-end examples covering all APIs for each domain:
-
-| Example | APIs | Run |
-|---------|------|-----|
-| [Metadata Management](examples/src/main/java/io/orkes/conductor/sdk/examples/MetadataManagement.java) | Task & workflow definitions | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.MetadataManagement` |
-| [Workflow Management](examples/src/main/java/io/orkes/conductor/sdk/examples/WorkflowManagement.java) | Start, monitor, control workflows | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.WorkflowManagement` |
-| [Authorization Management](examples/src/main/java/io/orkes/conductor/sdk/examples/AuthorizationManagement.java) | Users, groups, permissions | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.AuthorizationManagement` |
-| [Scheduler Management](examples/src/main/java/io/orkes/conductor/sdk/examples/SchedulerManagement.java) | Workflow scheduling | `./gradlew :examples:run -PmainClass=io.orkes.conductor.sdk.examples.SchedulerManagement` |
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Worker SDK](java-sdk/worker_sdk.md) | Complete worker framework guide |
-| [Workflow SDK](java-sdk/workflow_sdk.md) | Workflow-as-code documentation |
-| [Testing Framework](java-sdk/testing_framework.md) | Unit testing workflows and workers |
-| [Conductor Client](conductor-client/README.md) | HTTP client library documentation |
-| [Client Metrics](conductor-client-metrics/README.md) | Prometheus metrics collection |
-| [Spring Integration](conductor-client-spring/README.md) | Spring Boot auto-configuration |
-| [Examples](examples/README.md) | Complete examples catalog |
-
-## Support
-
-- [Open an issue (SDK)](https://github.com/conductor-oss/conductor-java-sdk/issues) for SDK bugs, questions, and feature requests
-- [Open an issue (Conductor server)](https://github.com/conductor-oss/conductor/issues) for Conductor OSS server issues
-- [Join the Conductor Slack](https://join.slack.com/t/orkes-conductor/shared_invite/zt-2vdbx239s-Eacdyqya9giNLHfrCavfaA) for community discussion and help
-- [Orkes Community Forum](https://community.orkes.io/) for Q&A
-
-## Frequently Asked Questions
-
-**Is this the same as Netflix Conductor?**
-
-Yes. Conductor OSS is the continuation of the original [Netflix Conductor](https://github.com/Netflix/conductor) repository after Netflix contributed the project to the open-source foundation.
-
-**Is this project actively maintained?**
-
-Yes. [Orkes](https://orkes.io) is the primary maintainer and offers an enterprise SaaS platform for Conductor across all major cloud providers.
-
-**Can Conductor scale to handle my workload?**
-
-Conductor was built at Netflix to handle massive scale and has been battle-tested in production environments processing millions of workflows. It scales horizontally to meet virtually any demand.
-
-**Does Conductor support durable code execution?**
-
-Yes. Conductor ensures workflows complete reliably even in the face of infrastructure failures, process crashes, or network issues.
-
-**Are workflows always asynchronous?**
-
-No. While Conductor excels at asynchronous orchestration, it also supports synchronous workflow execution when immediate results are required.
-
-**Do I need to use a Conductor-specific framework?**
-
-No. Conductor is language and framework agnostic. Use your preferred language and framework -- the [SDKs](https://github.com/conductor-oss/conductor#conductor-sdks) provide native integration for Python, Java, JavaScript, Go, C#, and more.
-
-**Can I mix workers written in different languages?**
-
-Yes. A single workflow can have workers written in Python, Java, Go, or any other supported language. Workers communicate through the Conductor server, not directly with each other.
-
-**What Java versions are supported?**
-
-Java 17 and above.
-
-**Should I use Worker interface or @WorkerTask annotation?**
-
-Use `@WorkerTask` annotation for simpler, cleaner code -- input parameters are automatically mapped and return values become task output. Use the `Worker` interface when you need full control over task execution, access to task metadata, or custom error handling.
-
-**How do I run workers in production?**
-
-Workers are standard Java applications. Deploy them as you would any Java application -- in containers, VMs, or bare metal. Workers poll the Conductor server for tasks, so no inbound ports need to be opened.
-
-**How do I test workflows without running a full Conductor server?**
-
-The SDK provides a test framework that uses Conductor's `POST /api/workflow/test` endpoint to evaluate workflows with mock task outputs. See [Testing Framework](java-sdk/testing_framework.md) for details.
+- [SDK issues](https://github.com/conductor-oss/conductor-java-sdk/issues) for Java SDK bugs and feature requests
+- [Conductor server issues](https://github.com/conductor-oss/conductor/issues) for OSS server behavior
+- [Contributing](CONTRIBUTING.md) for local development, tests, and pull requests
+- [Code of Conduct](CODE_OF_CONDUCT.md) for community expectations and conduct reporting
+- [Security policy](SECURITY.md) for private vulnerability reporting
+- [Conductor Slack](https://join.slack.com/t/orkes-conductor/shared_invite/zt-2vdbx239s-Eacdyqya9giNLHfrCavfaA) and the [Orkes Community Forum](https://community.orkes.io/) for questions
 
 ## License
 
-Apache 2.0
+Apache 2.0. See [LICENSE](LICENSE).

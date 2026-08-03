@@ -108,6 +108,13 @@ public class TaskDef extends Auditable {
 
     private long totalTimeoutSeconds;
 
+    /**
+     * Declared secret names for the task's worker. Conductor OSS hosts with PR #1255 resolve
+     * these at poll time and deliver the values on the
+     * wire-only {@code Task.runtimeMetadata} map — never persisted to task input.
+     */
+    private List<String> runtimeMetadata;
+
     public TaskDef(String name) {
         this.name = name;
     }

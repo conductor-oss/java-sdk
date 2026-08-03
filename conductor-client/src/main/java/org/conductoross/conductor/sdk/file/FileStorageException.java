@@ -13,9 +13,7 @@
 package org.conductoross.conductor.sdk.file;
 
 /**
- * Unchecked exception raised by the SDK for file-storage failures — upload, download, metadata
- * fetch, or storage-type mismatch between the server and the registered
- * {@link FileStorageBackend}s.
+ * Unchecked exception raised by the SDK for file upload, download, and metadata failures.
  */
 public class FileStorageException extends RuntimeException {
 

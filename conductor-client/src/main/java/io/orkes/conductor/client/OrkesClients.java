@@ -30,6 +30,10 @@ public class OrkesClients {
         return new OrkesWorkflowClient(client);
     }
 
+    public AgentClient getAgentClient() {
+        return new OrkesAgentClient(client);
+    }
+
     public AuthorizationClient getAuthorizationClient() {
         return new OrkesAuthorizationClient(client);
     }

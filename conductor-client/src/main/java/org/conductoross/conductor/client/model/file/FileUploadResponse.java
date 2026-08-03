@@ -15,7 +15,8 @@ package org.conductoross.conductor.client.model.file;
 /**
  * Response to {@code POST /api/files}. Carries the newly assigned {@code fileHandleId} plus a
  * presigned upload URL and its expiry. Status is {@link FileUploadStatus#UPLOADING} at this
- * point; the client confirms completion via {@code POST /api/files/{fileId}/upload-complete}.
+ * point; the client confirms completion via {@code POST
+ * /api/files/{workflowId}/{fileId}/upload-complete}.
  */
 public class FileUploadResponse {
 
@@ -23,35 +24,29 @@ public class FileUploadResponse {
     private String fileHandleId;
     private String fileName;
     private String contentType;
-    private StorageType storageType;
+    private String storageType;
     private FileUploadStatus uploadStatus;
     private String uploadUrl;
-    /** Epoch millis. */
     private long uploadUrlExpiresAt;
-    /** Epoch millis. */
     private long createdAt;
+    private String workflowId;
 
     public String getFileHandleId() { return fileHandleId; }
     public void setFileHandleId(String fileHandleId) { this.fileHandleId = fileHandleId; }
-
     public String getFileName() { return fileName; }
     public void setFileName(String fileName) { this.fileName = fileName; }
-
     public String getContentType() { return contentType; }
     public void setContentType(String contentType) { this.contentType = contentType; }
-
-    public StorageType getStorageType() { return storageType; }
-    public void setStorageType(StorageType storageType) { this.storageType = storageType; }
-
+    public String getStorageType() { return storageType; }
+    public void setStorageType(String storageType) { this.storageType = storageType; }
     public FileUploadStatus getUploadStatus() { return uploadStatus; }
     public void setUploadStatus(FileUploadStatus uploadStatus) { this.uploadStatus = uploadStatus; }
-
     public String getUploadUrl() { return uploadUrl; }
     public void setUploadUrl(String uploadUrl) { this.uploadUrl = uploadUrl; }
-
     public long getUploadUrlExpiresAt() { return uploadUrlExpiresAt; }
     public void setUploadUrlExpiresAt(long uploadUrlExpiresAt) { this.uploadUrlExpiresAt = uploadUrlExpiresAt; }
-
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    public String getWorkflowId() { return workflowId; }
+    public void setWorkflowId(String workflowId) { this.workflowId = workflowId; }
 }

@@ -32,20 +32,20 @@ class ConductorClientAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).hasSingleBean(FileClient.class);
                     FileClientProperties properties = context.getBean(FileClientProperties.class);
-                    assertThat(properties.getLocalCacheDirectory())
-                            .startsWith(System.getProperty("java.io.tmpdir"));
+                    assertThat(properties.getMultipartThreshold())
+                            .isEqualTo(100L * 1024 * 1024);
                 });
     }
 
     @Test
-    void cacheDirectoryOverrideIsRespected() {
+    void multipartThresholdOverrideIsRespected() {
         contextRunner
                 .withPropertyValues(
                         "conductor.client.base-path=http://localhost:8080/api",
-                        "conductor.file-client.local-cache-directory=/tmp/custom-cache")
+                        "conductor.file-client.multipart-threshold=4096")
                 .run(context -> {
                     FileClientProperties properties = context.getBean(FileClientProperties.class);
-                    assertThat(properties.getLocalCacheDirectory()).isEqualTo("/tmp/custom-cache");
+                    assertThat(properties.getMultipartThreshold()).isEqualTo(4096);
                 });
     }
 

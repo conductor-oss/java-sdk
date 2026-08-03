@@ -1,0 +1,61 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'signing'
+}
+
+ext {
+    artifactName = 'Conductor AI Agent SDK'
+    artifactDescription = 'Durable AI agents on Conductor: Agent, AgentRuntime, tools, guardrails, handoffs'
+}
+
+apply plugin: 'publish-config'
+
+dependencies {
+    // Part of the public surface: AgentRuntime accepts/returns the Conductor ApiClient,
+    // so downstream modules and user code must see conductor-client transitively.
+    api project(":conductor-client")
+
+    api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+    api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
+    // not injected by the root subprojects block — must stay explicit
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
+
+    // compileOnly so the SDK doesn't force LLM frameworks onto users: the framework
+    // bridge classes only link at runtime when the user passes a native object in —
+    // at which point that framework is already on the user's classpath.
+    compileOnly "dev.langchain4j:langchain4j:${versions.langchain4j}"
+    compileOnly "dev.langchain4j:langchain4j-open-ai:${versions.langchain4j}"
+    compileOnly "com.google.adk:google-adk:${versions.googleAdk}"
+    compileOnly "org.bsc.langgraph4j:langgraph4j-core:${versions.langgraph4j}"
+    compileOnly "org.bsc.langgraph4j:langgraph4j-agent-executor:${versions.langgraph4j}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+    // google-adk (test dep above) forces okhttp 5.x onto the test classpath, so the
+    // stub server must match it — versions.okHttp (4.x) would NoClassDefFound at runtime.
+    testImplementation "com.squareup.okhttp3:mockwebserver:5.3.2"
+    testImplementation "dev.langchain4j:langchain4j:${versions.langchain4j}"
+    testImplementation "dev.langchain4j:langchain4j-open-ai:${versions.langchain4j}"
+    testImplementation "com.google.adk:google-adk:${versions.googleAdk}"
+    testImplementation "org.bsc.langgraph4j:langgraph4j-core:${versions.langgraph4j}"
+    testImplementation "org.bsc.langgraph4j:langgraph4j-agent-executor:${versions.langgraph4j}"
+    // testImplementation (not runtimeOnly): tests attach a ListAppender to
+    // capture contract-mandated warnings (e.g. swarm dropped_transfers).
+    testImplementation "ch.qos.logback:logback-classic:1.5.32"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// tool/agent parameter names are read reflectively at runtime
+compileJava.options.compilerArgs << '-parameters'
+compileTestJava.options.compilerArgs << '-parameters'
+
+test {
+    useJUnitPlatform()
+}

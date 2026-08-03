@@ -733,14 +733,39 @@ public class ConductorClient {
             }
         }
 
+        /**
+         * Resolves the server base path from environment: {@code CONDUCTOR_SERVER_URL}
+         * → {@code http://localhost:8080/api}.
+         * Blank values are treated as unset. The resolved URL is normalized to end in
+         * {@code /api}, so both {@code http://host:8080} and {@code http://host:8080/api}
+         * forms are accepted.
+         */
         protected void applyEnvVariables() {
-            String conductorServerUrl = System.getenv("CONDUCTOR_SERVER_URL");
-            if (conductorServerUrl != null) {
-                this.basePath(conductorServerUrl.trim());
-            } else {
-                throw new RuntimeException("env variable CONDUCTOR_SERVER_URL is not set");
-            }
+            String serverUrl = envOrDefault("CONDUCTOR_SERVER_URL", null);
+            this.basePath(normalizeServerUrl(serverUrl));
         }
+
+        /** Env seam so tests can exercise resolution without mutating process env. */
+        protected String getEnv(String name) {
+            return System.getenv(name);
+        }
+
+        /** An exported-but-blank variable never clobbers the fallback chain. */
+        protected final String envOrDefault(String name, String defaultValue) {
+            String value = getEnv(name);
+            return value != null && !value.trim().isEmpty() ? value.trim() : defaultValue;
+        }
+
+        /** Strip trailing {@code /} and any {@code /api} suffix, then re-append {@code /api}. */
+        private static String normalizeServerUrl(String url) {
+            String s = (url != null ? url : DEFAULT_SERVER_API_URL).stripTrailing();
+            while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
+            if (s.endsWith("/api")) s = s.substring(0, s.length() - 4);
+            while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
+            return s + "/api";
+        }
+
+        private static final String DEFAULT_SERVER_API_URL = "http://localhost:8080/api";
     }
 
     /**

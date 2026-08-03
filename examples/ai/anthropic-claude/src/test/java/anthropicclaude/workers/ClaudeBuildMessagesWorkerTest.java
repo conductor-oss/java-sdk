@@ -25,7 +25,7 @@ class ClaudeBuildMessagesWorkerTest {
         Task task = taskWith(new HashMap<>(Map.of(
                 "userMessage", "Audit the auth module",
                 "systemPrompt", "You are a security engineer",
-                "model", "claude-sonnet-4-20250514",
+                "model", "claude-sonnet-4-6",
                 "max_tokens", 1024,
                 "temperature", 0.5
         )));
@@ -48,7 +48,7 @@ class ClaudeBuildMessagesWorkerTest {
         Task task = taskWith(new HashMap<>(Map.of(
                 "userMessage", "Hello Claude",
                 "systemPrompt", "Be helpful",
-                "model", "claude-sonnet-4-20250514",
+                "model", "claude-sonnet-4-6",
                 "max_tokens", 512,
                 "temperature", 0.7
         )));
@@ -68,7 +68,7 @@ class ClaudeBuildMessagesWorkerTest {
         Task task = taskWith(new HashMap<>(Map.of(
                 "userMessage", "Test message",
                 "systemPrompt", "System instructions here",
-                "model", "claude-sonnet-4-20250514",
+                "model", "claude-sonnet-4-6",
                 "max_tokens", 256,
                 "temperature", 0.0
         )));
@@ -91,7 +91,7 @@ class ClaudeBuildMessagesWorkerTest {
         Task task = taskWith(new HashMap<>(Map.of(
                 "userMessage", "Test",
                 "systemPrompt", "Prompt",
-                "model", "claude-sonnet-4-20250514",
+                "model", "claude-sonnet-4-6",
                 "max_tokens", 100,
                 "temperature", 0.5
         )));

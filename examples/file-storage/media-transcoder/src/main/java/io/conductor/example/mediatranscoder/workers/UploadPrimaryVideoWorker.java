@@ -12,27 +12,27 @@
  */
 package io.conductor.example.mediatranscoder.workers;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-import com.netflix.conductor.client.worker.Worker;
-import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.tasks.TaskResult;
-import org.conductoross.conductor.sdk.file.FileHandler;
+import com.netflix.conductor.sdk.workflow.task.OutputParam;
+import com.netflix.conductor.sdk.workflow.task.WorkerTask;
+import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
+import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.sdk.file.FileUploadOptions;
 
-public class UploadPrimaryVideoWorker implements Worker {
+public class UploadPrimaryVideoWorker {
 
     private static final String RESOURCE_PATH = "/data/primary_video.mov";
+    private final FileClient fileClient;
 
-    @Override
-    public String getTaskDefName() {
-        return "upload_primary_video";
+    public UploadPrimaryVideoWorker(FileClient fileClient) {
+        this.fileClient = fileClient;
     }
 
-    @Override
-    public TaskResult execute(Task task) {
-        TaskResult result = new TaskResult(task);
-
+    @WorkerTask("upload_primary_video")
+    public @OutputParam("primary_video") String upload(
+            @WorkflowInstanceIdInputParam String workflowId) throws IOException {
         try (InputStream in = UploadPrimaryVideoWorker.class.getResourceAsStream(RESOURCE_PATH)) {
             if (in == null) {
                 throw new IllegalStateException("Primary video not found on classpath at " + RESOURCE_PATH);
@@ -41,17 +41,10 @@ public class UploadPrimaryVideoWorker implements Worker {
             FileUploadOptions options = new FileUploadOptions()
                     .setFileName("primary_video.mov")
                     .setContentType("video/quicktime");
-            FileHandler uploaded = task.getFileUploader().upload(in, options);
+            String uploaded = fileClient.upload(workflowId, in, options);
 
-            result.getOutputData().put("primary_video", uploaded);
-            result.setStatus(TaskResult.Status.COMPLETED);
-
-            System.out.println("[upload_primary_video] Uploaded: " + uploaded.getFileHandleId());
-        } catch (Exception e) {
-            result.setStatus(TaskResult.Status.FAILED);
-            result.setReasonForIncompletion(e.getMessage());
-            e.printStackTrace();
+            System.out.println("[upload_primary_video] Uploaded: " + uploaded);
+            return uploaded;
         }
-        return result;
     }
 }

@@ -5,8 +5,9 @@
 ## Quick Start
 
 ```bash
-# Start Conductor
-docker run -d -p 8080:8080 -p 1234:5000 conductoross/conductor:latest
+# Recommended: install the CLI once, then start Conductor locally.
+npm install -g @conductor-oss/conductor-cli
+conductor server start
 
 # Pick any example and run it
 cd examples/basics/hello-world
@@ -18,11 +19,21 @@ mvn package -DskipTests && java -jar target/hello-world-1.0.0.jar
 
 - Java 21+
 - Maven 3.8+
-- Conductor server (local Docker or [Orkes Cloud](https://orkes.io))
+- Conductor server ([local CLI](../docs/server-setup.md), optional Docker, or [Orkes Cloud](https://orkes.io))
+
+Use an AI coding agent? Load [Conductor Skills](https://github.com/conductor-oss/conductor-skills) before asking it to work with these examples: `npm install -g @conductor-oss/conductor-skills && conductor-skills --all`.
 
 ## Machine-Readable Metadata
 
 See [`manifest.json`](manifest.json) for per-example metadata: category, workflow name, task types, required API keys, difficulty level, and Conductor primitives used.
+
+---
+
+## File Storage
+
+| Example | Description |
+|---|---|
+| [media-transcoder](file-storage/media-transcoder/) | Complete `FileClient` workflow covering path and stream uploads, metadata, downloads, a consistent `@WorkerTask` pattern, handle passing, and automatic multipart selection. |
 
 ---
 
@@ -238,36 +249,36 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 
 | Example | Description |
 |---------|-------------|
-| [api-test-generation](crm/api-test-generation/) | A Java Conductor workflow that automatically generates API tests from an OpenAPI specification. pa... |
-| [bug-triage](crm/bug-triage/) | A Java Conductor workflow that automatically triages bug reports. parsing the report text, classif... |
+| [api-test-generation](devops/api-test-generation/) | A Java Conductor workflow that automatically generates API tests from an OpenAPI specification. pa... |
+| [bug-triage](devops/bug-triage/) | A Java Conductor workflow that automatically triages bug reports. parsing the report text, classif... |
 | [campaign-automation](crm/campaign-automation/) | A Java Conductor workflow that runs a complete marketing campaign lifecycle. designing the campaig... |
-| [chatbot-orchestration](crm/chatbot-orchestration/) | A Java Conductor workflow that processes a chatbot conversation turn. receiving the user message w... |
-| [code-generation](crm/code-generation/) | A Java Conductor workflow that generates code from natural language requirements. parsing requirem... |
-| [code-review-ai](crm/code-review-ai/) | A Java Conductor workflow that reviews pull requests automatically. parsing the diff to extract ch... |
-| [commit-analysis](crm/commit-analysis/) | A Java Conductor workflow that analyzes a repository's commit history. parsing commits from a bran... |
+| [chatbot-orchestration](ai/chatbot-orchestration/) | A Java Conductor workflow that processes a chatbot conversation turn. receiving the user message w... |
+| [code-generation](ai-generation/code-generation/) | A Java Conductor workflow that generates code from natural language requirements. parsing requirem... |
+| [code-review-ai](ai-generation/code-review-ai/) | A Java Conductor workflow that reviews pull requests automatically. parsing the diff to extract ch... |
+| [commit-analysis](devops/commit-analysis/) | A Java Conductor workflow that analyzes a repository's commit history. parsing commits from a bran... |
 | [customer-journey](crm/customer-journey/) | A Java Conductor workflow that maps a customer's journey from first contact to conversion. trackin... |
-| [deployment-ai](crm/deployment-ai/) | A Java Conductor workflow that makes deployment decisions intelligently. analyzing code changes in... |
-| [document-qa](crm/document-qa/) | A Java Conductor workflow that answers questions about documents. ingesting a document from a URL,... |
-| [documentation-ai](crm/documentation-ai/) | A Java Conductor workflow that generates documentation from source code. analyzing a repository to... |
+| [deployment-ai](ai-generation/deployment-ai/) | A Java Conductor workflow that makes deployment decisions intelligently. analyzing code changes in... |
+| [document-qa](ai/document-qa/) | A Java Conductor workflow that answers questions about documents. ingesting a document from a URL,... |
+| [documentation-ai](ai-generation/documentation-ai/) | A Java Conductor workflow that generates documentation from source code. analyzing a repository to... |
 | [drip-campaign](crm/drip-campaign/) | A Java Conductor workflow that runs a drip email campaign for a contact. enrolling them in a campa... |
-| [event-management](crm/event-management/) | A Java Conductor workflow that manages an event lifecycle. planning the event with venue and sched... |
-| [helpdesk-routing](crm/helpdesk-routing/) | A Java Conductor workflow that routes helpdesk tickets to the right support tier. classifying the ... |
-| [incident-ai](crm/incident-ai/) | A Java Conductor workflow that handles production incidents end-to-end. detecting an anomaly from ... |
-| [knowledge-base-sync](crm/knowledge-base-sync/) | A Java Conductor workflow that keeps a knowledge base in sync with a source. crawling the source U... |
+| [event-management](events/event-management/) | A Java Conductor workflow that manages an event lifecycle. planning the event with venue and sched... |
+| [helpdesk-routing](human-in-loop/helpdesk-routing/) | A Java Conductor workflow that routes helpdesk tickets to the right support tier. classifying the ... |
+| [incident-ai](ai-generation/incident-ai/) | A Java Conductor workflow that handles production incidents end-to-end. detecting an anomaly from ... |
+| [knowledge-base-sync](ai/knowledge-base-sync/) | A Java Conductor workflow that keeps a knowledge base in sync with a source. crawling the source U... |
 | [lead-nurturing](crm/lead-nurturing/) | A Java Conductor workflow that nurtures a lead through a personalized outreach sequence. segmentin... |
 | [lead-scoring](crm/lead-scoring/) | Your top rep just spent three weeks nurturing a lead who was never going to buy: meanwhile, a VP of ... |
-| [monitoring-ai](crm/monitoring-ai/) | A Java Conductor workflow that provides intelligent monitoring. collecting system metrics from a s... |
-| [named-entity-extraction](crm/named-entity-extraction/) | A Java Conductor workflow that extracts named entities from text. tokenizing the input into words,... |
-| [pr-review-ai](crm/pr-review-ai/) | A Java Conductor workflow that automates pull request reviews. fetching the diff from the reposito... |
-| [question-answering](crm/question-answering/) | A Java Conductor workflow that answers natural language questions from a knowledge base. parsing t... |
-| [release-notes-ai](crm/release-notes-ai/) | A Java Conductor workflow that generates release notes automatically. collecting commits between t... |
-| [sentiment-analysis](crm/sentiment-analysis/) | A Java Conductor workflow that analyzes sentiment in customer text. preprocessing the input (clean... |
-| [summarization-pipeline](crm/summarization-pipeline/) | A Java Conductor workflow that summarizes long documents. extracting logical sections from the inp... |
-| [test-generation](crm/test-generation/) | A Java Conductor workflow that automatically generates unit tests from source code. analyzing the ... |
-| [text-classification](crm/text-classification/) | A Java Conductor workflow that classifies text into categories. preprocessing the input, extractin... |
-| [ticket-management](crm/ticket-management/) | A Java Conductor workflow that manages the full lifecycle of a support ticket. creating the ticket... |
-| [voice-bot](crm/voice-bot/) | A Java Conductor workflow that powers a voice-based conversational bot. transcribing caller audio ... |
-| [webinar-registration](crm/webinar-registration/) | A Java Conductor workflow that manages the end-to-end webinar registration experience. registering... |
+| [monitoring-ai](ai-generation/monitoring-ai/) | A Java Conductor workflow that provides intelligent monitoring. collecting system metrics from a s... |
+| [named-entity-extraction](data/named-entity-extraction/) | A Java Conductor workflow that extracts named entities from text. tokenizing the input into words,... |
+| [pr-review-ai](ai-generation/pr-review-ai/) | A Java Conductor workflow that automates pull request reviews. fetching the diff from the reposito... |
+| [question-answering](ai/question-answering/) | A Java Conductor workflow that answers natural language questions from a knowledge base. parsing t... |
+| [release-notes-ai](ai-generation/release-notes-ai/) | A Java Conductor workflow that generates release notes automatically. collecting commits between t... |
+| [sentiment-analysis](data/sentiment-analysis/) | A Java Conductor workflow that analyzes sentiment in customer text. preprocessing the input (clean... |
+| [summarization-pipeline](data/summarization-pipeline/) | A Java Conductor workflow that summarizes long documents. extracting logical sections from the inp... |
+| [test-generation](devops/test-generation/) | A Java Conductor workflow that automatically generates unit tests from source code. analyzing the ... |
+| [text-classification](data/text-classification/) | A Java Conductor workflow that classifies text into categories. preprocessing the input, extractin... |
+| [ticket-management](human-in-loop/ticket-management/) | A Java Conductor workflow that manages the full lifecycle of a support ticket. creating the ticket... |
+| [voice-bot](ai/voice-bot/) | A Java Conductor workflow that powers a voice-based conversational bot. transcribing caller audio ... |
+| [webinar-registration](events/webinar-registration/) | A Java Conductor workflow that manages the end-to-end webinar registration experience. registering... |
 
 ## Data (44)
 
@@ -284,13 +295,13 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [data-catalog](data/data-catalog/) | A Java Conductor workflow example for building a data catalog. discovering data assets across schema... |
 | [data-compression](data/data-compression/) | A Java Conductor workflow example for intelligent data compression. analyzing data characteristics t... |
 | [data-dedup](data/data-dedup/) | A Java Conductor workflow example for data deduplication: loading records, computing dedup keys from... |
-| [data-encryption](data/data-encryption/) | A Java Conductor workflow example for field-level data encryption. generating an encryption key for ... |
+| [data-encryption](security/data-encryption/) | A Java Conductor workflow example for field-level data encryption. generating an encryption key for ... |
 | [data-enrichment](data/data-enrichment/) | Marketing hands you a spreadsheet of 10,000 leads. Each row has a name, an email, and a zip code. Sa... |
 | [data-export](data/data-export/) | A Java Conductor workflow example for data export: querying a data source, then exporting the result... |
 | [data-lake-ingestion](data/data-lake-ingestion/) | A Java Conductor workflow example for data lake ingestion: validating incoming records against a sch... |
 | [data-lineage](data/data-lineage/) | A Java Conductor workflow example for data lineage tracking: registering the data source origin, app... |
-| [data-masking](data/data-masking/) | A Java Conductor workflow example for data masking: loading records, detecting PII fields (SSNs, ema... |
-| [data-migration](data/data-migration/) | A Java Conductor workflow example for database-to-database data migration. extracting records from a... |
+| [data-masking](security/data-masking/) | A Java Conductor workflow example for data masking: loading records, detecting PII fields (SSNs, ema... |
+| [data-migration](microservices/data-migration/) | A Java Conductor workflow example for database-to-database data migration. extracting records from a... |
 | [data-partitioning](data/data-partitioning/) | A Java Conductor workflow example for data partitioning. splitting a dataset into two partitions bas... |
 | [data-quality-checks](data/data-quality-checks/) | The executive dashboard shows 15% revenue growth this quarter. The CEO quotes it in the board meetin... |
 | [data-reconciliation](data/data-reconciliation/) | A Java Conductor workflow example for data reconciliation. fetching records from two independent sou... |
@@ -335,7 +346,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [ci-cd-pipeline](devops/ci-cd-pipeline/) | Someone pushed to main. Seven CI jobs kicked off in three different systems. The unit tests passed, ... |
 | [commit-analysis](devops/commit-analysis/) | A Java Conductor workflow that analyzes a repository's commit history. parsing commits from a bran... |
 | [compliance-scanning](devops/compliance-scanning/) | Orchestrates infrastructure compliance scanning using [Conductor](https://github.com/conductor-oss/c... |
-| [container-orchestration](devops/container-orchestration/) | Orchestrates a container build-scan-deploy pipeline using [Conductor](https://github.com/conductor-o... |
+| [container-orchestration](advanced/container-orchestration/) | Orchestrates a container build-scan-deploy pipeline using [Conductor](https://github.com/conductor-o... |
 | [cost-optimization](devops/cost-optimization/) | Orchestrates cloud cost optimization using [Conductor](https://github.com/conductor-oss/conductor). ... |
 | [custom-metrics](devops/custom-metrics/) | Automates custom metrics pipelines using [Conductor](https://github.com/conductor-oss/conductor). Th... |
 | [database-backup](devops/database-backup/) | The production disk died on a Tuesday. The team pulled up the backup schedule and discovered the las... |
@@ -428,7 +439,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [event-choreography](events/event-choreography/) | Choreography pattern: services communicate through events with no central orchestrator. Each service... |
 | [event-correlation](events/event-correlation/) | Event Correlation. init correlation session, fork to receive order/payment/shipping events in para... |
 | [event-dedup](events/event-dedup/) | Event deduplication workflow. computes a hash of the event payload, checks if the event has been s... |
-| [event-driven-microservices](events/event-driven-microservices/) | Event-driven microservices workflow: order_service -> emit_order_created -> payment_service -> emit_... |
+| [event-driven-microservices](microservices/event-driven-microservices/) | Event-driven microservices workflow: order_service -> emit_order_created -> payment_service -> emit_... |
 | [event-driven-saga](events/event-driven-saga/) | A customer places an order. Your service creates the order record, charges their credit card, and th... |
 | [event-driven-workflow](events/event-driven-workflow/) | Event-driven workflow that receives events, classifies them by type, and routes to the appropriate h... |
 | [event-fanout](events/event-fanout/) | Event fan-out workflow that receives an event, fans out to analytics, storage, and notification proc... |
@@ -443,7 +454,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [event-replay-testing](events/event-replay-testing/) | Event Replay Testing. loads recorded events, sets up a sandbox environment, replays each event in ... |
 | [event-routing](events/event-routing/) | An order-cancellation event lands in the user-profile handler. The handler doesn't know what to do w... |
 | [event-schema-validation](events/event-schema-validation/) | Event Schema Validation. validate an incoming event against a named schema, then route valid event... |
-| [event-sourcing](events/event-sourcing/) | Event Sourcing. load event log, append new event, rebuild aggregate state, and snapshot for a bank... |
+| [event-sourcing](microservices/event-sourcing/) | Event Sourcing. load event log, append new event, rebuild aggregate state, and snapshot for a bank... |
 | [event-split](events/event-split/) | Splits a composite event into multiple sub-events for parallel processing using FORK_JOIN. Uses [Con... |
 | [event-transformation](events/event-transformation/) | Event Transformation Pipeline. parse raw events, enrich with context, map to CloudEvents schema, a... |
 | [event-ttl](events/event-ttl/) | Event TTL workflow that checks if an event has expired, processes it if still valid, or logs it if t... |
@@ -598,7 +609,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [multi-level-approval](human-in-loop/multi-level-approval/) | A Java Conductor workflow example for sequential multi-level approval. routing a request through M... |
 | [multi-tenant-approval](human-in-loop/multi-tenant-approval/) | A Java Conductor workflow example for multi-tenant SaaS approval routing. loading each tenant's ap... |
 | [quality-gate](human-in-loop/quality-gate/) | A Java Conductor workflow example for deployment quality gates. running an automated test suite (4... |
-| [sla-monitoring](human-in-loop/sla-monitoring/) | A Java Conductor workflow example for measuring human approval response times against SLA targets . ... |
+| [sla-monitoring](devops/sla-monitoring/) | A Java Conductor workflow example for measuring human approval response times against SLA targets . ... |
 | [slack-approval](human-in-loop/slack-approval/) | A Java Conductor workflow example for Slack-native approvals. submitting a request, posting a Slac... |
 | [ticket-management](human-in-loop/ticket-management/) | A Java Conductor workflow that manages the full lifecycle of a support ticket. creating the ticket... |
 | [training-data-labeling](human-in-loop/training-data-labeling/) | A Java Conductor workflow example for ML training data quality. preparing a labeling batch, using ... |
@@ -843,7 +854,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 |---------|-------------|
 | [alerting-pipeline](scheduling/alerting-pipeline/) | A Java Conductor workflow example for building an alerting pipeline. evaluating metric rules again... |
 | [anomaly-detection](scheduling/anomaly-detection/) | Request latency on your checkout service crept from 120ms to 450ms over six hours. Nobody noticed be... |
-| [apm-workflow](scheduling/apm-workflow/) | A Java Conductor workflow example for application performance monitoring (APM). collecting distrib... |
+| [apm-workflow](devops/apm-workflow/) | A Java Conductor workflow example for application performance monitoring (APM). collecting distrib... |
 | [batch-scheduling](scheduling/batch-scheduling/) | Every night at 2 AM, four cron jobs fire simultaneously: the ETL import, the report generator, the d... |
 | [calendar-integration](scheduling/calendar-integration/) | A Java Conductor workflow example for calendar integration. fetching events from a calendar, compa... |
 | [capacity-monitoring](scheduling/capacity-monitoring/) | A Java Conductor workflow example for capacity monitoring. measuring current resource utilization ... |
@@ -851,21 +862,21 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [compliance-monitoring](scheduling/compliance-monitoring/) | A Java Conductor workflow example for compliance monitoring. scanning infrastructure resources, ev... |
 | [cost-monitoring](scheduling/cost-monitoring/) | A Java Conductor workflow example for cloud cost monitoring. collecting billing data across accoun... |
 | [cron-job-orchestration](scheduling/cron-job-orchestration/) | The nightly data export runs at 2 AM. It creates 4 GB of temp files in `/tmp`, writes results to S3,... |
-| [custom-metrics](scheduling/custom-metrics/) | A Java Conductor workflow example for custom metrics. defining business-specific metrics, collecti... |
+| [custom-metrics](devops/custom-metrics/) | A Java Conductor workflow example for custom metrics. defining business-specific metrics, collecti... |
 | [deadline-management](scheduling/deadline-management/) | The SOC 2 compliance filing was due Friday. On Monday morning, the auditor emails asking where it is... |
 | [dependency-mapping](scheduling/dependency-mapping/) | A Java Conductor workflow example for mapping service dependencies. discovering services in an env... |
 | [distributed-logging](scheduling/distributed-logging/) | A Java Conductor workflow example for distributed logging. collecting logs from multiple services ... |
 | [health-dashboard](scheduling/health-dashboard/) | A Java Conductor workflow example for building a health dashboard. checking the health of API serv... |
-| [log-aggregation](scheduling/log-aggregation/) | A Java Conductor workflow example for log aggregation. collecting logs from multiple sources, pars... |
+| [log-aggregation](devops/log-aggregation/) | A Java Conductor workflow example for log aggregation. collecting logs from multiple sources, pars... |
 | [maintenance-windows](scheduling/maintenance-windows/) | A Java Conductor workflow example for maintenance window management. checking whether the current ... |
-| [metrics-collection](scheduling/metrics-collection/) | A Java Conductor workflow example for metrics collection. gathering infrastructure metrics (CPU, m... |
+| [metrics-collection](devops/metrics-collection/) | A Java Conductor workflow example for metrics collection. gathering infrastructure metrics (CPU, m... |
 | [performance-profiling](scheduling/performance-profiling/) | A Java Conductor workflow example for performance profiling. instrumenting a service, collecting C... |
-| [predictive-monitoring](scheduling/predictive-monitoring/) | A Java Conductor workflow example for predictive monitoring. collecting historical metric data, tr... |
+| [predictive-monitoring](devops/predictive-monitoring/) | A Java Conductor workflow example for predictive monitoring. collecting historical metric data, tr... |
 | [recurring-billing](scheduling/recurring-billing/) | A Java Conductor workflow example for recurring billing. generating invoices on a recurring schedu... |
 | [root-cause-analysis](scheduling/root-cause-analysis/) | A Java Conductor workflow example for automated root cause analysis. detecting an issue, collectin... |
 | [scheduled-reports](scheduling/scheduled-reports/) | A Java Conductor workflow example for scheduled report generation. querying data sources, formatti... |
 | [sla-scheduling](scheduling/sla-scheduling/) | A Java Conductor workflow example for SLA-aware scheduling. prioritizing tickets by SLA urgency, e... |
-| [threshold-alerting](scheduling/threshold-alerting/) | A Java Conductor workflow example for threshold alerting. checking a metric against warning and cr... |
+| [threshold-alerting](devops/threshold-alerting/) | A Java Conductor workflow example for threshold alerting. checking a metric against warning and cr... |
 | [time-based-triggers](scheduling/time-based-triggers/) | A Java Conductor workflow example for time-based triggering. checking the current time and routing... |
 | [timezone-handling](scheduling/timezone-handling/) | A Java Conductor workflow example for timezone handling. detecting a user's timezone, converting r... |
 | [trace-collection](scheduling/trace-collection/) | A Java Conductor workflow example for distributed trace collection. instrumenting services, collec... |
@@ -950,7 +961,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [idempotent-start](task-patterns/idempotent-start/) | Idempotent start demo. demonstrates correlationId-based dedup and search-based idempotency. Uses [... |
 | [inline-tasks](task-patterns/inline-tasks/) | Demonstrates INLINE tasks. JavaScript that runs on the Conductor server with no workers. Uses [Condu... |
 | [jq-transform-advanced](task-patterns/jq-transform-advanced/) | Advanced JQ data transformations. flatten orders, aggregate by customer, classify into tiers. Uses... |
-| [map-reduce](task-patterns/map-reduce/) | MapReduce Pattern. Splits log files into parallel analysis tasks using FORK_JOIN_DYNAMIC, then aggre... |
+| [map-reduce](advanced/map-reduce/) | MapReduce Pattern. Splits log files into parallel analysis tasks using FORK_JOIN_DYNAMIC, then aggre... |
 | [nested-sub-workflows](task-patterns/nested-sub-workflows/) | Three-level nested order processing. order fulfillment (Level 1) delegates to a payment sub-workfl... |
 | [nested-switch](task-patterns/nested-switch/) | Multi-level decision tree using nested SWITCH tasks with value-param. Uses [Conductor](https://githu... |
 | [passing-output-to-input](task-patterns/passing-output-to-input/) | Shows all the ways to pass data between tasks. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
@@ -969,7 +980,7 @@ See [`manifest.json`](manifest.json) for per-example metadata: category, workflo
 | [task-definitions](task-patterns/task-definitions/) | Task definitions test. runs td_fast_task to verify task definition configuration. Uses [Conductor]... |
 | [task-domains](task-patterns/task-domains/) | Task Domains demo. route tasks to specific worker groups using domains. Uses [Conductor](https://g... |
 | [task-input-templates](task-patterns/task-input-templates/) | Shows reusable parameter mapping patterns. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/conduct... |
-| [task-priority](task-patterns/task-priority/) | Workflow priority demo. priority levels 0-99 (higher = more important). Uses [Conductor](https://g... |
+| [task-priority](advanced/task-priority/) | Workflow priority demo. priority levels 0-99 (higher = more important). Uses [Conductor](https://g... |
 | [terminate-task](task-patterns/terminate-task/) | Early exit with TERMINATE based on validation. Uses [Conductor](https://github.com/conductor-oss/conductor) to orchestrate independent services as workers.com/conductor-oss/con... |
 | [wait-for-event](task-patterns/wait-for-event/) | WAIT task demo. pauses a workflow durably until an external system sends a signal (approval, webhook... |
 | [workflow-archival](task-patterns/workflow-archival/) | Archival demo workflow. single task for demonstrating cleanup policies. Uses [Conductor](https://g... |

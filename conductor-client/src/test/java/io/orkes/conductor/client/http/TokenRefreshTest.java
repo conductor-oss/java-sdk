@@ -36,6 +36,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -199,6 +200,34 @@ public class TokenRefreshTest {
         }
     }
 
+    /**
+     * Models an OSS/no-auth server where the Orkes token-mint endpoint is not
+     * available, but regular API endpoints work without credentials.
+     */
+    private static class NoAuthServerDispatcher extends Dispatcher {
+        final AtomicInteger tokenAttempts = new AtomicInteger(0);
+        final AtomicReference<String> businessAuthorizationHeader = new AtomicReference<>();
+
+        @NotNull
+        @Override
+        public MockResponse dispatch(@NotNull RecordedRequest request) {
+            String path = request.getPath() == null ? "" : request.getPath();
+            if (path.endsWith("/token") && "POST".equals(request.getMethod())) {
+                tokenAttempts.incrementAndGet();
+                return new MockResponse()
+                        .setResponseCode(404)
+                        .setHeader("Content-Type", "application/json")
+                        .setBody("{\"message\":\"No static resource api/token.\"}");
+            }
+
+            businessAuthorizationHeader.set(request.getHeader(AUTH_HEADER));
+            return new MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "text/plain")
+                    .setBody("ok");
+        }
+    }
+
     @Test
     public void refreshesAndContinuesAfterExpiry() throws IOException {
         server = new MockWebServer();
@@ -334,6 +363,24 @@ public class TokenRefreshTest {
         assertThrows(ConductorClientException.class, () -> callBusinessEndpoint(client));
         assertEquals(1, dispatcher.tokenMints.get(),
                 "401 with an empty body must bubble up without minting a new token");
+    }
+
+    @Test
+    public void disablesAuthenticationWhenTokenEndpointIsNotFound() throws IOException {
+        server = new MockWebServer();
+        NoAuthServerDispatcher dispatcher = new NoAuthServerDispatcher();
+        server.setDispatcher(dispatcher);
+        server.start();
+
+        ApiClient client = buildClient();
+
+        ConductorClientResponse<String> response = callBusinessEndpoint(client);
+
+        assertEquals(200, response.getStatusCode());
+        assertEquals("ok", response.getData());
+        assertEquals(1, dispatcher.tokenAttempts.get(), "the unsupported token endpoint must be probed once");
+        assertNull(dispatcher.businessAuthorizationHeader.get(),
+                "fallback requests must not include X-Authorization");
     }
 
     @Test

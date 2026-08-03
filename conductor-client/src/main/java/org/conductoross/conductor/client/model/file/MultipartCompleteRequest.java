@@ -14,12 +14,10 @@ package org.conductoross.conductor.client.model.file;
 
 import java.util.List;
 
-import org.conductoross.conductor.sdk.file.FileStorageBackend;
-
 /**
- * Payload for {@code POST /api/files/{fileId}/multipart/{uploadId}/complete}. {@code partETags}
- * is the ordered list of ETags (or backend-equivalent identifiers) returned by each
- * {@link FileStorageBackend#uploadPart uploadPart} call.
+ * Payload for {@code POST /api/files/{workflowId}/{fileId}/multipart/{uploadId}/complete}.
+ * {@code partETags} is the ordered list of provider completion tokens returned by each part
+ * transfer.
  */
 public class MultipartCompleteRequest {
 

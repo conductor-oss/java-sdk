@@ -1,0 +1,111 @@
+/*
+ * Copyright 2025 Conductor Authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.conductoross.conductor.ai.Agent;
+import org.conductoross.conductor.ai.AgentConfig;
+import org.conductoross.conductor.ai.AgentRuntime;
+import org.conductoross.conductor.ai.annotations.Tool;
+import org.conductoross.conductor.ai.enums.AgentStatus;
+import org.conductoross.conductor.ai.internal.ToolRegistry;
+import org.conductoross.conductor.ai.model.AgentResult;
+import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Suite 2: Tool Calling — agent execution with side-effect validation.
+ *
+ * <p>Tests verify that tools are actually called during execution by checking
+ * a side-effect flag set inside the tool function body — not by parsing
+ * LLM output text or inspecting workflow task names.
+ *
+ * <p>CLAUDE.md rule: no LLM for validation unless doing evals.
+ * Side-effect assertion: tool function body must have executed.
+ *
+ * <p>The server names tool-call tasks as {@code call_{llm_call_id}__N}, not
+ * by the tool name, so referenceTaskName-based assertions don't work.
+ * The AtomicBoolean side-effect is the strongest counterfactual: if tool
+ * registration or dispatch is broken the flag stays false.
+ */
+@Tag("e2e")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class Suite2ToolCalling extends BaseTest {
+
+    private static AgentRuntime runtime;
+
+    /** Set to true inside the add() tool body when the tool is actually invoked. */
+    private static final AtomicBoolean toolWasCalled = new AtomicBoolean(false);
+
+    @BeforeAll
+    static void setup() {
+        // Use BASE_URL (without /api suffix) since AgentConfig + HttpApi
+        // already prepend /api to every path.
+        runtime = new AgentRuntime(new AgentConfig(100, 1));
+    }
+
+    @AfterAll
+    static void teardown() {
+        if (runtime != null) runtime.close();
+    }
+
+    // ── Tool class ────────────────────────────────────────────────────────
+
+    static class MathTools {
+        @Tool(name = "add", description = "Add two integers and return the result")
+        public int add(int a, int b) {
+            // Side-effect: prove the tool function body actually ran.
+            toolWasCalled.set(true);
+            return a + b;
+        }
+    }
+
+    // ── Tests ─────────────────────────────────────────────────────────────
+
+    /**
+     * Agent calls the 'add' tool and the tool function body executes.
+     *
+     * COUNTERFACTUAL: if tool registration is broken, the worker is never
+     * invoked, toolWasCalled stays false, and the assertion fails.
+     * If tool deserialization or dispatch breaks, the LLM either won't call
+     * the tool or the worker won't be polled, and the flag stays false.
+     */
+    @Test
+    @Order(1)
+    @Timeout(value = 300, unit = TimeUnit.SECONDS)
+    void test_agent_calls_worker_tool() {
+        toolWasCalled.set(false); // reset before each run
+
+        Agent agent = Agent.builder()
+                .name("e2e_java_math_agent")
+                .model(MODEL)
+                .instructions("You MUST call the add tool with arguments a=7, b=8. Report the result.")
+                .tools(ToolRegistry.fromInstance(new MathTools()))
+                .maxTurns(3)
+                .build();
+
+        AgentResult result = runtime.run(agent, "What is 7 + 8?");
+
+        assertEquals(
+                AgentStatus.COMPLETED,
+                result.getStatus(),
+                "Agent did not complete. Status: " + result.getStatus() + ". Error: " + result.getError());
+
+        assertTrue(
+                toolWasCalled.get(),
+                "The 'add' tool function body was never called. "
+                        + "COUNTERFACTUAL: if tool registration or the tool dispatch is broken, "
+                        + "the worker is never invoked and this flag stays false.");
+    }
+}

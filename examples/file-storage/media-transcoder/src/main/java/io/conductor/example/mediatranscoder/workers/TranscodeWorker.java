@@ -13,30 +13,47 @@
 package io.conductor.example.mediatranscoder.workers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
-import org.conductoross.conductor.sdk.file.FileHandler;
+import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
+import org.conductoross.conductor.client.FileClient;
+import org.conductoross.conductor.sdk.file.FileUploadOptions;
 
 public class TranscodeWorker {
 
+    private final FileClient fileClient;
+
+    public TranscodeWorker(FileClient fileClient) {
+        this.fileClient = fileClient;
+    }
+
     public static class TranscodeInput {
-        public FileHandler primary_video;
+        public String primary_video;
         public String resolution;
     }
 
     @WorkerTask("transcode_video")
-    public @OutputParam("output_file") FileHandler transcode(TranscodeInput input) throws IOException {
+    public @OutputParam("output_file") String transcode(
+            TranscodeInput input,
+            @WorkflowInstanceIdInputParam String workflowId) throws IOException {
+        Path downloaded = Files.createTempFile("primary-", ".mov");
         Path transcoded = Files.createTempFile("transcoded-" + input.resolution + "-", ".mp4");
-        try (InputStream in = input.primary_video.getInputStream()) {
+        try {
+            fileClient.download(workflowId, input.primary_video, downloaded);
             Files.write(transcoded, ("TRANSCODED:" + input.resolution + "\n").getBytes());
-            Files.write(transcoded, in.readAllBytes(), StandardOpenOption.APPEND);
+            Files.write(transcoded, Files.readAllBytes(downloaded), StandardOpenOption.APPEND);
+            System.out.println("[transcode_video] Transcoded to " + transcoded);
+            return fileClient.upload(
+                    workflowId,
+                    transcoded,
+                    new FileUploadOptions().setContentType("video/mp4"));
+        } finally {
+            Files.deleteIfExists(downloaded);
+            Files.deleteIfExists(transcoded);
         }
-        System.out.println("[transcode_video] Transcoded to " + transcoded);
-        return FileHandler.fromLocalFile(transcoded, "video/mp4");
     }
 }

@@ -13,8 +13,9 @@
 package org.conductoross.conductor.client.model.file;
 
 /**
- * Response to {@code GET /api/files/{fileId}/download-url} — a freshly issued presigned
- * download URL. Requires the underlying file to be in {@link FileUploadStatus#UPLOADED}.
+ * Response to {@code GET /api/files/{workflowId}/{fileId}/download-url} — a freshly issued
+ * presigned download URL. Requires the underlying file to be in
+ * {@link FileUploadStatus#UPLOADED}.
  */
 public class FileDownloadUrlResponse {
 

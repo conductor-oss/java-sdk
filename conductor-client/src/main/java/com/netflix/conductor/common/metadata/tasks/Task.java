@@ -18,16 +18,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
-import org.conductoross.conductor.sdk.file.FileHandler;
-import org.conductoross.conductor.sdk.file.FileStorageException;
-import org.conductoross.conductor.sdk.file.FileUploader;
-import org.conductoross.conductor.sdk.file.ManagedFileHandler;
-import org.conductoross.conductor.sdk.file.WorkflowFileClient;
 
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.tasks.TypedTask;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
@@ -194,31 +188,12 @@ public class Task {
 
     private long firstStartTime;
 
-    @JsonIgnore
-    private transient WorkflowFileClient workflowFileClient;
-
-    @JsonIgnore
-    public FileUploader getFileUploader() {
-        return workflowFileClient;
-    }
-
-    public void setWorkflowFileClient(WorkflowFileClient workflowFileClient) {
-        this.workflowFileClient = workflowFileClient;
-    }
-
-    public FileHandler getInputFileHandler(String key) {
-        if (workflowFileClient == null) {
-            throw new FileStorageException("FileClient is not configured; cannot access file input for key '" + key + "'");
-        }
-        Object value = getInputData().get(key);
-        String fileHandleId = FileHandler.extractFileHandleId(value);
-        if (FileHandler.isFileHandleId(fileHandleId)) {
-            return new ManagedFileHandler(fileHandleId, workflowFileClient);
-        }
-        throw new FileStorageException(
-                "Expected " + FileHandler.PREFIX
-                        + " reference for key '" + key + "', got: " + value);
-    }
+    /**
+     * Secret values delivered by a Conductor OSS host with PR #1255 for the names declared on
+     * {@code TaskDef.runtimeMetadata} — resolved
+     * at poll time, wire-only, never persisted to task input.
+     */
+    private Map<String, String> runtimeMetadata;
 
     public void setInputData(Map<String, Object> inputData) {
         if (inputData == null) {
