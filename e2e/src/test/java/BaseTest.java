@@ -25,14 +25,13 @@ import io.orkes.conductor.client.model.agent.CompileResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Base class for all e2e tests.
  *
  * <p>Provides:
  * <ul>
- *   <li>Server health check that skips tests if server is not available</li>
+ *   <li>Server health check that fails tests if the server is not available</li>
  *   <li>Helper methods to fetch workflow data from the server</li>
  *   <li>Helper to extract agentDef from a plan() result</li>
  * </ul>
@@ -43,8 +42,24 @@ public abstract class BaseTest {
     protected static final String SERVER_URL =
             System.getenv().getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
 
-    /** Base URL (without /api) for health checks and workflow fetches. */
-    protected static final String BASE_URL = SERVER_URL.replace("/api", "");
+    /** Base URL (without the {@code /api} suffix) for health checks and workflow fetches. */
+    protected static final String BASE_URL = stripApiSuffix(SERVER_URL);
+
+    /**
+     * Strip a single trailing {@code /api}, tolerating a trailing slash.
+     *
+     * <p>Deliberately not {@code replace("/api", "")}, which strips *every* occurrence:
+     * {@code https://api.example.com/api} collapsed to {@code https:/.example.com}, because
+     * the pattern also matches inside {@code //api...}. Harmless against localhost, broken
+     * against any hosted server.
+     */
+    private static String stripApiSuffix(String url) {
+        String resolved = url;
+        while (resolved.endsWith("/")) {
+            resolved = resolved.substring(0, resolved.length() - 1);
+        }
+        return resolved.endsWith("/api") ? resolved.substring(0, resolved.length() - "/api".length()) : resolved;
+    }
 
     /** LLM model to use in e2e tests. */
     protected static final String MODEL = System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-4o-mini");
@@ -56,7 +71,14 @@ public abstract class BaseTest {
 
     /**
      * Check that the server is available before any tests in the class run.
-     * If the server is not reachable or unhealthy, all tests in the class are skipped.
+     * If the server is not reachable or unhealthy, all tests in the class fail.
+     *
+     * <p>Deliberately a hard failure, not {@code assumeTrue}. A skipped JUnit test is a
+     * <em>passing</em> JUnit test, so skipping here meant an unreachable server produced a
+     * green run that had verified nothing. Reaching these suites at all requires opting in
+     * with {@code -Pe2e} (see build.gradle), so by this point the caller has explicitly
+     * asked for e2e: being unable to reach a server is a failure of what they asked for,
+     * not a reason to quietly do nothing.
      */
     @BeforeAll
     static void checkServerHealth() {
@@ -75,10 +97,27 @@ public abstract class BaseTest {
                 Object h = body.get("healthy");
                 healthy = Boolean.TRUE.equals(h);
             }
-            assumeTrue(healthy, "Server at " + BASE_URL + " is not healthy — skipping e2e tests");
+            if (!healthy) {
+                throw new IllegalStateException(unreachable("server reported unhealthy"));
+            }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            assumeTrue(false, "Server not available at " + BASE_URL + ": " + e.getMessage());
+            // ConnectException and friends often carry a null message — naming the type is
+            // more useful than printing "(null)".
+            String detail = e.getMessage() != null && !e.getMessage().isBlank()
+                    ? e.getClass().getSimpleName() + ": " + e.getMessage()
+                    : e.getClass().getSimpleName();
+            throw new IllegalStateException(unreachable(detail), e);
         }
+    }
+
+    private static String unreachable(String detail) {
+        return "e2e suites need a reachable Conductor server, but " + BASE_URL + " is not usable ("
+                + detail + ").\n"
+                + "  Set CONDUCTOR_SERVER_URL, or start a server with the agent runtime enabled\n"
+                + "  (conductor-oss >= 3.32.0-rc.8). These suites also need server-side LLM\n"
+                + "  credentials: OPENAI_API_KEY for the default openai/gpt-4o-mini model.";
     }
 
     /**
