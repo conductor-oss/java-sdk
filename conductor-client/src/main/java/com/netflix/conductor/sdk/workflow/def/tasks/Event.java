@@ -22,6 +22,8 @@ public class Event extends Task<Event> {
 
     private static final String SINK_PARAMETER = "sink";
 
+    private boolean asyncComplete;
+
     /**
      * @param taskReferenceName Unique reference name within the workflow
      * @param eventSink qualified name of the event sink where the message is published. Using the
@@ -38,6 +40,21 @@ public class Event extends Task<Event> {
 
     Event(WorkflowTask workflowTask) {
         super(workflowTask);
+        this.asyncComplete = Boolean.TRUE.equals(workflowTask.isAsyncComplete());
+    }
+
+    public Event asyncComplete(boolean asyncComplete) {
+        this.asyncComplete = asyncComplete;
+        return this;
+    }
+
+    public boolean isAsyncComplete() {
+        return asyncComplete;
+    }
+
+    @Override
+    protected void updateWorkflowTask(WorkflowTask workflowTask) {
+        workflowTask.setAsyncComplete(asyncComplete);
     }
 
     public String getSink() {

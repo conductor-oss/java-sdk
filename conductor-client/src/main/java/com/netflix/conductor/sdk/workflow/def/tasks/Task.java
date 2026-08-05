@@ -39,8 +39,6 @@ public abstract class Task<T> {
 
     private int startDelay;
 
-    private boolean asyncComplete;
-
     private final TaskType type;
 
     private Map<String, Object> input = new HashMap<>();
@@ -71,7 +69,6 @@ public abstract class Task<T> {
         this.input = workflowTask.getInputParameters();
         this.description = workflowTask.getDescription();
         this.name = workflowTask.getName();
-        this.asyncComplete = Boolean.TRUE.equals(workflowTask.isAsyncComplete());
     }
 
     public T name(String name) {
@@ -82,15 +79,6 @@ public abstract class Task<T> {
     public T description(String description) {
         this.description = description;
         return (T) this;
-    }
-
-    public T asyncComplete(boolean asyncComplete) {
-        this.asyncComplete = asyncComplete;
-        return (T) this;
-    }
-
-    public boolean isAsyncComplete() {
-        return asyncComplete;
     }
 
     public T input(String key, boolean value) {
@@ -222,7 +210,6 @@ public abstract class Task<T> {
         workflowTask.setInputParameters(input);
         workflowTask.setStartDelay(startDelay);
         workflowTask.setOptional(optional);
-        workflowTask.setAsyncComplete(asyncComplete);
 
         // Let the sub-classes enrich the workflow task before returning back
         updateWorkflowTask(workflowTask);
