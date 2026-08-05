@@ -5,13 +5,32 @@ name: Agent E2E
 # the agent runtime on by default from 3.32.0-rc.8 onward. A separate agent
 # server JAR is no longer used here.
 #
-# These tests call real LLMs via the OPENAI_API_KEY / ANTHROPIC_API_KEY
-# repo secrets. The suites themselves never read the keys (asserted by
-# Suite2ToolCallingCredentials) — only the server process gets them.
-# Fork PRs cannot see repo secrets, so for them the run fails at the
-# silently-empty guard rather than passing vacuously.
+# These tests call real LLMs via the OPENAI_API_KEY / ANTHROPIC_API_KEY repo
+# secrets. LLM and tool execution happens server-side, so the keys are consumed by
+# the server process. Only one suite reads a key at all: Suite7MediaTools gates its
+# live image-generation test on OPENAI_API_KEY.
+#
+# BaseTest.MODEL defaults to openai/gpt-4o-mini, so OPENAI_API_KEY is the one that
+# must be present; ANTHROPIC_API_KEY matters only when the model is overridden.
+#
+# Fork PRs cannot see repo secrets. The server still boots healthy — /health does not
+# check provider credentials — so the suites run and fail on their LLM tasks, and the
+# job fails at "Run e2e suites".
+#
+# There is no separate "did anything actually run?" guard: BaseTest fails hard rather
+# than assumeTrue-skipping when the server is unreachable, so a green run that
+# verified nothing is not reachable.
 
-on: [pull_request, workflow_dispatch]
+# Runs on push-to-main as well as PRs, so a regression on main is caught at merge
+# rather than waiting for someone to open the next PR. Matches the sibling SDKs,
+# whose e2e jobs run on push+PR; no workflow there uses a schedule, so cost tracks
+# merge frequency rather than a clock, and the concurrency group above collapses
+# rapid pushes.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -31,6 +50,9 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       CONDUCTOR_SERVER_URL: http://localhost:8080/api
+      # Pinned rather than left to BaseTest's default, so CI cost cannot shift silently
+      # if that default changes.
+      CONDUCTOR_AGENT_LLM_MODEL: openai/gpt-4o-mini
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,13 +62,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-
-      # Python is only needed for mcp-testkit and the XML guard.
-      # No `cache: pip` — it hard-fails without a requirements file.
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
 
       - name: Cache server JAR
         id: jar_cache
@@ -61,15 +76,10 @@ jobs:
           curl -fL --retry 3 -o conductor-server.jar \
             "https://repo1.maven.org/maven2/org/conductoross/conductor-server/${CONDUCTOR_SERVER_VERSION}/conductor-server-${CONDUCTOR_SERVER_VERSION}-boot.jar"
 
-      - name: Install mcp-testkit
-        run: |
-          python -m pip install --upgrade pip
-          pip install mcp-testkit
-
-      - name: Start mcp-testkit
-        run: |
-          mcp-testkit --transport http --port 3001 &
-          sleep 2
+      # No MCP broker is started: Suite4McpTools is plan()-only and asserts against a
+      # fabricated http://localhost:9999/mcp, so nothing ever connected to the broker
+      # this job used to run on port 3001. Wiring live MCP execution means adding one
+      # back and pointing the suite at it.
 
       - name: Start server
         run: |
@@ -89,28 +99,6 @@ jobs:
 
       - name: Run e2e suites
         run: ./gradlew :e2e:test -Pe2e
-
-      # BaseTest assumeTrue-skips every suite when the server is unreachable —
-      # without this guard a boot failure after the health gate (or a future
-      # gate regression) would yield a green job that ran nothing.
-      - name: Guard against silently-empty runs
-        if: always()
-        run: |
-          python - <<'EOF'
-          import glob
-          import sys
-          import xml.etree.ElementTree as ET
-
-          total = executed = 0
-          for path in glob.glob("e2e/build/test-results/test/TEST-*.xml"):
-              root = ET.parse(path).getroot()
-              t = int(root.get("tests", 0))
-              sk = int(root.get("skipped", 0))
-              total += t
-              executed += t - sk
-          print(f"executed {executed}/{total} tests")
-          sys.exit(0 if executed > 0 else 1)
-          EOF
 
       - name: Upload results
         if: always()
