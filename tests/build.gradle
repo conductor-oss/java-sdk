@@ -38,4 +38,7 @@ tasks.withType(Test) {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
 }
-tasks.forEach(task -> task.onlyIf { project.hasProperty('IntegrationTests') })
+// Gate execution only — see the equivalent note in e2e/build.gradle. Gating every
+// task also skipped compileTestJava and spotlessCheck for this module.
+tasks.withType(Test).configureEach { onlyIf { project.hasProperty('IntegrationTests') } }
+tasks.withType(JacocoReport).configureEach { onlyIf { project.hasProperty('IntegrationTests') } }

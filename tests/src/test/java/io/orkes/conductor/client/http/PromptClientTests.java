@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,6 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Category;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import io.orkes.conductor.client.util.ClientTestUtil;
 
 public class PromptClientTests {

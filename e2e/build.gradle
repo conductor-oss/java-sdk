@@ -46,4 +46,10 @@ tasks.withType(Test) {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
 }
-tasks.forEach(task -> task.onlyIf { project.hasProperty('e2e') })
+// Gate execution only. Gating *every* task (as this used to) also skips
+// compileTestJava and spotlessCheck, so `./gradlew build` never type-checked these
+// suites and they could rot to compile errors unnoticed. JacocoReport is gated
+// alongside Test because jacocoTestReport dependsOn test — left ungated it would try
+// to build a report from a skipped test task.
+tasks.withType(Test).configureEach { onlyIf { project.hasProperty('e2e') } }
+tasks.withType(JacocoReport).configureEach { onlyIf { project.hasProperty('e2e') } }

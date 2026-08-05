@@ -18,8 +18,8 @@ import com.netflix.conductor.client.http.ConductorClient;
 import io.orkes.conductor.client.AgentClient;
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.exceptions.AgentAPIException;
-import io.orkes.conductor.client.exceptions.AgentNotFoundException;
 import io.orkes.conductor.client.exceptions.AgentException;
+import io.orkes.conductor.client.exceptions.AgentNotFoundException;
 import io.orkes.conductor.client.http.OrkesAgentClient;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
