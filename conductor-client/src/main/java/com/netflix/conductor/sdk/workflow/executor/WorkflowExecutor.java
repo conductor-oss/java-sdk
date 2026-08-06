@@ -52,6 +52,7 @@ import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
 import com.netflix.conductor.sdk.workflow.def.tasks.Event;
 import com.netflix.conductor.sdk.workflow.def.tasks.ForkJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.Http;
+import com.netflix.conductor.sdk.workflow.def.tasks.Human;
 import com.netflix.conductor.sdk.workflow.def.tasks.JQ;
 import com.netflix.conductor.sdk.workflow.def.tasks.Javascript;
 import com.netflix.conductor.sdk.workflow.def.tasks.Join;
@@ -116,6 +117,7 @@ public class WorkflowExecutor {
         TaskRegistry.register(TaskType.TERMINATE.name(), Terminate.class);
         TaskRegistry.register(TaskType.WAIT.name(), Wait.class);
         TaskRegistry.register(TaskType.EVENT.name(), Event.class);
+        TaskRegistry.register(TaskType.HUMAN.name(), Human.class);
         // AI / LLM system task types
         TaskRegistry.register(TaskType.LLM_CHAT_COMPLETE.name(), LlmChatComplete.class);
         TaskRegistry.register(TaskType.LLM_TEXT_COMPLETE.name(), LlmTextComplete.class);
