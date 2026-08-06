@@ -293,8 +293,28 @@ class PrometheusMetricsCollectorTest {
     // --- getRegistry ---
 
     @Test
+    @SuppressWarnings("deprecation")
     void getRegistryReturnsNonNull() {
         assertNotNull(collector.getRegistry());
+    }
+
+    // --- Deprecated backward-compatible embedded-server path ---
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void deprecatedNoArgConstructorStillRecordsIntoPrometheusRegistry() {
+        PrometheusMetricsCollector legacy = new PrometheusMetricsCollector();
+        assertInstanceOf(io.micrometer.prometheusmetrics.PrometheusMeterRegistry.class, legacy.getRegistry());
+        assertNotNull(legacy.getApiClientMetrics());
+        assertDoesNotThrow(() -> legacy.consume(new PollStarted("HTTP")));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void startServerRejectsNonPrometheusRegistry() {
+        PrometheusMetricsCollector simple =
+                new PrometheusMetricsCollector(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        assertThrows(IllegalStateException.class, () -> simple.startServer(0, "/metrics"));
     }
 
     // --- Multiple increments accumulate ---
