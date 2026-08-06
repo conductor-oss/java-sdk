@@ -14,7 +14,9 @@ package com.netflix.conductor.sdk.workflow.def;
 
 import org.junit.jupiter.api.Test;
 
+import com.netflix.conductor.common.metadata.tasks.TaskType;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
+import com.netflix.conductor.sdk.workflow.def.tasks.Human;
 import com.netflix.conductor.sdk.workflow.def.tasks.SimpleTask;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
@@ -24,6 +26,16 @@ public class WorkflowDefTaskTests {
 
     static {
         WorkflowExecutor.initTaskImplementations();
+    }
+
+    @Test
+    public void testHumanTask() {
+        String taskReferenceName = "human_approval_ref";
+
+        WorkflowTask workflowTask = new Human(taskReferenceName).getWorkflowDefTasks().get(0);
+
+        assertEquals(TaskType.HUMAN.name(), workflowTask.getType());
+        assertEquals(taskReferenceName, workflowTask.getTaskReferenceName());
     }
 
     @Test
