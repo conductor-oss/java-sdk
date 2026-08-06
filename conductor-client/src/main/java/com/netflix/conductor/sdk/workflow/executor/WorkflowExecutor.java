@@ -50,6 +50,7 @@ import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.Dynamic;
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
 import com.netflix.conductor.sdk.workflow.def.tasks.Event;
+import com.netflix.conductor.sdk.workflow.def.tasks.ExclusiveJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.ForkJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.Http;
 import com.netflix.conductor.sdk.workflow.def.tasks.JQ;
@@ -107,6 +108,7 @@ public class WorkflowExecutor {
         TaskRegistry.register(TaskType.FORK_JOIN.name(), ForkJoin.class);
         TaskRegistry.register(TaskType.HTTP.name(), Http.class);
         TaskRegistry.register(TaskType.INLINE.name(), Javascript.class);
+        TaskRegistry.register(TaskType.EXCLUSIVE_JOIN.name(), ExclusiveJoin.class);
         TaskRegistry.register(TaskType.JOIN.name(), Join.class);
         TaskRegistry.register(TaskType.JSON_JQ_TRANSFORM.name(), JQ.class);
         TaskRegistry.register(TaskType.SET_VARIABLE.name(), SetVariable.class);
