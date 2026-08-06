@@ -28,6 +28,7 @@ import com.netflix.conductor.sdk.workflow.def.tasks.DoWhile;
 import com.netflix.conductor.sdk.workflow.def.tasks.Dynamic;
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
 import com.netflix.conductor.sdk.workflow.def.tasks.Event;
+import com.netflix.conductor.sdk.workflow.def.tasks.ExclusiveJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.ForkJoin;
 import com.netflix.conductor.sdk.workflow.def.tasks.Http;
 import com.netflix.conductor.sdk.workflow.def.tasks.JQ;
@@ -543,6 +544,51 @@ public class TaskConversionsTests {
                 "function e() { if ($.value == 1){return {\"result\": true}} else { return {\"result\": false}}} e();");
         var result = inlineTask.validate();
         assertNotNull(result);
+    }
+
+    @Test
+    public void testExclusiveJoin() {
+        ExclusiveJoin exclusiveJoin =
+                new ExclusiveJoin("task_ref_name", "task1", "task2")
+                        .defaultExclusiveJoinTask("task_default");
+
+        WorkflowTask workflowTask = exclusiveJoin.getWorkflowDefTasks().get(0);
+        assertNotNull(workflowTask.getJoinOn());
+        assertFalse(workflowTask.getJoinOn().isEmpty());
+        assertNotNull(workflowTask.getDefaultExclusiveJoinTask());
+        assertFalse(workflowTask.getDefaultExclusiveJoinTask().isEmpty());
+
+        Task fromWorkflowTask = TaskRegistry.getTask(workflowTask);
+        assertTrue(
+                fromWorkflowTask instanceof ExclusiveJoin,
+                "task is not of type ExclusiveJoin, but of type "
+                        + fromWorkflowTask.getClass().getName());
+        ExclusiveJoin taskFromWorkflowTask = (ExclusiveJoin) fromWorkflowTask;
+
+        assertNotNull(fromWorkflowTask);
+        assertEquals(exclusiveJoin.getName(), fromWorkflowTask.getName());
+        assertEquals(exclusiveJoin.getTaskReferenceName(), fromWorkflowTask.getTaskReferenceName());
+        assertEquals(exclusiveJoin.getType(), taskFromWorkflowTask.getType());
+
+        assertEquals(exclusiveJoin.getJoinOn().length, taskFromWorkflowTask.getJoinOn().length);
+        assertEquals(
+                Arrays.asList(exclusiveJoin.getJoinOn()).stream()
+                        .sorted()
+                        .collect(Collectors.toSet()),
+                Arrays.asList(taskFromWorkflowTask.getJoinOn()).stream()
+                        .sorted()
+                        .collect(Collectors.toSet()));
+
+        assertEquals(
+                exclusiveJoin.getDefaultExclusiveJoinTask().length,
+                taskFromWorkflowTask.getDefaultExclusiveJoinTask().length);
+        assertEquals(
+                Arrays.asList(exclusiveJoin.getDefaultExclusiveJoinTask()).stream()
+                        .sorted()
+                        .collect(Collectors.toSet()),
+                Arrays.asList(taskFromWorkflowTask.getDefaultExclusiveJoinTask()).stream()
+                        .sorted()
+                        .collect(Collectors.toSet()));
     }
 
 }
