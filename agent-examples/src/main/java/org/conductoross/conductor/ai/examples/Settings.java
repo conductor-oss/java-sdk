@@ -17,7 +17,7 @@ package org.conductoross.conductor.ai.examples;
  *
  * <p>Set these before running examples:
  * <pre>
- * export CONDUCTOR_SERVER_URL=http://localhost:6767/api
+ * export CONDUCTOR_SERVER_URL=http://localhost:8080/api
  * export CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o
  * export CONDUCTOR_AUTH_KEY=your-key       # optional
  * export CONDUCTOR_AUTH_SECRET=your-secret # optional
@@ -27,7 +27,7 @@ public class Settings {
     private static final java.util.Map<String, String> ENV = System.getenv();
 
     public static final String SERVER_URL =
-        ENV.getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:6767/api");
+        ENV.getOrDefault("CONDUCTOR_SERVER_URL", "http://localhost:8080/api");
 
     public static final String LLM_MODEL =
         ENV.getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-4o");

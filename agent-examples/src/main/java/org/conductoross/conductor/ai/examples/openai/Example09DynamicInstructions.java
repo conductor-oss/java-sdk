@@ -39,7 +39,7 @@ import org.conductoross.conductor.ai.model.AgentResult;
  *
  * <p>Requirements:
  * <ul>
- *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767/api</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:8080/api</li>
  *   <li>CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini</li>
  * </ul>
  */

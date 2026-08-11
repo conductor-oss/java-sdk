@@ -37,7 +37,7 @@ import io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration;
  * transitively via {@code conductor-client-spring} and reads {@code conductor.*}
  * properties. Users configure connectivity once in that namespace:
  * <pre>{@code
- * conductor.root-uri=http://localhost:6767/api
+ * conductor.root-uri=http://localhost:8080/api
  * conductor.security.client.key-id=my-key       # optional
  * conductor.security.client.secret=my-secret    # optional
  * }</pre>
