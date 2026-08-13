@@ -35,7 +35,11 @@ public class EventClientTests {
         try {
             eventClient.unregisterEventHandler(EVENT_NAME);
         } catch (ConductorClientException e) {
-            if (e.getStatus() != 404) {
+            // Best-effort cleanup: tolerate "doesn't exist" regardless of how the
+            // server reports it. Orkes Enterprise returns 404; plain OSS Conductor
+            // returns a 500 with a "not found" message instead (confirmed
+            // empirically) -- treat both as success for this purpose.
+            if (e.getStatus() != 404 && !e.getMessage().contains("not found")) {
                 throw e;
             }
         }
