@@ -167,14 +167,19 @@ public class SchedulerResource {
     /**
      * Enterprise scheduler endpoints accept GET while OSS accepts PUT. Retry only
      * a method-not-allowed response so application and authentication failures
-     * retain their original behavior.
+     * retain their original behavior. Orkes Enterprise reports this as a proper
+     * 405; plain OSS Conductor instead reports it as a 500 with a "Request
+     * method '...' is not supported" message (confirmed empirically) -- treat
+     * both as a signal to retry with PUT.
      */
     private void executeGetThenPutOnMethodNotAllowed(
             ConductorClientRequest getRequest, ConductorClientRequest putRequest) {
         try {
             client.execute(getRequest);
         } catch (ConductorClientException e) {
-            if (e.getStatus() != 405) {
+            if (e.getStatus() != 405
+                    && !(e.getStatus() == 500 && e.getMessage() != null
+                            && e.getMessage().contains("is not supported"))) {
                 throw e;
             }
             client.execute(putRequest);

@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
@@ -159,5 +160,29 @@ public class TestUtil {
     private static boolean isTerminalFailure(Workflow workflow) {
         return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
                 || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;
+    }
+
+    /**
+     * Repeatedly invokes {@code supplier} until {@code condition} accepts its result, or the
+     * time budget is exhausted, sleeping {@code pollIntervalMs} between attempts. Useful for
+     * assertions against eventually-consistent state (e.g. search-index writes) instead of a
+     * single point-in-time check.
+     *
+     * @return the first result accepted by {@code condition}
+     * @throws TimeoutException if no result satisfies {@code condition} within maxWaitTimeMs
+     */
+    public static <T> T waitUntil(Callable<T> supplier, Predicate<T> condition,
+                                   long maxWaitTimeMs, long pollIntervalMs) throws Exception {
+        long endTime = System.currentTimeMillis() + maxWaitTimeMs;
+        T last = supplier.call();
+        while (!condition.test(last)) {
+            if (System.currentTimeMillis() >= endTime) {
+                throw new TimeoutException(
+                        String.format("Condition not met within %dms. Last value: %s", maxWaitTimeMs, last));
+            }
+            Thread.sleep(pollIntervalMs);
+            last = supplier.call();
+        }
+        return last;
     }
 }
