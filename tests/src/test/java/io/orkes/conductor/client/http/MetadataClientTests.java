@@ -61,17 +61,7 @@ public class MetadataClientTests {
         }
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         WorkflowDef workflowDef = WorkflowUtil.getWorkflowDef();
-        try {
-            metadataClient.registerWorkflowDef(workflowDef);
-        } catch (ConductorClientException e) {
-            // Commons.WORKFLOW_NAME/VERSION is shared fixture data used by several
-            // test classes in this suite; tolerate an "already exists" collision
-            // here since the update/overwrite calls below re-establish the
-            // intended definition regardless of which class registered it first.
-            if (e.getStatus() != 500 || !e.getMessage().contains("already exists")) {
-                throw e;
-            }
-        }
+        metadataClient.registerWorkflowDef(workflowDef);
         metadataClient.updateWorkflowDefs(List.of(workflowDef));
         metadataClient.updateWorkflowDefs(List.of(workflowDef), true);
         // Both Orkes Enterprise and plain OSS Conductor honor overwrite=true on an existing
