@@ -14,6 +14,7 @@ package io.orkes.conductor.sdk;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,6 @@ import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import io.orkes.conductor.client.util.ClientTestUtil;
-import io.orkes.conductor.client.util.TestUtil;
 
 
 public class WorkflowSDKTests {
@@ -55,12 +55,8 @@ public class WorkflowSDKTests {
         CompletableFuture<Workflow> result = workflow.execute(Map.of("name", "orkes"));
         Assertions.assertNotNull(result);
         try {
-            // Poll with a time budget instead of a single point-in-time get(): worker
-            // registration + polling + task execution can take longer than a couple of
-            // seconds under load (e.g. running alongside the rest of the integration suite,
-            // or on a shared/slower CI runner -- 30s was observed to be marginal in CI).
-            TestUtil.waitUntil(result::isDone, Boolean::booleanValue, 60_000, 3_000);
-            Workflow executedWorkflow = result.get();
+            // WorkflowExecutor's monitor thread polls every 100ms (see initMonitor()), so 10s is a generous margin.
+            Workflow executedWorkflow = result.get(10, TimeUnit.SECONDS);
             Assertions.assertNotNull(executedWorkflow);
             Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, executedWorkflow.getStatus());
         } catch (Exception e) {
