@@ -129,7 +129,7 @@ public class Example55MlEngineeringPipeline {
         // ── Full pipeline (flat 8-agent sequential list) ───────────────────
 
         Agent mlPipeline = Agent.builder()
-            .name("ml_pipeline")
+            .name("ml_pipeline_55")
             .model(Settings.LLM_MODEL)
             .agents(dataAnalyst, modelExploration, evaluator,
                     optimizerR1, validatorR1, optimizerR2, validatorR2,

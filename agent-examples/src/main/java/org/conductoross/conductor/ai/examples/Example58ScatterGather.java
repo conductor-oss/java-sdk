@@ -130,7 +130,7 @@ public class Example58ScatterGather {
             + "countries by GDP.";
 
         Agent coordinator = Agent.builder()
-            .name("coordinator")
+            .name("coordinator_58")
             .model(Settings.SECONDARY_LLM_MODEL)
             .instructions(instructions)
             .tools(List.of(workerTool))

@@ -35,7 +35,7 @@ public class Example00HelloWorld {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         LlmAgent greeter = LlmAgent.builder()
-                .name("greeter")
+                .name("adk_greeter_00")
                 .description("A friendly greeter that says hello and shares a fun fact.")
                 .model(Settings.LLM_MODEL)
                 .instruction("You are a friendly greeter. Reply with a warm hello and one fun fact.")

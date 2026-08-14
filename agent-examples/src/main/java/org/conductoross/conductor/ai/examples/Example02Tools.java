@@ -48,7 +48,7 @@ public class Example02Tools {
         List<ToolDef> tools = ToolRegistry.fromInstance(new AgentTools());
 
         Agent agent = Agent.builder()
-            .name("weather_stock_agent")
+            .name("weather_stock_agent_02")
             .model(Settings.LLM_MODEL)
             .tools(tools)
             .instructions("You are a helpful assistant. Use tools to answer questions.")

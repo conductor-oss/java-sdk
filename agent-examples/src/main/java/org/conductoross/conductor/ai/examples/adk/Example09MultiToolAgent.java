@@ -133,7 +133,7 @@ public class Example09MultiToolAgent {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         LlmAgent shopper = LlmAgent.builder()
-            .name("shopping_assistant")
+            .name("adk_shopping_assistant_09")
             .description("Helps users search products, check stock, calculate shipping, and apply coupons.")
             .model(Settings.LLM_MODEL)
             .instruction("""

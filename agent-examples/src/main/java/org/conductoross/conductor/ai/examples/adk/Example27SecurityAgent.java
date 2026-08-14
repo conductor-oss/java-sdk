@@ -119,7 +119,7 @@ public class Example27SecurityAgent {
             .build();
 
         LlmAgent securityTest = LlmAgent.builder()
-            .name("security_test_pipeline")
+            .name("adk_security_test_pipeline_27")
             .description("Sequential pipeline: red-team → target → security evaluator.")
             .model(Settings.LLM_MODEL)
             .instruction("""

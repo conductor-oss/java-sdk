@@ -62,7 +62,7 @@ public class Example12ParallelAgent {
 
         // All three analysts dispatched concurrently by native ParallelAgent.
         ParallelAgent parallelAnalysis = ParallelAgent.builder()
-            .name("parallel_analysis")
+            .name("adk_parallel_analysis_12")
             .description("Fan-out to three analysts running in parallel.")
             .subAgents(marketAnalyst, techAnalyst, riskAnalyst)
             .build();
