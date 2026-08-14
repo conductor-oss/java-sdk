@@ -57,8 +57,9 @@ public class WorkflowSDKTests {
         try {
             // Poll with a time budget instead of a single point-in-time get(): worker
             // registration + polling + task execution can take longer than a couple of
-            // seconds under load (e.g. running alongside the rest of the integration suite).
-            TestUtil.waitUntil(result::isDone, Boolean::booleanValue, 30_000, 3_000);
+            // seconds under load (e.g. running alongside the rest of the integration suite,
+            // or on a shared/slower CI runner -- 30s was observed to be marginal in CI).
+            TestUtil.waitUntil(result::isDone, Boolean::booleanValue, 60_000, 3_000);
             Workflow executedWorkflow = result.get();
             Assertions.assertNotNull(executedWorkflow);
             Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, executedWorkflow.getStatus());
