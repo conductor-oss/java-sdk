@@ -161,7 +161,9 @@ jobs:
           
       - name: Check Tests Status
         if: steps.tests.outcome == 'failure'
-        run: exit 1
+        run: |
+          echo "::error::Tests failed. See the 'Run Tests' step above for the Gradle/test output, and the 'Publish Test Report' step's JUnit summary for which test(s) failed."
+          exit 1
 
   integration-tests-oss:
     runs-on: ubuntu-latest
@@ -213,4 +215,6 @@ jobs:
 
       - name: Check Integration Tests Status
         if: steps.integration_tests.outcome == 'failure'
-        run: exit 1
+        run: |
+          echo "::error::Integration tests (OSS) failed. See the 'Run integration tests (OSS)' step above for the Gradle/test output, the 'Dump Conductor logs' step for server-side logs, and the 'Publish Test Report' step's JUnit summary for which test(s) failed."
+          exit 1
