@@ -39,13 +39,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterTaskDef(Commons.TASK_NAME);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" regardless of how the
-            // server reports it. Orkes Enterprise returns 404; plain OSS Conductor
-            // returns a 500 with a "No such task definition" message instead
-            // (confirmed empirically) -- treat both as success for this purpose.
-            if (e.getStatus() != 404 && !e.getMessage().contains("No such task definition")) {
-                throw e;
-            }
+            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
+            // we're running against actually reports it.
+            TestUtil.assertNotFoundOrRethrow(e, "No such task definition");
         }
         TaskDef taskDef = Commons.getTaskDef();
         metadataClient.registerTaskDefs(List.of(taskDef));
@@ -59,13 +55,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterWorkflowDef(Commons.WORKFLOW_NAME, Commons.WORKFLOW_VERSION);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" regardless of how the
-            // server reports it. Orkes Enterprise returns 404; plain OSS Conductor
-            // returns a 500 with a "No such workflow definition" message instead
-            // (confirmed empirically) -- treat both as success for this purpose.
-            if (e.getStatus() != 404 && !e.getMessage().contains("No such workflow definition")) {
-                throw e;
-            }
+            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
+            // we're running against actually reports it.
+            TestUtil.assertNotFoundOrRethrow(e, "No such workflow definition");
         }
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         WorkflowDef workflowDef = WorkflowUtil.getWorkflowDef();
@@ -82,18 +74,10 @@ public class MetadataClientTests {
         }
         metadataClient.updateWorkflowDefs(List.of(workflowDef));
         metadataClient.updateWorkflowDefs(List.of(workflowDef), true);
-        try {
-            metadataClient.registerWorkflowDef(workflowDef, true);
-        } catch (ConductorClientException e) {
-            // The overwrite=true query param on POST /metadata/workflow is not
-            // honored by plain OSS Conductor, confirmed empirically (it still
-            // rejects an existing name+version instead of overwriting); the
-            // updateWorkflowDefs(..., true) call above already re-established
-            // the intended definition.
-            if (e.getStatus() != 500 || !e.getMessage().contains("already exists")) {
-                throw e;
-            }
-        }
+        // Both Orkes Enterprise and plain OSS Conductor honor overwrite=true on an existing
+        // name+version and succeed outright (verified empirically against a freshly-pulled
+        // OSS image; an earlier assumption that OSS rejected this with a 500 no longer holds).
+        metadataClient.registerWorkflowDef(workflowDef, true);
         ((OrkesMetadataClient) metadataClient)
                 .getWorkflowDefWithMetadata(Commons.WORKFLOW_NAME, Commons.WORKFLOW_VERSION);
         WorkflowDef receivedWorkflowDef = metadataClient.getWorkflowDef(Commons.WORKFLOW_NAME,
