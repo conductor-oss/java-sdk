@@ -24,6 +24,7 @@ import com.netflix.conductor.common.metadata.events.EventHandler.StartWorkflow;
 
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.TestUtil;
 
 public class EventClientTests {
     private static final String EVENT_NAME = "test_sdk_java_event_name";
@@ -35,13 +36,9 @@ public class EventClientTests {
         try {
             eventClient.unregisterEventHandler(EVENT_NAME);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" regardless of how the
-            // server reports it. Orkes Enterprise returns 404; plain OSS Conductor
-            // returns a 500 with a "not found" message instead (confirmed
-            // empirically) -- treat both as success for this purpose.
-            if (e.getStatus() != 404 && !e.getMessage().contains("not found")) {
-                throw e;
-            }
+            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
+            // we're running against actually reports it.
+            TestUtil.assertNotFoundOrRethrow(e, "not found");
         }
         EventHandler eventHandler = getEventHandler();
         eventClient.registerEventHandler(eventHandler);
