@@ -64,9 +64,6 @@ public class MetadataClientTests {
         metadataClient.registerWorkflowDef(workflowDef);
         metadataClient.updateWorkflowDefs(List.of(workflowDef));
         metadataClient.updateWorkflowDefs(List.of(workflowDef), true);
-        // Both Orkes Enterprise and plain OSS Conductor honor overwrite=true on an existing
-        // name+version and succeed outright (verified empirically against a freshly-pulled
-        // OSS image; an earlier assumption that OSS rejected this with a 500 no longer holds).
         metadataClient.registerWorkflowDef(workflowDef, true);
         ((OrkesMetadataClient) metadataClient)
                 .getWorkflowDefWithMetadata(Commons.WORKFLOW_NAME, Commons.WORKFLOW_VERSION);
