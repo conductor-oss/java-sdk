@@ -399,10 +399,14 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.http.WorkflowClient;
 import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
-// 1. Create and start metrics
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(); // port 9991, /metrics
+// 1. Create a registry and a collector bound to it. The SDK does not start a
+//    web server; expose registry.scrape() from an endpoint you own (or, in
+//    Spring Boot, hand in the app's MeterRegistry and use Actuator).
+PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector(registry);
 
 // 2. Create ConductorClient — withMetricsCollector installs the HTTP interceptor
 //    and enables automatic listener registration on downstream clients
@@ -427,11 +431,22 @@ For fine-grained control over which listeners are registered, create the `Conduc
 
 ### Custom Metrics Endpoint
 
+The SDK no longer serves metrics itself. Expose the registry from an endpoint your application owns:
+
 ```java
-// Start Prometheus server on custom port and endpoint
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(8080, "/custom-metrics");
+PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector(registry);
+
+var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress(8080), 0);
+server.createContext("/custom-metrics", exchange -> {
+    byte[] body = registry.scrape().getBytes();
+    exchange.sendResponseHeaders(200, body.length);
+    try (var os = exchange.getResponseBody()) { os.write(body); }
+});
+server.start();
 ```
+
+In Spring Boot, prefer Actuator: hand the application's `MeterRegistry` to the collector (done automatically by `ConductorMetricsAutoConfiguration`) and configure the scrape path/port with `management.*` properties.
 
 ### Registering Custom Event Listeners
 
@@ -908,8 +923,9 @@ public class CloudWatchMetricsCollector implements MetricsCollector {
 
 ```java
 // Create multiple collectors
-PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
-prometheus.startServer(9991, "/metrics");
+PrometheusMeterRegistry prometheusRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector(prometheusRegistry);
+// Expose prometheusRegistry.scrape() from an endpoint your application owns.
 
 DatadogMetricsCollector datadog = new DatadogMetricsCollector(
     System.getenv("DATADOG_API_KEY"),
@@ -1293,9 +1309,9 @@ public class ConductorMonitoringSetup {
             new AnotherTaskWorker()
         );
 
-        // 3. Setup Prometheus metrics
-        PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector();
-        prometheus.startServer(9991, "/metrics");
+        // 3. Setup Prometheus metrics (expose the registry from an endpoint you own)
+        PrometheusMeterRegistry prometheusRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        PrometheusMetricsCollector prometheus = new PrometheusMetricsCollector(prometheusRegistry);
 
         // 4. Setup custom monitoring
         SLAMonitor slaMonitor = new SLAMonitor(
@@ -1443,12 +1459,11 @@ public class EventSystemTest {
 **Problem**: Prometheus endpoint returns no metrics
 
 **Solution**:
-1. Verify server is started:
-   ```java
-   metricsCollector.startServer(); // Don't forget this!
-   ```
+1. Verify the registry is exposed. The SDK does not start a server:
+   - Spring Boot: confirm `spring-boot-starter-actuator` + `micrometer-registry-prometheus` are present and the `prometheus` endpoint is exposed (`/actuator/prometheus` by default).
+   - Plain Java: confirm you are serving `registry.scrape()` from your own HTTP endpoint, and that the same `registry` was passed to `new PrometheusMetricsCollector(registry)`.
 
-2. Check port availability:
+2. Check port availability for whatever port your app exposes, e.g.:
    ```bash
    lsof -i :9991
    ```

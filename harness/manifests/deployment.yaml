@@ -40,7 +40,7 @@ spec:
               name: conductor-credentials
               key: auth-secret
 
-        # === HARNESS TUNING (defaults match HarnessMain.java) ===
+        # === HARNESS TUNING (defaults match application.yml) ===
         # Adjust these per-cluster if needed, or move to ConfigMap.
 
         - name: HARNESS_WORKFLOWS_PER_SEC

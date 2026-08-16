@@ -1,18 +1,42 @@
 plugins {
-    id 'java'
-    id 'application'
-}
-
-application {
-    mainClass = 'io.orkes.conductor.harness.HarnessMain'
+    id 'org.springframework.boot' version '3.5.13'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 repositories {
     mavenCentral()
 }
 
+// The root build pins slf4j-api 1.7.36 on every subproject, which is an
+// slf4j 1.x binding and is incompatible with Spring Boot's Logback (slf4j 2.x).
+// Align slf4j with the version Spring Boot's Logback expects.
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.slf4j' && details.requested.name == 'slf4j-api') {
+            details.useVersion '2.0.17'
+            details.because 'Align slf4j with Spring Boot Logback (slf4j 2.x)'
+        }
+    }
+}
+
 dependencies {
-    implementation project(':conductor-client')
+    // Brings conductor-client plus the base + Orkes Spring auto-configurations.
+    implementation project(':conductor-client-spring')
+    // Provides the MetricsCollector and its Spring Boot auto-configuration,
+    // which binds SDK metrics to the application's Micrometer MeterRegistry.
     implementation project(':conductor-client-metrics')
-    implementation "ch.qos.logback:logback-classic:1.5.6"
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Backs the Actuator /metrics (Prometheus) endpoint with a
+    // PrometheusMeterRegistry bean that the SDK collector publishes into.
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}
+
+springBoot {
+    mainClass = 'io.orkes.conductor.harness.HarnessApplication'
+}
+
+bootJar {
+    archiveFileName = 'harness.jar'
 }

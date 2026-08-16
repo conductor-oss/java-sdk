@@ -17,9 +17,20 @@ dependencies {
     implementation project(":conductor-client")
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
+    // Optional Spring Boot auto-configuration. Present only at compile time so
+    // plain-Java consumers pull in no Spring dependency; the auto-config only
+    // activates when a Spring Boot app already has spring-boot-autoconfigure
+    // (and a Micrometer MeterRegistry bean) on its runtime classpath.
+    compileOnly 'org.springframework.boot:spring-boot-autoconfigure:3.5.13'
+
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.3'
+
+    // Exercises the Spring Boot auto-configuration in isolation.
+    testImplementation 'org.springframework.boot:spring-boot-autoconfigure:3.5.13'
+    testImplementation 'org.springframework.boot:spring-boot-test:3.5.13'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
 }
 
 java {
