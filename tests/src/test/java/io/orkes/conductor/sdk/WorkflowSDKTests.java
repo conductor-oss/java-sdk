@@ -40,8 +40,8 @@ public class WorkflowSDKTests {
         ConductorClient client = ClientTestUtil.getClient();
 
         AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(new TaskClient(client), new WorkerConfiguration());
+        // initWorkers() already starts polling; a redundant extra startPolling() call here used to race with AnnotatedWorkerExecutor's own double-start (likely a real bug there) and could drop the first polled task.
         workerExecutor.initWorkers("io.orkes.conductor.sdk");
-        workerExecutor.startPolling();
 
         WorkflowExecutor executor = new WorkflowExecutor(client, workerExecutor);
 
