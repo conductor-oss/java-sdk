@@ -76,8 +76,9 @@ public class AnnotatedWorkerExecutor {
      *     implementation
      */
     public synchronized void initWorkers(String... basePackages) {
+        // scanWorkers() -> initWorkersFromClasses() -> initWorkersFromInstances() already calls startPolling();
+        // an extra call here used to race with that one and could drop a task polled by the runner it replaces.
         scanWorkers(basePackages);
-        startPolling();
     }
 
     public synchronized void initWorkersFromInstances(List<Object> workerInstances) {
@@ -157,7 +158,10 @@ public class AnnotatedWorkerExecutor {
             initWorkersFromClasses(classes);
 
         } catch (Exception e) {
-            LOGGER.error("Error while scanning for workers: ", e);
+            // Rethrow (unchecked) rather than swallow: initWorkers() no longer has its own startPolling()
+            // fallback, so a swallowed failure here would otherwise leave the caller believing workers are
+            // running when none were ever started.
+            throw new RuntimeException("Error while scanning for workers", e);
         }
     }
 
