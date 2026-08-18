@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
@@ -385,8 +386,18 @@ public class TaskClientTests {
         completeWorkflow(workflowId);
     }
 
-    // Durable tests - just copy the above and change Consistency
+    /**
+     * REGION_DURABLE requires the target server to have cross-region replication configured.
+     * Since orkes-conductor 5.5.0 a node without it fails the start closed rather than silently
+     * downgrading to a local start, so these only run where the capability actually exists —
+     * set {@value #REGION_DURABLE_ENABLED}=true there. Opt-in rather than skip-on-error, so a
+     * genuine replication regression still fails loudly instead of quietly going green.
+     */
+    private static final String REGION_DURABLE_ENABLED = "CONDUCTOR_REGION_DURABLE_ENABLED";
+
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
     void testDurableTargetWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -401,6 +412,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
     void testDurableBlockingWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_WORKFLOW);
 
@@ -429,6 +442,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
     void testDurableBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_TASK_INPUT);
 
