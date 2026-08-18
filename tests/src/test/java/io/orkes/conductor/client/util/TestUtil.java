@@ -114,7 +114,7 @@ public class TestUtil {
             // Check if workflow failed or terminated
             if (workflowDetails.getStatus() == Workflow.WorkflowStatus.FAILED ||
                     workflowDetails.getStatus() == Workflow.WorkflowStatus.TERMINATED) {
-                throw new RuntimeException("Workflow ended in unexpected state: " + workflowDetails.getStatus());
+                throw new RuntimeException(describeFailure(workflowDetails));
             }
 
             Thread.sleep(pollIntervalMs);
@@ -123,7 +123,81 @@ public class TestUtil {
         // Timeout
         Workflow finalState = workflowClient.getWorkflow(workflowId, true);
         throw new TimeoutException(
-                String.format("Workflow %s did not reach status %s within %dms. Current status: %s",
-                        workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus()));
+                String.format("Workflow %s did not reach status %s within %dms. Current status: %s, tasks: %s",
+                        workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus(), taskSummary(finalState)));
+    }
+
+    /**
+     * Signalling a workflow immediately after start is a race — the task being signalled may not
+     * exist yet. Waits until the workflow is RUNNING with at least one non-terminal task.
+     */
+    public static void waitUntilSignalable(OrkesWorkflowClient workflowClient,
+                                           String workflowId,
+                                           long maxWaitTimeMs,
+                                           long pollIntervalMs) throws Exception {
+        long endTime = System.currentTimeMillis() + maxWaitTimeMs;
+
+        while (System.currentTimeMillis() < endTime) {
+            Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+
+            if (workflow.getStatus() == Workflow.WorkflowStatus.FAILED
+                    || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED) {
+                throw new RuntimeException(describeFailure(workflow));
+            }
+            boolean hasPendingTask = workflow.getTasks() != null
+                    && workflow.getTasks().stream().anyMatch(t -> !t.getStatus().isTerminal());
+            if (workflow.getStatus() == Workflow.WorkflowStatus.RUNNING && hasPendingTask) {
+                return;
+            }
+            Thread.sleep(pollIntervalMs);
+        }
+
+        Workflow finalState = workflowClient.getWorkflow(workflowId, true);
+        throw new TimeoutException(String.format(
+                "Workflow %s was not signalable within %dms. Status: %s, tasks: %s",
+                workflowId, maxWaitTimeMs, finalState.getStatus(), taskSummary(finalState)));
+    }
+
+    /** Includes the reason and task states — without these a failure is undiagnosable from CI logs. */
+    private static String describeFailure(Workflow workflow) {
+        return String.format("Workflow %s ended in unexpected state: %s. Reason: %s. Tasks: %s",
+                workflow.getWorkflowId(), workflow.getStatus(),
+                workflow.getReasonForIncompletion() == null ? "(none given)" : workflow.getReasonForIncompletion(),
+                taskSummary(workflow));
+    }
+
+    private static String taskSummary(Workflow workflow) {
+        if (workflow.getTasks() == null) {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[");
+        workflow.getTasks().forEach(t -> sb.append(t.getReferenceTaskName()).append(':')
+                .append(t.getStatus())
+                .append(t.getReasonForIncompletion() == null ? "" : "(" + t.getReasonForIncompletion() + ")")
+                .append(' '));
+        return sb.append(']').toString();
+    }
+
+    /**
+     * Retries {@code call} until it returns without throwing. Intended for endpoints that are
+     * eventually consistent or intermittently slow, where a single attempt after a fixed sleep
+     * turns ordinary latency into a test failure.
+     */
+    public static <T> T retryUntil(java.util.concurrent.Callable<T> call,
+                                   long maxWaitTimeMs,
+                                   long pollIntervalMs) throws Exception {
+        long endTime = System.currentTimeMillis() + maxWaitTimeMs;
+        Exception last = null;
+
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                return call.call();
+            } catch (Exception e) {
+                last = e;
+                Thread.sleep(pollIntervalMs);
+            }
+        }
+        throw new TimeoutException("Call did not succeed within " + maxWaitTimeMs + "ms"
+                + (last == null ? "" : ", last error: " + last));
     }
 }

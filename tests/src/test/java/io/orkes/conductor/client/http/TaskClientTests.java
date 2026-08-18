@@ -484,8 +484,9 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
+        // engine: signalling before the task existed left the workflow FAILED.
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
         // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
@@ -509,8 +510,9 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
+        // engine: signalling before the task existed left the workflow FAILED.
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
         // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
@@ -534,8 +536,9 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
+        // engine: signalling before the task existed left the workflow FAILED.
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
         // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
@@ -742,7 +745,7 @@ public class TaskClientTests {
     // ==================== Search Tests ====================
 
     @Test
-    void testSearchTasks() {
+    void testSearchTasks() throws Exception {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
         request.setVersion(1);
@@ -750,9 +753,11 @@ public class TaskClientTests {
         String workflowId = workflowClient.startWorkflow(request);
 
         try {
-            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
-
-            var result = taskClient.search("workflowId='" + workflowId + "'");
+            // Search is asynchronously indexed and occasionally slow to answer, so a single shot
+            // after a fixed sleep was doubly fragile — it raced indexing and died on a transient
+            // SocketTimeoutException. Retry until it responds.
+            var result = TestUtil.retryUntil(
+                    () -> taskClient.search("workflowId='" + workflowId + "'"), 30_000, 2_000);
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
