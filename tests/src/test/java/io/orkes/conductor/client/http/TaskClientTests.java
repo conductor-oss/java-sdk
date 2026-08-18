@@ -386,18 +386,11 @@ public class TaskClientTests {
         completeWorkflow(workflowId);
     }
 
-    /**
-     * REGION_DURABLE requires the target server to have cross-region replication configured.
-     * Since orkes-conductor 5.5.0 a node without it fails the start closed rather than silently
-     * downgrading to a local start, so these only run where the capability actually exists —
-     * set {@value #REGION_DURABLE_ENABLED}=true there. Opt-in rather than skip-on-error, so a
-     * genuine replication regression still fails loudly instead of quietly going green.
-     */
+    // Needs a server with cross-region replication configured.
     private static final String REGION_DURABLE_ENABLED = "CONDUCTOR_REGION_DURABLE_ENABLED";
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
-            disabledReason = "target server has no region replication configured")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableTargetWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -412,8 +405,7 @@ public class TaskClientTests {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
-            disabledReason = "target server has no region replication configured")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableBlockingWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_WORKFLOW);
 
@@ -442,8 +434,7 @@ public class TaskClientTests {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
-            disabledReason = "target server has no region replication configured")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_TASK_INPUT);
 
@@ -484,11 +475,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getWorkflowId();
 
-        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
-        // engine: signalling before the task existed left the workflow FAILED.
         TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -510,11 +498,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
-        // engine: signalling before the task existed left the workflow FAILED.
         TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -536,11 +521,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait until the workflow actually has a task to signal. A fixed 20ms sleep raced the
-        // engine: signalling before the task existed left the workflow FAILED.
         TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -745,7 +727,7 @@ public class TaskClientTests {
     // ==================== Search Tests ====================
 
     @Test
-    void testSearchTasks() throws Exception {
+    void testSearchTasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
         request.setVersion(1);
@@ -753,9 +735,6 @@ public class TaskClientTests {
         String workflowId = workflowClient.startWorkflow(request);
 
         try {
-            // Search is asynchronously indexed and occasionally slow to answer, so a single shot
-            // after a fixed sleep was doubly fragile — it raced indexing and died on a transient
-            // SocketTimeoutException. Retry until it responds.
             var result = TestUtil.retryUntil(
                     () -> taskClient.search("workflowId='" + workflowId + "'"), 30_000, 2_000);
             assertNotNull(result);

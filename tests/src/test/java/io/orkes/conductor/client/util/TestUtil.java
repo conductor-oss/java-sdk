@@ -118,7 +118,8 @@ public class TestUtil {
             // Check if workflow failed or terminated
             if (workflowDetails.getStatus() == Workflow.WorkflowStatus.FAILED ||
                     workflowDetails.getStatus() == Workflow.WorkflowStatus.TERMINATED) {
-                throw new RuntimeException(describeFailure(workflowDetails));
+                throw new RuntimeException("Workflow ended in unexpected state: " + workflowDetails.getStatus()
+                        + ", reason: " + workflowDetails.getReasonForIncompletion());
             }
 
             Thread.sleep(pollIntervalMs);
@@ -127,22 +128,18 @@ public class TestUtil {
         // Timeout
         Workflow finalState = workflowClient.getWorkflow(workflowId, true);
         throw new TimeoutException(
-                String.format("Workflow %s did not reach status %s within %dms. Current status: %s, tasks: %s",
-                        workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus(), taskSummary(finalState)));
+                String.format("Workflow %s did not reach status %s within %dms. Current status: %s",
+                        workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus()));
     }
 
-    /**
-     * Signalling a workflow immediately after start is a race — the task being signalled may not
-     * exist yet. Waits until the workflow is RUNNING with at least one non-terminal task.
-     */
+    /** Waits until the workflow is RUNNING with a non-terminal task, i.e. safe to signal. */
     public static void waitUntilSignalable(OrkesWorkflowClient workflowClient,
                                            String workflowId,
                                            long maxWaitTimeMs,
                                            long pollIntervalMs) {
         await().atMost(Duration.ofMillis(maxWaitTimeMs))
                 .pollInterval(Duration.ofMillis(pollIntervalMs))
-                .failFast("workflow reached a terminal state before it could be signalled",
-                        () -> isTerminalFailure(workflowClient.getWorkflow(workflowId, true)))
+                .failFast(() -> isTerminalFailure(workflowClient.getWorkflow(workflowId, true)))
                 .until(() -> {
                     Workflow workflow = workflowClient.getWorkflow(workflowId, true);
                     return workflow.getStatus() == Workflow.WorkflowStatus.RUNNING
@@ -151,11 +148,7 @@ public class TestUtil {
                 });
     }
 
-    /**
-     * Retries {@code call} until it returns without throwing. For endpoints that are eventually
-     * consistent or intermittently slow, where a single attempt after a fixed sleep turns ordinary
-     * latency into a test failure.
-     */
+    /** Retries {@code call} until it returns without throwing. */
     public static <T> T retryUntil(Callable<T> call, long maxWaitTimeMs, long pollIntervalMs) {
         return await().atMost(Duration.ofMillis(maxWaitTimeMs))
                 .pollInterval(Duration.ofMillis(pollIntervalMs))
@@ -166,25 +159,5 @@ public class TestUtil {
     private static boolean isTerminalFailure(Workflow workflow) {
         return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
                 || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;
-    }
-
-    /** Includes the reason and task states — without these a failure is undiagnosable from CI logs. */
-    private static String describeFailure(Workflow workflow) {
-        return String.format("Workflow %s ended in unexpected state: %s. Reason: %s. Tasks: %s",
-                workflow.getWorkflowId(), workflow.getStatus(),
-                workflow.getReasonForIncompletion() == null ? "(none given)" : workflow.getReasonForIncompletion(),
-                taskSummary(workflow));
-    }
-
-    private static String taskSummary(Workflow workflow) {
-        if (workflow.getTasks() == null) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[");
-        workflow.getTasks().forEach(t -> sb.append(t.getReferenceTaskName()).append(':')
-                .append(t.getStatus())
-                .append(t.getReasonForIncompletion() == null ? "" : "(" + t.getReasonForIncompletion() + ")")
-                .append(' '));
-        return sb.append(']').toString();
     }
 }
