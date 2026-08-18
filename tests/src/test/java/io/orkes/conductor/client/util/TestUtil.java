@@ -15,6 +15,8 @@ package io.orkes.conductor.client.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
@@ -24,6 +26,8 @@ import com.netflix.conductor.common.run.Workflow;
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.awaitility.Awaitility.await;
 
 public class TestUtil {
     private static int RETRY_ATTEMPT_LIMIT = 4;
@@ -134,28 +138,34 @@ public class TestUtil {
     public static void waitUntilSignalable(OrkesWorkflowClient workflowClient,
                                            String workflowId,
                                            long maxWaitTimeMs,
-                                           long pollIntervalMs) throws Exception {
-        long endTime = System.currentTimeMillis() + maxWaitTimeMs;
+                                           long pollIntervalMs) {
+        await().atMost(Duration.ofMillis(maxWaitTimeMs))
+                .pollInterval(Duration.ofMillis(pollIntervalMs))
+                .failFast("workflow reached a terminal state before it could be signalled",
+                        () -> isTerminalFailure(workflowClient.getWorkflow(workflowId, true)))
+                .until(() -> {
+                    Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+                    return workflow.getStatus() == Workflow.WorkflowStatus.RUNNING
+                            && workflow.getTasks() != null
+                            && workflow.getTasks().stream().anyMatch(t -> !t.getStatus().isTerminal());
+                });
+    }
 
-        while (System.currentTimeMillis() < endTime) {
-            Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+    /**
+     * Retries {@code call} until it returns without throwing. For endpoints that are eventually
+     * consistent or intermittently slow, where a single attempt after a fixed sleep turns ordinary
+     * latency into a test failure.
+     */
+    public static <T> T retryUntil(Callable<T> call, long maxWaitTimeMs, long pollIntervalMs) {
+        return await().atMost(Duration.ofMillis(maxWaitTimeMs))
+                .pollInterval(Duration.ofMillis(pollIntervalMs))
+                .ignoreExceptions()
+                .until(call, result -> true);
+    }
 
-            if (workflow.getStatus() == Workflow.WorkflowStatus.FAILED
-                    || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED) {
-                throw new RuntimeException(describeFailure(workflow));
-            }
-            boolean hasPendingTask = workflow.getTasks() != null
-                    && workflow.getTasks().stream().anyMatch(t -> !t.getStatus().isTerminal());
-            if (workflow.getStatus() == Workflow.WorkflowStatus.RUNNING && hasPendingTask) {
-                return;
-            }
-            Thread.sleep(pollIntervalMs);
-        }
-
-        Workflow finalState = workflowClient.getWorkflow(workflowId, true);
-        throw new TimeoutException(String.format(
-                "Workflow %s was not signalable within %dms. Status: %s, tasks: %s",
-                workflowId, maxWaitTimeMs, finalState.getStatus(), taskSummary(finalState)));
+    private static boolean isTerminalFailure(Workflow workflow) {
+        return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
+                || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;
     }
 
     /** Includes the reason and task states — without these a failure is undiagnosable from CI logs. */
@@ -176,28 +186,5 @@ public class TestUtil {
                 .append(t.getReasonForIncompletion() == null ? "" : "(" + t.getReasonForIncompletion() + ")")
                 .append(' '));
         return sb.append(']').toString();
-    }
-
-    /**
-     * Retries {@code call} until it returns without throwing. Intended for endpoints that are
-     * eventually consistent or intermittently slow, where a single attempt after a fixed sleep
-     * turns ordinary latency into a test failure.
-     */
-    public static <T> T retryUntil(java.util.concurrent.Callable<T> call,
-                                   long maxWaitTimeMs,
-                                   long pollIntervalMs) throws Exception {
-        long endTime = System.currentTimeMillis() + maxWaitTimeMs;
-        Exception last = null;
-
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                return call.call();
-            } catch (Exception e) {
-                last = e;
-                Thread.sleep(pollIntervalMs);
-            }
-        }
-        throw new TimeoutException("Call did not succeed within " + maxWaitTimeMs + "ms"
-                + (last == null ? "" : ", last error: " + last));
     }
 }
