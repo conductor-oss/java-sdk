@@ -68,7 +68,7 @@ public class Example07Streaming {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         Agent agent = OpenAIAgent.builder()
-                .name("support_agent")
+                .name("openai_support_agent_07")
                 .instructions(
                         "You are a customer support agent. Use the knowledge base to answer "
                                 + "questions accurately. If you can't find the answer, say so honestly.")

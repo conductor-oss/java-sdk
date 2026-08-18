@@ -86,7 +86,7 @@ public class Example10Guardrails {
             ToolRegistry.guardrailsFromInstance(new PiiGuardrails());
 
         Agent agent = Agent.builder()
-            .name("support_agent")
+            .name("support_agent_10")
             .model(Settings.LLM_MODEL)
             .instructions(
                 "You are a customer support assistant. Use the available tools to "

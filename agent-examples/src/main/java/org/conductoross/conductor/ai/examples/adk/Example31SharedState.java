@@ -59,7 +59,7 @@ public class Example31SharedState {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         LlmAgent stateAgent = LlmAgent.builder()
-            .name("shopping_assistant")
+            .name("adk_shopping_assistant_31")
             .description("Manages a shopping list shared across tool calls via add/get/clear tools.")
             .model(Settings.LLM_MODEL)
             .instruction(

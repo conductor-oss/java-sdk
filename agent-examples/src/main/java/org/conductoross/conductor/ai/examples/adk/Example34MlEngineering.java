@@ -197,7 +197,7 @@ public class Example34MlEngineering {
 
         // ── Full Pipeline ────────────────────────────────────────────────
         LlmAgent mlPipeline = LlmAgent.builder()
-            .name("ml_pipeline")
+            .name("adk_ml_pipeline_34")
             .description("End-to-end ML pipeline orchestrating EDA, exploration, evaluation, refinement, and reporting.")
             .model(Settings.LLM_MODEL)
             .instruction("""

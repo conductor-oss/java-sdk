@@ -39,7 +39,7 @@ public class Example01BasicAgent {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         Agent agent = OpenAIAgent.builder()
-                .name("greeter")
+                .name("openai_greeter_01")
                 .instructions("You are a friendly assistant. Keep your responses concise and helpful.")
                 .model(Settings.LLM_MODEL)
                 .build();

@@ -82,7 +82,7 @@ public class Example05Handoffs {
 
         // Orchestrator with handoff strategy
         Agent support = Agent.builder()
-            .name("support")
+            .name("support_05")
             .model(Settings.LLM_MODEL)
             .instructions("Route customer requests to the right specialist: billing, technical, or sales.")
             .agents(billingAgent, technicalAgent, salesAgent)

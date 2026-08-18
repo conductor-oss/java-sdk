@@ -87,7 +87,7 @@ public class Example65ParallelWithTools {
 
         // Both analysts run concurrently
         Agent analysis = Agent.builder()
-            .name("parallel_analysis")
+            .name("parallel_analysis_65")
             .model(Settings.LLM_MODEL)
             .agents(financialAnalyst, orderAnalyst)
             .strategy(Strategy.PARALLEL)
