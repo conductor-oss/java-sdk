@@ -1319,13 +1319,15 @@
         "action": "start_workflow",
         "start_workflow": "${EventHandler.StartWorkflow}",
         "complete_task": "${EventHandler.TaskDetails}",
-        "update_workflow_variables": "${EventHandler.UpdateWorkflowVariables}"
+        "update_workflow_variables": "${EventHandler.UpdateWorkflowVariables}",
+        "start_agent": "${EventHandler.StartAgent}"
       },
       "dependencies": [
         "EventHandler.Action.Type",
         "EventHandler.StartWorkflow",
         "EventHandler.TaskDetails",
         "EventHandler.TerminateWorkflow",
+        "EventHandler.StartAgent",
         "EventHandler.UpdateWorkflowVariables"
       ]
     },
@@ -1642,6 +1644,22 @@
       },
       "dependencies": []
     },
+    "EventHandler.StartAgent": {
+      "content": {
+        "name": "sample_name",
+        "version": 123,
+        "prompt": "sample_prompt",
+        "sessionId": "sample_sessionId",
+        "media": [
+          "sample_media"
+        ],
+        "context": {
+          "key": "sample_value"
+        },
+        "idempotencyKey": "sample_idempotencyKey"
+      },
+      "dependencies": []
+    },
     "IntegrationDef": {
       "content": {
         "iconName": "sample_iconName",
@@ -1671,14 +1689,16 @@
           "complete_task",
           "fail_task",
           "terminate_workflow",
-          "update_workflow_variables"
+          "update_workflow_variables",
+          "start_agent"
         ],
         "constants": {
           "terminate_workflow": "(3)",
           "fail_task": "(2)",
           "start_workflow": "(0)",
           "complete_task": "(1)",
-          "update_workflow_variables": "(4)"
+          "update_workflow_variables": "(4)",
+          "start_agent": "(5)"
         },
         "sampleValue": "start_workflow"
       },
