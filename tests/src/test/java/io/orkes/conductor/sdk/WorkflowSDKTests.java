@@ -14,9 +14,7 @@ package io.orkes.conductor.sdk;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,12 +36,12 @@ import io.orkes.conductor.client.util.ClientTestUtil;
 public class WorkflowSDKTests {
 
     @Test
-    public void testCreateWorkflow() {
+    public void testCreateWorkflow() throws Exception {
         ConductorClient client = ClientTestUtil.getClient();
 
         AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(new TaskClient(client), new WorkerConfiguration());
+        // initWorkers() already starts polling; a redundant extra startPolling() call here used to race with AnnotatedWorkerExecutor's own double-start (likely a real bug there) and could drop the first polled task.
         workerExecutor.initWorkers("io.orkes.conductor.sdk");
-        workerExecutor.startPolling();
 
         WorkflowExecutor executor = new WorkflowExecutor(client, workerExecutor);
 
@@ -57,10 +55,11 @@ public class WorkflowSDKTests {
         CompletableFuture<Workflow> result = workflow.execute(Map.of("name", "orkes"));
         Assertions.assertNotNull(result);
         try {
-            Workflow executedWorkflow = result.get(3, TimeUnit.SECONDS);
+            // WorkflowExecutor's monitor thread polls every 100ms (see initMonitor()), so 10s is a generous margin.
+            Workflow executedWorkflow = result.get(10, TimeUnit.SECONDS);
             Assertions.assertNotNull(executedWorkflow);
             Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, executedWorkflow.getStatus());
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
     }

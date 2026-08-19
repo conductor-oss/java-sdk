@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
@@ -38,9 +39,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterTaskDef(Commons.TASK_NAME);
         } catch (ConductorClientException e) {
-            if (e.getStatus() != 404) {
-                throw e;
-            }
+            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
+            // we're running against actually reports it.
+            TestUtil.assertNotFoundOrRethrow(e, "No such task definition");
         }
         TaskDef taskDef = Commons.getTaskDef();
         metadataClient.registerTaskDefs(List.of(taskDef));
@@ -54,9 +55,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterWorkflowDef(Commons.WORKFLOW_NAME, Commons.WORKFLOW_VERSION);
         } catch (ConductorClientException e) {
-            if (e.getStatus() != 404) {
-                throw e;
-            }
+            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
+            // we're running against actually reports it.
+            TestUtil.assertNotFoundOrRethrow(e, "No such workflow definition");
         }
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         WorkflowDef workflowDef = WorkflowUtil.getWorkflowDef();
@@ -73,6 +74,8 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "task tagging (/metadata/task/{name}/tags) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/metadata/task/{name}/tags')")
     void tagTask() throws Exception {
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         try {
@@ -98,6 +101,8 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "workflow tagging (/metadata/workflow/{name}/tags) is not implemented by plain OSS Conductor, confirmed empirically (the {version} path segment ends up matching the literal string \"tags\" instead, a server-side routing collision)")
     void tagWorkflow() {
         TagObject tagObject = Commons.getTagObject();
         try {
