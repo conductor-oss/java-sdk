@@ -32,7 +32,7 @@ import io.orkes.conductor.client.model.WorkflowSchedule;
  *
  * <p>Usage:
  * <pre>
- *   CONDUCTOR_SERVER_URL=http://localhost:6767/api \
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api \
  *   CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini \
  *   ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example99ScheduledAgent
  * </pre>

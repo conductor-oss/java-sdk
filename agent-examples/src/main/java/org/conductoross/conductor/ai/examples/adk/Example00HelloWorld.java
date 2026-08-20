@@ -27,7 +27,7 @@ import com.google.adk.agents.LlmAgent;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:8080/api}</li>
  *   <li>OpenAI/Gemini key configured in server credentials</li>
  * </ul>
  */

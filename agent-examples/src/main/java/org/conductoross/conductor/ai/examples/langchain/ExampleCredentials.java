@@ -49,7 +49,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:8080}</li>
  *   <li>langchain4j on the classpath (see examples/build.gradle)</li>
  *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  *   <li>Credential {@code WEATHER_API_KEY} registered in Conductor (optional — example

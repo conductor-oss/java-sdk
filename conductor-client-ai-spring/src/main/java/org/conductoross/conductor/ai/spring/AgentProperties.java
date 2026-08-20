@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * # application.properties
  *
  * # Conductor client (from conductor-client-spring):
- * conductor.root-uri=http://localhost:6767/api
+ * conductor.root-uri=http://localhost:8080/api
  * conductor.security.client.key-id=my-key       # optional
  * conductor.security.client.secret=my-secret    # optional
  *

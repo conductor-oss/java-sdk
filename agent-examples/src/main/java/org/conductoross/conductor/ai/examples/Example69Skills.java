@@ -32,7 +32,7 @@ import org.conductoross.conductor.ai.tools.AgentTool;
  *
  * <p>Usage:
  * <pre>
- *   CONDUCTOR_SERVER_URL=http://localhost:6767/api \
+ *   CONDUCTOR_SERVER_URL=http://localhost:8080/api \
  *   CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini \
  *   ./gradlew :examples:run -PmainClass=org.conductoross.conductor.ai.examples.Example69Skills \
  *     --args="/path/to/skill 'Review this repository'"
