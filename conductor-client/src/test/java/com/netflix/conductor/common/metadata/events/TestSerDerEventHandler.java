@@ -92,6 +92,17 @@ class TestSerDerEventHandler {
         assertEquals(1, action.getUpdate_workflow_variables().getVariables().size());
         assertTrue(action.getUpdate_workflow_variables().isAppendArray());
 
+        assertNotNull(action.getStart_agent());
+        assertEquals("sample_name", action.getStart_agent().getName());
+        assertEquals(Integer.valueOf(123), action.getStart_agent().getVersion());
+        assertEquals("sample_prompt", action.getStart_agent().getPrompt());
+        assertEquals("sample_sessionId", action.getStart_agent().getSessionId());
+        assertNotNull(action.getStart_agent().getMedia());
+        assertEquals(1, action.getStart_agent().getMedia().size());
+        assertNotNull(action.getStart_agent().getContext());
+        assertEquals(1, action.getStart_agent().getContext().size());
+        assertEquals("sample_idempotencyKey", action.getStart_agent().getIdempotencyKey());
+
         // 3. Marshall this POJO to JSON again
         String serializedJson = objectMapper.writeValueAsString(eventHandler);
 
