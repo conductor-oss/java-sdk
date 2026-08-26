@@ -1,5 +1,5 @@
 plugins {
-    id 'com.diffplug.spotless' version '6.+'
+    id 'com.diffplug.spotless' version '8.+'
 }
 
 group = 'io.orkes.conductor'
