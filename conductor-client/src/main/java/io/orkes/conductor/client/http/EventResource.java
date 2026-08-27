@@ -25,7 +25,7 @@ import com.netflix.conductor.common.metadata.events.EventHandler;
 import io.orkes.conductor.client.model.OrkesEventHandler;
 import io.orkes.conductor.client.model.Tag;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 class EventResource {
 

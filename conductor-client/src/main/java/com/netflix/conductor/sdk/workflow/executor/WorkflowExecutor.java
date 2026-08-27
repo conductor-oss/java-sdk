@@ -64,8 +64,8 @@ import com.netflix.conductor.sdk.workflow.def.tasks.Terminate;
 import com.netflix.conductor.sdk.workflow.def.tasks.Wait;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 public class WorkflowExecutor {
 

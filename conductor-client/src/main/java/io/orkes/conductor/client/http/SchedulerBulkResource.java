@@ -20,7 +20,7 @@ import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.model.BulkResponse;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 class SchedulerBulkResource {

@@ -12,15 +12,14 @@
  */
 package org.conductoross.conductor.ai.plans;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * A compiled plan ready for {@code Strategy.PLAN_EXECUTE} execution.
@@ -114,10 +113,10 @@ public final class Plan {
      * in {@code AgentRequest} writes the correct wire format without the caller
      * pre-converting to a {@code Map}.
      */
-    public static final class AsJson extends JsonSerializer<Plan> {
+    public static final class AsJson extends ValueSerializer<Plan> {
         @Override
-        public void serialize(Plan plan, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            provider.defaultSerializeValue(plan.toJson(), gen);
+        public void serialize(Plan plan, JsonGenerator gen, SerializationContext context) {
+            context.writeValue(gen, plan.toJson());
         }
     }
 }

@@ -27,7 +27,7 @@ import io.orkes.conductor.client.enums.Consistency;
 import io.orkes.conductor.client.enums.ReturnStrategy;
 import io.orkes.conductor.client.model.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 class WorkflowResource {

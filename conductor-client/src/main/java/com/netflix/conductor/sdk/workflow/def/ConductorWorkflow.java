@@ -32,8 +32,8 @@ import com.netflix.conductor.sdk.workflow.def.tasks.TaskRegistry;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 import com.netflix.conductor.sdk.workflow.utils.InputOutputGetter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @param <T> Type of the workflow input
@@ -378,7 +378,7 @@ public class ConductorWorkflow<T> {
     public String toString() {
         try {
             return objectMapper.writeValueAsString(toWorkflowDef());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

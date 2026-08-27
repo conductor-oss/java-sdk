@@ -28,8 +28,8 @@ import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.run.ExternalStorageLocation;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.type.TypeReference;
 
 /** An implementation of {@link ExternalPayloadStorage} for storing large JSON payload data. */
 @Slf4j

@@ -23,10 +23,10 @@ import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,17 +35,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 // todo fix missing field in dependent sdk pojos should pass the test
 public class TestSerDerWorkflow {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY))
+            .build();
 
 
     @Test
     public void testSerializationAndDeserialization() throws Exception {
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("Workflow");
         // 1. Unmarshal SERVER_JSON to SDK POJO
-        objectMapper.registerModule(new Jdk8Module());
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
         // 1. Unmarshal SERVER_JSON to SDK POJO
         Workflow workflow = objectMapper.readValue(SERVER_JSON, Workflow.class);
 

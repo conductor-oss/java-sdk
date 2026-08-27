@@ -18,14 +18,21 @@ import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 //todo add fields in TaskDef class of sdk - this test will pass
 public class TestSerDerStartWorkflowRequest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY))
+            .build();
 
     @Test
     public void testSerializeDeserialize() throws Exception {
@@ -33,8 +40,6 @@ public class TestSerDerStartWorkflowRequest {
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("StartWorkflowRequest");
 
         // 2. Unmarshal SERVER_JSON to SDK POJO
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         StartWorkflowRequest startWorkflowRequest = objectMapper.readValue(SERVER_JSON, StartWorkflowRequest.class);
 
         // 3. Assert that the fields are all correctly populated

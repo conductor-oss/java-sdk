@@ -31,11 +31,11 @@ import com.netflix.conductor.common.config.ObjectMapperProvider;
 import io.orkes.conductor.client.exceptions.SSEUnavailableException;
 import io.orkes.conductor.client.http.Pair;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Server-Sent Events (SSE) client for streaming agent events
