@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +46,8 @@ import static org.mockito.Mockito.when;
 public class WorkflowExecutorMonitorTests {
 
     private static final String WORKFLOW_ID = "test-workflow-id";
+
+    private static final String OTHER_WORKFLOW_ID = "other-test-workflow-id";
 
     private WorkflowExecutor executorFor(WorkflowClient workflowClient) {
         return new WorkflowExecutor(
@@ -87,9 +91,10 @@ public class WorkflowExecutorMonitorTests {
 
         WorkflowExecutor executor = executorFor(workflowClient);
         try {
-            // Zero budget: give up on the tick after the first failure, so the test does not have
-            // to sit out the production budget.
-            executor.setMonitorFailureGiveUpMillis(0);
+            // 1ms budget: the monitor ticks every 100ms, so the second consecutive failure is
+            // already past it. Keeps the test off the wall clock while still exercising a real
+            // (positive, opt-in) budget rather than the never-give-up default.
+            executor.setMonitorFailureGiveUpMillis(1);
 
             CompletableFuture<Workflow> future = executor.executeWorkflow("wf", 1, Map.of());
 
@@ -98,6 +103,40 @@ public class WorkflowExecutorMonitorTests {
 
             assertInstanceOf(RuntimeException.class, thrown.getCause());
             assertEquals("permanent failure", thrown.getCause().getMessage());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("by default the monitor should never give up, and one bad workflow should not stall the rest")
+    void monitorDoesNotGiveUpByDefault() throws Exception {
+        Workflow completed = new Workflow();
+        completed.setStatus(Workflow.WorkflowStatus.COMPLETED);
+
+        WorkflowClient workflowClient = mock(WorkflowClient.class);
+        when(workflowClient.startWorkflow(any(StartWorkflowRequest.class)))
+                .thenReturn(WORKFLOW_ID)
+                .thenReturn(OTHER_WORKFLOW_ID);
+        when(workflowClient.getWorkflow(eq(WORKFLOW_ID), anyBoolean()))
+                .thenThrow(new RuntimeException("permanent failure"));
+        when(workflowClient.getWorkflow(eq(OTHER_WORKFLOW_ID), anyBoolean()))
+                .thenReturn(completed);
+
+        WorkflowExecutor executor = executorFor(workflowClient);
+        try {
+            assertEquals(0, executor.getMonitorFailureGiveUpMillis(), "give-up should be off by default");
+
+            CompletableFuture<Workflow> failing = executor.executeWorkflow("wf", 1, Map.of());
+            CompletableFuture<Workflow> healthy = executor.executeWorkflow("wf", 1, Map.of());
+
+            // The unresolvable workflow must not take the monitor down with it: a sibling
+            // registered on the same tick loop still completes.
+            assertEquals(Workflow.WorkflowStatus.COMPLETED, healthy.get(5, TimeUnit.SECONDS).getStatus());
+
+            // ...and the unresolvable one stays pending rather than being failed, which is the
+            // pre-bounded-retry behavior callers depend on across a server restart.
+            assertThrows(TimeoutException.class, () -> failing.get(1, TimeUnit.SECONDS));
         } finally {
             executor.shutdown();
         }

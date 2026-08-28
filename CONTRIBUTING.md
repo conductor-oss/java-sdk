@@ -27,7 +27,7 @@ Run the SDK test suite:
 
 The `tests` module also has an integration suite (`-PIntegrationTests`) that runs against a
 real Conductor server, separate from the unit suite above. `scripts/run-integration-oss.sh`
-mirrors the `integration-tests-oss` job in `ci.yml`: it starts a local Conductor OSS +
+mirrors the `integration-tests-oss` job in `integration-tests.yml`: it starts a local Conductor OSS +
 Postgres stack (defined in `scripts/docker-compose-oss.yaml`), waits for `/health`, runs the
 integration suite, and tears the stack down on exit.
 
