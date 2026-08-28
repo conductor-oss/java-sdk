@@ -40,8 +40,12 @@ public class WorkflowSDKTests {
         ConductorClient client = ClientTestUtil.getClient();
 
         AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(new TaskClient(client), new WorkerConfiguration());
-        // initWorkers() already starts polling; a redundant extra startPolling() call here used to race with AnnotatedWorkerExecutor's own double-start (likely a real bug there) and could drop the first polled task.
         workerExecutor.initWorkers("io.orkes.conductor.sdk");
+        // Redundant -- initWorkers() already reaches startPolling() -- but kept deliberately: this is
+        // the shape the docs and examples use, and startPolling() is now idempotent, so it must not
+        // restart the runner out from under an in-flight poll. See
+        // AnnotatedWorkerTests#initWorkersStartsASingleTaskRunner.
+        workerExecutor.startPolling();
 
         WorkflowExecutor executor = new WorkflowExecutor(client, workerExecutor);
 
@@ -60,7 +64,9 @@ public class WorkflowSDKTests {
             Assertions.assertNotNull(executedWorkflow);
             Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, executedWorkflow.getStatus());
         } catch (Exception e) {
-            Assertions.fail(e.getMessage());
+            // fail(e), not fail(e.getMessage()): a TimeoutException carries a null message, which
+            // previously surfaced in CI as a bare AssertionFailedError with nothing to diagnose.
+            Assertions.fail(e);
         }
     }
 
