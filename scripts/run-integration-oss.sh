@@ -2,7 +2,7 @@
 #
 # Spin up a local Conductor OSS stack and run the `tests` module's
 # integration suite against it, mirroring the `integration-tests-oss` job in
-# .github/workflows/integration-tests-oss.yml. Orkes-Enterprise-only test
+# .github/workflows/ci.yml. Orkes-Enterprise-only test
 # classes are annotated with
 # @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss")
 # so they skip themselves when it's set (see the individual test files for
@@ -87,6 +87,13 @@ done
 echo "Conductor is up."
 
 export CONDUCTOR_SERVER_URL="http://localhost:8080/api"
+
+# Plain OSS Conductor has no authentication layer and no /token endpoint. ClientTestUtil builds
+# its client with useEnvVariables(true), and ApiClient.applyEnvVariables() attaches credentials
+# whenever both of these are present -- so a shell that still has them exported for the Orkes
+# suite would send the whole run through an auth flow the local server cannot serve.
+unset CONDUCTOR_AUTH_KEY CONDUCTOR_AUTH_SECRET
+unset CONDUCTOR_SERVER_AUTH_KEY CONDUCTOR_SERVER_AUTH_SECRET
 
 if [[ "${INCLUDE_GATED}" == "1" ]]; then
   echo "--include-gated set: leaving CONDUCTOR_SERVER_TYPE unset, so tests normally" \
