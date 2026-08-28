@@ -2,7 +2,7 @@
 #
 # Spin up a local Conductor OSS stack and run the `tests` module's
 # integration suite against it, mirroring the `integration-tests-oss` job in
-# .github/workflows/ci.yml. Orkes-Enterprise-only test
+# .github/workflows/integration-tests.yml. Orkes-Enterprise-only test
 # classes are annotated with
 # @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss")
 # so they skip themselves when it's set (see the individual test files for

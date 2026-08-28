@@ -118,10 +118,18 @@ public class AnnotatedWorkerExecutor {
     }
 
 
-    /** Shuts down the workers */
-    public void shutdown() {
+    /**
+     * Shuts down the workers.
+     *
+     * <p>Clears the task runner as well as shutting it down, so a later {@link #startPolling()}
+     * builds a fresh one and resumes. A {@link TaskRunnerConfigurer} is single-use — its
+     * shutdown closes the executor backing it — so leaving the field set would make
+     * startPolling() take its already-polling fast path and never poll again.
+     */
+    public synchronized void shutdown() {
         if (taskRunner != null) {
             taskRunner.shutdown();
+            taskRunner = null;
         }
     }
 
@@ -177,7 +185,15 @@ public class AnnotatedWorkerExecutor {
         return false;
     }
 
-    public void addBean(Object bean) {
+    /**
+     * Registers every {@link WorkerTask}-annotated method on the bean as a worker.
+     *
+     * <p>Synchronized because it is the public entry point that mutates the worker set and the
+     * {@code workersChanged} flag {@link #startPolling()} reads to decide whether a restart is
+     * needed. Without a common lock, a worker added on another thread could be missed and never
+     * polled.
+     */
+    public synchronized void addBean(Object bean) {
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getMethods()) {
             WorkerTask annotation = method.getAnnotation(WorkerTask.class);

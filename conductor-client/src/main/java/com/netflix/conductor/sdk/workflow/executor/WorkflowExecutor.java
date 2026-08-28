@@ -66,7 +66,6 @@ import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 
 public class WorkflowExecutor {
 
@@ -78,7 +77,8 @@ public class WorkflowExecutor {
     private final TypeReference<List<TaskDef>> listOfTaskDefs = new TypeReference<>() {
     };
 
-    private static final long DEFAULT_MONITOR_FAILURE_GIVE_UP_MILLIS = TimeUnit.MINUTES.toMillis(1);
+    /** Zero, i.e. never give up. See {@link #setMonitorFailureGiveUpMillis(long)}. */
+    private static final long DEFAULT_MONITOR_FAILURE_GIVE_UP_MILLIS = 0;
 
     private final Map<String, CompletableFuture<Workflow>> runningWorkflowFutures =
             new ConcurrentHashMap<>();
@@ -214,8 +214,9 @@ public class WorkflowExecutor {
             return;
         }
 
+        long giveUpMillis = monitorFailureGiveUpMillis;
         long failingForMillis = now - failingSince;
-        if (failingForMillis < monitorFailureGiveUpMillis) {
+        if (giveUpMillis <= 0 || failingForMillis < giveUpMillis) {
             // Already warned once for this run of failures. Staying at DEBUG keeps a persistently
             // unresolvable workflow from emitting a stack trace on every tick.
             LOGGER.debug("Still failing to poll workflow {} for completion ({} ms so far)",
@@ -230,9 +231,26 @@ public class WorkflowExecutor {
         future.completeExceptionally(e);
     }
 
-    @VisibleForTesting
-    void setMonitorFailureGiveUpMillis(long monitorFailureGiveUpMillis) {
+    /**
+     * How long the completion monitor keeps retrying a workflow whose status cannot be fetched
+     * before giving up on it.
+     *
+     * @param monitorFailureGiveUpMillis zero or negative (the default) to never give up: the
+     *     monitor retries such a workflow for as long as this executor lives, so a server outage
+     *     longer than any fixed budget — a rolling restart, a failover — does not strand futures
+     *     that would otherwise have completed once the server came back. A positive value bounds
+     *     that: once a workflow has failed to poll continuously for this long, the monitor stops
+     *     tracking it and completes its future exceptionally, so a caller blocked in
+     *     {@code executeWorkflow(...).get()} sees an {@link java.util.concurrent.ExecutionException}
+     *     rather than blocking indefinitely on a workflow id that will never resolve.
+     */
+    public void setMonitorFailureGiveUpMillis(long monitorFailureGiveUpMillis) {
         this.monitorFailureGiveUpMillis = monitorFailureGiveUpMillis;
+    }
+
+    /** @see #setMonitorFailureGiveUpMillis(long) */
+    public long getMonitorFailureGiveUpMillis() {
+        return monitorFailureGiveUpMillis;
     }
 
     public void initWorkers(String... packagesToScan) {
