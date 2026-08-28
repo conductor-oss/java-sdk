@@ -12,13 +12,29 @@ on:
         required: false
         type: string
 
+  # ---------------------------------------------------------------------------
+  # TEMPORARY -- REMOVE BEFORE MERGE.
+  #
+  # A workflow_run-triggered run always executes the copy of this file on the
+  # default branch, so the integration-tests-oss job below cannot be exercised
+  # from a pull request. push runs the branch's own copy, so this trigger is
+  # what lets the job actually run while it is being developed.
+  #
+  # Deleting this block is sufficient to revert; nothing else below depends on it.
+  # ---------------------------------------------------------------------------
+  push:
+    branches:
+      - e2e-against-conductor-with-local-script
+
 # allow this workflow to update the status of the PR that triggered it
 permissions:
   statuses: write
   checks: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
+  # head_branch is only set for workflow_run; fall back to the ref so runs from
+  # other triggers do not all collapse into one unnamed concurrency group.
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -77,7 +93,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Integration Tests (OSS)
     timeout-minutes: 30
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # The build-succeeded gate only makes sense for workflow_run, which is the only trigger that
+    # has a triggering run to inspect. Any other trigger is a direct request to run this suite.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     env:
       CONDUCTOR_SERVER_URL: http://localhost:8080/api
       CONDUCTOR_SERVER_TYPE: oss
