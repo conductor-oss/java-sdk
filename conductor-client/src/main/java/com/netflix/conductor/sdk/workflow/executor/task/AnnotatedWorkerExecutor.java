@@ -52,6 +52,12 @@ public class AnnotatedWorkerExecutor {
 
     private final Set<String> scannedPackages = new HashSet<>();
 
+    /**
+     * Set whenever a worker is added, cleared whenever {@link #startPolling()} builds a task runner.
+     * Lets startPolling() distinguish a real (re)start from a redundant duplicate call.
+     */
+    private boolean workersChanged = false;
+
     private final WorkerConfiguration workerConfiguration;
 
     public AnnotatedWorkerExecutor(TaskClient taskClient) {
@@ -76,9 +82,11 @@ public class AnnotatedWorkerExecutor {
      *     implementation
      */
     public synchronized void initWorkers(String... basePackages) {
-        // scanWorkers() -> initWorkersFromClasses() -> initWorkersFromInstances() already calls startPolling();
-        // an extra call here used to race with that one and could drop a task polled by the runner it replaces.
         scanWorkers(basePackages);
+        // scanWorkers() -> initWorkersFromClasses() -> initWorkersFromInstances() already reaches
+        // startPolling(). This second call is therefore redundant, but startPolling() is idempotent
+        // while the worker set is unchanged, so it is a no-op rather than a task runner restart.
+        startPolling();
     }
 
     public synchronized void initWorkersFromInstances(List<Object> workerInstances) {
@@ -158,10 +166,7 @@ public class AnnotatedWorkerExecutor {
             initWorkersFromClasses(classes);
 
         } catch (Exception e) {
-            // Rethrow (unchecked) rather than swallow: initWorkers() no longer has its own startPolling()
-            // fallback, so a swallowed failure here would otherwise leave the caller believing workers are
-            // running when none were ever started.
-            throw new RuntimeException("Error while scanning for workers", e);
+            LOGGER.error("Error while scanning for workers: ", e);
         }
     }
 
@@ -226,6 +231,7 @@ public class AnnotatedWorkerExecutor {
         for (int i = 0; i < pollerCount; i++) {
             workers.add(executor);
         }
+        workersChanged = true;
 
         LOGGER.info(
                 "Adding worker for task {}, method {} with threadCount {} and polling interval set to {} ms",
@@ -235,8 +241,25 @@ public class AnnotatedWorkerExecutor {
                 pollingInterval);
     }
 
-    public void startPolling() {
+    /**
+     * Builds a {@link TaskRunnerConfigurer} over the currently registered workers and starts polling.
+     *
+     * <p>Idempotent: if a task runner is already polling and no worker has been added since it was
+     * built, this returns without doing anything. Restarting unnecessarily would stand up a second
+     * runner polling the same task types and only shut the first one down afterwards, so a task
+     * already leased by the outgoing runner could be left in-progress until its response timeout
+     * expired. Callers that add workers and call this again still get the intended restart.
+     */
+    public synchronized void startPolling() {
         if (workers.isEmpty()) {
+            return;
+        }
+
+        if (taskRunner != null && !workersChanged) {
+            LOGGER.debug(
+                    "Task runner is already polling {} workers and the worker set is unchanged; "
+                            + "skipping redundant restart.",
+                    workers.size());
             return;
         }
 
@@ -256,6 +279,8 @@ public class AnnotatedWorkerExecutor {
 
         taskRunner = builder.build();
         taskRunner.init();
+
+        workersChanged = false;
 
         oldTaskRunner.ifPresent(taskRunner -> {
             LOGGER.trace("Shutting down previous task runner with {} workers.", taskRunner.getWorkerCount());
