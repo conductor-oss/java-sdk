@@ -163,29 +163,24 @@ public class TestUtil {
     }
 
     /**
-     * Whether the suite is currently running against plain OSS Conductor rather than Orkes
-     * Enterprise, per the same {@code CONDUCTOR_SERVER_TYPE} signal that
-     * {@code @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss")}
-     * checks for test gating.
-     */
-    public static boolean isOssServer() {
-        return "oss".equals(System.getenv("CONDUCTOR_SERVER_TYPE"));
-    }
-
-    /**
-     * Asserts a caught exception represents "resource doesn't exist", in the shape specific to
-     * whichever server type {@code CONDUCTOR_SERVER_TYPE} says we're running against: Orkes
-     * Enterprise reports a proper 404; plain OSS Conductor instead reports a 500 whose message
-     * contains {@code ossMessageSubstring} (empirically confirmed per endpoint). Anything else
-     * is rethrown, since it isn't the "doesn't exist" case this is meant to tolerate.
+     * Tolerates a caught exception that represents "resource doesn't exist", in either shape a
+     * Conductor server reports it in: a proper 404, or -- on plain OSS Conductor, for the
+     * endpoints where this has been empirically confirmed -- a 500 whose message contains
+     * {@code ossMessageSubstring}. Anything else is rethrown, since it isn't the "doesn't exist"
+     * case this is meant to tolerate.
+     *
+     * <p>Both shapes are accepted regardless of {@code CONDUCTOR_SERVER_TYPE}. Keying off that
+     * variable would break two ways: {@code run-integration-oss.sh --include-gated} runs against
+     * OSS with it deliberately unset, and OSS returning a correct 404 for one of these endpoints
+     * should not start failing the suite.
      */
     public static void assertNotFoundOrRethrow(ConductorClientException e, String ossMessageSubstring) {
-        if (isOssServer()) {
-            if (e.getStatus() != 500 || e.getMessage() == null || !e.getMessage().contains(ossMessageSubstring)) {
-                throw e;
-            }
-        } else if (e.getStatus() != 404) {
-            throw e;
+        if (e.getStatus() == 404) {
+            return;
         }
+        if (e.getStatus() == 500 && e.getMessage() != null && e.getMessage().contains(ossMessageSubstring)) {
+            return;
+        }
+        throw e;
     }
 }

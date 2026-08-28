@@ -139,6 +139,30 @@ public class AnnotatedWorkerTests {
     }
 
     @Test
+    @DisplayName("startPolling should build a fresh task runner after a shutdown")
+    void startPollingRestartsAfterShutdown() {
+        var executor = new AnnotatedWorkerExecutor(mock(TaskClient.class));
+        executor.addBean(new MultipleInputParams());
+        executor.startPolling();
+        var first = executor.getTaskRunner();
+        assertNotNull(first);
+
+        // A TaskRunnerConfigurer is single-use, so shutdown() has to clear the field as well as
+        // shut the runner down. Otherwise startPolling()'s idempotence check sees a non-null
+        // runner with an unchanged worker set and silently declines to poll ever again.
+        executor.shutdown();
+        assertNull(executor.getTaskRunner());
+
+        executor.startPolling();
+        var second = executor.getTaskRunner();
+        assertNotNull(second);
+        assertNotSame(first, second);
+        assertEquals(1, second.getWorkerCount());
+
+        executor.shutdown();
+    }
+
+    @Test
     @DisplayName("it should handle null values when InputParam is a List")
     void nullListAsInputParam() throws NoSuchMethodException {
         var worker = new CarWorker1();
