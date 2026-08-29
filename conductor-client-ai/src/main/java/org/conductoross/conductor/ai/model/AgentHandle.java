@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
+import org.conductoross.conductor.ai.enums.EventType;
 import org.conductoross.conductor.ai.exceptions.WorkerStallError;
 import org.conductoross.conductor.ai.internal.ServerLivenessMonitor;
 import org.slf4j.Logger;
@@ -346,50 +348,89 @@ public class AgentHandle {
             output = java.util.Collections.singletonMap("result", output);
         }
 
-        // Token usage + tool calls: the server doesn't aggregate either on the
-        // workflow status response, but every LLM_CHAT_COMPLETE task carries
-        // tokenUsed/promptTokens/completionTokens in its outputData, and every
-        // tool-worker SIMPLE task in the workflow corresponds to one LLM tool
-        // call. Walk the workflow tasks once and aggregate both.
+        // Token usage, tool calls and events: the server aggregates none of them
+        // on the workflow status response, but every LLM_CHAT_COMPLETE task
+        // carries tokenUsed/promptTokens/completionTokens in its outputData and
+        // every tool task in the workflow is one LLM tool call. Walk the
+        // workflow tasks once and aggregate all three.
         // WorkflowClient is the standard Conductor client for /api/workflow/* —
         // no need to go through AgentClient for this standard endpoint.
-        TokenUsage tokenUsage = null;
-        List<Map<String, Object>> toolCalls = new ArrayList<>();
+        TaskExtract extract = new TaskExtract();
         try {
-            Workflow workflow = workflowClient.getWorkflow(executionId, true);
-            TaskExtract extract = extractFromTasks(workflow);
-            tokenUsage = extract.tokenUsage;
-            toolCalls = extract.toolCalls;
+            extract = extractFromTasks(workflowClient.getWorkflow(executionId, true));
         } catch (Exception e) {
             logger.debug("Could not extract tokens/toolCalls for {}: {}", executionId, e.getMessage());
         }
 
-        return new AgentResult(output, executionId, status, toolCalls, null, tokenUsage, error);
-    }
-
-    /** Bundles the token usage + tool calls walked out of a workflow's tasks. */
-    private static final class TaskExtract {
-        TokenUsage tokenUsage;
-        List<Map<String, Object>> toolCalls = new ArrayList<>();
+        return toResult(extract, output, executionId, status, error);
     }
 
     /**
+     * Assemble the {@link AgentResult} both non-streaming paths return: what the
+     * task walk found, closed with the terminal event.
+     */
+    private static AgentResult toResult(
+            TaskExtract extract, Object output, String executionId, AgentStatus status, String error) {
+        extract.events.add(terminalEvent(executionId, status, output, error));
+        return new AgentResult(
+                output, executionId, status, extract.toolCalls, extract.events, extract.tokenUsage, error);
+    }
+
+    /** Bundles the token usage, tool calls and events walked out of a workflow's tasks. */
+    private static final class TaskExtract {
+        TokenUsage tokenUsage;
+        List<Map<String, Object>> toolCalls = new ArrayList<>();
+        List<AgentEvent> events = new ArrayList<>();
+    }
+
+    /**
+     * Conductor task types the server compiles agent tools to — the values of the
+     * server's {@code ToolCompiler.TYPE_MAP}, plus {@code GENERATE_PDF}, which
+     * that map leaves to the upper-cased tool type.
+     *
+     * <p>A tool task is never recognised by its reference name. The server seeds
+     * that from the provider's own tool-call id, so only OpenAI's happens to
+     * start {@code call_} — an Anthropic-backed agent records {@code toolu_}, and
+     * the next provider picks its own format again.
+     */
+    private static final Set<String> TOOL_TASK_TYPES = Set.of(
+            "SIMPLE",
+            "HTTP",
+            "CALL_MCP_TOOL",
+            "SUB_WORKFLOW",
+            "HUMAN",
+            "GENERATE_IMAGE",
+            "GENERATE_AUDIO",
+            "GENERATE_VIDEO",
+            "GENERATE_PDF",
+            "LLM_INDEX_TEXT",
+            "LLM_SEARCH_INDEX",
+            "PULL_WORKFLOW_MESSAGES");
+
+    /** The one input key the server sets on every tool kind it dispatches. */
+    private static final String TOOL_NAME_KEY = "_agent_tool_name";
+
+    /** The tool name a server-compiled tool task carries, predating {@link #TOOL_NAME_KEY}. */
+    private static final String TOOL_METHOD_KEY = "method";
+
+    /**
      * Walk a workflow's tasks once and aggregate token usage (from
-     * {@code LLM_CHAT_COMPLETE} tasks) and tool calls (from {@code call_*}
-     * worker tasks). Shared by both {@link #buildResult} and
-     * {@link #fromWorkflow(Workflow)} so the extraction lives in one place.
+     * {@code LLM_CHAT_COMPLETE} tasks) plus the tool calls and their
+     * {@code tool_call}/{@code tool_result} events (from tool tasks). Shared by
+     * both {@link #buildResult} and {@link #fromWorkflow(Workflow)} so the
+     * extraction lives in one place.
      */
     private static TaskExtract extractFromTasks(Workflow workflow) {
         TaskExtract out = new TaskExtract();
         List<Task> tasks = workflow != null && workflow.getTasks() != null ? workflow.getTasks() : List.of();
+        String executionId = workflow != null && workflow.getWorkflowId() != null ? workflow.getWorkflowId() : "";
         int promptT = 0, completionT = 0, totalT = 0;
         boolean sawTokens = false;
         for (Task task : tasks) {
-            String taskType = task.getTaskType();
             Map<String, Object> outputData = task.getOutputData();
 
             // LLM task — aggregate tokens
-            if ("LLM_CHAT_COMPLETE".equals(taskType) && outputData != null) {
+            if ("LLM_CHAT_COMPLETE".equals(task.getTaskType()) && outputData != null) {
                 promptT += toInt(outputData.get("promptTokens"));
                 completionT += toInt(outputData.get("completionTokens"));
                 totalT += toInt(outputData.get("tokenUsed"));
@@ -397,37 +438,114 @@ public class AgentHandle {
                 continue;
             }
 
-            // Tool worker task — capture name, input args (stripping
-            // internal runtime fields), and output result.
-            // referenceTaskName starts with "call_" for LLM-dispatched tool calls.
-            String refName = task.getReferenceTaskName();
-            if (refName != null && refName.startsWith("call_") && outputData != null) {
-                Map<String, Object> tc = new LinkedHashMap<>();
-                tc.put("name", taskType);
-                Map<String, Object> inputData = task.getInputData();
-                if (inputData != null) {
-                    Map<String, Object> cleaned = new LinkedHashMap<>();
-                    for (Map.Entry<String, Object> e : inputData.entrySet()) {
-                        String k = e.getKey();
-                        if (k.startsWith("_")
-                                || "method".equals(k)
-                                || "evaluatorType".equals(k)
-                                || "expression".equals(k)
-                                || "ctx".equals(k)
-                                || "workerTag".equals(k)
-                                || "agentConfig".equals(k)) continue;
-                        cleaned.put(k, e.getValue());
-                    }
-                    tc.put("args", cleaned);
-                }
-                tc.put("result", outputData.get("result"));
-                out.toolCalls.add(tc);
+            if (!isToolTask(task)) continue;
+            // A tool task that has neither finished nor produced anything is a
+            // call the agent has not made yet — a HUMAN tool still waiting on
+            // its assignee, say. Reporting it would claim a call that has not
+            // happened.
+            boolean produced = outputData != null && !outputData.isEmpty();
+            if (!produced && (task.getStatus() == null || !task.getStatus().isTerminal())) continue;
+
+            String name = resolveToolName(task);
+            Map<String, Object> args = toolArgs(task.getInputData());
+            // A tool whose output isn't wrapped in "result" — HTTP, MCP — reports
+            // the whole output map, as the server's own event listener does. Keyed
+            // on the key being there, so a tool that answers null keeps its null.
+            Object result = null;
+            if (produced) {
+                result = outputData.containsKey("result") ? outputData.get("result") : outputData;
             }
+
+            Map<String, Object> tc = new LinkedHashMap<>();
+            tc.put("name", name);
+            if (args != null) tc.put("args", args);
+            tc.put("result", result);
+            out.toolCalls.add(tc);
+
+            out.events.add(
+                    new AgentEvent(EventType.TOOL_CALL, null, name, args, null, null, executionId, null, null));
+            out.events.add(
+                    new AgentEvent(EventType.TOOL_RESULT, null, name, null, result, null, executionId, null, null));
         }
         if (sawTokens) {
             out.tokenUsage = new TokenUsage(promptT, completionT, totalT);
         }
         return out;
+    }
+
+    /**
+     * Whether a task is one of the agent's tool invocations, as opposed to the
+     * LLM call, a control-flow task, a guardrail or the approval gate.
+     */
+    private static boolean isToolTask(Task task) {
+        // Framework passthrough wrappers restate a tool task that is already
+        // in the list on its own.
+        String refName = task.getReferenceTaskName();
+        if (refName != null && refName.startsWith("_fw_")) return false;
+
+        Map<String, Object> inputData = task.getInputData();
+        if (inputData != null && inputData.get(TOOL_NAME_KEY) != null) return true;
+
+        if (!TOOL_TASK_TYPES.contains(task.getTaskType())) return false;
+        // Typed like a tool but untagged, so it only counts if it names one.
+        // That keeps out the approval gate's HUMAN task and guardrail workers,
+        // which share their task types with real tools.
+        return inputData != null && inputData.get(TOOL_METHOD_KEY) != null;
+    }
+
+    /**
+     * The tool's own name, which the server puts in the task's input. Never the
+     * task type: Conductor overwrites an executed SIMPLE task's type with the
+     * task's own name, so that reads correctly for a worker tool and reports
+     * every other kind under its system task type — an HTTP tool as
+     * {@code "HTTP"}, an MCP tool as {@code "CALL_MCP_TOOL"}.
+     */
+    private static String resolveToolName(Task task) {
+        Map<String, Object> inputData = task.getInputData();
+        if (inputData != null) {
+            Object toolName = inputData.get(TOOL_NAME_KEY);
+            if (toolName != null && !toolName.toString().isEmpty()) return toolName.toString();
+            Object method = inputData.get(TOOL_METHOD_KEY);
+            if (method != null && !method.toString().isEmpty()) return method.toString();
+        }
+        // Last resort, and only reachable when the server set one of the keys
+        // above to an empty string: getTaskDefName() itself falls back to the
+        // task type, so it is right for a worker tool and no better than the
+        // old behaviour for anything else.
+        String taskDefName = task.getTaskDefName();
+        return taskDefName != null && !taskDefName.isEmpty() ? taskDefName : null;
+    }
+
+    /** A tool task's input with the server's internal runtime keys stripped. */
+    private static Map<String, Object> toolArgs(Map<String, Object> inputData) {
+        if (inputData == null) return null;
+        Map<String, Object> cleaned = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> e : inputData.entrySet()) {
+            String k = e.getKey();
+            if (k.startsWith("_")
+                    || TOOL_METHOD_KEY.equals(k)
+                    || "evaluatorType".equals(k)
+                    || "expression".equals(k)
+                    || "ctx".equals(k)
+                    || "workerTag".equals(k)
+                    || "agentConfig".equals(k)) continue;
+            cleaned.put(k, e.getValue());
+        }
+        return cleaned;
+    }
+
+    /**
+     * The event the stream would have ended on. Both non-streaming paths append
+     * one so that an events list is never empty for a run that happened —
+     * without it, "no events were collected" and "no events occurred" are the
+     * same empty list.
+     */
+    private static AgentEvent terminalEvent(String executionId, AgentStatus status, Object output, String error) {
+        String id = executionId != null ? executionId : "";
+        if (status == AgentStatus.COMPLETED) {
+            return new AgentEvent(EventType.DONE, null, null, null, null, output, id, null, null);
+        }
+        return new AgentEvent(EventType.ERROR, error, null, null, null, output, id, null, null);
     }
 
     /**
@@ -437,7 +555,7 @@ public class AgentHandle {
      * already hold a completed {@link Workflow}. Maps the workflow status to an {@link AgentStatus},
      * normalizes the output map, surfaces {@code reasonForIncompletion} as the
      * error for non-completed runs, and reuses {@link #extractFromTasks} for the
-     * token-usage and tool-call aggregation.
+     * token-usage, tool-call and event aggregation.
      *
      * @param workflow a finished (or at least populated) workflow; may be null
      * @return the equivalent {@link AgentResult}
@@ -465,8 +583,7 @@ public class AgentHandle {
             output = java.util.Collections.singletonMap("result", output);
         }
 
-        TaskExtract extract = extractFromTasks(workflow);
-        return new AgentResult(output, executionId, status, extract.toolCalls, null, extract.tokenUsage, error);
+        return toResult(extractFromTasks(workflow), output, executionId, status, error);
     }
 
     private static int toInt(Object value) {

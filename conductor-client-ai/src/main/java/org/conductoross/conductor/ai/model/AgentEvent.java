@@ -152,9 +152,18 @@ public class AgentEvent {
     /**
      * Create an AgentEvent from a raw map (as parsed from SSE JSON).
      */
-    /** Internal keys injected by the server that should not be shown as tool arguments. */
-    private static final Set<String> INTERNAL_KEYS =
-            new HashSet<>(Arrays.asList("_agent_state", "method"));
+    /**
+     * Internal keys injected by the server that should not be shown as tool
+     * arguments, alongside every {@code _}-prefixed key — {@code _agent_state},
+     * {@code _agent_tool_name}, {@code _allowed_commands} and whatever the server
+     * adds next. The polled path strips the same set, so both report one call's
+     * arguments identically.
+     */
+    private static final Set<String> INTERNAL_KEYS = new HashSet<>(Arrays.asList("method"));
+
+    private static boolean isInternalKey(String key) {
+        return key != null && (key.startsWith("_") || INTERNAL_KEYS.contains(key));
+    }
 
     @SuppressWarnings("unchecked")
     public static AgentEvent fromMap(Map<String, Object> data) {
@@ -182,7 +191,7 @@ public class AgentEvent {
         if (rawArgs != null) {
             cleanArgs = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : rawArgs.entrySet()) {
-                if (!INTERNAL_KEYS.contains(entry.getKey())) {
+                if (!isInternalKey(entry.getKey())) {
                     cleanArgs.put(entry.getKey(), entry.getValue());
                 }
             }
