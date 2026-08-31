@@ -41,7 +41,7 @@ public class MetadataClientTests {
         } catch (ConductorClientException e) {
             // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
             // we're running against actually reports it.
-            TestUtil.assertNotFoundOrRethrow(e, "No such task definition");
+            TestUtil.tolerateNotFound(e, "No such task definition");
         }
         TaskDef taskDef = Commons.getTaskDef();
         metadataClient.registerTaskDefs(List.of(taskDef));
@@ -57,7 +57,7 @@ public class MetadataClientTests {
         } catch (ConductorClientException e) {
             // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
             // we're running against actually reports it.
-            TestUtil.assertNotFoundOrRethrow(e, "No such workflow definition");
+            TestUtil.tolerateNotFound(e, "No such workflow definition");
         }
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         WorkflowDef workflowDef = WorkflowUtil.getWorkflowDef();

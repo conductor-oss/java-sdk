@@ -38,7 +38,7 @@ public class EventClientTests {
         } catch (ConductorClientException e) {
             // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
             // we're running against actually reports it.
-            TestUtil.assertNotFoundOrRethrow(e, "not found");
+            TestUtil.tolerateNotFound(e, "EventHandler with name");
         }
         EventHandler eventHandler = getEventHandler();
         eventClient.registerEventHandler(eventHandler);
