@@ -174,7 +174,7 @@ public class TestUtil {
      * OSS with it deliberately unset, and OSS returning a correct 404 for one of these endpoints
      * should not start failing the suite.
      */
-    public static void assertNotFoundOrRethrow(ConductorClientException e, String ossMessageSubstring) {
+    public static void tolerateNotFound(ConductorClientException e, String ossMessageSubstring) {
         if (e.getStatus() == 404) {
             return;
         }
