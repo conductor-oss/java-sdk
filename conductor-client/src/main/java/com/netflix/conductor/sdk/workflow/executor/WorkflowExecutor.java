@@ -174,10 +174,21 @@ public class WorkflowExecutor {
                     for (Map.Entry<String, CompletableFuture<Workflow>> entry : runningWorkflowFutures.entrySet()) {
                         String workflowId = entry.getKey();
                         CompletableFuture<Workflow> future = entry.getValue();
-                        Workflow workflow = workflowClient.getWorkflow(workflowId, true);
-                        if (workflow.getStatus().isTerminal()) {
-                            future.complete(workflow);
+                        try {
+                            Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+                            if (workflow.getStatus().isTerminal()) {
+                                future.complete(workflow);
+                                runningWorkflowFutures.remove(workflowId);
+                            }
+                        } catch (Exception e) {
+                            // scheduleAtFixedRate silently kills all future ticks on any uncaught
+                            // exception, so this must not escape: one failed poll would otherwise
+                            // stop completion tracking for every workflow, forever. Stop tracking
+                            // this one and let its caller see the failure.
+                            LOGGER.error("Error polling workflow {} for completion; completing its "
+                                    + "future exceptionally", workflowId, e);
                             runningWorkflowFutures.remove(workflowId);
+                            future.completeExceptionally(e);
                         }
                     }
                 },

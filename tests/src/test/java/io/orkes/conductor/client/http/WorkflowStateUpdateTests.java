@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.conductoross.conductor.common.model.WorkflowRun;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -91,6 +92,8 @@ public class WorkflowStateUpdateTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "POST /workflow/{workflowId}/state (updateWorkflow) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/{id}/state')")
     public void test() {
         String workflowId = startWorkflow();
         System.out.println(workflowId);
@@ -135,6 +138,8 @@ public class WorkflowStateUpdateTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "workflow start idempotency keys are not honored by plain OSS Conductor, confirmed empirically (RETURN_EXISTING starts a brand-new run instead of returning the original workflowId)")
     public void testIdempotency() {
         StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest();
         startWorkflowRequest.setName("sync_task_variable_updates");
