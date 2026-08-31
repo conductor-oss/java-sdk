@@ -149,13 +149,7 @@ jobs:
         uses: mikepenz/action-junit-report@v6
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
-          # Distinct per suite: the action defaults to 'JUnit Test Report' for every caller, so
-          # this report and the ones published by integration-tests.yml all landed on a single
-          # check run and overwrote each other.
-          check_name: Unit Test Report
-
+          
       - name: Check Tests Status
         if: steps.tests.outcome == 'failure'
-        run: |
-          echo "::error::Tests failed. See the 'Run Tests' step above for the Gradle/test output, and the 'Publish Test Report' step's JUnit summary for which test(s) failed."
-          exit 1
+        run: exit 1
