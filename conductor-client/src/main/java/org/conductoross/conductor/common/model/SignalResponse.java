@@ -18,8 +18,6 @@ import java.util.Map;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.run.Workflow;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.*;
 
 @EqualsAndHashCode
@@ -31,7 +29,6 @@ import lombok.*;
 public class SignalResponse {
 
     // Common fields in all responses
-    @JsonFormat(with = JsonFormat.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
     private ReturnStrategy responseType;
     private String targetWorkflowId;
     private String targetWorkflowStatus;
