@@ -18,6 +18,8 @@ import java.util.Map;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.run.Workflow;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.*;
 
 @EqualsAndHashCode
@@ -29,6 +31,7 @@ import lombok.*;
 public class SignalResponse {
 
     // Common fields in all responses
+    @JsonFormat(with = JsonFormat.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
     private ReturnStrategy responseType;
     private String targetWorkflowId;
     private String targetWorkflowStatus;
@@ -38,13 +41,23 @@ public class SignalResponse {
     private Integer priority;
     private Map<String, Object> variables;
     private boolean signalTimeout;
+    /** Variables of the target (signaled) workflow. Set for every return strategy; null from older servers. */
+    private Map<String, Object> targetWorkflowVariables;
 
-    // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW
+    // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW (also the blocking tasks for BLOCKING_TASK_LIST)
     private List<Task> tasks;
     private String createdBy;
     private Long createTime;
     private String status;
     private Long updateTime;
+    /**
+     * Set only on BLOCKING_WORKFLOW responses, where it always references an entry in {@link #tasks}. Null for every
+     * other strategy (for TARGET_WORKFLOW the blocker may be in a descendant workflow not present in {@code tasks})
+     * and from older servers.
+     */
+    private String blockingTaskId;
+    /** Same rule as {@link #blockingTaskId}. */
+    private String blockingTaskReferenceName;
 
     // Fields specific to BLOCKING_TASK & BLOCKING_TASK_INPUT
     private String taskType;
@@ -71,6 +84,21 @@ public class SignalResponse {
         return ReturnStrategy.BLOCKING_TASK_INPUT.equals(responseType);
     }
 
+    public boolean isBlockingTaskList() {
+        return ReturnStrategy.BLOCKING_TASK_LIST.equals(responseType);
+    }
+
+    /**
+     * False when a task-shaped response has no blocking task (the signal completed the workflow, or it was already
+     * terminal). The server returns a body with {@code taskId == null} in that case, not an empty body.
+     */
+    public boolean hasBlockingTask() {
+        if (isBlockingTaskList()) {
+            return tasks != null && !tasks.isEmpty();
+        }
+        return taskId != null;
+    }
+
     // Extraction methods
     public Workflow getWorkflow() {
         if (!isTargetWorkflow() && !isBlockingWorkflow()) {
@@ -93,10 +121,17 @@ public class SignalResponse {
         return workflow;
     }
 
+    /** Returns the blocking task, or null when {@link #hasBlockingTask()} is false. */
     public Task getBlockingTask() {
-        if (!isBlockingTask() && !isBlockingTaskInput()) {
+        if (!isBlockingTask() && !isBlockingTaskInput() && !isBlockingTaskList()) {
             throw new IllegalStateException(
                     String.format("Response type %s does not contain task details", responseType));
+        }
+        if (!hasBlockingTask()) {
+            return null;
+        }
+        if (isBlockingTaskList()) {
+            return tasks.get(0);
         }
 
         Task task = new Task();
@@ -115,10 +150,14 @@ public class SignalResponse {
         return task;
     }
 
+    /** Returns the blocking task's input, or null when nothing is blocking (then {@code input} is the workflow's). */
     public Map<String, Object> getTaskInput() {
         if (!isBlockingTaskInput()) {
             throw new IllegalStateException(
                     String.format("Response type %s does not contain task input details", responseType));
+        }
+        if (!hasBlockingTask()) {
+            return null;
         }
 
         return input;

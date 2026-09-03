@@ -22,7 +22,8 @@ public enum ReturnStrategy {
     TARGET_WORKFLOW, // Default
     BLOCKING_WORKFLOW,
     BLOCKING_TASK,
-    BLOCKING_TASK_INPUT;
+    BLOCKING_TASK_INPUT,
+    BLOCKING_TASK_LIST;
 
     /**
      * Convert to the new ReturnStrategy type in conductor-client

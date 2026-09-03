@@ -767,7 +767,9 @@ public class TaskClient {
      * @param output         Output for the task
      * @param returnStrategy Strategy for what data to return
      * @param timeoutMillis  Timeout in milliseconds
-     * @return SignalResponse with data based on the return strategy
+     * @return SignalResponse with data based on the return strategy. For task-shaped strategies with no blocking
+     *         task the server now returns a body with {@code taskId == null} rather than an empty body; use
+     *         {@link SignalResponse#hasBlockingTask()} instead of a null check.
      */
     public SignalResponse signal(String workflowId,
             Task.Status status,
