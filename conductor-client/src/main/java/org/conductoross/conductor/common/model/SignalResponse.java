@@ -38,13 +38,20 @@ public class SignalResponse {
     private Integer priority;
     private Map<String, Object> variables;
     private boolean signalTimeout;
+    // Variables of the target workflow (workflowId in path params)
+    private Map<String, Object> targetWorkflowVariables;
 
-    // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW
+    // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW (also the blocking tasks for BLOCKING_TASK_LIST)
     private List<Task> tasks;
     private String createdBy;
     private Long createTime;
     private String status;
     private Long updateTime;
+    /**
+     * blockingTaskId and blockingTaskReferenceName -- Set only when responseStrategy=BLOCKING_WORKFLOW
+     */
+    private String blockingTaskId;
+    private String blockingTaskReferenceName;
 
     // Fields specific to BLOCKING_TASK & BLOCKING_TASK_INPUT
     private String taskType;
@@ -71,6 +78,28 @@ public class SignalResponse {
         return ReturnStrategy.BLOCKING_TASK_INPUT.equals(responseType);
     }
 
+    public boolean isBlockingTaskList() {
+        return ReturnStrategy.BLOCKING_TASK_LIST.equals(responseType);
+    }
+
+    private boolean isTaskResponse() {
+        return isBlockingTask() || isBlockingTaskInput() || isBlockingTaskList();
+    }
+
+    /** Returns whether this response identifies at least one blocking task. */
+    public boolean hasBlockingTask() {
+        if (responseType == null) {
+            return false;
+        }
+
+        return switch (responseType) {
+            case BLOCKING_WORKFLOW -> blockingTaskId != null;
+            case BLOCKING_TASK, BLOCKING_TASK_INPUT -> taskId != null;
+            case BLOCKING_TASK_LIST -> tasks != null && !tasks.isEmpty();
+            case TARGET_WORKFLOW -> false;
+        };
+    }
+
     // Extraction methods
     public Workflow getWorkflow() {
         if (!isTargetWorkflow() && !isBlockingWorkflow()) {
@@ -93,12 +122,40 @@ public class SignalResponse {
         return workflow;
     }
 
+    /** Returns the blocking task, or null when {@link #hasBlockingTask()} is false. */
     public Task getBlockingTask() {
-        if (!isBlockingTask() && !isBlockingTaskInput()) {
+        // Response is not a task shape.
+        if (!isTaskResponse()) {
             throw new IllegalStateException(
                     String.format("Response type %s does not contain task details", responseType));
         }
+        // Response is a task shape without a blocking task.
+        if (!hasBlockingTask()) {
+            return null;
+        }
+        // Return the pre-constructed task object in tasks[].
+        if (isBlockingTaskList()) {
+            return tasks.get(0);
+        }
 
+        return buildFlatTask();
+    }
+
+    /** Returns the blocking task's input, or null when nothing is blocking (then {@code input} is the workflow's). */
+    public Map<String, Object> getTaskInput() {
+        if (!isBlockingTaskInput()) {
+            throw new IllegalStateException(
+                    String.format("Response type %s does not contain task input details", responseType));
+        }
+        if (!hasBlockingTask()) {
+            return null;
+        }
+
+        return input;
+    }
+
+    // Construct the flattened task shape.
+    private Task buildFlatTask() {
         Task task = new Task();
         task.setTaskId(taskId);
         task.setTaskType(taskType);
@@ -113,14 +170,5 @@ public class SignalResponse {
         task.setOutputData(output);
 
         return task;
-    }
-
-    public Map<String, Object> getTaskInput() {
-        if (!isBlockingTaskInput()) {
-            throw new IllegalStateException(
-                    String.format("Response type %s does not contain task input details", responseType));
-        }
-
-        return input;
     }
 }

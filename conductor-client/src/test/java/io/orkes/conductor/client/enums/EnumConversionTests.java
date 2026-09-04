@@ -42,11 +42,12 @@ public class EnumConversionTests {
     @Test
     public void testReturnStrategyValues() {
         ReturnStrategy[] values = ReturnStrategy.values();
-        assertEquals(4, values.length);
+        assertEquals(5, values.length);
         assertNotNull(ReturnStrategy.valueOf("TARGET_WORKFLOW"));
         assertNotNull(ReturnStrategy.valueOf("BLOCKING_WORKFLOW"));
         assertNotNull(ReturnStrategy.valueOf("BLOCKING_TASK"));
         assertNotNull(ReturnStrategy.valueOf("BLOCKING_TASK_INPUT"));
+        assertNotNull(ReturnStrategy.valueOf("BLOCKING_TASK_LIST"));
     }
 
     @Test
