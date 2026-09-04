@@ -38,7 +38,7 @@ public class SignalResponse {
     private Integer priority;
     private Map<String, Object> variables;
     private boolean signalTimeout;
-    /** Variables of the target (signaled) workflow. Set for every return strategy; null from older servers. */
+    // Variables of the target workflow (workflowId in path params)
     private Map<String, Object> targetWorkflowVariables;
 
     // Fields specific to TARGET_WORKFLOW & BLOCKING_WORKFLOW (also the blocking tasks for BLOCKING_TASK_LIST)
@@ -48,8 +48,7 @@ public class SignalResponse {
     private String status;
     private Long updateTime;
     /**
-     * blockingTaskId and blockingTaskReferenceName Set only on BLOCKING_WORKFLOW responses
-     * -- Null for every other strategy
+     * blockingTaskId and blockingTaskReferenceName -- Set only when responseStrategy=BLOCKING_WORKFLOW
      */
     private String blockingTaskId;
     private String blockingTaskReferenceName;
