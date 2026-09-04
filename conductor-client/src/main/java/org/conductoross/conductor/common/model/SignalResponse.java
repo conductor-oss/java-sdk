@@ -85,15 +85,18 @@ public class SignalResponse {
         return ReturnStrategy.BLOCKING_TASK_LIST.equals(responseType);
     }
 
-    /**
-     * False when a task-shaped response has no blocking task (the signal completed the workflow, or it was already
-     * terminal). The server returns a body with {@code taskId == null} in that case, not an empty body.
-     */
+    /** Returns whether this response identifies at least one blocking task. */
     public boolean hasBlockingTask() {
-        if (isBlockingTaskList()) {
-            return tasks != null && !tasks.isEmpty();
+        if (responseType == null) {
+            return false;
         }
-        return taskId != null;
+
+        return switch (responseType) {
+            case BLOCKING_WORKFLOW -> blockingTaskId != null;
+            case BLOCKING_TASK, BLOCKING_TASK_INPUT -> taskId != null;
+            case BLOCKING_TASK_LIST -> tasks != null && !tasks.isEmpty();
+            case TARGET_WORKFLOW -> false;
+        };
     }
 
     // Extraction methods
