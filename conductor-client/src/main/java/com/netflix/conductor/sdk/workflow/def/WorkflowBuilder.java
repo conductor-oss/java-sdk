@@ -28,7 +28,7 @@ import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 import com.netflix.conductor.sdk.workflow.utils.InputOutputGetter;
 import com.netflix.conductor.sdk.workflow.utils.MapBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * @param <T> Input type for the workflow

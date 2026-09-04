@@ -17,15 +17,17 @@ import org.junit.jupiter.api.Test;
 import io.orkes.conductor.client.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSerDerLLMResponse {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ObjectMapper nonNullMapper = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    private final ObjectMapper nonNullMapper = JsonMapper.builder()
+            .changeDefaultPropertyInclusion(incl -> JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+            .build();
 
     @Test
     public void testSerializationDeserialization() throws Exception {

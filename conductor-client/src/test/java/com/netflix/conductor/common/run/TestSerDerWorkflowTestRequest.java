@@ -22,7 +22,8 @@ import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,15 +32,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 // todo fix missing fields in dependent sdk pojos - should pass this test
 public class TestSerDerWorkflowTestRequest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY))
+            .build();
 
     @Test
     public void testSerializationDeserialization() throws Exception {
         // 1. Unmarshal SERVER_JSON to SDK POJO
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("WorkflowTestRequest");
         // Configure ObjectMapper to ignore deprecated fields
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         WorkflowTestRequest workflowTestRequest = objectMapper.readValue(SERVER_JSON, WorkflowTestRequest.class);
 
         // 2. Assert that the fields are all correctly populated

@@ -26,7 +26,7 @@ import io.orkes.conductor.client.model.CreateAccessKeyResponse;
 import io.orkes.conductor.client.model.CreateOrUpdateApplicationRequest;
 import io.orkes.conductor.client.model.TagObject;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 class ApplicationResource {
 

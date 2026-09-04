@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import io.orkes.conductor.client.model.agent.CompileResponse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;

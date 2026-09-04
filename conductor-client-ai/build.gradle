@@ -17,11 +17,10 @@ dependencies {
     // so downstream modules and user code must see conductor-client transitively.
     api project(":conductor-client")
 
-    api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-    api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
-    // not injected by the root subprojects block — must stay explicit
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
+    // Jackson 3: jsr310/jdk8 datatypes are part of core, so only databind and the
+    // 2.x-line annotations remain on the public surface.
+    api "tools.jackson.core:jackson-databind:${versions.jackson}"
+    api "com.fasterxml.jackson.core:jackson-annotations:${versions.jacksonAnnotations}"
 
     // compileOnly so the SDK doesn't force LLM frameworks onto users: the framework
     // bridge classes only link at runtime when the user passes a native object in —

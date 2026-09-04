@@ -26,7 +26,7 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 import io.orkes.conductor.client.PromptClient;
 import io.orkes.conductor.client.model.TagObject;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 public class OrkesPromptClient implements PromptClient {
 
