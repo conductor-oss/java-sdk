@@ -292,6 +292,7 @@ public class TaskClientTests {
                 break;
 
             case BLOCKING_TASK:
+            case BLOCKING_TASK_LIST:
                 // Should work for task responses
                 assertDoesNotThrow(() -> response.getBlockingTask(), "getBlockingTask() should work for " + strategy);
                 assertNotNull(response.getBlockingTask(), "getBlockingTask() should return non-null task");
@@ -368,6 +369,23 @@ public class TaskClientTests {
         validateSignalResponse(response, ReturnStrategy.BLOCKING_TASK);
         assertTrue(response.isBlockingTask());
         validateHelperMethods(response, ReturnStrategy.BLOCKING_TASK);
+
+        completeWorkflow(workflowId);
+    }
+
+    @Test
+    void testSyncBlockingTaskList() throws Exception {
+        String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_LIST);
+
+        var response = taskClient.signal(workflowId, Task.Status.COMPLETED,
+                Map.of("result", "test"), ReturnStrategy.BLOCKING_TASK_LIST);
+
+        validateSignalResponse(response, ReturnStrategy.BLOCKING_TASK_LIST);
+        assertTrue(response.isBlockingTaskList());
+        assertNull(response.getTaskId());
+        assertEquals(1, response.getTasks().size());
+        assertNotNull(response.getTargetWorkflowVariables());
+        validateHelperMethods(response, ReturnStrategy.BLOCKING_TASK_LIST);
 
         completeWorkflow(workflowId);
     }
