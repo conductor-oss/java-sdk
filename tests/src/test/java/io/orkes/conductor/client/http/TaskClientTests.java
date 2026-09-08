@@ -383,6 +383,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "BLOCKING_TASK_LIST is not a value of the server-side WorkflowSignalReturnStrategy enum in any OSS Conductor release, so OSS rejects the returnStrategy parameter outright, on top of not implementing the signal/sync API the other BLOCKING_* tests are skipped for")
     void testSyncBlockingTaskList() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_LIST);
 
