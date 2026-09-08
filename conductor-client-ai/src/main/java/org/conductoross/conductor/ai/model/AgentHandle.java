@@ -392,6 +392,10 @@ public class AgentHandle {
      * that from the provider's own tool-call id, so only OpenAI's happens to
      * start {@code call_} — an Anthropic-backed agent records {@code toolu_}, and
      * the next provider picks its own format again.
+     *
+     * <p>{@code SIMPLE} is here for a worker tool that was scheduled and never
+     * ran. One that ran reports its own name as its type instead, which is what
+     * {@link #isToolTaskType} handles.
      */
     private static final Set<String> TOOL_TASK_TYPES = Set.of(
             "SIMPLE",
@@ -414,6 +418,12 @@ public class AgentHandle {
     private static final String TOOL_METHOD_KEY = "method";
 
     /**
+     * The reference names Conductor forked dynamically, which it records on the
+     * {@code FORK_JOIN_DYNAMIC} task's own input.
+     */
+    private static final String FORKED_TASKS_KEY = "forkedTasks";
+
+    /**
      * Walk a workflow's tasks once and aggregate token usage (from
      * {@code LLM_CHAT_COMPLETE} tasks) plus the tool calls and their
      * {@code tool_call}/{@code tool_result} events (from tool tasks). Shared by
@@ -424,6 +434,7 @@ public class AgentHandle {
         TaskExtract out = new TaskExtract();
         List<Task> tasks = workflow != null && workflow.getTasks() != null ? workflow.getTasks() : List.of();
         String executionId = workflow != null && workflow.getWorkflowId() != null ? workflow.getWorkflowId() : "";
+        ToolTagging tagging = ToolTagging.of(tasks);
         int promptT = 0, completionT = 0, totalT = 0;
         boolean sawTokens = false;
         for (Task task : tasks) {
@@ -438,7 +449,7 @@ public class AgentHandle {
                 continue;
             }
 
-            if (!isToolTask(task)) continue;
+            if (!isToolTask(task, tagging)) continue;
             // A tool task that has neither finished nor produced anything is a
             // call the agent has not made yet — a HUMAN tool still waiting on
             // its assignee, say. Reporting it would claim a call that has not
@@ -477,7 +488,7 @@ public class AgentHandle {
      * Whether a task is one of the agent's tool invocations, as opposed to the
      * LLM call, a control-flow task, a guardrail or the approval gate.
      */
-    private static boolean isToolTask(Task task) {
+    private static boolean isToolTask(Task task, ToolTagging tagging) {
         // Framework passthrough wrappers restate a tool task that is already
         // in the list on its own.
         String refName = task.getReferenceTaskName();
@@ -485,12 +496,81 @@ public class AgentHandle {
 
         Map<String, Object> inputData = task.getInputData();
         if (inputData != null && inputData.get(TOOL_NAME_KEY) != null) return true;
+        // Where the server tags at all it tags every tool kind, so an untagged
+        // task is not a tool call and guessing past that only invents calls.
+        if (tagging.tagged) return false;
 
-        if (!TOOL_TASK_TYPES.contains(task.getTaskType())) return false;
-        // Typed like a tool but untagged, so it only counts if it names one.
-        // That keeps out the approval gate's HUMAN task and guardrail workers,
-        // which share their task types with real tools.
-        return inputData != null && inputData.get(TOOL_METHOD_KEY) != null;
+        // Untagged server: the tool calls are the tasks it forked dynamically.
+        if (refName == null || !tagging.dynamicallyForked.contains(refName)) return false;
+        return isToolTaskType(task);
+    }
+
+    /**
+     * Whether a task's type is one an agent tool compiles to.
+     *
+     * <p>{@link #TOOL_TASK_TYPES} alone cannot answer this for a worker tool,
+     * because by the time the task has run Conductor has rewritten its type from
+     * {@code SIMPLE} to the task's own name. A task whose type and task-def name
+     * agree is that case.
+     */
+    private static boolean isToolTaskType(Task task) {
+        String taskType = task.getTaskType();
+        if (taskType == null) return false;
+        return TOOL_TASK_TYPES.contains(taskType) || taskType.equals(task.getTaskDefName());
+    }
+
+    /**
+     * How one workflow's tool tasks can be told apart, decided once for the
+     * whole task list.
+     *
+     * <p>A server that tags tool tasks with {@link #TOOL_NAME_KEY} is
+     * authoritative, and that is the only signal worth having: it names the tool
+     * as well as identifying it. The tag is set on every tool kind, after the
+     * per-kind branch that rewrites the task's input, so on such a server tagged
+     * and tool are the same set.
+     *
+     * <p>Servers predating the tag set it on nothing, and there the fallback is
+     * the dynamic fork. An agent dispatches its tool calls through
+     * {@code FORK_JOIN_DYNAMIC}, and Conductor records the reference names it
+     * forked on the fork task's own input, so a tool task is one the server
+     * itself reports as dynamically created. Everything the agent compiles for
+     * its own use is static by comparison, including the guardrail workers, the
+     * approval gate and a handoff's sub-workflow, which share their task types
+     * with real tools and would otherwise be counted as tool calls.
+     *
+     * <p>The fallback is a best effort, not a second authority. An agent can
+     * dynamically fan out for reasons of its own, and on an untagged server such
+     * a task is indistinguishable from a tool call; the tag is what removes the
+     * ambiguity, which is why it is preferred whenever the server sets it.
+     */
+    private static final class ToolTagging {
+        /** Whether the server tagged any task at all with {@link #TOOL_NAME_KEY}. */
+        final boolean tagged;
+
+        /** Reference names the server reports having forked dynamically. */
+        final Set<String> dynamicallyForked;
+
+        private ToolTagging(boolean tagged, Set<String> dynamicallyForked) {
+            this.tagged = tagged;
+            this.dynamicallyForked = dynamicallyForked;
+        }
+
+        static ToolTagging of(List<Task> tasks) {
+            boolean tagged = false;
+            Set<String> forked = new java.util.HashSet<>();
+            for (Task task : tasks) {
+                Map<String, Object> inputData = task.getInputData();
+                if (inputData == null) continue;
+                if (inputData.get(TOOL_NAME_KEY) != null) tagged = true;
+                Object names = inputData.get(FORKED_TASKS_KEY);
+                if (names instanceof List) {
+                    for (Object name : (List<?>) names) {
+                        if (name != null) forked.add(name.toString());
+                    }
+                }
+            }
+            return new ToolTagging(tagged, forked);
+        }
     }
 
     /**

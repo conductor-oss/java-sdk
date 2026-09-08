@@ -307,6 +307,115 @@ class AgentHandleToolExtractionTest {
         assertEquals("model unavailable", last.getContent());
     }
 
+    // ── Servers that set no _agent_tool_name ─────────────────────────────────
+    //
+    // The tag is set on every tool kind or on none. On a server predating it,
+    // the per-kind compile step has already replaced the task's input, so an
+    // HTTP tool carries only its http_request and nothing names the tool. What
+    // still identifies it is the dynamic fork: Conductor records the reference
+    // names it forked on the fork task's own input.
+
+    /** A tool task as a pre-tag server dispatches it: no {@code _agent_tool_name}. */
+    private static Task untaggedWorkerTool(String refName, String toolName, Map<String, Object> args) {
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("_agent_state", Map.of());
+        input.put("method", toolName);
+        input.putAll(args);
+        return task(toolName, refName, input, Map.of("result", toolName + "-output"));
+    }
+
+    /**
+     * A tool the server compiles to a system task, dispatched by a pre-tag
+     * server: the per-kind step has replaced the input, so the task's own name
+     * is all that is left of the tool's identity.
+     */
+    private static Task untaggedSystemTool(
+            String taskType, String refName, String toolName, Map<String, Object> compiledInput) {
+        Task t = task(taskType, refName, compiledInput, Map.of("result", toolName + "-output"));
+        t.setTaskDefName(toolName);
+        return t;
+    }
+
+    /** The synthetic FORK task Conductor writes when it fans out dynamically. */
+    private static Task forkTask(String... forkedRefNames) {
+        return task("FORK", "agent_fork", Map.of("forkedTasks", List.of(forkedRefNames)), Map.of());
+    }
+
+    /**
+     * A guardrail worker, which is a SIMPLE task like a worker tool and whose
+     * type is rewritten the same way, but which the agent compiles statically
+     * and so never appears in the fork list.
+     */
+    private static Task staticGuardrailWorker() {
+        return task(
+                "tone_guardrail",
+                "agent_ext_guardrail_tone",
+                Map.of("content", "hello", "input", "hello", "iteration", 1),
+                Map.of("result", "pass"));
+    }
+
+    /**
+     * Every tool kind is still found when the server tags none of them, by
+     * falling back to the reference names it reports having forked.
+     * COUNTERFACTUAL: without the fork-list fallback, detection rests on the tag
+     * alone and this reads {@code []} — the tool calls vanish rather than
+     * arriving under a wrong name.
+     */
+    @Test
+    void detectsToolCallsWhenTheServerSetsNoToolNameTag() {
+        AgentResult result = AgentHandle.fromWorkflow(workflow(
+                llmTask(10, 5),
+                forkTask("toolu_01_0__1", "toolu_02_0__1"),
+                untaggedWorkerTool("toolu_01_0__1", "get_weather", Map.of("city", "SF")),
+                untaggedSystemTool(
+                        "HTTP",
+                        "toolu_02_0__1",
+                        "fetch_page",
+                        Map.of("http_request", Map.of("uri", "https://example.com")))));
+
+        assertEquals(List.of("get_weather", "fetch_page"), names(result));
+    }
+
+    /**
+     * The agent's own scaffolding is compiled statically, so it is absent from
+     * the fork list even when it shares a task type with a real tool. A
+     * guardrail worker is the awkward case: SIMPLE, and its type rewritten to
+     * its own name exactly as a worker tool's is.
+     */
+    @Test
+    void ignoresStaticTasksWhenTheServerSetsNoToolNameTag() {
+        AgentResult result = AgentHandle.fromWorkflow(workflow(
+                llmTask(10, 5),
+                staticGuardrailWorker(),
+                task("HUMAN", "agent_guardrail_human", Map.of("__humanTaskDefinition", Map.of()), Map.of()),
+                task(
+                        "SUB_WORKFLOW",
+                        "agent_transfer_refunds",
+                        Map.of("prompt", "refund please", "session_id", "s1"),
+                        Map.of("result", "handled")),
+                forkTask("toolu_01_0__1"),
+                untaggedWorkerTool("toolu_01_0__1", "get_weather", Map.of("city", "SF"))));
+
+        assertEquals(List.of("get_weather"), names(result));
+    }
+
+    /**
+     * Where the server tags, the tag is the whole answer: an untagged task is
+     * not a tool call even if it was forked dynamically, because an agent can
+     * fan out for reasons of its own. The fork list is a fallback, not a second
+     * source of truth.
+     */
+    @Test
+    void prefersTheTagOverTheForkListWhereTheServerTags() {
+        AgentResult result = AgentHandle.fromWorkflow(workflow(
+                llmTask(10, 5),
+                forkTask("call_a_0__1", "fanout_0__1"),
+                workerToolTask("call_a_0__1", "get_weather", Map.of("city", "SF")),
+                task("SUB_WORKFLOW", "fanout_0__1", Map.of("prompt", "sub-task"), Map.of("result", "done"))));
+
+        assertEquals(List.of("get_weather"), names(result));
+    }
+
     /** Both paths report the same call under the same name. */
     @Test
     void agreesWithTheStreamingPathOnToolNames() {
