@@ -316,7 +316,12 @@ class AgentHandleToolExtractionTest {
         return t;
     }
 
-    /** The synthetic FORK task Conductor writes when it fans out dynamically. */
+    /**
+     * The synthetic FORK task Conductor writes when it fans out dynamically. The names it
+     * records carry no {@code __<iteration>} suffix: the fork is mapped before the
+     * {@code DO_WHILE} appends one to the tasks it schedules, so the two differ by that
+     * suffix for every tool call in the loop.
+     */
     private static Task forkTask(String... forkedRefNames) {
         return task("FORK", "agent_fork", Map.of("forkedTasks", List.of(forkedRefNames)), Map.of());
     }
@@ -339,7 +344,7 @@ class AgentHandleToolExtractionTest {
     void detectsToolCallsWhenTheServerSetsNoToolNameTag() {
         AgentResult result = AgentHandle.fromWorkflow(workflow(
                 llmTask(10, 5),
-                forkTask("toolu_01_0__1", "toolu_02_0__1"),
+                forkTask("toolu_01_0", "toolu_02_0"),
                 untaggedWorkerTool("toolu_01_0__1", "get_weather", Map.of("city", "SF")),
                 untaggedSystemTool(
                         "HTTP",
@@ -366,7 +371,7 @@ class AgentHandleToolExtractionTest {
                         "agent_transfer_refunds",
                         Map.of("prompt", "refund please", "session_id", "s1"),
                         Map.of("result", "handled")),
-                forkTask("toolu_01_0__1"),
+                forkTask("toolu_01_0"),
                 untaggedWorkerTool("toolu_01_0__1", "get_weather", Map.of("city", "SF"))));
 
         assertEquals(List.of("get_weather"), names(result));
@@ -380,9 +385,25 @@ class AgentHandleToolExtractionTest {
     void prefersTheTagOverTheForkListWhereTheServerTags() {
         AgentResult result = AgentHandle.fromWorkflow(workflow(
                 llmTask(10, 5),
-                forkTask("call_a_0__1", "fanout_0__1"),
+                forkTask("call_a_0", "fanout_0"),
                 workerToolTask("call_a_0__1", "get_weather", Map.of("city", "SF")),
                 task("SUB_WORKFLOW", "fanout_0__1", Map.of("prompt", "sub-task"), Map.of("result", "done"))));
+
+        assertEquals(List.of("get_weather"), names(result));
+    }
+
+    /**
+     * A tool call inside the agent's loop is still found, though the fork list records it
+     * without the iteration suffix Conductor gives the scheduled task. COUNTERFACTUAL:
+     * comparing the reference names verbatim reads {@code []} for every real agent, since
+     * the tool fork always sits inside the {@code DO_WHILE}.
+     */
+    @Test
+    void detectsToolCallsForkedInsideTheAgentLoop() {
+        AgentResult result = AgentHandle.fromWorkflow(workflow(
+                llmTask(10, 5),
+                forkTask("toolu_ab_0"),
+                untaggedWorkerTool("toolu_ab_0__3", "get_weather", Map.of("city", "SF"))));
 
         assertEquals(List.of("get_weather"), names(result));
     }

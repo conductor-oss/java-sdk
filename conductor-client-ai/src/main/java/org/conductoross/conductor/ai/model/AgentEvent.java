@@ -13,9 +13,7 @@
 package org.conductoross.conductor.ai.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,18 +148,18 @@ public class AgentEvent {
     }
 
     /**
-     * Create an AgentEvent from a raw map (as parsed from SSE JSON).
-     */
-    /**
      * Internal keys the server injects, which are not tool arguments. Every
-     * {@code _}-prefixed key is stripped too, as the polled path does.
+     * {@code _}-prefixed key is stripped too.
      */
-    private static final Set<String> INTERNAL_KEYS = new HashSet<>(Arrays.asList("method"));
+    private static final Set<String> INTERNAL_KEYS =
+            Set.of("method", "evaluatorType", "expression", "ctx", "workerTag", "agentConfig");
 
-    private static boolean isInternalKey(String key) {
+    /** Shared with {@code AgentHandle} so both paths report one call's arguments identically. */
+    static boolean isInternalKey(String key) {
         return key != null && (key.startsWith("_") || INTERNAL_KEYS.contains(key));
     }
 
+    /** Create an AgentEvent from a raw map (as parsed from SSE JSON). */
     @SuppressWarnings("unchecked")
     public static AgentEvent fromMap(Map<String, Object> data) {
         String typeStr = (String) data.get("type");

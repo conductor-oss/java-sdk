@@ -13,10 +13,12 @@
 package org.conductoross.conductor.ai.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.conductoross.conductor.ai.enums.AgentStatus;
 import org.conductoross.conductor.ai.enums.EventType;
@@ -355,7 +357,8 @@ public class AgentHandle {
         try {
             extract = extractFromTasks(workflowClient.getWorkflow(executionId, true));
         } catch (Exception e) {
-            logger.debug("Could not extract tokens/toolCalls for {}: {}", executionId, e.getMessage());
+            // Nothing distinguishes this from a tool-free run in the result, so say so here.
+            logger.warn("Could not extract tokens/toolCalls/events for {}: {}", executionId, e.getMessage());
         }
 
         return toResult(extract, output, executionId, status, error);
@@ -405,6 +408,20 @@ public class AgentHandle {
     private static final String FORKED_TASKS_KEY = "forkedTasks";
 
     /**
+     * The {@code __<iteration>} suffix Conductor appends to a task's reference name inside a
+     * {@code DO_WHILE}. The fork list is recorded before that happens, so both sides of the
+     * comparison in {@link ToolTagging} have to be normalized. Matched only at the end, unlike
+     * {@code TaskUtils.removeIterationFromTaskRefName}, which splits on the first {@code __}
+     * and would truncate a reference name that already contains one.
+     */
+    private static final Pattern ITERATION_SUFFIX = Pattern.compile("__\\d+$");
+
+    /** A reference name without the loop-iteration suffix. */
+    private static String withoutIteration(String refName) {
+        return refName == null ? null : ITERATION_SUFFIX.matcher(refName).replaceFirst("");
+    }
+
+    /**
      * Walk a workflow's tasks once and aggregate token usage, tool calls and their
      * events. Shared by {@link #buildResult} and {@link #fromWorkflow(Workflow)}.
      */
@@ -448,10 +465,8 @@ public class AgentHandle {
             tc.put("result", result);
             out.toolCalls.add(tc);
 
-            out.events.add(
-                    new AgentEvent(EventType.TOOL_CALL, null, name, args, null, null, executionId, null, null));
-            out.events.add(
-                    new AgentEvent(EventType.TOOL_RESULT, null, name, null, result, null, executionId, null, null));
+            out.events.add(toolCallEvent(name, args, executionId));
+            out.events.add(toolResultEvent(name, result, executionId));
         }
         if (sawTokens) {
             out.tokenUsage = new TokenUsage(promptT, completionT, totalT);
@@ -476,7 +491,7 @@ public class AgentHandle {
         if (tagging.tagged) return false;
 
         // Older server: fall back to what it forked dynamically.
-        if (refName == null || !tagging.dynamicallyForked.contains(refName)) return false;
+        if (refName == null || !tagging.dynamicallyForked.contains(withoutIteration(refName))) return false;
         return isToolTaskType(task);
     }
 
@@ -513,7 +528,7 @@ public class AgentHandle {
 
         static ToolTagging of(List<Task> tasks) {
             boolean tagged = false;
-            Set<String> forked = new java.util.HashSet<>();
+            Set<String> forked = new HashSet<>();
             for (Task task : tasks) {
                 Map<String, Object> inputData = task.getInputData();
                 if (inputData == null) continue;
@@ -521,7 +536,7 @@ public class AgentHandle {
                 Object names = inputData.get(FORKED_TASKS_KEY);
                 if (names instanceof List) {
                     for (Object name : (List<?>) names) {
-                        if (name != null) forked.add(name.toString());
+                        if (name != null) forked.add(withoutIteration(name.toString()));
                     }
                 }
             }
@@ -548,22 +563,25 @@ public class AgentHandle {
         return taskDefName != null && !taskDefName.isEmpty() ? taskDefName : null;
     }
 
-    /** A tool task's input with the server's internal runtime keys stripped. */
+    /**
+     * A tool task's input with the server's internal runtime keys stripped, using the same
+     * predicate as the streaming path so both report one call's arguments identically.
+     */
     private static Map<String, Object> toolArgs(Map<String, Object> inputData) {
         if (inputData == null) return null;
         Map<String, Object> cleaned = new LinkedHashMap<>();
         for (Map.Entry<String, Object> e : inputData.entrySet()) {
-            String k = e.getKey();
-            if (k.startsWith("_")
-                    || TOOL_METHOD_KEY.equals(k)
-                    || "evaluatorType".equals(k)
-                    || "expression".equals(k)
-                    || "ctx".equals(k)
-                    || "workerTag".equals(k)
-                    || "agentConfig".equals(k)) continue;
-            cleaned.put(k, e.getValue());
+            if (!AgentEvent.isInternalKey(e.getKey())) cleaned.put(e.getKey(), e.getValue());
         }
         return cleaned;
+    }
+
+    private static AgentEvent toolCallEvent(String name, Map<String, Object> args, String executionId) {
+        return new AgentEvent(EventType.TOOL_CALL, null, name, args, null, null, executionId, null, null);
+    }
+
+    private static AgentEvent toolResultEvent(String name, Object result, String executionId) {
+        return new AgentEvent(EventType.TOOL_RESULT, null, name, null, result, null, executionId, null, null);
     }
 
     /**
