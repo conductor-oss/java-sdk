@@ -67,15 +67,12 @@ public class AgentResult {
     }
 
     /**
-     * The events of the run, oldest first.
+     * The events of the run, oldest first, ending in {@code done} or {@code error}.
      *
-     * <p>Streaming runs report what the server emitted, which ends in a
-     * {@code done} or {@code error} event unless the stream was cut short.
-     * Polled runs reconstruct a {@code tool_call}/{@code tool_result} pair per
-     * tool task from the workflow record and always close with a terminal
-     * event — so both paths name the same call the same way, but only the
-     * streamed list carries the incremental {@code thinking} and
-     * {@code message} events, which the workflow record does not keep.
+     * <p>Streaming runs report what the server emitted. Polled runs reconstruct a
+     * {@code tool_call}/{@code tool_result} pair per tool task, without the
+     * incremental {@code thinking} and {@code message} events that the workflow
+     * record does not keep.
      */
     public List<AgentEvent> getEvents() {
         return events;

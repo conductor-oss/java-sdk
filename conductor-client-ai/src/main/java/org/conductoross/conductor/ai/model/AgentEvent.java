@@ -153,11 +153,8 @@ public class AgentEvent {
      * Create an AgentEvent from a raw map (as parsed from SSE JSON).
      */
     /**
-     * Internal keys injected by the server that should not be shown as tool
-     * arguments, alongside every {@code _}-prefixed key — {@code _agent_state},
-     * {@code _agent_tool_name}, {@code _allowed_commands} and whatever the server
-     * adds next. The polled path strips the same set, so both report one call's
-     * arguments identically.
+     * Internal keys the server injects, which are not tool arguments. Every
+     * {@code _}-prefixed key is stripped too, as the polled path does.
      */
     private static final Set<String> INTERNAL_KEYS = new HashSet<>(Arrays.asList("method"));
 

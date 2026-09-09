@@ -348,13 +348,9 @@ public class AgentHandle {
             output = java.util.Collections.singletonMap("result", output);
         }
 
-        // Token usage, tool calls and events: the server aggregates none of them
-        // on the workflow status response, but every LLM_CHAT_COMPLETE task
-        // carries tokenUsed/promptTokens/completionTokens in its outputData and
-        // every tool task in the workflow is one LLM tool call. Walk the
-        // workflow tasks once and aggregate all three.
-        // WorkflowClient is the standard Conductor client for /api/workflow/* —
-        // no need to go through AgentClient for this standard endpoint.
+        // The status response aggregates none of this, so walk the tasks once:
+        // LLM_CHAT_COMPLETE tasks carry the token counts, tool tasks the calls.
+        // WorkflowClient is the standard client for /api/workflow/*.
         TaskExtract extract = new TaskExtract();
         try {
             extract = extractFromTasks(workflowClient.getWorkflow(executionId, true));
@@ -365,10 +361,7 @@ public class AgentHandle {
         return toResult(extract, output, executionId, status, error);
     }
 
-    /**
-     * Assemble the {@link AgentResult} both non-streaming paths return: what the
-     * task walk found, closed with the terminal event.
-     */
+    /** Assemble the {@link AgentResult} both non-streaming paths return. */
     private static AgentResult toResult(
             TaskExtract extract, Object output, String executionId, AgentStatus status, String error) {
         extract.events.add(terminalEvent(executionId, status, output, error));
@@ -384,18 +377,9 @@ public class AgentHandle {
     }
 
     /**
-     * Conductor task types the server compiles agent tools to — the values of the
-     * server's {@code ToolCompiler.TYPE_MAP}, plus {@code GENERATE_PDF}, which
-     * that map leaves to the upper-cased tool type.
-     *
-     * <p>A tool task is never recognised by its reference name. The server seeds
-     * that from the provider's own tool-call id, so only OpenAI's happens to
-     * start {@code call_} — an Anthropic-backed agent records {@code toolu_}, and
-     * the next provider picks its own format again.
-     *
-     * <p>{@code SIMPLE} is here for a worker tool that was scheduled and never
-     * ran. One that ran reports its own name as its type instead, which is what
-     * {@link #isToolTaskType} handles.
+     * Task types the server compiles agent tools to: its {@code ToolCompiler.TYPE_MAP}
+     * values plus {@code GENERATE_PDF}. {@code SIMPLE} only matches a worker tool that
+     * never ran; see {@link #isToolTaskType}.
      */
     private static final Set<String> TOOL_TASK_TYPES = Set.of(
             "SIMPLE",
@@ -411,24 +395,18 @@ public class AgentHandle {
             "LLM_SEARCH_INDEX",
             "PULL_WORKFLOW_MESSAGES");
 
-    /** The one input key the server sets on every tool kind it dispatches. */
+    /** Tool-name tag the server sets on every tool task's input. Absent on older servers. */
     private static final String TOOL_NAME_KEY = "_agent_tool_name";
 
     /** The tool name a server-compiled tool task carries, predating {@link #TOOL_NAME_KEY}. */
     private static final String TOOL_METHOD_KEY = "method";
 
-    /**
-     * The reference names Conductor forked dynamically, which it records on the
-     * {@code FORK_JOIN_DYNAMIC} task's own input.
-     */
+    /** Reference names Conductor forked, recorded on the {@code FORK_JOIN_DYNAMIC} task's input. */
     private static final String FORKED_TASKS_KEY = "forkedTasks";
 
     /**
-     * Walk a workflow's tasks once and aggregate token usage (from
-     * {@code LLM_CHAT_COMPLETE} tasks) plus the tool calls and their
-     * {@code tool_call}/{@code tool_result} events (from tool tasks). Shared by
-     * both {@link #buildResult} and {@link #fromWorkflow(Workflow)} so the
-     * extraction lives in one place.
+     * Walk a workflow's tasks once and aggregate token usage, tool calls and their
+     * events. Shared by {@link #buildResult} and {@link #fromWorkflow(Workflow)}.
      */
     private static TaskExtract extractFromTasks(Workflow workflow) {
         TaskExtract out = new TaskExtract();
@@ -450,18 +428,15 @@ public class AgentHandle {
             }
 
             if (!isToolTask(task, tagging)) continue;
-            // A tool task that has neither finished nor produced anything is a
-            // call the agent has not made yet — a HUMAN tool still waiting on
-            // its assignee, say. Reporting it would claim a call that has not
-            // happened.
+            // Unfinished and empty means the call hasn't happened yet, e.g. a
+            // HUMAN tool still awaiting its assignee.
             boolean produced = outputData != null && !outputData.isEmpty();
             if (!produced && (task.getStatus() == null || !task.getStatus().isTerminal())) continue;
 
             String name = resolveToolName(task);
             Map<String, Object> args = toolArgs(task.getInputData());
-            // A tool whose output isn't wrapped in "result" — HTTP, MCP — reports
-            // the whole output map, as the server's own event listener does. Keyed
-            // on the key being there, so a tool that answers null keeps its null.
+            // HTTP and MCP don't wrap their output in "result". Test for the key
+            // so a tool that returned null keeps its null.
             Object result = null;
             if (produced) {
                 result = outputData.containsKey("result") ? outputData.get("result") : outputData;
@@ -485,33 +460,29 @@ public class AgentHandle {
     }
 
     /**
-     * Whether a task is one of the agent's tool invocations, as opposed to the
-     * LLM call, a control-flow task, a guardrail or the approval gate.
+     * Whether a task is a tool invocation, as opposed to the LLM call, control
+     * flow, a guardrail or the approval gate.
+     *
+     * <p>Never keyed on the reference name, which carries the provider's tool-call id.
      */
     private static boolean isToolTask(Task task, ToolTagging tagging) {
-        // Framework passthrough wrappers restate a tool task that is already
-        // in the list on its own.
+        // Framework wrappers restate a tool task already in the list.
         String refName = task.getReferenceTaskName();
         if (refName != null && refName.startsWith("_fw_")) return false;
 
         Map<String, Object> inputData = task.getInputData();
         if (inputData != null && inputData.get(TOOL_NAME_KEY) != null) return true;
-        // Where the server tags at all it tags every tool kind, so an untagged
-        // task is not a tool call and guessing past that only invents calls.
+        // Tagged every kind or none, so untagged means not a tool.
         if (tagging.tagged) return false;
 
-        // Untagged server: the tool calls are the tasks it forked dynamically.
+        // Older server: fall back to what it forked dynamically.
         if (refName == null || !tagging.dynamicallyForked.contains(refName)) return false;
         return isToolTaskType(task);
     }
 
     /**
-     * Whether a task's type is one an agent tool compiles to.
-     *
-     * <p>{@link #TOOL_TASK_TYPES} alone cannot answer this for a worker tool,
-     * because by the time the task has run Conductor has rewritten its type from
-     * {@code SIMPLE} to the task's own name. A task whose type and task-def name
-     * agree is that case.
+     * Whether a task's type is one a tool compiles to. An executed worker tool
+     * reports its own name as its type, so no type list alone can match it.
      */
     private static boolean isToolTaskType(Task task) {
         String taskType = task.getTaskType();
@@ -520,34 +491,19 @@ public class AgentHandle {
     }
 
     /**
-     * How one workflow's tool tasks can be told apart, decided once for the
-     * whole task list.
+     * How to tell a workflow's tool tasks apart, decided once for the task list.
      *
-     * <p>A server that tags tool tasks with {@link #TOOL_NAME_KEY} is
-     * authoritative, and that is the only signal worth having: it names the tool
-     * as well as identifying it. The tag is set on every tool kind, after the
-     * per-kind branch that rewrites the task's input, so on such a server tagged
-     * and tool are the same set.
-     *
-     * <p>Servers predating the tag set it on nothing, and there the fallback is
-     * the dynamic fork. An agent dispatches its tool calls through
-     * {@code FORK_JOIN_DYNAMIC}, and Conductor records the reference names it
-     * forked on the fork task's own input, so a tool task is one the server
-     * itself reports as dynamically created. Everything the agent compiles for
-     * its own use is static by comparison, including the guardrail workers, the
-     * approval gate and a handoff's sub-workflow, which share their task types
-     * with real tools and would otherwise be counted as tool calls.
-     *
-     * <p>The fallback is a best effort, not a second authority. An agent can
-     * dynamically fan out for reasons of its own, and on an untagged server such
-     * a task is indistinguishable from a tool call; the tag is what removes the
-     * ambiguity, which is why it is preferred whenever the server sets it.
+     * <p>{@link #TOOL_NAME_KEY} is authoritative where the server sets it. Where it
+     * doesn't, fall back to the dynamic fork: tool calls are forked, while the
+     * guardrails, approval gate and handoff sub-workflow are static and would
+     * otherwise be counted as tool calls. Best-effort only, since an agent can also
+     * fan out for reasons of its own.
      */
     private static final class ToolTagging {
-        /** Whether the server tagged any task at all with {@link #TOOL_NAME_KEY}. */
+        /** True when the server tagged any task. */
         final boolean tagged;
 
-        /** Reference names the server reports having forked dynamically. */
+        /** Reference names the server reports having forked. */
         final Set<String> dynamicallyForked;
 
         private ToolTagging(boolean tagged, Set<String> dynamicallyForked) {
@@ -574,11 +530,9 @@ public class AgentHandle {
     }
 
     /**
-     * The tool's own name, which the server puts in the task's input. Never the
-     * task type: Conductor overwrites an executed SIMPLE task's type with the
-     * task's own name, so that reads correctly for a worker tool and reports
-     * every other kind under its system task type — an HTTP tool as
-     * {@code "HTTP"}, an MCP tool as {@code "CALL_MCP_TOOL"}.
+     * The tool's own name, from the task's input. Never the task type: Conductor
+     * rewrites an executed SIMPLE task's type to the task name, which is right for
+     * a worker and names every other kind after its system task type.
      */
     private static String resolveToolName(Task task) {
         Map<String, Object> inputData = task.getInputData();
@@ -588,10 +542,8 @@ public class AgentHandle {
             Object method = inputData.get(TOOL_METHOD_KEY);
             if (method != null && !method.toString().isEmpty()) return method.toString();
         }
-        // Last resort, and only reachable when the server set one of the keys
-        // above to an empty string: getTaskDefName() itself falls back to the
-        // task type, so it is right for a worker tool and no better than the
-        // old behaviour for anything else.
+        // Only reached if the server set one of the keys above to an empty string.
+        // getTaskDefName() itself falls back to the task type.
         String taskDefName = task.getTaskDefName();
         return taskDefName != null && !taskDefName.isEmpty() ? taskDefName : null;
     }
@@ -615,10 +567,8 @@ public class AgentHandle {
     }
 
     /**
-     * The event the stream would have ended on. Both non-streaming paths append
-     * one so that an events list is never empty for a run that happened —
-     * without it, "no events were collected" and "no events occurred" are the
-     * same empty list.
+     * The event the stream would have ended on. Appended so an empty event list
+     * means "nothing happened" rather than "nothing was collected".
      */
     private static AgentEvent terminalEvent(String executionId, AgentStatus status, Object output, String error) {
         String id = executionId != null ? executionId : "";
@@ -631,11 +581,10 @@ public class AgentHandle {
     /**
      * Build an {@link AgentResult} from a terminal {@link Workflow}.
      *
-     * <p>Shared workflow → {@link AgentResult} extraction used by callers that
-     * already hold a completed {@link Workflow}. Maps the workflow status to an {@link AgentStatus},
-     * normalizes the output map, surfaces {@code reasonForIncompletion} as the
-     * error for non-completed runs, and reuses {@link #extractFromTasks} for the
-     * token-usage, tool-call and event aggregation.
+     * <p>For callers that already hold a completed {@link Workflow}. Maps the status
+     * to an {@link AgentStatus}, normalizes the output map, surfaces
+     * {@code reasonForIncompletion} as the error, and reuses
+     * {@link #extractFromTasks} for the aggregation.
      *
      * @param workflow a finished (or at least populated) workflow; may be null
      * @return the equivalent {@link AgentResult}

@@ -27,15 +27,12 @@ import com.netflix.conductor.common.run.Workflow;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tool-call and event extraction on the non-streaming path, exercised through
- * {@link AgentHandle#fromWorkflow(Workflow)} — the seam {@code waitForResult()}
- * shares with it.
+ * Tool-call and event extraction on the non-streaming path, through
+ * {@link AgentHandle#fromWorkflow(Workflow)} — the seam {@code waitForResult()} shares.
  *
- * <p>The fixtures reproduce what Conductor actually stores: an executed SIMPLE
- * task carries the task's own name as its {@code taskType}, every other tool
- * kind carries its system task type, the server tags every kind's input with
- * {@code _agent_tool_name}, and the reference name is seeded from the LLM
- * provider's tool-call id.
+ * <p>Fixtures reproduce what Conductor stores: an executed SIMPLE task carries the
+ * task's own name as its {@code taskType}, other kinds carry their system task type,
+ * and the reference name is seeded from the provider's tool-call id.
  */
 class AgentHandleToolExtractionTest {
 
@@ -49,11 +46,7 @@ class AgentHandleToolExtractionTest {
         return t;
     }
 
-    /**
-     * A worker tool as the server compiles it: the LLM's arguments sit at the top
-     * level beside the runtime keys, and Conductor has rewritten {@code taskType}
-     * to the task's own name by the time the task is executed.
-     */
+    /** A worker tool as the server compiles it, with {@code taskType} already rewritten. */
     private static Task workerToolTask(String refName, String toolName, Map<String, Object> args) {
         Map<String, Object> input = new LinkedHashMap<>();
         input.put("_agent_tool_name", toolName);
@@ -64,10 +57,8 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * A tool the server compiles to a system task. The LLM's arguments have been
-     * folded into whatever that task type takes — an HTTP tool's into
-     * {@code http_request} — and only {@code _agent_tool_name} still names the
-     * tool.
+     * A tool the server compiles to a system task: the arguments are folded into what
+     * that task type takes, so only {@code _agent_tool_name} still names the tool.
      */
     private static Task systemToolTask(
             String taskType, String refName, String toolName, Map<String, Object> compiledInput) {
@@ -101,9 +92,8 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * Every tool kind is reported under the tool's own name, not the system task
-     * type it compiles to. COUNTERFACTUAL (pre-fix): the names came from
-     * {@code getTaskType()}, so this read
+     * Every kind reports the tool's own name, not the system task type.
+     * COUNTERFACTUAL (pre-fix): names came from {@code getTaskType()}, reading
      * {@code [get_weather, HTTP, CALL_MCP_TOOL, SUB_WORKFLOW, HUMAN, GENERATE_IMAGE]}.
      */
     @Test
@@ -127,10 +117,9 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * Detection does not key on the provider's tool-call id format. COUNTERFACTUAL
-     * (pre-fix): selection was {@code refName.startsWith("call_")}, so an
-     * Anthropic-backed run — whose ids start {@code toolu_} — reported no tool
-     * calls at all.
+     * Detection ignores the provider's tool-call id format. COUNTERFACTUAL (pre-fix):
+     * selection was {@code refName.startsWith("call_")}, so an Anthropic-backed run
+     * reported no tool calls at all.
      */
     @Test
     void detectsToolCallsWhateverTheProviderIdFormat() {
@@ -262,9 +251,8 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * COUNTERFACTUAL (pre-fix): {@code events} was hard-coded to {@code null} on
-     * this path and normalized to an empty list, so a run that called three tools
-     * was indistinguishable from one that did nothing.
+     * COUNTERFACTUAL (pre-fix): {@code events} was {@code null} here and normalized to
+     * an empty list, so a run that called three tools looked like one that did nothing.
      */
     @Test
     void populatesEventsOnTheNonStreamingPath() {
@@ -308,12 +296,8 @@ class AgentHandleToolExtractionTest {
     }
 
     // ── Servers that set no _agent_tool_name ─────────────────────────────────
-    //
-    // The tag is set on every tool kind or on none. On a server predating it,
-    // the per-kind compile step has already replaced the task's input, so an
-    // HTTP tool carries only its http_request and nothing names the tool. What
-    // still identifies it is the dynamic fork: Conductor records the reference
-    // names it forked on the fork task's own input.
+    // The per-kind compile step has replaced the task's input, so nothing names
+    // the tool. The dynamic fork is what still identifies it.
 
     /** A tool task as a pre-tag server dispatches it: no {@code _agent_tool_name}. */
     private static Task untaggedWorkerTool(String refName, String toolName, Map<String, Object> args) {
@@ -324,11 +308,7 @@ class AgentHandleToolExtractionTest {
         return task(toolName, refName, input, Map.of("result", toolName + "-output"));
     }
 
-    /**
-     * A tool the server compiles to a system task, dispatched by a pre-tag
-     * server: the per-kind step has replaced the input, so the task's own name
-     * is all that is left of the tool's identity.
-     */
+    /** A system-task tool from a pre-tag server: only the task's own name identifies it. */
     private static Task untaggedSystemTool(
             String taskType, String refName, String toolName, Map<String, Object> compiledInput) {
         Task t = task(taskType, refName, compiledInput, Map.of("result", toolName + "-output"));
@@ -341,11 +321,7 @@ class AgentHandleToolExtractionTest {
         return task("FORK", "agent_fork", Map.of("forkedTasks", List.of(forkedRefNames)), Map.of());
     }
 
-    /**
-     * A guardrail worker, which is a SIMPLE task like a worker tool and whose
-     * type is rewritten the same way, but which the agent compiles statically
-     * and so never appears in the fork list.
-     */
+    /** A guardrail worker: a SIMPLE task like a worker tool, but static, so never forked. */
     private static Task staticGuardrailWorker() {
         return task(
                 "tone_guardrail",
@@ -355,11 +331,9 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * Every tool kind is still found when the server tags none of them, by
-     * falling back to the reference names it reports having forked.
-     * COUNTERFACTUAL: without the fork-list fallback, detection rests on the tag
-     * alone and this reads {@code []} — the tool calls vanish rather than
-     * arriving under a wrong name.
+     * Tools are still found when the server tags none of them.
+     * COUNTERFACTUAL: on the tag alone this reads {@code []}, losing the calls
+     * entirely rather than naming them wrongly.
      */
     @Test
     void detectsToolCallsWhenTheServerSetsNoToolNameTag() {
@@ -377,10 +351,9 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * The agent's own scaffolding is compiled statically, so it is absent from
-     * the fork list even when it shares a task type with a real tool. A
-     * guardrail worker is the awkward case: SIMPLE, and its type rewritten to
-     * its own name exactly as a worker tool's is.
+     * The agent's own scaffolding is static, so it is absent from the fork list even
+     * when it shares a task type with a real tool. A guardrail worker is the awkward
+     * case: SIMPLE, with its type rewritten just as a worker tool's is.
      */
     @Test
     void ignoresStaticTasksWhenTheServerSetsNoToolNameTag() {
@@ -400,10 +373,8 @@ class AgentHandleToolExtractionTest {
     }
 
     /**
-     * Where the server tags, the tag is the whole answer: an untagged task is
-     * not a tool call even if it was forked dynamically, because an agent can
-     * fan out for reasons of its own. The fork list is a fallback, not a second
-     * source of truth.
+     * Where the server tags, an untagged task is not a tool call even when forked,
+     * since an agent can fan out for reasons of its own.
      */
     @Test
     void prefersTheTagOverTheForkListWhereTheServerTags() {
