@@ -66,6 +66,14 @@ public class AgentResult {
         return toolCalls;
     }
 
+    /**
+     * The events of the run, oldest first, ending in {@code done} or {@code error}.
+     *
+     * <p>Streaming runs report what the server emitted. Polled runs reconstruct a
+     * {@code tool_call}/{@code tool_result} pair per tool task, without the
+     * incremental {@code thinking} and {@code message} events that the workflow
+     * record does not keep.
+     */
     public List<AgentEvent> getEvents() {
         return events;
     }

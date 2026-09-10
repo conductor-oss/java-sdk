@@ -13,9 +13,7 @@
 package org.conductoross.conductor.ai.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,12 +148,18 @@ public class AgentEvent {
     }
 
     /**
-     * Create an AgentEvent from a raw map (as parsed from SSE JSON).
+     * Internal keys the server injects, which are not tool arguments. Every
+     * {@code _}-prefixed key is stripped too.
      */
-    /** Internal keys injected by the server that should not be shown as tool arguments. */
     private static final Set<String> INTERNAL_KEYS =
-            new HashSet<>(Arrays.asList("_agent_state", "method"));
+            Set.of("method", "evaluatorType", "expression", "ctx", "workerTag", "agentConfig");
 
+    /** Shared with {@code AgentHandle} so both paths report one call's arguments identically. */
+    static boolean isInternalKey(String key) {
+        return key != null && (key.startsWith("_") || INTERNAL_KEYS.contains(key));
+    }
+
+    /** Create an AgentEvent from a raw map (as parsed from SSE JSON). */
     @SuppressWarnings("unchecked")
     public static AgentEvent fromMap(Map<String, Object> data) {
         String typeStr = (String) data.get("type");
@@ -182,7 +186,7 @@ public class AgentEvent {
         if (rawArgs != null) {
             cleanArgs = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : rawArgs.entrySet()) {
-                if (!INTERNAL_KEYS.contains(entry.getKey())) {
+                if (!isInternalKey(entry.getKey())) {
                     cleanArgs.put(entry.getKey(), entry.getValue());
                 }
             }
