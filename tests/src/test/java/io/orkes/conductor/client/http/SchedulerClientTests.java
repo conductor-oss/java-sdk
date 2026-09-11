@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.model.BulkResponse;
 
@@ -51,6 +52,10 @@ public class SchedulerClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "GET /scheduler/search does not 404 on plain OSS Conductor, but confirmed empirically to " +
+                    "always return zero results (even after polling for 30s) -- schedules aren't surfaced via search " +
+                    "on plain OSS the way they are on Orkes Enterprise")
     void testMethods() {
         schedulerClient.deleteSchedule(SCHEDULE_1);
         Assertions.assertTrue(schedulerClient.getNextFewSchedules(CRON_EXPRESSION_1, 0L, 0L, 0).isEmpty());

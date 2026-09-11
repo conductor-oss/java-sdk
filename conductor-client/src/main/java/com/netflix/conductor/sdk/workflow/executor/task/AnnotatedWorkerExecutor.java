@@ -52,6 +52,12 @@ public class AnnotatedWorkerExecutor {
 
     private final Set<String> scannedPackages = new HashSet<>();
 
+    /**
+     * Set whenever a worker is added, cleared whenever {@link #startPolling()} builds a task runner.
+     * Lets startPolling() distinguish a real (re)start from a redundant duplicate call.
+     */
+    private boolean workersChanged = false;
+
     private final WorkerConfiguration workerConfiguration;
 
     public AnnotatedWorkerExecutor(TaskClient taskClient) {
@@ -77,6 +83,9 @@ public class AnnotatedWorkerExecutor {
      */
     public synchronized void initWorkers(String... basePackages) {
         scanWorkers(basePackages);
+        // scanWorkers() -> initWorkersFromClasses() -> initWorkersFromInstances() already reaches
+        // startPolling(). This second call is therefore redundant, but startPolling() is idempotent
+        // while the worker set is unchanged, so it is a no-op rather than a task runner restart.
         startPolling();
     }
 
@@ -109,10 +118,18 @@ public class AnnotatedWorkerExecutor {
     }
 
 
-    /** Shuts down the workers */
-    public void shutdown() {
+    /**
+     * Shuts down the workers.
+     *
+     * <p>Clears the task runner as well as shutting it down, so a later {@link #startPolling()}
+     * builds a fresh one and resumes. A {@link TaskRunnerConfigurer} is single-use — its
+     * shutdown closes the executor backing it — so leaving the field set would make
+     * startPolling() take its already-polling fast path and never poll again.
+     */
+    public synchronized void shutdown() {
         if (taskRunner != null) {
             taskRunner.shutdown();
+            taskRunner = null;
         }
     }
 
@@ -168,7 +185,15 @@ public class AnnotatedWorkerExecutor {
         return false;
     }
 
-    public void addBean(Object bean) {
+    /**
+     * Registers every {@link WorkerTask}-annotated method on the bean as a worker.
+     *
+     * <p>Synchronized because it is the public entry point that mutates the worker set and the
+     * {@code workersChanged} flag {@link #startPolling()} reads to decide whether a restart is
+     * needed. Without a common lock, a worker added on another thread could be missed and never
+     * polled.
+     */
+    public synchronized void addBean(Object bean) {
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getMethods()) {
             WorkerTask annotation = method.getAnnotation(WorkerTask.class);
@@ -222,6 +247,7 @@ public class AnnotatedWorkerExecutor {
         for (int i = 0; i < pollerCount; i++) {
             workers.add(executor);
         }
+        workersChanged = true;
 
         LOGGER.info(
                 "Adding worker for task {}, method {} with threadCount {} and polling interval set to {} ms",
@@ -231,8 +257,25 @@ public class AnnotatedWorkerExecutor {
                 pollingInterval);
     }
 
-    public void startPolling() {
+    /**
+     * Builds a {@link TaskRunnerConfigurer} over the currently registered workers and starts polling.
+     *
+     * <p>Idempotent: if a task runner is already polling and no worker has been added since it was
+     * built, this returns without doing anything. Restarting unnecessarily would stand up a second
+     * runner polling the same task types and only shut the first one down afterwards, so a task
+     * already leased by the outgoing runner could be left in-progress until its response timeout
+     * expired. Callers that add workers and call this again still get the intended restart.
+     */
+    public synchronized void startPolling() {
         if (workers.isEmpty()) {
+            return;
+        }
+
+        if (taskRunner != null && !workersChanged) {
+            LOGGER.debug(
+                    "Task runner is already polling {} workers and the worker set is unchanged; "
+                            + "skipping redundant restart.",
+                    workers.size());
             return;
         }
 
@@ -252,6 +295,8 @@ public class AnnotatedWorkerExecutor {
 
         taskRunner = builder.build();
         taskRunner.init();
+
+        workersChanged = false;
 
         oldTaskRunner.ifPresent(taskRunner -> {
             LOGGER.trace("Shutting down previous task runner with {} workers.", taskRunner.getWorkerCount());
