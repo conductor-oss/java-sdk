@@ -210,10 +210,19 @@ public class WorkflowClient implements AutoCloseable {
                 .build();
 
         ConductorClientResponse<String> resp = client.execute(request, STRING_TYPE);
+        String workflowId = resp.getData();
+        if (workflowId == null || workflowId.isBlank()) {
+            // Error. Indeterminate outcome.
+            throw new ConductorClientException(
+                    "Error when starting workflow. No workflow id was returned",
+                    resp.getStatusCode(),
+                    resp.getHeaders(),
+                    null);
+        }
 
         eventDispatcher
                 .publish(new WorkflowStartedEvent(startWorkflowRequest.getName(), startWorkflowRequest.getVersion()));
-        return resp.getData();
+        return workflowId;
     }
 
     public void checkAndUploadToExternalStorage(StartWorkflowRequest startWorkflowRequest) {
