@@ -53,6 +53,8 @@ import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
+import io.orkes.conductor.client.http.ApiException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
@@ -393,23 +395,30 @@ public class ConductorClient {
             return RequestBody.create(content, MediaType.parse(contentType));
         }
         // Existing behavior for unsupported non-JSON, non-text types
-        throw new ConductorClientException("Content type \"" + contentType + "\" is not supported");
+        ConductorClientException unsupported =
+                new ConductorClientException("Content type \"" + contentType + "\" is not supported");
+        unsupported.setDefinite(true);
+        throw unsupported;
     }
 
     protected <T> T handleResponse(Response response, Type returnType) {
         if (!response.isSuccessful()) {
             String respBody = bodyAsString(response);
+            boolean definite = ApiException.definiteFor(response.code());
             try {
                 ConductorClientException exception = objectMapper.readValue(respBody, ConductorClientException.class);
                 exception.setStatus(response.code());
+                exception.setDefinite(definite);
                 throw exception;
             } catch (JsonProcessingException jpe) {
                 // Ignore
             }
-            throw new ConductorClientException(response.message(),
+            ConductorClientException exception = new ConductorClientException(response.message(),
                     response.code(),
                     response.headers().toMultimap(),
                     respBody);
+            exception.setDefinite(definite);
+            throw exception;
         }
 
         try {

@@ -237,7 +237,9 @@ public class WorkflowClient implements AutoCloseable {
                                 * 1024L)) {
                     String errorMsg = String.format("Input payload larger than the allowed threshold of: %d KB",
                             conductorClientConfiguration.getWorkflowInputPayloadThresholdKB());
-                    throw new ConductorClientException(errorMsg);
+                    ConductorClientException tooLarge = new ConductorClientException(errorMsg);
+                    tooLarge.setDefinite(true);
+                    throw tooLarge;
                 } else {
                     eventDispatcher.publish(new WorkflowPayloadUsedEvent(startWorkflowRequest.getName(),
                             startWorkflowRequest.getVersion(),
