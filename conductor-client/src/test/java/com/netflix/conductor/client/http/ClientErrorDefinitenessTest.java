@@ -112,10 +112,29 @@ class ClientErrorDefinitenessTest {
         assertFalse(e.isDefinite(), "the server accepted the request; only the id was lost");
     }
 
+    @Test
+    @DisplayName("Local JSON serialization failure before any request is sent: definite, same as the payload-threshold sibling")
+    void inputSerializationFailure_isDefinite() {
+        var request = startRequest();
+        request.getInput().put("boom", new UnserializableValue());
+
+        var e = assertThrows(ConductorClientException.class,
+                () -> workflowClient.checkAndUploadToExternalStorage(request));
+
+        assertTrue(e.isDefinite(), "the input was never sent; serialization failed locally first");
+    }
+
     private StartWorkflowRequest startRequest() {
         var request = new StartWorkflowRequest();
         request.setName("definiteness_test");
         request.setVersion(1);
         return request;
+    }
+
+    // A bean whose getter throws, so ObjectMapper#writeValue fails with an IOException subtype.
+    public static class UnserializableValue {
+        public String getValue() {
+            throw new RuntimeException("cannot serialize");
+        }
     }
 }

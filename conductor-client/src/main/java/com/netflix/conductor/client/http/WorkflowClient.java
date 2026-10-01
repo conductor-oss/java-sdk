@@ -261,7 +261,9 @@ public class WorkflowClient implements AutoCloseable {
             eventDispatcher.publish(new WorkflowStartedEvent(startWorkflowRequest.getName(),
                     startWorkflowRequest.getVersion(), false, e));
 
-            throw new ConductorClientException(e);
+            ConductorClientException serializationFailed = new ConductorClientException(e);
+            serializationFailed.setDefinite(true);
+            throw serializationFailed;
         }
     }
 

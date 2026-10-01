@@ -36,6 +36,7 @@ public class ApiException extends RuntimeException {
 
     private final static boolean PREFER_ERR_OVER_RESPONSE = initPreferErrOverResponse();
 
+    private static final int HTTP_PAYMENT_REQUIRED = 402;
     private static final int HTTP_REQUEST_TIMEOUT = 408;
     private static final int HTTP_CONFLICT = 409;
     private static final int HTTP_LOCKED = 423;
@@ -115,7 +116,7 @@ public class ApiException extends RuntimeException {
      * may retry a request on a fresh route after a pooled connection fails mid-send, so "failed to
      * connect" can follow a request the server already received.
      *
-     * <p>This is not {@link #isRetryable()}. That one says whether trying again is worth it; this
+     * <p>This is not {@code isRetryable()}. That one says whether trying again is worth it; this
      * one says whether trying again can duplicate work. They are independent and often opposite: a
      * 503 is retryable and indeterminate at the same time.
      */
@@ -126,12 +127,16 @@ public class ApiException extends RuntimeException {
     /**
      * Whether an HTTP status proves the server rejected the request without applying it.
      *
-     * <p>Most 4xx codes qualify. Four do not: Conductor can return 408, 409, 423 and 429 after it
-     * has already written, so a caller that retried them could duplicate the work.
+     * <p>Most 4xx codes qualify. 402, 408, 409, 423 and 429 do not: Conductor can return these
+     * after it has already written, so a caller that retried them could duplicate the work.
+     *
+     * <p>This classification reflects the current server's behaviour and may change as the server
+     * changes; it is advisory, not a durable guarantee.
      */
     public static boolean definiteFor(int status) {
         return status >= 400
                 && status < 500
+                && status != HTTP_PAYMENT_REQUIRED
                 && status != HTTP_REQUEST_TIMEOUT
                 && status != HTTP_CONFLICT
                 && status != HTTP_LOCKED
@@ -174,6 +179,8 @@ public class ApiException extends RuntimeException {
 
             builder.append(", retryable: ").append(retryable);
         }
+
+        builder.append(", definite: ").append(definite);
 
         if (this.instance != null) {
             builder.append(", instance: ").append(instance);

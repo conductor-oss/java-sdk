@@ -175,8 +175,9 @@ class ConductorClientExceptionTest {
     }
 
     @Test
-    @DisplayName("Conductor can return these four 4xx codes after it has already written")
+    @DisplayName("Conductor can return these five 4xx codes after it has already written")
     void definiteFor_postWriteClientErrors_isFalse() {
+        assertFalse(ApiException.definiteFor(402), "a definition can be written before replaceTags throws PAYMENT_REQUIRED");
         assertFalse(ApiException.definiteFor(408), "the server may have begun processing a partial request");
         assertFalse(ApiException.definiteFor(409), "FAIL_ON_RUNNING throws CONFLICT after createOnly, without removing the row");
         assertFalse(ApiException.definiteFor(423), "LOCK is returned on paths that invite a retry");
@@ -188,6 +189,16 @@ class ConductorClientExceptionTest {
     void definiteFor_noStatus_isFalse() {
         assertFalse(ApiException.definiteFor(0));
         assertFalse(ApiException.definiteFor(200));
+    }
+
+    @Test
+    @DisplayName("toString prints definite even with no status, the Jepsen case the status>0 guard would hide it in")
+    void toString_printsDefinite_evenWithNoStatus() {
+        var e = new ConductorClientException("connection failed");
+        e.setDefinite(false);
+
+        assertEquals(0, e.getStatus(), "this is the no-response case the guard must not hide definite behind");
+        assertTrue(e.toString().contains("definite: false"), "definite must print outside the status>0 guard");
     }
 
     @Test
