@@ -171,16 +171,17 @@ public class ApiException extends RuntimeException {
             builder.append(getMessage());
         }
 
+        builder.append(" {");
+
         if (status > 0) {
-            builder.append(" {status=").append(status);
+            builder.append("status=").append(status);
             if (this.code != null) {
                 builder.append(", code='").append(code).append("'");
             }
-
-            builder.append(", retryable: ").append(retryable);
+            builder.append(", retryable: ").append(retryable).append(", ");
         }
 
-        builder.append(", definite: ").append(definite);
+        builder.append("definite: ").append(definite);
 
         if (this.instance != null) {
             builder.append(", instance: ").append(instance);

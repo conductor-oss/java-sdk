@@ -192,13 +192,27 @@ class ConductorClientExceptionTest {
     }
 
     @Test
-    @DisplayName("toString prints definite even with no status, the Jepsen case the status>0 guard would hide it in")
-    void toString_printsDefinite_evenWithNoStatus() {
+    @DisplayName("toString renders a clean brace with no status, the Jepsen case the status>0 guard would hide definite in")
+    void toString_withNoStatus_rendersDefiniteWithoutGarbage() {
         var e = new ConductorClientException("connection failed");
         e.setDefinite(false);
 
         assertEquals(0, e.getStatus(), "this is the no-response case the guard must not hide definite behind");
-        assertTrue(e.toString().contains("definite: false"), "definite must print outside the status>0 guard");
+        assertEquals(
+                "com.netflix.conductor.client.exception.ConductorClientException: connection failed {definite: false}",
+                e.toString());
+    }
+
+    @Test
+    @DisplayName("toString with a status keeps the existing status>0 shape, now followed by definite")
+    void toString_withStatus_rendersStatusThenDefinite() {
+        var e = new ConductorClientException(400, "bad request");
+        e.setRetryable(true);
+        e.setDefinite(true);
+
+        assertEquals(
+                "com.netflix.conductor.client.exception.ConductorClientException: bad request {status=400, retryable: true, definite: true}",
+                e.toString());
     }
 
     @Test
