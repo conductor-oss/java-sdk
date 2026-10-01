@@ -13,6 +13,7 @@
 package com.netflix.conductor.client.http;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import okhttp3.mockwebserver.SocketPolicy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,11 +81,13 @@ class ClientErrorDefinitenessTest {
 
     @Test
     @DisplayName("The connection dropped after the request was read: indeterminate, this is the Jepsen case")
-    void connectionDroppedAfterRequest_isNotDefinite() {
+    void connectionDroppedAfterRequest_isNotDefinite() throws InterruptedException {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
 
         var e = assertThrows(ConductorClientException.class, () -> workflowClient.startWorkflow(startRequest()));
 
+        assertNotNull(server.takeRequest(5, TimeUnit.SECONDS), "the server received the request");
+        assertEquals(0, e.getStatus(), "no response status ever came back");
         assertFalse(e.isDefinite(), "the server may have created the workflow before the connection dropped");
     }
 
@@ -94,6 +98,7 @@ class ClientErrorDefinitenessTest {
 
         var e = assertThrows(ConductorClientException.class, () -> workflowClient.startWorkflow(startRequest()));
 
+        assertEquals(0, e.getStatus(), "no response status ever came back");
         assertFalse(e.isDefinite(), "a dropped connection never proves the request was not delivered");
     }
 
