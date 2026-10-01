@@ -147,6 +147,14 @@ class ConductorClientExceptionTest {
     }
 
     @Test
+    @DisplayName("The flag round-trips, so the getter cannot quietly become a constant")
+    void setDefinite_thenIsDefinite_isTrue() {
+        var e = new ConductorClientException("boom");
+        e.setDefinite(true);
+        assertTrue(e.isDefinite());
+    }
+
+    @Test
     @DisplayName("A plain 4xx means the server rejected the request without applying it")
     void definiteFor_clientErrors_isTrue() {
         assertTrue(ApiException.definiteFor(400));
