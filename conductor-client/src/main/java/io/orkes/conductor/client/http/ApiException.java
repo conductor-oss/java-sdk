@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.netflix.conductor.common.validation.ValidationError;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Setter;
 
@@ -35,10 +36,16 @@ public class ApiException extends RuntimeException {
 
     private final static boolean PREFER_ERR_OVER_RESPONSE = initPreferErrOverResponse();
 
+    private static final int HTTP_REQUEST_TIMEOUT = 408;
+    private static final int HTTP_CONFLICT = 409;
+    private static final int HTTP_LOCKED = 423;
+    private static final int HTTP_TOO_MANY_REQUESTS = 429;
+
     private int status;
     private String instance;
     private String code;
     @Setter private boolean retryable;
+    @JsonIgnore @Setter private boolean definite;
     private List<ValidationError> validationErrors; //List of validation errors. Available when the status code is 400
     private Map<String, List<String>> responseHeaders;
     private String responseBody;
@@ -92,6 +99,43 @@ public class ApiException extends RuntimeException {
 
     public boolean isClientError() {
         return getStatus() > 399 && getStatus() < 499;
+    }
+
+    /**
+     * Whether this error proves the request had no effect.
+     *
+     * <p>{@code true} means the server never applied the request, so retrying it is safe.
+     *
+     * <p>{@code false} means the outcome is unknown: the request may or may not have been applied.
+     * It does not mean the request succeeded, and it does not mean retrying is unsafe — only that
+     * a retry may duplicate the work. {@code false} is the default, because most transport
+     * failures prove nothing.
+     *
+     * <p>A dropped connection is always indeterminate, including {@code ConnectException}. OkHttp
+     * may retry a request on a fresh route after a pooled connection fails mid-send, so "failed to
+     * connect" can follow a request the server already received.
+     *
+     * <p>This is not {@link #isRetryable()}. That one says whether trying again is worth it; this
+     * one says whether trying again can duplicate work. They are independent and often opposite: a
+     * 503 is retryable and indeterminate at the same time.
+     */
+    public boolean isDefinite() {
+        return definite;
+    }
+
+    /**
+     * Whether an HTTP status proves the server rejected the request without applying it.
+     *
+     * <p>Most 4xx codes qualify. Four do not: Conductor can return 408, 409, 423 and 429 after it
+     * has already written, so a caller that retried them could duplicate the work.
+     */
+    public static boolean definiteFor(int status) {
+        return status >= 400
+                && status < 500
+                && status != HTTP_REQUEST_TIMEOUT
+                && status != HTTP_CONFLICT
+                && status != HTTP_LOCKED
+                && status != HTTP_TOO_MANY_REQUESTS;
     }
 
     /**

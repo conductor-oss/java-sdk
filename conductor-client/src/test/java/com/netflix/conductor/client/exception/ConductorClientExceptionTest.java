@@ -15,7 +15,13 @@ package com.netflix.conductor.client.exception;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.orkes.conductor.client.http.ApiException;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -131,5 +137,56 @@ class ConductorClientExceptionTest {
         assertTrue(new ConductorClientException(498, "").isClientError());
         assertFalse(new ConductorClientException(499, "").isClientError());
         assertFalse(new ConductorClientException(500, "").isClientError());
+    }
+
+    @Test
+    @DisplayName("An error is indeterminate unless something proves otherwise")
+    void isDefinite_byDefault_isFalse() {
+        var e = new ConductorClientException("boom");
+        assertFalse(e.isDefinite(), "the safe default is indeterminate");
+    }
+
+    @Test
+    @DisplayName("A plain 4xx means the server rejected the request without applying it")
+    void definiteFor_clientErrors_isTrue() {
+        assertTrue(ApiException.definiteFor(400));
+        assertTrue(ApiException.definiteFor(401));
+        assertTrue(ApiException.definiteFor(403));
+        assertTrue(ApiException.definiteFor(404));
+        assertTrue(ApiException.definiteFor(405));
+        assertTrue(ApiException.definiteFor(415));
+    }
+
+    @Test
+    @DisplayName("A 5xx may have applied the write before failing, so it stays indeterminate")
+    void definiteFor_serverErrors_isFalse() {
+        assertFalse(ApiException.definiteFor(500));
+        assertFalse(ApiException.definiteFor(502));
+        assertFalse(ApiException.definiteFor(503));
+        assertFalse(ApiException.definiteFor(504));
+    }
+
+    @Test
+    @DisplayName("Conductor can return these four 4xx codes after it has already written")
+    void definiteFor_postWriteClientErrors_isFalse() {
+        assertFalse(ApiException.definiteFor(408), "the server may have begun processing a partial request");
+        assertFalse(ApiException.definiteFor(409), "FAIL_ON_RUNNING throws CONFLICT after createOnly, without removing the row");
+        assertFalse(ApiException.definiteFor(423), "LOCK is returned on paths that invite a retry");
+        assertFalse(ApiException.definiteFor(429), "RATE_LIMITED is thrown after createOnly");
+    }
+
+    @Test
+    @DisplayName("No status means no response, which proves nothing")
+    void definiteFor_noStatus_isFalse() {
+        assertFalse(ApiException.definiteFor(0));
+        assertFalse(ApiException.definiteFor(200));
+    }
+
+    @Test
+    @DisplayName("A server error body cannot talk the client into claiming definiteness")
+    void definite_isNotDeserializedFromTheResponseBody() throws Exception {
+        var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        var e = mapper.readValue("{\"definite\":true,\"code\":\"X\"}", ConductorClientException.class);
+        assertFalse(e.isDefinite(), "definiteness is the client's call, not the server's");
     }
 }
