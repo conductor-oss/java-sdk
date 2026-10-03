@@ -695,11 +695,14 @@ public class ConductorClient {
         }
 
         /**
-         * Pass {@code false} to mark request bodies one-shot, so a request already delivered to
-         * the server is never sent again on a retried connection. Doing so also stops OkHttp from
-         * following 307 and 308 redirects for requests with a body (301/302/303 are unaffected,
-         * since those convert to a bodyless GET). Defaults to {@code true}, OkHttp's stock
-         * retransmitting behaviour.
+         * Pass {@code false} to mark request bodies one-shot, opting in to the protection: once
+         * transmission of a body has begun, it is never sent again on a retried connection. This
+         * also stops OkHttp replaying the request on 307/308 redirects, 408 responses and 421
+         * misdirected-request responses (301/302/303 are unaffected, since those convert to a
+         * bodyless GET). A blocked 307/308 surfaces as a {@link ConductorClientException}
+         * carrying that status code rather than a transparent redirect, since
+         * {@link ConductorClient#handleResponse} treats 3xx as unsuccessful. Defaults to
+         * {@code true}, OkHttp's stock retransmit/replay behaviour.
          */
         public T retransmitRequestBodies(boolean retransmitRequestBodies) {
             this.retransmitRequestBodies = retransmitRequestBodies;
