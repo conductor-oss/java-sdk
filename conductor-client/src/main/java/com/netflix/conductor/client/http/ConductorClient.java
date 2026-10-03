@@ -524,6 +524,11 @@ public class ConductorClient {
                 delegate.writeTo(sink);
             }
 
+            @Override
+            public boolean isDuplex() {
+                return delegate.isDuplex();
+            }
+
             // isOneShot() == true means: never re-send a body that was already transmitted.
             @Override
             public boolean isOneShot() {
@@ -635,7 +640,7 @@ public class ConductorClient {
         private Supplier<ObjectMapper> objectMapperSupplier = () -> new ObjectMapperProvider().getObjectMapper();
         private final List<HeaderSupplier> headerSuppliers = new ArrayList<>();
         MetricsCollector metricsCollector;
-        private boolean retransmitRequestBodies = false;
+        private boolean retransmitRequestBodies = true;
 
         private boolean useEnvVariables = false;
 
@@ -690,9 +695,11 @@ public class ConductorClient {
         }
 
         /**
-         * Pass {@code true} to restore OkHttp's stock behaviour of retransmitting a request
-         * body on a retried connection. The default ({@code false}) marks bodies one-shot,
-         * because a request that was already delivered to the server should not be sent again.
+         * Pass {@code false} to mark request bodies one-shot, so a request already delivered to
+         * the server is never sent again on a retried connection. Doing so also stops OkHttp from
+         * following 307 and 308 redirects for requests with a body (301/302/303 are unaffected,
+         * since those convert to a bodyless GET). Defaults to {@code true}, OkHttp's stock
+         * retransmitting behaviour.
          */
         public T retransmitRequestBodies(boolean retransmitRequestBodies) {
             this.retransmitRequestBodies = retransmitRequestBodies;
