@@ -54,12 +54,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * {@code localhost} resolves to both an IPv4 and an IPv6 route on this machine, but MockWebServer
- * only listens on one of them. A request that is fully delivered and then has its socket severed
- * is, with {@code retransmitRequestBodies(true)}, retried on the other (unlistened) route and
- * reported as a connect failure - even though the server already received it. With the SDK
- * default (one-shot bodies), the caller instead sees the raw failure from the single,
- * already-delivered attempt.
+ * A request body that is not one-shot can be sent twice: OkHttp retransmits it after a recoverable
+ * connection failure, and the caller is then told about the second attempt rather than the first.
+ * For a non-idempotent call that means the work happened and the error says it did not.
+ *
+ * <p>The decisive pair binds to a single address over HTTP/2, so there is provably one route and no
+ * fallback involved: the server reads the body in full, resets the stream, and OkHttp retries on
+ * the same connection. The remaining tests cover the multi-route shape, and check that a failure
+ * before the request is sent still falls back to the next address - the behaviour that must not be
+ * lost in exchange.
  */
 class ConnectionRetryBehaviourTest {
 
