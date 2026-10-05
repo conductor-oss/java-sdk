@@ -68,6 +68,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.http.HttpMethod;
+import okio.BufferedSink;
 
 public class ConductorClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConductorClient.class);
@@ -79,6 +80,7 @@ public class ConductorClient {
     private final KeyManager[] keyManagers;
     private final List<HeaderSupplier> headerSuppliers;
     private final MetricsCollector metricsCollector;
+    private final boolean retransmitRequestBodies;
 
     public static Builder<?> builder() {
         return new Builder<>();
@@ -95,6 +97,7 @@ public class ConductorClient {
         this.keyManagers = builder.keyManagers;
         this.headerSuppliers = builder.headerSupplier();
         this.metricsCollector = builder.metricsCollector;
+        this.retransmitRequestBodies = builder.retransmitRequestBodies;
 
         if (this.metricsCollector != null) {
             ApiClientMetrics apiClientMetrics = this.metricsCollector.getApiClientMetrics();
@@ -491,13 +494,47 @@ public class ConductorClient {
             return null;
         }
 
+        RequestBody requestBody;
         if (body == null && "DELETE".equals(method)) {
             return null;
         } else if (body == null) {
-            return RequestBody.create("", MediaType.parse(contentType));
+            requestBody = RequestBody.create("", MediaType.parse(contentType));
+        } else {
+            requestBody = serialize(contentType, body);
         }
 
-        return serialize(contentType, body);
+        return retransmitRequestBodies ? requestBody : oneShot(requestBody);
+    }
+
+    // Wraps a request body so OkHttp will not retransmit it on a retried connection.
+    private static RequestBody oneShot(RequestBody delegate) {
+        return new RequestBody() {
+            @Override
+            public MediaType contentType() {
+                return delegate.contentType();
+            }
+
+            @Override
+            public long contentLength() throws IOException {
+                return delegate.contentLength();
+            }
+
+            @Override
+            public void writeTo(@NotNull BufferedSink sink) throws IOException {
+                delegate.writeTo(sink);
+            }
+
+            @Override
+            public boolean isDuplex() {
+                return delegate.isDuplex();
+            }
+
+            // isOneShot() == true means: never re-send a body that was already transmitted.
+            @Override
+            public boolean isOneShot() {
+                return true;
+            }
+        };
     }
 
     private HttpUrl buildUrl(String path, List<Param> queryParams) {
@@ -603,6 +640,7 @@ public class ConductorClient {
         private Supplier<ObjectMapper> objectMapperSupplier = () -> new ObjectMapperProvider().getObjectMapper();
         private final List<HeaderSupplier> headerSuppliers = new ArrayList<>();
         MetricsCollector metricsCollector;
+        private boolean retransmitRequestBodies = true;
 
         private boolean useEnvVariables = false;
 
@@ -653,6 +691,21 @@ public class ConductorClient {
 
         public T proxy(Proxy proxy) {
             this.proxy = proxy;
+            return self();
+        }
+
+        /**
+         * Pass {@code false} to mark request bodies one-shot, opting in to the protection: once
+         * transmission of a body has begun, it is never sent again on a retried connection. This
+         * also stops OkHttp replaying the request on 307/308 redirects, 408 responses and 421
+         * misdirected-request responses (301/302/303 are unaffected, since those convert to a
+         * bodyless GET). A blocked 307/308 surfaces as a {@link ConductorClientException}
+         * carrying that status code rather than a transparent redirect, since
+         * {@link ConductorClient#handleResponse} treats 3xx as unsuccessful. Defaults to
+         * {@code true}, OkHttp's stock retransmit/replay behaviour.
+         */
+        public T retransmitRequestBodies(boolean retransmitRequestBodies) {
+            this.retransmitRequestBodies = retransmitRequestBodies;
             return self();
         }
 
