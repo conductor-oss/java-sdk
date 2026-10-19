@@ -31,6 +31,25 @@ Replace `<VERSION>` with a published version from [Maven Central](https://search
 - **[Multi-Agent](concepts/multi-agent.md)** — sequential, parallel, handoff, swarm, and plan-execute agents.
 - **[Guardrails](concepts/guardrails.md)**, **[Termination](concepts/termination.md)**, **[Callbacks](concepts/callbacks.md)**, **[Stateful Agents](concepts/stateful.md)**, **[Streaming & Human-in-the-Loop](concepts/streaming-hitl.md)**, and **[Structured Output](concepts/structured-output.md)**.
 
+## Decision inference examples
+
+These examples require a server with the synchronous decision evaluator and server-managed Decision credentials. No Java decision worker is needed. The router and tool examples also require a configured chat provider. Set `CONDUCTOR_DECISION_PROVIDER=openrouter` when using OpenRouter and optionally `CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini`.
+
+- [Traditional workflow](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/ExampleDecisionRouting.java): one decision-backed SWITCH chooses billing or technical INLINE handling and returns the selected result, answers, usage, cost, and latency.
+- [Decision router](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/ExampleDecisionRouter.java): a decision `ToolDef` selects a child chat agent; `synthesize(false)` returns its result directly.
+- [Decision tool](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/ExampleDecisionTool.java): a chat agent calls a branchless decision SWITCH tool before answering.
+
+```shell
+export CONDUCTOR_SERVER_URL=http://localhost:8080/api
+export CONDUCTOR_DECISION_PROVIDER=openrouter
+./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.ExampleDecisionRouting
+./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.ExampleDecisionRouting --args='"The product crashes on startup with error 500. Help troubleshoot it."'
+./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.ExampleDecisionRouter --args=--run
+./gradlew :agent-examples:run -PmainClass=org.conductoross.conductor.ai.examples.ExampleDecisionTool
+```
+
+The router prints its server compilation plan unless `--run` is passed. Workflow and agent names end in `_java` so these examples can coexist with other SDKs. The traditional task uses `.evaluatorType(Switch.DECISION_NAME)` with `model`, optional `provider`, `state`, and a choice question whose name is the SWITCH expression. Its choice keys match the decision-case keys. The server evaluates it synchronously; provider failures fail the workflow without task retries.
+
 ## Framework bridges
 
 - **[Google ADK](frameworks/google-adk.md)** — bridge native ADK agents and sub-agent graphs.
