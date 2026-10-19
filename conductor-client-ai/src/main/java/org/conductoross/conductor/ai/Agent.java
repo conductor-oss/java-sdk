@@ -63,6 +63,7 @@ public class Agent {
     private final List<Agent> agents;
     private final Strategy strategy;
     private final Agent router;
+    private final ToolDef decisionRouter;
     private final List<GuardrailDef> guardrails;
     private final int maxTurns;
     private final Integer maxTokens;
@@ -137,6 +138,7 @@ public class Agent {
         this.agents = builder.agents != null ? new ArrayList<>(builder.agents) : new ArrayList<>();
         this.strategy = builder.strategy != null ? builder.strategy : Strategy.HANDOFF;
         this.router = builder.router;
+        this.decisionRouter = builder.decisionRouter;
         this.guardrails = builder.guardrails != null ? new ArrayList<>(builder.guardrails) : new ArrayList<>();
         this.maxTurns = builder.maxTurns;
         this.maxTokens = builder.maxTokens;
@@ -198,10 +200,12 @@ public class Agent {
     }
 
     /**
-     * Returns true if this agent is external (no local model — references a deployed workflow).
+     * Returns true if this agent references a deployed workflow (no model or decision router).
      */
     public boolean isExternal() {
-        return model == null || model.isEmpty();
+        return (model == null || model.isEmpty())
+                && !(strategy == Strategy.ROUTER && decisionRouter != null
+                        && "decision".equals(decisionRouter.getToolType()));
     }
 
     /**
@@ -262,6 +266,11 @@ public class Agent {
 
     public Agent getRouter() {
         return router;
+    }
+
+    /** Decision selector configuration; it is evaluated by the server without a worker. */
+    public ToolDef getDecisionRouter() {
+        return decisionRouter;
     }
 
     public List<GuardrailDef> getGuardrails() {
@@ -498,6 +507,7 @@ public class Agent {
         private List<Agent> agents;
         private Strategy strategy = Strategy.HANDOFF;
         private Agent router;
+        private ToolDef decisionRouter;
         private List<GuardrailDef> guardrails;
         private int maxTurns = 25;
         private Integer maxTokens;
@@ -608,6 +618,14 @@ public class Agent {
         /** Set the router agent for ROUTER strategy. */
         public Builder router(Agent router) {
             this.router = router;
+            this.decisionRouter = null;
+            return this;
+        }
+
+        /** Use a decision tool to select a sub-agent without a router LLM or SDK worker. */
+        public Builder router(ToolDef router) {
+            this.decisionRouter = router;
+            this.router = null;
             return this;
         }
 

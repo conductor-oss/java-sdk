@@ -55,10 +55,11 @@
       "description": "Multi-agent orchestration strategy. Null/absent for a single agent."
     },
     "router": {
-      "description": "ROUTER strategy router: a nested agent or a worker-task reference.",
+      "description": "ROUTER strategy router: a nested agent, worker-task reference, or decision selector.",
       "oneOf": [
         { "$ref": "#" },
-        { "$ref": "#/$defs/workerRef" }
+        { "$ref": "#/$defs/workerRef" },
+        { "$ref": "#/$defs/decisionRouter" }
       ]
     },
     "guardrails": {
@@ -304,6 +305,18 @@
         "text": { "type": "string" },
         "caseSensitive": { "type": "boolean" },
         "taskName": { "type": "string" }
+      }
+    },
+    "decisionRouter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "model", "questions"],
+      "properties": {
+        "name": { "type": "string" },
+        "kind": { "const": "decision" },
+        "model": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string" },
+        "questions": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "object" } }
       }
     },
     "workerRef": {
