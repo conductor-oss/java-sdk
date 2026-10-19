@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.automator.filters.PollFilter;
 import com.netflix.conductor.client.config.ConductorClientConfiguration;
+import com.netflix.conductor.client.config.PropertyFactory;
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.listeners.ListenerRegister;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
@@ -55,6 +56,9 @@ public class TaskRunnerConfigurer {
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
+    private final boolean updateV2;
+    private final AdaptiveConcurrencyController adaptiveConcurrencyController;
+    private final Map<String /* taskType */, Integer /* maxConcurrency */> taskToAdaptiveMaxConcurrency;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -77,6 +81,9 @@ public class TaskRunnerConfigurer {
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
+        this.updateV2 = builder.updateV2;
+        this.adaptiveConcurrencyController = builder.adaptiveConcurrencyController;
+        this.taskToAdaptiveMaxConcurrency = builder.taskToAdaptiveMaxConcurrency;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -139,13 +146,49 @@ public class TaskRunnerConfigurer {
     }
 
     /**
+     * @return true if workers use adaptive concurrency instead of fixed thread counts
+     */
+    public boolean isAdaptiveConcurrencyEnabled() {
+        return adaptiveConcurrencyController != null;
+    }
+
+    /**
+     * @return true if task results are reported with update-and-fetch
+     */
+    public boolean isUpdateV2() {
+        return updateV2;
+    }
+
+    /**
      * Starts the polling. Must be called after {@link TaskRunnerConfigurer.Builder#build()} method.
      */
     public synchronized void init() {
         this.scheduledExecutorService = Executors.newScheduledThreadPool(workers.size(),
             new BasicThreadFactory.Builder().namingPattern("TaskRunner %d")
             .build());
+        if (adaptiveConcurrencyController != null) {
+            initAdaptive();
+            return;
+        }
         workers.forEach(worker -> scheduledExecutorService.submit(() -> this.startWorker(worker)));
+    }
+
+    /**
+     * Registers every worker with the controller before any poller starts, so the initial process target sees all
+     * logical queues.
+     */
+    private void initAdaptive() {
+        List<TaskRunner> runners = new LinkedList<>();
+        for (Worker worker : workers) {
+            runners.add(createTaskRunner(worker));
+        }
+        synchronized (taskRunners) {
+            taskRunners.addAll(runners);
+        }
+        adaptiveConcurrencyController.activate();
+        for (TaskRunner taskRunner : runners) {
+            scheduledExecutorService.submit(taskRunner::pollAndExecute);
+        }
     }
 
     /**
@@ -165,11 +208,11 @@ public class TaskRunnerConfigurer {
         }
     }
 
-    private void startWorker(Worker worker) {
+    private TaskRunner createTaskRunner(Worker worker) {
         final Integer threadCountForTask = this.taskToThreadCount.getOrDefault(worker.getTaskDefName(), threadCount);
         final Integer taskPollTimeout = this.taskPollTimeout.getOrDefault(worker.getTaskDefName(), defaultPollTimeout);
         LOGGER.info("Domain map for tasks = {}", taskToDomain);
-        final TaskRunner taskRunner = new TaskRunner(
+        return new TaskRunner(
                 worker,
                 taskClient,
                 updateRetryCount,
@@ -179,7 +222,33 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                useVirtualThreads);
+                useVirtualThreads,
+                updateV2,
+                adaptiveConcurrencyController,
+                adaptiveMaxConcurrency(worker.getTaskDefName()));
+    }
+
+    /**
+     * Resolves a worker's adaptive ceiling: the builder map, then {@code conductor.worker.<task>.adaptive_max_concurrency}
+     * with the {@code conductor.worker.adaptive_max_concurrency} fallback, then the controller default.
+     */
+    private int adaptiveMaxConcurrency(String taskType) {
+        if (adaptiveConcurrencyController == null) {
+            return 0;
+        }
+        int defaultMax = adaptiveConcurrencyController.getConfig().getDefaultMaxWorkerConcurrency();
+        Integer value = taskToAdaptiveMaxConcurrency.get(taskType);
+        if (value == null) {
+            value = PropertyFactory.getInteger(taskType, Worker.PROP_ADAPTIVE_MAX_CONCURRENCY, defaultMax);
+        }
+        if (value < 1) {
+            throw new IllegalArgumentException("Adaptive maximum concurrency for " + taskType + " must be positive");
+        }
+        return Math.min(value, adaptiveConcurrencyController.getConfig().getMaxProcessConcurrency());
+    }
+
+    private void startWorker(Worker worker) {
+        final TaskRunner taskRunner = createTaskRunner(worker);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -212,6 +281,9 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
+        private boolean updateV2;
+        private AdaptiveConcurrencyController adaptiveConcurrencyController;
+        private Map<String /* taskType */, Integer /* maxConcurrency */> taskToAdaptiveMaxConcurrency = new HashMap<>();
 
         /**
          * Returns the event dispatcher used by this builder, allowing direct
@@ -316,11 +388,21 @@ public class TaskRunnerConfigurer {
             return this;
         }
 
+        /**
+         * @deprecated never applied to polling; use adaptive concurrency, whose poll batch follows free slots up to
+         * {@link AdaptiveConcurrencyConfig#getMaxPollBatch()}
+         */
+        @Deprecated
         public TaskRunnerConfigurer.Builder withTaskPollCount(Map<String, Integer> taskPollCount) {
             this.taskPollCount = taskPollCount;
             return this;
         }
 
+        /**
+         * @deprecated never applied to polling; use adaptive concurrency, whose poll batch follows free slots up to
+         * {@link AdaptiveConcurrencyConfig#getMaxPollBatch()}
+         */
+        @Deprecated
         public TaskRunnerConfigurer.Builder withTaskPollCount(int defaultPollCount) {
             this.defaultPollCount = defaultPollCount;
             return this;
@@ -335,6 +417,9 @@ public class TaskRunnerConfigurer {
          * @return Builder instance
          */
         public TaskRunnerConfigurer build() {
+            if (adaptiveConcurrencyController != null) {
+                validateAdaptivePollTimeouts();
+            }
             if (!metricsCollectorExplicitlySet) {
                 var conductorClient = taskClient.getConductorClient();
                 if (conductorClient != null) {
@@ -381,6 +466,50 @@ public class TaskRunnerConfigurer {
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {
             this.useVirtualThreads = useVirtualThreads;
             return this;
+        }
+
+        /**
+         * @param updateV2 report results with update-and-fetch, which can return the next task in the same call.
+         *                 The {@code taskUpdateV2} system property or environment variable also enables it.
+         * @return Builder instance
+         */
+        public Builder withUpdateV2(boolean updateV2) {
+            this.updateV2 = updateV2;
+            return this;
+        }
+
+        /**
+         * Enables adaptive concurrency. Thread counts no longer apply: the controller divides one process target
+         * among workers in proportion to queue depth, grows it under demand while CPU and heap have headroom, and
+         * shrinks it under pressure. Share one controller among all configurers of a process.
+         *
+         * @param adaptiveConcurrencyController the shared controller
+         * @return Builder instance
+         */
+        public Builder withAdaptiveConcurrency(AdaptiveConcurrencyController adaptiveConcurrencyController) {
+            this.adaptiveConcurrencyController = adaptiveConcurrencyController;
+            return this;
+        }
+
+        /**
+         * @param taskToAdaptiveMaxConcurrency per-task ceilings for adaptive concurrency; tasks not listed use
+         *                                     {@link AdaptiveConcurrencyConfig#getDefaultMaxWorkerConcurrency()}
+         * @return Builder instance
+         */
+        public Builder withTaskAdaptiveMaxConcurrency(Map<String, Integer> taskToAdaptiveMaxConcurrency) {
+            if (taskToAdaptiveMaxConcurrency.values().stream().anyMatch(v -> v == null || v < 1)) {
+                throw new IllegalArgumentException("Adaptive maximum concurrency cannot be less than 1");
+            }
+            this.taskToAdaptiveMaxConcurrency = taskToAdaptiveMaxConcurrency;
+            return this;
+        }
+
+        private void validateAdaptivePollTimeouts() {
+            int limit = AdaptiveConcurrencyController.MAX_POLL_TIMEOUT_MILLIS;
+            if (defaultPollTimeout > limit || taskPollTimeout.values().stream().anyMatch(t -> t != null && t > limit)) {
+                throw new IllegalArgumentException("Poll timeout cannot exceed " + limit
+                        + " ms; the server rejects longer batch polls");
+            }
         }
 
     }

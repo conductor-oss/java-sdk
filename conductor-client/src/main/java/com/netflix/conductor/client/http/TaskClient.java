@@ -469,15 +469,25 @@ public class TaskClient {
 
     public int getQueueSizeForTask(String taskType) {
         Validate.notBlank(taskType, "Task type cannot be blank");
+        Integer queueSize = getQueueSizesForTasks(List.of(taskType)).get(taskType);
+        return queueSize != null ? queueSize : 0;
+    }
+
+    /**
+     * Retrieve the sizes of several task queues in one request.
+     *
+     * @param queueNames queue names: a task type for the default queue, or {@code domain:taskType} for a domain queue
+     * @return queue size keyed by the names passed; a name the server has never seen may be absent
+     */
+    public Map<String, Integer> getQueueSizesForTasks(List<String> queueNames) {
+        Validate.notEmpty(queueNames, "Queue names cannot be empty");
         ConductorClientRequest request = ConductorClientRequest.builder()
                 .method(Method.GET)
                 .path("/tasks/queue/sizes")
-                .addQueryParams("taskType", List.of(taskType))
+                .addQueryParams("taskType", queueNames)
                 .build();
         ConductorClientResponse<Map<String, Integer>> response = client.execute(request, STRING_INT_MAP_TYPE);
-
-        Integer queueSize = response.getData().get(taskType);
-        return queueSize != null ? queueSize : 0;
+        return response.getData();
     }
 
     public int getQueueSizeForTask(String taskType, String domain, String isolationGroupId, String executionNamespace) {

@@ -44,7 +44,7 @@ Behavior change to document for users: today a poller count of N registers the s
 | Applies task-definition concurrency and rate limits | Adjusts local execution concurrency within configured ceilings |
 | Tracks execution state, retries, and timeouts | Executes accepted tasks and reports their results |
 | Distributes queued tasks among polling consumers | Coordinates local workers sharing CPU and heap |
-| Reports queue depth per task type and domain | Samples depth and divides its process budget among workers in proportion to it |
+| Reports queue depth per task type and domain | Samples depth and divides its process budget among workers in proportion to it, each capped at what the worker can use |
 | Routes domain-fallback tasks to domains with a recent poll | Keeps a heartbeat poll on idle queues so routing and poll-data views keep working |
 
 The server marks delivered tasks `IN_PROGRESS`. A poll therefore accepts work; it is not a read-only preview of the queue. The SDK reserves execution capacity before requesting tasks and keeps accepted work accounted for until local execution and result-reporting handling finish.
@@ -105,7 +105,8 @@ Applications supply one shared adaptive controller to participating runners in t
 | Setting | Default | Purpose |
 |---|---:|---|
 | Adaptive mode | Disabled | Explicit opt-in |
-| Initial process concurrency | min(logical queues, available processors), clamped to [1, process maximum] | Aggregate startup target |
+| Initial process concurrency | min(logical queues, available processors), clamped to [minimum, process maximum] | Aggregate startup target. Set it to the expected working level to skip the ramp from a small start; the auto value is 1 in a pod with one CPU or less |
+| Minimum process concurrency | 1 | Lowest target demand decay settles at, so an idle process keeps a ready budget and the next burst does not ramp from one slot. Idle queues still hold no threads, because their shares are zero. CPU and heap pressure may reduce the target below it, and decay never raises a target that pressure lowered |
 | Maximum process concurrency | 256 | Aggregate admission ceiling |
 | Default maximum worker concurrency | 64 | Per-queue ceiling, explicitly overridable |
 | Maximum polling batch | 16 | Ceiling for a single request |
@@ -124,13 +125,14 @@ Applications supply one shared adaptive controller to participating runners in t
 | Demand decay | After 30 seconds with total demand below the process target, shrink the target to the larger of demand and half of itself, floor 1 | Return surplus capacity gradually so the next burst ramps under the growth gate |
 | Depth sampling interval | 1 second | One `GET /tasks/queue/sizes` request per interval naming every logical queue, on a dedicated thread |
 | Depth freshness | 5 seconds | A depth older than this is unknown and counts as one; must cover a full sweep of the process's queues |
-| Heartbeat interval | 5 seconds | A queue with no share polls one task this often from spare process capacity, keeping the server's poll data inside its 10-second active-poller window and verifying a zero depth |
+| Heartbeat interval | 5 seconds | A queue with no share and no standby poll polls one task this often on an open slot, without a server wait, keeping the server's poll data inside its 10-second active-poller window and verifying a zero depth |
+| Standby poll timeout | 1 second | Server wait of the single-task long poll a queue keeps open on a slot no share claims, so a task is picked up as it arrives; at most 5 seconds, zero disables standby polls. An idle queue sends about one request per timeout |
 | Metric freshness | 5 seconds | A metric older than this freezes growth; a gap longer than this resets smoothing and pressure timing |
 | Demand-only operation | Disabled | Startup fails if neither resource metric is supported unless explicitly enabled |
 | Execution threads | Platform; `useVirtualThreads` selects virtual | Existing opt-in; chooses the executor strategy below |
 | Execution-thread idle timeout | 60 seconds | Retire idle platform execution threads; not applicable to virtual threads |
 
-All concurrency and batch ceilings must be positive. Initial process concurrency must not exceed the process maximum. Per-worker maxima remain subject to the process ceiling. Validate finite thresholds in `(0, 1]`, with growth < heap resume < heap pause and growth < CPU pressure. Durations must be positive; each freshness must exceed its sampling interval; the heartbeat interval should stay below the server's active-poller window. Configurable smoothing uses `0 < alpha <= 1`. Configured long-poll timeouts must not exceed 5000 milliseconds and must fit inside the HTTP read timeout with room for overhead.
+All concurrency and batch ceilings must be positive. Initial process concurrency must not exceed the process maximum. Per-worker maxima remain subject to the process ceiling. Validate finite thresholds in `(0, 1]`, with growth < heap resume < heap pause and growth < CPU pressure. Durations must be positive; each freshness must exceed its sampling interval; the heartbeat interval should stay below the server's active-poller window. The standby poll timeout is between zero and 5000 milliseconds. Configurable smoothing uses `0 < alpha <= 1`. Configured long-poll timeouts must not exceed 5000 milliseconds and must fit inside the HTTP read timeout with room for overhead.
 
 Expose adaptive options through the task-runner builder and worker configuration path, including framework bindings. Required concepts are enablement, the shared controller, process maximum, default/per-worker maximum, batch maximum, resource and depth sampling intervals and freshness, heartbeat interval, control interval, resource thresholds, demand-only operation, update-and-fetch enablement, and virtual-thread selection. Virtual threads stay opt-in with the existing `useVirtualThreads` flag; that flag is additionally exposed as a Spring property and through the annotated-worker configuration, since today only the builder sets it. Per-worker values use the existing `conductor.worker.<task>.<prop>` property path with the `conductor.worker.<prop>` fallback. Do not reinterpret existing `threadCount` values as adaptive ceilings.
 
@@ -170,7 +172,7 @@ WorkerQueueState:
 
 The following invariants apply:
 
-1. A reservation never exceeds the free worker target or the free process target at the time it is made, except that a heartbeat takes one slot beyond a zero share from spare process capacity. Otherwise held slots exceed a target only after that target was lowered by a reduction, a decay, or a reallocation, and then only until work drains.
+1. Rule one: a queue is polled only with an open slot for every task the poll may return. A reservation never exceeds the free worker target or the free process target at the time it is made, except that a heartbeat may take one open process slot beyond the queue's share, never beyond the worker maximum. Held slots exceed a target only after that target was lowered by a reduction, a decay, or a reallocation, and then only until work drains. Nothing polls while admission is paused or every slot is held.
 2. Each slot has exactly one owner: an outstanding request or an accepted task.
 3. Reservations are transferred or released exactly once. Network calls do not run under the controller lock.
 4. Reducing a target does not revoke work already accepted or a reservation backing an outstanding fetch.
@@ -186,7 +188,7 @@ Use monotonic time for controller intervals, freshness, backoff, and duration co
 
 ```text
 function start(workerQueues):
-    cpu.supported  = platform OperatingSystemMXBean exposes getProcessCpuLoad()
+    cpu.supported  = platform OperatingSystemMXBean reports getProcessCpuTime()
     heap.supported = heap max is positive AND (GC notifications are available
                      OR at least one heap pool reports collection usage)
     log each unsupported metric once; expose in observability
@@ -194,7 +196,7 @@ function start(workerQueues):
         fail startup with a configuration error
 
     process.targetConcurrency = configured initial value, or
-        clamp(min(count(workerQueues), availableProcessors), 1, maximumConcurrency)
+        clamp(configured initial OR min(count(workerQueues), availableProcessors), minimumConcurrency, maximumConcurrency)
     process.heldSlots = 0
     process.admissionPaused = false
     process.lastResumeAt = -infinity
@@ -225,7 +227,7 @@ If there are more queues than process slots, grants rotate among queues with equ
 
 ### CPU
 
-Read JVM process CPU from `OperatingSystemMXBean.getProcessCpuLoad()`. It is already a ratio normalized to the processors available to the JVM; do not divide it by processor count again. Reject negative or nonfinite values and values above one. The first call after startup may return a negative value because the bean needs two samples; that is an invalid observation, not evidence that the metric is unsupported. The metric is unsupported only when the platform bean does not implement the `com.sun.management` interface or the method throws an unsupported-operation error. CPU normalization follows the operating environment reported by the JVM; this version does not independently resolve container quotas.
+Read JVM process CPU as the growth of `OperatingSystemMXBean.getProcessCpuTime()` between samples, divided by the elapsed time and by the CPUs available to the process: the container quota when one is set (cgroup v2 `cpu.max`, or v1 `cpu.cfs_quota_us` over `cpu.cfs_period_us`), which may be fractional, capped by `Runtime.availableProcessors()`. The quota is re-read on every sample so a resized container takes effect. Clamp to `[0, 1]`; the first sample has no interval and is an invalid observation, not evidence that the metric is unsupported. Do not use `getProcessCpuLoad()`: it measures the interval since the previous call by any caller in the JVM, so a metrics library reading it, as Micrometer's `ProcessorMetrics` does on every scrape and Spring Boot Actuator registers by default, leaves this sampler a window of milliseconds. End-to-end testing measured readings of zero on a saturated core with another reader 20 milliseconds earlier, and the controller grew while CPU was saturated. `availableProcessors()` alone is not enough either, because it rounds a fractional quota up: at 0.5 CPU a saturated process would read 0.5 and never reach the pressure threshold. The metric is unsupported only when the platform bean does not implement the `com.sun.management` interface or reports no process CPU time.
 
 CPU samples are one-second averages and are noisy. Growth therefore uses an exponentially weighted moving average, and the latest sample vetoes growth only at the pressure threshold. Pressure uses the raw samples directly: a run of samples at or above 90% lasting three seconds is pressure, and the start of that run is the evidence time.
 
@@ -236,13 +238,17 @@ Current used heap from `MemoryMXBean.getHeapMemoryUsage()` includes garbage that
 ```text
 heapMax            = MemoryMXBean.getHeapMemoryUsage().getMax()      // must be positive
 postGcHeapUsed     = sum over heap pools of usage after the most recent collection
-postGcUtilization  = double(postGcHeapUsed) / double(heapMax)         // controlling value
+longLived[pool]    = used / min(pool max, heapMax) after the most recent collection OF that pool
+                     for each heap pool that supports usage thresholds   // old generation; never eden or survivor
+postGcUtilization  = max(postGcHeapUsed / heapMax, max(longLived))      // controlling value
 ```
+
+The whole-heap ratio alone misses pressure under collectors with a fixed-size old generation. SerialGC, the JVM's default in containers with less than two CPUs or 1792 MB, and ParallelGC give the old generation about two thirds of the heap; data that outlives a young collection can only live there. End-to-end testing with tasks holding multi-megabyte payloads in a 123 MB heap found the old generation 99% full after collection while the whole-heap ratio read 69%, because the empty eden counted as headroom; growth continued and tasks ran out of memory. The fullest long-lived pool measured against its own capacity catches this. Long-lived pools are identified by `MemoryPoolMXBean.isUsageThresholdSupported()`, which is true for Tenured Gen, PS Old Gen, G1 Old Gen, ZGC Old Generation, ZHeap and Shenandoah and false for every eden, survivor and ZGC young pool. A pool's reading is taken only from collections by a collector whose `getMemoryPoolNames()` include it, because after a young collection the old generation still holds garbage that only a full collection frees; the reading is kept until the next such collection. For G1, ZGC and Shenandoah the long-lived pool's capacity is the whole heap, so the reading equals the whole-heap ratio or less and nothing changes.
 
 Obtain `postGcHeapUsed` in one of two ways, chosen at startup:
 
-1. Preferred: register a listener on each `GarbageCollectorMXBean` that implements `NotificationEmitter`. On each collection notification, sum `getMemoryUsageAfterGc()` across heap pools and store it with the collection end time converted from JVM uptime to the controller's monotonic clock. The listener only stores the latest value; the sampler reads it on its next tick, so a collector running many short collections per second produces at most one observation per sampling interval and the listener never does controller work.
-2. Fallback: on each sampling tick, sum `MemoryPoolMXBean.getCollectionUsage().getUsed()` across heap pools that support it. Collection usage carries no timestamp, so a collection is detected by a change in the sum of `GarbageCollectorMXBean.getCollectionCount()` across collectors between ticks, and `collectionAt` is the tick that observed the change. This path is accurate to within one sampling interval; the notification path is exact.
+1. Preferred: register a listener on each `GarbageCollectorMXBean` that implements `NotificationEmitter`. On each collection notification, sum `getMemoryUsageAfterGc()` across heap pools, update the long-lived pools that collector collects, and store the resulting utilization with the collection end time converted from JVM uptime to the controller's monotonic clock. The listener only stores the latest value; the sampler reads it on its next tick, so a collector running many short collections per second produces at most one observation per sampling interval and the listener never does controller work.
+2. Fallback: on each sampling tick, sum `MemoryPoolMXBean.getCollectionUsage().getUsed()` across heap pools that support it, and take each long-lived pool's collection usage against its capacity; collection usage is only updated by collections of that pool, which is the rule above. Collection usage carries no timestamp, so a collection is detected by a change in the sum of `GarbageCollectorMXBean.getCollectionCount()` across collectors between ticks, and `collectionAt` is the tick that observed the change. This path is accurate to within one sampling interval; the notification path is exact.
 
 Either way the sampler reads the current post-collection value every tick, so the heap metric produces a fresh observation each second even when no collection has occurred. A quiet JVM is not an unavailable one. Each heap observation carries two times. `observedAt` is the sampler tick and drives freshness. `collectionAt` is the time of the collection that produced the value and drives pause entry and reduction evidence, so re-reading the same value never counts as new evidence.
 
@@ -261,7 +267,7 @@ A metric is fresh when its latest observation is at most five seconds old; a fai
 ```text
 function sampleResources(now):
     // MXBean calls run outside the controller lock; each is attempted independently
-    cpuReading  = cpu.supported  ? getProcessCpuLoad() : FAILED
+    cpuReading  = cpu.supported  ? processCpuTimeDelta / (elapsed * availableCpus) : FAILED
     heapReading = heap.supported ? (latest post-collection usage and its collection time,
                                     or (current used heap, UNDEFINED) before the first collection) : FAILED
 
@@ -346,35 +352,50 @@ Precedence is the order listed. An unsupported metric is absent from every condi
 
 ## Adjusting concurrency targets
 
-The process target bounds aggregate admission. Worker targets are its division among queues in proportion to demand. The process target changes on the control timer and on a drained resume. Worker targets are recomputed whenever the process target changes, after every depth sweep, and after an empty response; never after every task.
+The process target bounds aggregate admission. Worker targets are its division among queues in proportion to backlog, each capped at the queue's demand. The process target changes on the control timer and on a drained resume. Worker targets are recomputed whenever the process target changes, after every depth sweep, and after an empty response; never after every task.
 
 ### Demand and allocation
 
-A queue's demand is the work it could run now: the slots it holds plus the tasks waiting for it, capped by its maximum.
+A queue's backlog is the slots it holds plus the tasks waiting for it. Its demand is the work it could run now: the backlog capped by its maximum. Shares are weighted by backlog, not demand, so a queue with 600 waiting tasks outweighs one with 100 even when both exceed a maximum of 64; weighting by the capped demand would give them equal shares exactly when backlogs are largest.
 
 ```text
-function demand(queue, now):
+function backlog(queue, now):
     depth = (now - queue.depthObservedAt <= depthFreshness) ? queue.depth : 1   // unknown depth counts as one
-    if queue.consecutiveEmptyPolls > 0:
-        depth = min(depth, 1)                     // the server just delivered nothing; ask for one until it does
-    return min(queue.maximumConcurrency, queue.heldSlots + depth)
+    if queue.consecutiveEmptyPolls > 0:          // the server delivered nothing from this depth
+        depth = min(depth, 1 + max(0, depth - queue.depthAtEmptyPoll))   // one, plus tasks that arrived since
+    return (queue.heldSlots - queue.standbyPolls) + depth     // a standby slot counts once it delivers a task
+
+function demand(queue, now):
+    return min(queue.maximumConcurrency, backlog(queue, now))
+
+function standbyDemand(queue, now):                          // the slot of the queue's standby poll
+    held = queue.heldSlots - queue.standbyPolls
+    return 1 if standby polls are enabled AND the queue was pollable at the last sweep
+              AND backlog(queue, now) == held AND held < queue.maximumConcurrency
+           else 0
 
 function allocate(now):
-    d[q] = demand(q, now) for each queue;  total = sum(d)
+    b[q] = backlog(q, now);  d[q] = demand(q, now);  total = sum(d)
     if total <= process.targetConcurrency:
         share[q] = d[q]                                            // every queue gets all it can use
     else:
-        quota[q] = process.targetConcurrency * d[q] / total         // real-valued
-        share[q] = floor(quota[q])
-        give one more slot to the (process.targetConcurrency - sum(share)) queues
+        remaining = process.targetConcurrency;  open = queues with d[q] > 0
+        repeat:                                                    // water-filling
+            quota[q] = remaining * b[q] / sum(b over open) for q in open
+            for each q in open with quota[q] >= d[q]:
+                share[q] = d[q];  remaining -= d[q];  remove q from open     // capped at its demand
+        until no queue was capped
+        share[q] = floor(quota[q]) for q in open
+        share[q] = 1 for q in open with share[q] == 0, while slots remain  // floors before rounding
+        give one more slot to the remaining queues in open
             with the largest fractional parts of quota             // largest-remainder rounding: shares sum to the target
         share[q] = max(1, share[q]) for each queue with d[q] > 0    // floor; can push the sum above the target
     queue.targetConcurrency = share[q] for each queue               // 0 where d[q] == 0
 ```
 
-Shares are proportional to demand. Largest-remainder rounding keeps them summing exactly to the process target, so rounding never leaves a slot that no queue may use; the floor of one keeps every queue with waiting work polling; and when total demand is at or below the process target every queue gets its whole demand. A share never exceeds demand, so a request never asks for more than the sampled depth. Floors can push the sum of the shares above the process target; the process target still bounds admission, and the grant rule in "Reserving poll capacity" decides who gets the difference. A queue holding long-running tasks keeps its share while they run, because held slots are demand, and releases it as they finish; nothing is preempted.
+Shares are proportional to backlog. A queue whose proportional share would exceed its demand is held at its demand and the excess goes to the other queues, so no slot is assigned that a queue cannot use. Floors are taken from the leftover before rounding, so they push the sum above the target only when there are more queues with work than slots. Largest-remainder rounding keeps the shares summing exactly to the process target, so rounding never leaves a slot that no queue may use; the floor of one keeps every queue with waiting work polling; and when total demand is at or below the process target every queue gets its whole demand. A share never exceeds demand, so a request never asks for more than the sampled depth. Floors can push the sum of the shares above the process target; the process target still bounds admission, and the grant rule in "Reserving poll capacity" decides who gets the difference. A queue holding long-running tasks keeps its share while they run, because held slots are demand, and releases it as they finish; nothing is preempted.
 
-Two rules make depth safe to rely on. Unknown counts as one: while the depth endpoint is unavailable, every queue asks for one slot beyond what it holds, so a busy queue grows one slot per tick as it fills and an idle queue costs one single-task poll per backoff interval. An empty response caps the queue at one waiting task until a delivery, whatever the depth says: server limits, other consumers, or a backend that counts in-flight messages can all leave a positive depth undeliverable, and without this rule such a queue would hold a full-size request for every poll timeout.
+Two rules make depth safe to rely on. Unknown counts as one: while the depth endpoint is unavailable, every queue asks for one slot beyond what it holds, so a busy queue grows one slot per tick as it fills and an idle queue costs one single-task poll per backoff interval. An empty response caps the queue at one waiting task until a delivery, plus whatever arrived after it: server limits, other consumers, or a backend that counts in-flight messages can all leave a positive depth undeliverable, and without this rule such a queue would hold a full-size request for every poll timeout. Tasks that arrive after the empty response are new evidence, so they count in full, and a sweep that sees them also cancels the queue's empty-response backoff. Without that exception an idle queue, whose heartbeats all come back empty, met a burst of 200 tasks with a share of one and waited out a five-second backoff before polling, despite a warm process target of 16.
 
 Depth is sampled once per interval on a dedicated thread. A sweep is one batch request that names every logical queue the process polls, a domain queue as `domain:taskType`, and returns every size at once. The sampler also evaluates `worker.paused()` and the poll filters there, outside the lock, and records a depth of zero for a worker that would not poll, so a paused or filtered worker keeps the share its running tasks need and nothing more, and user code never runs under the controller lock.
 
@@ -417,39 +438,56 @@ function controlTick(now):
             process.targetConcurrency = max(1, floor(0.75 * process.targetConcurrency))
             process.lastReductionAt = now
             if cpu.pressureSince != NONE: cpu.pressureSince = now     // the next reduction needs 3 more seconds of pressure
+            if heapPressure: limitHeapGrowth(process.targetConcurrency, now)
             applyTargets()                                           // allocate() cuts every share with it
             return
 
-        total = sum(demand(queue, now) for each queue)
+        total = sum(demand(queue, now) + standbyDemand(queue, now) for each queue)
 
         if total >= process.targetConcurrency:
             process.surplusSince = NONE
         else if process.surplusSince == NONE:
             process.surplusSince = now
         else if now - process.surplusSince >= decayInterval:        // 30 seconds of surplus
-            process.targetConcurrency = max(1, total, ceil(process.targetConcurrency / 2))
+            process.targetConcurrency = min(process.targetConcurrency,               // decay only lowers
+                                            max(minimumConcurrency, total, ceil(process.targetConcurrency / 2)))
             process.surplusSince = now
 
+        heapPeak = highest post-collection utilization of the last 30 seconds, and the latest
         growthAllowed =
             total > process.targetConcurrency
             AND NOT process.admissionPaused
             AND now - process.lastReductionAt >= reductionInterval
             AND (NOT cpu.supported  OR (cpuFresh AND cpu.smoothed < growthThreshold
                                         AND cpu.raw < cpuPressureThreshold))
-            AND (NOT heap.supported OR (heapFresh AND heap.postGcUtilization < growthThreshold))
+            AND (NOT heap.supported OR (heapFresh AND heapPeak < growthThreshold))
+        relaxHeapGrowthCeiling(now)                                  // after 120 s without heap pressure: +1 per tick
         if growthAllowed:
             increment = clamp(ceil(0.20 * process.targetConcurrency), 1, 16)
-            process.targetConcurrency = min(process.maximumConcurrency, total,
-                                            process.targetConcurrency + increment)
+            increment = min(increment, heapGrowthCeiling - process.targetConcurrency)
+            taskSlots = process.heldSlots - slots held by standby polls
+            if heapFresh AND taskSlots > 0 AND heapPeak > heap.baseline:
+                perSlot = (heapPeak - heap.baseline) / taskSlots
+                increment = min(increment, floor((growthThreshold - heapPeak) / perSlot))
+            if increment > 0:
+                process.targetConcurrency = min(process.maximumConcurrency, total,
+                                                process.targetConcurrency + increment)
 
         applyTargets()
+
+function limitHeapGrowth(ceiling, now):                 // on a heap reduction, and on a pause with 0.75 * max(target, held)
+    heapGrowthCeiling = max(1, min(heapGrowthCeiling, ceiling));  heapCeilingSince = now
 ```
 
 Reduction needs evidence newer than the previous reduction. For CPU the evidence is a run of high samples; resetting `pressureSince` at the reduction means the next reduction needs a run that starts after this one. For heap the evidence is the collection time of the latest high collection; re-reading a stale post-collection value is never new evidence, so one high collection yields at most one reduction. The first reduction has no interval to wait for because `lastReductionAt` starts at negative infinity. Growth waits for the same interval after a reduction, which is the growth cooldown. A reduction cuts only the process target; every share shrinks with it through `allocate()`.
 
 The process target rises while total demand exceeds it, never past total demand or its ceiling. A single deep queue therefore carries it, a queue holding long-running tasks keeps counting through its held slots, and idle queues contribute nothing. Growth is 20% per tick with a floor of one slot, so a process at one slot still ramps and aggregate growth stays bounded and resource-gated. Depth is shared by every process polling the queue, so total demand overstates what this process alone will receive. That only means the target can run ahead of delivered work, which costs idle threads and nothing else, and decay returns it.
 
-When total demand has been below the process target for thirty seconds, the target shrinks to the larger of total demand and half of itself, and again every thirty seconds while the surplus lasts. It never drops below demand, and demand is never below held slots, so decay never creates an overshoot. A process that goes idle reaches one within a few minutes, and the next burst ramps from there under the growth gate instead of jumping to a stale ceiling. Decay is not a reduction: it does not set `lastReductionAt` and starts no growth cooldown.
+Heap needs two more limits, because running out of it fails tasks rather than slowing them. End-to-end testing with tasks that hold multi-megabyte payloads in a 123 MB heap showed both failure modes. First, the growth gate reads the last post-collection value, which does not yet include what newly granted slots will allocate, so a 20% step taken at 70% can land above 100%. Growth is therefore also limited to the slots whose observed cost fits under the growth threshold: the heap held by running tasks is the post-collection utilization minus the baseline, the lowest post-collection utilization seen, and dividing it by the slots held for tasks gives the cost of one more. Growth decisions use the highest post-collection reading of the last 30 seconds, not the latest: tasks that hold payloads for seconds make each reading depend on which of them a collection happened to find live or promote, and on a host with a 128 MB heap a low reading taken just after a high one let the target grow two slots into an `OutOfMemoryError`. Pause and resume still use the latest reading, since they must react to it. Second, after a pause and a reduction the controller regrew past the level that had caused the pressure and ran tasks out of memory, twelve times in one run. A heap reduction therefore leaves a growth ceiling at the reduced target, and a pause leaves one at three quarters of what was running; the ceiling holds for two minutes, then rises one slot per control tick, so the controller probes back toward the pressure point slowly enough for a collection to report before it gets there. CPU has no such ceiling because CPU saturation slows tasks without failing them.
+
+The control tick runs from a fixed-delay timer that checks a jittered due time, not from a task that reschedules itself, and every timer catches and drops anything thrown, including failures to log it. When the heap ran out end to end, a self-rescheduling tick stopped for good: the target never changed again, through three more heap pauses.
+
+When total demand has been below the process target for thirty seconds, the target shrinks to the largest of the configured minimum, total demand and half of itself, and again every thirty seconds while the surplus lasts. It never drops below demand, and demand is never below held slots, so decay never creates an overshoot. A process that goes idle reaches the minimum, one by default, within a few minutes, and the next burst ramps from there under the growth gate instead of jumping to a stale ceiling. A higher minimum trades nothing while idle, since idle queues have no shares and their pools release their threads, for a burst that starts with that many slots ready. Decay is not a reduction: it does not set `lastReductionAt` and starts no growth cooldown.
 
 If the process is at its ceiling, capacity released by one queue is used by others through ordinary slot grants without raising the ceiling. The controller never terminates running tasks to rebalance capacity.
 
@@ -459,7 +497,7 @@ If the process is at its ceiling, capacity released by one queue is used by othe
 
 Shares are targets, and the grant rule makes holdings follow them. A queue's deficit is `targetConcurrency - heldSlots`, how far it is below its share. A freed process slot, or a slot opened by a higher process target, goes to the waiting queue with the largest positive deficit; equal deficits are served in arrival order, and a queue without a positive deficit is never granted a process slot. A queue at or above its share waits on its own worker target, not on the process, so it cannot take process slots from queues below theirs. When floors make the shares sum to more than the process target, deep queues reach their shares first and the remainder rotates among the queues with floor shares, each of which gets a slot in turn as tasks finish.
 
-Idle queues have no share and poll only as heartbeats from spare capacity, so they cannot starve busy ones. The only queues that poll without receiving are those whose depth cannot be delivered, and the empty-response rule holds each of them to one slot. An empty long poll still holds that slot for the whole timeout, so deployments with many such queues should keep poll timeouts short.
+Idle queues have no share and poll only with standby polls on slots no share claims, or as heartbeats, one short single-task request per interval on an open slot, so they cannot starve busy ones. The only queues that poll without receiving are those whose depth cannot be delivered, and the empty-response rule holds each of them to one slot. An empty long poll still holds that slot for the whole timeout, so deployments with many such queues should keep poll timeouts short.
 
 ```text
 function deficit(queue):
@@ -468,24 +506,32 @@ function deficit(queue):
 function reserveBatch(queue, now):
     under controller lock:
         if process.admissionPaused:
-            return WAIT_FOR_PROCESS_SLOT                     // the resume wakes every waiter
+            return WAIT_FOR_PROCESS_SLOT                     // no poll without an open slot; the resume wakes every waiter
 
         processAvailable = max(0, process.targetConcurrency - process.heldSlots)
         workerAvailable  = max(0, deficit(queue))
 
         if workerAvailable == 0:                             // no share, or the share is already held
-            if queue.outstandingPolls > 0 OR now < queue.nextHeartbeatAt:
-                return WAIT_FOR_WORKER_SLOT                  // the worker wait ends at nextHeartbeatAt
-            if processAvailable == 0
-               OR some queue with a positive deficit is waiting for a process slot:
-                queue.nextHeartbeatAt = now + heartbeatInterval   // no spare capacity; try again next interval
-                return WAIT_FOR_WORKER_SLOT
-            count = 1                                        // heartbeat: one task from spare capacity
+            if standby polls are enabled AND queue.outstandingPolls == 0 AND now >= queue.nextStandbyAt
+               AND queue.heldSlots < queue.maximumConcurrency
+               AND unclaimedSlots() > dueHeartbeats:
+                count = 1                                    // standby: one task, server waits the standby timeout
+                queue.standbyPolls += 1
+                queue.nextStandbyAt = now + standbyPollTimeout
+            else if queue.outstandingPolls > 0 OR now < queue.nextHeartbeatAt:
+                return WAIT_FOR_WORKER_SLOT                  // the wait ends at nextStandbyAt or nextHeartbeatAt
+            else if processAvailable == 0 OR queue.heldSlots >= queue.maximumConcurrency
+               OR (processAvailable == 1 AND a more overdue heartbeat is waiting):
+                return WAIT_FOR_HEARTBEAT_SLOT               // stays due; woken first when a slot opens
+            else:
+                count = 1                                    // heartbeat: one task on the open slot, no server wait
         else:
-            if processAvailable == 0
-               OR some queue waiting for a process slot has deficit(w) > deficit(queue):
+            dueHeartbeats = queues waiting with a heartbeat due
+            if processAvailable <= dueHeartbeats:
+                return WAIT_FOR_PROCESS_SLOT                 // due heartbeats take open slots first
+            if some queue waiting for a process slot has deficit(w) > deficit(queue):
                 return WAIT_FOR_PROCESS_SLOT                 // the slot belongs to a queue further below its share
-            count = min(workerAvailable, processAvailable, maximumBatch)
+            count = min(workerAvailable, processAvailable - dueHeartbeats, maximumBatch)
 
         ensure execution pool can accommodate queue.heldSlots + count
         queue.heldSlots += count
@@ -493,15 +539,28 @@ function reserveBatch(queue, now):
         queue.nextHeartbeatAt = now + heartbeatInterval      // any poll is a heartbeat for the server
         process.heldSlots += count
         return Reservation(count)
+
+function unclaimedSlots():                                   // neither held nor promised to a share
+    return max(0, process.targetConcurrency - sum(max(q.targetConcurrency, q.heldSlots) for each queue q))
 ```
 
-A poller that cannot reserve waits on the resource it lacks. Each logical queue keeps a FIFO of pollers waiting for its worker target, since pollers of one queue are interchangeable. The process keeps the set of queues waiting for a process slot and grants by deficit as described, so every wakeup goes to a poller that can use the freed slot and hundreds of waiting queues never stampede. A finished task frees a worker slot and a process slot, so it wakes one worker waiter of its queue and the process waiter with the largest positive deficit. `applyTargets()` wakes as many waiters per resource as the new targets admit, in deficit order for the process, and every waiter when the pause lifts; a sweep that raises an idle queue's share from zero wakes it this way. It also wakes any process waiter whose deficit is no longer positive, so that poller re-enters `reserveBatch()` and parks on its worker target instead; the process waiting set therefore holds only queues that a freed slot could serve, which is what the heartbeat rule checks. The deficit check in `reserveBatch()` means a poller that arrives while a needier queue waits joins the waiters instead of taking the slot, so one queue cannot monopolize freed capacity by re-polling immediately. A woken poller re-checks worker pause and shutdown before reserving.
+A poller that cannot reserve waits on the resource it lacks. Each logical queue keeps a FIFO of pollers waiting for its worker target, since pollers of one queue are interchangeable. The process keeps the set of queues waiting for a process slot and grants by deficit as described, so every wakeup goes to a poller that can use the freed slot and hundreds of waiting queues never stampede. A finished task frees a worker slot and a process slot, so it wakes one worker waiter of its queue and the process waiter with the largest positive deficit. `applyTargets()` wakes as many waiters per resource as the new targets admit, in deficit order for the process, and every waiter when the pause lifts; a sweep that raises an idle queue's share from zero wakes it this way. It also wakes any process waiter whose deficit is no longer positive, so that poller re-enters `reserveBatch()` and parks on its worker target instead; the process waiting set therefore holds only queues that a freed slot could serve. The deficit check in `reserveBatch()` means a poller that arrives while a needier queue waits joins the waiters instead of taking the slot, so one queue cannot monopolize freed capacity by re-polling immediately. A woken poller re-checks worker pause and shutdown before reserving.
 
 An outstanding empty long poll holds only the slots it was granted, and all requests have a finite timeout. The design provides fair opportunities rather than preemption: an outstanding request cannot be revoked safely because a different queue became busy.
 
 ### Heartbeat polls
 
-A queue with no share still polls once per heartbeat interval, requesting one task from spare process capacity. The reservation needs a free process slot and no queue waiting for one, so a heartbeat never delays a queue with a deficit, and under sustained saturation heartbeats stop. The heartbeat exists for the server: domain fallback routes a task to the first domain polled within the active-poller window, every poll refreshes that record, and a worker that stopped polling an idle domain would stop being offered its tasks within ten seconds. The heartbeat also checks a zero depth against the queue itself, which protects against a backend whose size query undercounts, and keeps the poll-data views operators rely on. A heartbeat that returns a task resets the empty streak, the task holds its slots like any other, and the next sweep counts it in the queue's demand. A heartbeat that returns nothing takes the empty-response path, so the effective heartbeat period is the larger of the heartbeat interval and the queue's empty backoff cap; a worker whose configured polling interval exceeds the server's window is inactive by the server's standard in fixed mode as well. A paused worker sends no heartbeat, because the poll loop honors the pause before reserving, so the server stops routing to a domain whose worker is paused, exactly as today. The poller of a share-less queue waits in its worker FIFO with a timed wait that ends at `nextHeartbeatAt`. Every grant pushes that time one interval forward, because any poll refreshes the server's record, and so does a heartbeat refused for lack of spare capacity, so a saturated process re-checks once per interval rather than spinning.
+A queue with no share and no standby poll still polls once per heartbeat interval, and like every poll the heartbeat needs an open slot: it reserves one process slot and requests one task for it. It asks the server not to wait, so the slot is held only for the request. A heartbeat that cannot get a slot stays due and waits; when a slot opens, due heartbeats are woken first, oldest first, ahead of queues below their share. That priority costs each busy queue at most one short request per idle queue per interval, and it is what keeps idle domains alive under load: end-to-end testing showed that when freed slots always went to queues below their share, an idle domain never polled, went stale, and its next task fell back to the default queue, which no worker polled. Staying due rather than retrying an interval later matters for the idle case: an idle process decays to one slot, and when refused heartbeats were pushed a full interval the same queues kept losing to each other, two of four going 26 seconds unpolled. With every slot held for longer than the server's active-poller window, nothing polls and domain routing may lapse until a slot opens; fixed mode behaves the same way when a task type's threads are all busy, and the minimum process concurrency keeps slots available in an idle process. Nothing polls while admission is paused. The heartbeat exists for the server: domain fallback routes a task to the first domain polled within the active-poller window, every poll refreshes that record, and a worker that stopped polling an idle domain would stop being offered its tasks within ten seconds. The heartbeat also checks a zero depth against the queue itself, which protects against a backend whose size query undercounts, and keeps the poll-data views operators rely on. A heartbeat that returns a task resets the empty streak, the task holds the slot like any other, and the next sweep counts it in the queue's demand; one that returns nothing takes the empty-response path. A paused worker sends no heartbeat, because the poll loop honors the pause before reserving, so the server stops routing to a domain whose worker is paused, exactly as today. The poller of a share-less queue waits in its worker FIFO with a timed wait that ends at `nextStandbyAt` or `nextHeartbeatAt`, and every poll pushes the heartbeat one interval forward, because any poll refreshes the server's record.
+
+### Standby polls
+
+Shares follow depth samples, so a queue that has caught up, holding exactly its share, learns of its next task only at the next sweep, and an idle queue only at its next heartbeat. End-to-end, that was the largest latency gap against fixed threads, which keep polling every queue: tasks waited about a second to be picked up after idle, against 30 to 100 milliseconds with fixed threads, and steady-state medians were 1.3 to 2.6 times higher.
+
+A queue whose share is fully held therefore keeps one standby poll open: a single-task long poll whose server wait is the standby timeout. The server answers it the moment a task arrives, so pickup costs one round trip. Like every poll it holds an open slot for the task it may return, but only a slot no queue's share claims: the process target minus, for each queue, the larger of its share and its held slots. A standby poll therefore never takes a slot that a queue below its share could use; when a share grows, the slots it needs are either unclaimed or held by standby polls that return within the standby timeout, which bounds the delay. Due heartbeats still go first. Under contention every slot is claimed, standby polls stop, and idle queues fall back to heartbeats.
+
+The control tick counts one standby slot for each pollable queue that has nothing waiting beyond what it holds, so with resource headroom the process target keeps room for every queue's standby poll; an idle process settles at one slot per queue, or at the minimum process concurrency if that is higher. A standby slot holds no thread: execution threads are created when a task is submitted and retire when idle. Standby slots are not part of a queue's backlog until the poll delivers a task, which then holds the slot and counts like any other; allocation and the replacement check ignore standby slots, so standby polls never change how shares are divided.
+
+A standby poll that runs out its wait on an empty queue is expected, not a sign of an undeliverable queue: it does not count toward the empty streak or the backoff, and the next one follows when the wait has passed, so an idle queue sends one request per standby timeout, never faster even if the server answers early. A standby poll that delivers a task is followed by the next one at once. A failed standby poll is a poll error and backs off like any other. Each standby poll also refreshes the server's active-poller window, so a queue with standby polls needs no heartbeat.
 
 ## Task polling algorithm
 
@@ -528,7 +587,8 @@ function pollLoop(queue):
         try:
             tasks = taskClient.batchPollTasksInDomain(          // existing client call
                 taskType, domain, worker.getIdentity(),
-                reservation.count, configuredPollTimeout
+                reservation.count,
+                0 for a heartbeat, standbyPollTimeout for a standby poll, else configuredPollTimeout
             )
             set clientReceiveTime on each task                  // unchanged
             record requested count, returned count, and poll duration
@@ -537,14 +597,18 @@ function pollLoop(queue):
                 unused = reservation.count - size(tasks)
                 queue.heldSlots -= unused
                 process.heldSlots -= unused
+                if reservation is a standby poll: queue.standbyPolls -= 1
 
-                if tasks is empty:
+                if tasks is empty AND reservation is a standby poll:
+                    pass                                        // its wait ran out; nextStandbyAt paces the next one
+                else if tasks is empty:
                     queue.consecutiveEmptyPolls += 1
                     queue.nextPollAllowedAt = max(now, pollStartedAt + emptyDelay(queue))
                     applyTargets()                              // the share now counts one waiting task; see "Demand and allocation"
                 else:
                     queue.consecutiveEmptyPolls = 0
                     queue.nextPollAllowedAt = now
+                    queue.nextStandbyAt = now
 
             for each returned task:
                 dispatch(task)                                  // the task owns one worker slot and one process slot
@@ -589,7 +653,7 @@ Empty response or poll error:
     nextPollAllowedAt = max(now, pollStartedAt + delay)       // the long poll's own wait counts toward the delay
 ```
 
-Apply ±20% jitter, bounded arithmetic, and a positive delay. Measuring from poll start means a long-poll timeout that already covered the delay adds no second wait, while short timeouts still back off exponentially. Protecting busy queues from idle ones is not this delay's job; allocation does that, since a queue without depth has no share and polls only as a heartbeat from spare capacity. Honor applicable server retry instructions. A nonempty response resets the streak. A poll error is an empty response for backoff and demand: the existing runner also treats a failed poll as an empty result, and the capped backoff keeps a process with many queues from hammering an unavailable server. Existing terminal authentication behavior remains authoritative.
+Apply ±20% jitter, bounded arithmetic, and a positive delay. Measuring from poll start means a long-poll timeout that already covered the delay adds no second wait, while short timeouts still back off exponentially. Protecting busy queues from idle ones is not this delay's job; allocation does that, since a queue without depth has no share and polls only as a heartbeat. Honor applicable server retry instructions. A nonempty response resets the streak. A poll error is an empty response for backoff and demand: the existing runner also treats a failed poll as an empty result, and the capped backoff keeps a process with many queues from hammering an unavailable server. Existing terminal authentication behavior remains authoritative.
 
 After a nonempty response, poll again immediately if capacity is available. Task completion wakes capacity waiters but does not bypass an active empty-poll or server-error delay.
 
@@ -750,10 +814,12 @@ Use an injected monotonic clock, resource sampler, and fake Conductor client for
 | Both metrics unsupported | Startup fails with a configuration error; with demand-only enabled, growth follows demand within ceilings |
 | Sampler stops after healthy readings | Stale metrics freeze growth; targets hold; the pause latch is preserved |
 | JVM pause or delayed sampling | No catch-up samples; smoothing and pressure timing reset after a gap longer than the freshness window |
-| Hundreds of queues registered at startup | One batch depth request per second; queues without depth poll only as heartbeats from spare capacity; admission bounded by the process target |
-| Hundreds of idle queues with five-second long polls and few process slots | Heartbeats use only spare capacity and stop while any queue waits for a process slot; the busy queue sees the whole process target |
-| Idle queue with spare process capacity | One single-task heartbeat every 5 seconds; poll data stays inside the server's 10-second active-poller window, so domain fallback keeps routing to it |
-| Idle queue while the process is saturated | No heartbeat; the server may route that domain's tasks to a fallback domain until capacity frees |
+| Hundreds of queues registered at startup | One batch depth request per second; queues without depth poll only as heartbeats; admission bounded by the process target |
+| Hundreds of idle queues and few process slots | Each idle queue takes an open slot for one non-waiting single-task request per interval; the busy queue keeps the rest of the process target |
+| Idle queues in an idle process | The target keeps one slot per queue, and each queue holds a standby poll on it, so a task is picked up as it arrives and poll data stays fresh. With standby polls disabled or no slot unclaimed, heartbeats take turns on the open slots, oldest due first, so every queue polls every 5 seconds, poll data stays inside the server's 10-second active-poller window and domain fallback keeps routing to each domain |
+| A queue's share grows while standby polls hold the unclaimed slots | The new share uses unclaimed and freed slots at once; slots held by standby polls return within the standby timeout, or sooner when the poll delivers a task |
+| Idle domain queue while other queues wait for process slots | Its due heartbeat takes the next open slot ahead of them, once per interval, keeping domain routing on this worker |
+| Every slot held for longer than the active-poller window | Nothing polls; domain routing may lapse until a slot opens, as in fixed mode when a task type's threads are all busy |
 | Backend reports zero depth for a non-empty queue | The heartbeat returns a task, resets the empty streak, and the next sweep gives the queue a share |
 | Positive depth the server does not deliver (task limits, other consumers, in-flight counting) | After the first empty response the queue asks for one task per backoff interval; its share counts one waiting task until a delivery |
 | Queue with four pollers and a share of one | One outstanding poll of one slot; the other pollers wait on the worker target |

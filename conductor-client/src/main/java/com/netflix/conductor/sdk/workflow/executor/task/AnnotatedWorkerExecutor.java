@@ -19,6 +19,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyController;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.metrics.MetricsCollector;
@@ -48,7 +49,15 @@ public class AnnotatedWorkerExecutor {
 
     protected Map<String, String> workerDomains = new HashMap<>();
 
+    protected Map<String, Integer> workerToAdaptiveMaxConcurrency = new HashMap<>();
+
     private MetricsCollector metricsCollector;
+
+    private AdaptiveConcurrencyController adaptiveConcurrencyController;
+
+    private boolean useVirtualThreads;
+
+    private boolean updateV2;
 
     private final Set<String> scannedPackages = new HashSet<>();
 
@@ -208,6 +217,11 @@ public class AnnotatedWorkerExecutor {
             workerDomains.put(name, domain);
         }
 
+        int adaptiveMaxConcurrency = workerConfiguration.getAdaptiveMaxConcurrency(name);
+        if (adaptiveMaxConcurrency > 0) {
+            workerToAdaptiveMaxConcurrency.put(name, adaptiveMaxConcurrency);
+        }
+
         AnnotatedWorker executor = new AnnotatedWorker(name, method, bean);
         executor.setPollingInterval(workerToPollingInterval.get(name));
 
@@ -243,9 +257,15 @@ public class AnnotatedWorkerExecutor {
         var builder = new TaskRunnerConfigurer.Builder(taskClient, workers)
                 .withTaskThreadCount(workerToThreadCount)
                 .withTaskPollTimeout(workerToPollTimeout)
-                .withTaskToDomain(workerDomains);
+                .withTaskToDomain(workerDomains)
+                .withUseVirtualThreads(useVirtualThreads)
+                .withUpdateV2(updateV2);
         if (metricsCollector != null) {
             builder.withMetricsCollector(metricsCollector);
+        }
+        if (adaptiveConcurrencyController != null) {
+            builder.withAdaptiveConcurrency(adaptiveConcurrencyController)
+                    .withTaskAdaptiveMaxConcurrency(workerToAdaptiveMaxConcurrency);
         }
 
         var oldTaskRunner = Optional.ofNullable(taskRunner);
@@ -275,5 +295,33 @@ public class AnnotatedWorkerExecutor {
 
     public void setMetricsCollector(MetricsCollector metricsCollector) {
         this.metricsCollector = metricsCollector;
+    }
+
+    public AdaptiveConcurrencyController getAdaptiveConcurrencyController() {
+        return adaptiveConcurrencyController;
+    }
+
+    /**
+     * @param adaptiveConcurrencyController enables adaptive concurrency for the annotated workers; thread counts no
+     *                                      longer apply. Takes effect at the next {@link #startPolling()}.
+     */
+    public void setAdaptiveConcurrencyController(AdaptiveConcurrencyController adaptiveConcurrencyController) {
+        this.adaptiveConcurrencyController = adaptiveConcurrencyController;
+    }
+
+    public boolean isUseVirtualThreads() {
+        return useVirtualThreads;
+    }
+
+    public void setUseVirtualThreads(boolean useVirtualThreads) {
+        this.useVirtualThreads = useVirtualThreads;
+    }
+
+    public boolean isUpdateV2() {
+        return updateV2;
+    }
+
+    public void setUpdateV2(boolean updateV2) {
+        this.updateV2 = updateV2;
     }
 }
