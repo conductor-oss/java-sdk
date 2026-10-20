@@ -18,8 +18,9 @@ import io.orkes.conductor.client.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,15 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 //todo add missing fields should pass this test
 public class TestSerDerWorkflowSchedule {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                            .withVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE))
+            .build();
 
     @Test
     public void testSerializationDeserialization() throws Exception {
         // 1. Unmarshal SERVER_JSON to SDK POJO
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("WorkflowSchedule");
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        objectMapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
         WorkflowSchedule workflowSchedule = objectMapper.readValue(SERVER_JSON, WorkflowSchedule.class);
 
         // 2. Assert that the fields are all correctly populated

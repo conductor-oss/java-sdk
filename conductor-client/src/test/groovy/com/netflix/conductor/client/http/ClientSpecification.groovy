@@ -12,7 +12,7 @@
  */
 package com.netflix.conductor.client.http
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.netflix.conductor.common.config.ObjectMapperProvider
 import spock.lang.Specification
 

@@ -16,8 +16,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class HealthCheckClient {
 
@@ -28,8 +29,9 @@ public class HealthCheckClient {
     public HealthCheckClient(String healthCheckURL) {
         this.healthCheckURL = healthCheckURL;
         this.objectMapper =
-                new ObjectMapper()
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                JsonMapper.builder()
+                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                        .build();
     }
 
     public boolean isServerRunning() {

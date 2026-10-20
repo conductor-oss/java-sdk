@@ -33,7 +33,7 @@ import com.netflix.conductor.common.run.Workflow;
 import io.orkes.conductor.client.ApiClient;
 import io.orkes.conductor.client.OrkesClients;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 
 /**

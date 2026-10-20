@@ -18,7 +18,8 @@ import io.orkes.conductor.client.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,15 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 //todo - adding Missing fields in classes of which this class is composed and it will pass this test
 class TestSerDerSaveScheduleRequest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                            .withVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE))
+            .build();
 
     @Test
     void testSerializeDeserialize() throws Exception {
         // 1. Unmarshal SERVER_JSON to SDK POJO
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("SaveScheduleRequest");
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        objectMapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
         SaveScheduleRequest saveScheduleRequest = objectMapper.readValue(SERVER_JSON, SaveScheduleRequest.class);
 
         // 2. Assert that the fields are all correctly populated

@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
 import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -77,7 +77,7 @@ class TestSerDerWorkflowSummary {
         JsonNode reserializedJson = objectMapper.readTree(serializedJson);
 
         // Verify each field from the original exists in the reserialized version with same value
-        originalJson.fieldNames().forEachRemaining(fieldName -> {
+        originalJson.propertyNames().forEach(fieldName -> {
             assertTrue(reserializedJson.has(fieldName), "Field " + fieldName + " should exist in reserialized JSON");
             assertEquals(
                     originalJson.get(fieldName),

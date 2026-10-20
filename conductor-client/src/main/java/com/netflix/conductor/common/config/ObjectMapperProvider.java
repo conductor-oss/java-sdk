@@ -13,33 +13,49 @@
 package com.netflix.conductor.common.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 public class ObjectMapperProvider {
 
     private static final ObjectMapper objectMapper = _getObjectMapper();
 
+    /**
+     * The signature and configuration of this method are kept aligned with
+     * com.netflix.conductor.common.config.ObjectMapperProvider in org.conductoross:conductor-common
+     * (4.0.0-alpha.1 and later). When both jars are on one classpath only one copy of this class
+     * loads, so the two must stay interchangeable.
+     */
     public ObjectMapper getObjectMapper() {
         return objectMapper;
     }
 
+    /**
+     * Jackson 3 mappers are immutable, so every setting is applied on the builder. The jdk8 and
+     * java.time datatypes and the property-access optimisations that used to need separate modules
+     * (jdk8, jsr310, afterburner) are part of the core now, which is why only the Kotlin module is
+     * registered here.
+     *
+     * <p>WRITE_DATES_AS_TIMESTAMPS is enabled to keep the numeric date encoding that Jackson 2
+     * produced with JavaTimeModule. Jackson 3 defaults to ISO-8601 strings, which would change the
+     * payload format sent to and stored by the server.
+     */
     private static ObjectMapper _getObjectMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
-        objectMapper.setDefaultPropertyInclusion(
-                JsonInclude.Value.construct(
-                        JsonInclude.Include.NON_NULL, JsonInclude.Include.ALWAYS));
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.registerModule(new AfterburnerModule());
-        objectMapper.registerModule(new KotlinModule.Builder().build());
-        return objectMapper;
+        return JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .changeDefaultPropertyInclusion(
+                        value ->
+                                JsonInclude.Value.construct(
+                                        JsonInclude.Include.NON_NULL, JsonInclude.Include.ALWAYS))
+                .addModule(new KotlinModule.Builder().build())
+                .build();
     }
 }

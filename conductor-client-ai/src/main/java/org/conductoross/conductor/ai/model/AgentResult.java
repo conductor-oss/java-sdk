@@ -19,7 +19,7 @@ import java.util.Map;
 import org.conductoross.conductor.ai.enums.AgentStatus;
 import org.conductoross.conductor.ai.internal.JsonMapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * The result of a completed agent execution.

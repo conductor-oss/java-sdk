@@ -12,7 +12,6 @@
  */
 package org.conductoross.conductor.ai.internal;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,9 +34,9 @@ import org.conductoross.conductor.ai.plans.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 /**
  * Serializes an {@link Agent} tree to the camelCase JSON dict for POST /agent/start.
@@ -727,18 +726,18 @@ public class AgentConfigSerializer {
     }
 
     /**
-     * Jackson {@link JsonSerializer} that delegates to {@link AgentConfigSerializer#serialize(Agent)}.
+     * Jackson {@link ValueSerializer} that delegates to {@link AgentConfigSerializer#serialize(Agent)}.
      * Applied via {@code @JsonSerialize(using = AgentConfigSerializer.AsJson.class)} on
      * {@code Agent}-typed fields so Jackson writes the correct wire format (camelCase
      * map matching the server's AgentConfig DTO) without requiring the caller to
      * pre-serialize to a Map.
      */
-    public static final class AsJson extends JsonSerializer<Agent> {
+    public static final class AsJson extends ValueSerializer<Agent> {
         private static final AgentConfigSerializer INSTANCE = new AgentConfigSerializer();
 
         @Override
-        public void serialize(Agent agent, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            provider.defaultSerializeValue(INSTANCE.serialize(agent), gen);
+        public void serialize(Agent agent, JsonGenerator gen, SerializationContext context) {
+            context.writeValue(gen, INSTANCE.serialize(agent));
         }
     }
 }

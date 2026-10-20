@@ -29,7 +29,7 @@ import io.orkes.conductor.client.model.integration.IntegrationApi;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 class IntegrationResource {

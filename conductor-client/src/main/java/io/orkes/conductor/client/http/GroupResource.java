@@ -24,7 +24,7 @@ import io.orkes.conductor.client.model.GrantedAccessResponse;
 import io.orkes.conductor.client.model.Group;
 import io.orkes.conductor.client.model.UpsertGroupRequest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 class GroupResource {
 

@@ -33,7 +33,7 @@ import io.orkes.conductor.client.model.agent.CompileResponse;
 import io.orkes.conductor.client.model.agent.RespondBody;
 import io.orkes.conductor.client.model.agent.StartResponse;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Orkes implementation of {@link AgentClient} for the agent control-plane

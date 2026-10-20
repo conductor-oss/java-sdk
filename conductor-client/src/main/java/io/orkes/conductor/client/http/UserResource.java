@@ -23,7 +23,7 @@ import io.orkes.conductor.client.model.ConductorUser;
 import io.orkes.conductor.client.model.GrantedAccessResponse;
 import io.orkes.conductor.client.model.UpsertUserRequest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 class UserResource {

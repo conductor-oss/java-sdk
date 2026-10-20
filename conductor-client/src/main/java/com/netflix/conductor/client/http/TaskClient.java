@@ -54,9 +54,9 @@ import com.netflix.conductor.common.run.TaskSummary;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Client for conductor task management including polling for task, updating

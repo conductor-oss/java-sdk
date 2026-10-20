@@ -24,7 +24,7 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 public class MetadataResource {
 

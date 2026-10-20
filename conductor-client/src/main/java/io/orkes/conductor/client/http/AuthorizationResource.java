@@ -24,7 +24,7 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 import io.orkes.conductor.client.model.AuthorizationRequest;
 import io.orkes.conductor.client.model.Subject;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 class AuthorizationResource {
     

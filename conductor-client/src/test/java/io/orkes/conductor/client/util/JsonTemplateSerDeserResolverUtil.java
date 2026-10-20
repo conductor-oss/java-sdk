@@ -18,10 +18,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Utility class for resolving JSON templates from a predefined resource file.
@@ -112,7 +112,7 @@ public class JsonTemplateSerDeserResolverUtil {
         }
 
         // Create a deep copy of the content node
-        ObjectNode resultNode = contentNode.deepCopy();
+        ObjectNode resultNode = (ObjectNode) contentNode.deepCopy();
 
         // Process inheritance if present
         JsonNode inheritsNode = template.get("inherits");
@@ -139,7 +139,7 @@ public class JsonTemplateSerDeserResolverUtil {
      */
     private static void mergeNodes(ObjectNode target, JsonNode source) {
         if (source.isObject()) {
-            Iterator<String> fieldNames = source.fieldNames();
+            Iterator<String> fieldNames = source.propertyNames().iterator();
             while (fieldNames.hasNext()) {
                 String fieldName = fieldNames.next();
                 JsonNode sourceValue = source.get(fieldName);
@@ -173,7 +173,7 @@ public class JsonTemplateSerDeserResolverUtil {
      * Resolves references in an object node.
      */
     private static void resolveObjectReferences(ObjectNode objectNode, Set<String> processedDependencies) throws IOException {
-        Iterator<String> fieldNames = objectNode.fieldNames();
+        Iterator<String> fieldNames = objectNode.propertyNames().iterator();
         Set<String> fieldsToProcess = new HashSet<>();
 
         // Collect field names to avoid ConcurrentModificationException
@@ -203,7 +203,7 @@ public class JsonTemplateSerDeserResolverUtil {
                 JsonNode resolvedReference = resolveTemplateWithInheritance(referenceName, new HashSet<>());
 
                 // Only apply if the resolved reference is a simple value (string, number, etc.)
-                if (!resolvedReference.isContainerNode()) {
+                if (!resolvedReference.isContainer()) {
                     String resolvedKey = resolvedReference.asText();
 
                     // Remove the original reference key and add the resolved key with the same value

@@ -23,7 +23,7 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 import io.orkes.conductor.client.model.Tag;
 import io.orkes.conductor.client.model.environment.EnvironmentVariable;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 class EnvironmentResource {
 
@@ -73,7 +73,7 @@ class EnvironmentResource {
                 .path("/environment/{key}")
                 .addPathParam("key", key)
                 .build();
-        ConductorClientResponse<String> resp = client.execute(request, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+        ConductorClientResponse<String> resp = client.execute(request, new tools.jackson.core.type.TypeReference<>() {});
         return resp.getData();
     }
 

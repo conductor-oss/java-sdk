@@ -197,8 +197,8 @@ class PlanExecuteTest extends BaseTest {
 
                     List<String> paths;
                     try {
-                        com.fasterxml.jackson.databind.ObjectMapper mapper =
-                                new com.fasterxml.jackson.databind.ObjectMapper();
+                        tools.jackson.databind.ObjectMapper mapper =
+                                new tools.jackson.databind.ObjectMapper();
                         paths = mapper.readValue(
                                 inputPathsJson,
                                 mapper.getTypeFactory().constructCollectionType(List.class, String.class));
@@ -826,7 +826,7 @@ class PlanExecuteTest extends BaseTest {
             java.net.http.HttpResponse<String> resp =
                     http.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() >= 400) return null;
-            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(resp.body(), Map.class);
+            return new tools.jackson.databind.ObjectMapper().readValue(resp.body(), Map.class);
         } catch (Exception e) {
             return null;
         }

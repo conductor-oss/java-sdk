@@ -25,7 +25,7 @@ import com.netflix.conductor.common.run.Workflow;
 
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.awaitility.Awaitility.await;
 

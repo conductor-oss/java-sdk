@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

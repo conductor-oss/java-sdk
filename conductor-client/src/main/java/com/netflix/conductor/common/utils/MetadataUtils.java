@@ -19,8 +19,8 @@ import java.util.Objects;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import tools.jackson.databind.ObjectMapper;
 
 public final class MetadataUtils {
 

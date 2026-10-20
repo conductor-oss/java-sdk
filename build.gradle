@@ -59,12 +59,13 @@ subprojects {
         implementation "com.google.guava:guava:${versions.guava}"
         // #################################
 
-        implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-        implementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
-        implementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
-        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
-        implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${versions.jackson}"
-        implementation "com.fasterxml.jackson.module:jackson-module-afterburner:${versions.jackson}"
+        // Jackson 3: databind/core/modules live under tools.jackson; annotations remain on the
+        // com.fasterxml.jackson 2.x line. java.time (jsr310) and jdk8 datatypes plus the
+        // afterburner optimisations are part of core in Jackson 3, so those modules are gone.
+        implementation "tools.jackson.core:jackson-databind:${versions.jackson}"
+        implementation "tools.jackson.core:jackson-core:${versions.jackson}"
+        implementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jacksonAnnotations}"
+        implementation "tools.jackson.module:jackson-module-kotlin:${versions.jackson}"
         implementation "org.openjdk.nashorn:nashorn-core:15.6"
 
         implementation "org.slf4j:slf4j-api:${versions.slf4j}"

@@ -19,8 +19,8 @@ import com.netflix.conductor.util.JsonTemplateSerDeserResolverUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,16 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 //todo add fields in the sdk pojo TaskDef - it will pass this test
 public class TestSerDerTask {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .changeDefaultVisibility(
+                    vc ->
+                            vc
+                            .withVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
+                            .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY))
+            .build();
 
     @Test
     public void testSerializationDeserialization() throws Exception {
         // 1. Unmarshal SERVER_JSON to SDK POJO
         String SERVER_JSON = JsonTemplateSerDeserResolverUtil.getJsonString("Task");
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        objectMapper.registerModule(new Jdk8Module());
         Task task = objectMapper.readValue(SERVER_JSON, Task.class);
 
         // 2. Assert that fields are correctly populated
