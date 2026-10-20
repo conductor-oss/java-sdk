@@ -284,27 +284,33 @@ class TaskRunner {
         Future<Task> taskFuture;
         try {
             taskFuture = this.executorService.submit(() -> this.processTask(task));
-        } catch (RejectedExecutionException e) {
+        } catch (Throwable e) {
             LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
                     task.getTaskId(), taskType, e);
             releaseSlot();
             return;
         }
 
+        // The submitted task owns the slot now; a failure below must neither leak nor double-release it.
         if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-            ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
-            if (existingFuture != null) {
-                existingFuture.cancel(false);
-            }
+            try {
+                ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+                if (existingFuture != null) {
+                    existingFuture.cancel(false);
+                }
 
-            long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-            ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                    extendLease(task, taskFuture),
-                    delay,
-                    delay,
-                    TimeUnit.SECONDS
-            );
-            leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+                long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
+                ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                        extendLease(task, taskFuture),
+                        delay,
+                        delay,
+                        TimeUnit.SECONDS
+                );
+                leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+            } catch (RejectedExecutionException e) {
+                LOGGER.warn("Unable to schedule lease extension for task {} (likely shutting down); "
+                        + "the task runs without lease extension", task.getTaskId(), e);
+            }
         }
     }
 
@@ -446,18 +452,24 @@ class TaskRunner {
 
         eventDispatcher.publish(new PollStarted(taskType));
         long pollStartedAt = adaptiveController.now();
-        boolean settled = false;
         Stopwatch stopwatch = Stopwatch.createStarted();
+        List<Task> tasks;
         try {
             LOGGER.trace("Polling task of type: {} in domain: '{}' with size {}", taskType, domain, reservation.count());
-            List<Task> tasks = taskClient.batchPollTasksInDomain(taskType, domain, worker.getIdentity(),
+            tasks = taskClient.batchPollTasksInDomain(taskType, domain, worker.getIdentity(),
                     reservation.count(), adaptivePollTimeout(reservation));
-            if (tasks == null) {
-                tasks = List.of();
-            }
-            adaptiveController.completePoll(reservation, tasks.size(), pollStartedAt);
-            settled = true;
+        } catch (Throwable e) {
+            adaptiveController.failPoll(reservation, pollStartedAt);
+            onPollError(e, stopwatch);
+            return List.of();
+        }
+        if (tasks == null) {
+            tasks = List.of();
+        }
+        adaptiveController.completePoll(reservation, tasks.size(), pollStartedAt);
 
+        // The returned tasks own their slots now; a bookkeeping failure must not drop them.
+        try {
             long receiveTime = System.currentTimeMillis();
             for (Task task : tasks) {
                 task.getExecutionMetadata().setClientReceiveTime(receiveTime);
@@ -466,14 +478,10 @@ class TaskRunner {
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             LOGGER.trace("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
             eventDispatcher.publish(new PollCompleted(taskType, elapsed));
-            return tasks;
         } catch (Throwable e) {
-            if (!settled) {
-                adaptiveController.failPoll(reservation, pollStartedAt);
-            }
-            onPollError(e, stopwatch);
-            return List.of();
+            LOGGER.warn("Poll bookkeeping failed for {}; the polled tasks still execute", taskType, e);
         }
+        return tasks;
     }
 
     /**

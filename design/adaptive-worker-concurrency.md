@@ -1,6 +1,6 @@
 # Adaptive worker polling and concurrency
 
-Status: draft for review. This document specifies proposed behavior; it does not describe an implemented feature. Numeric defaults are starting points for validation through load testing.
+Status: implemented; see `AdaptiveConcurrencyController` and the automator package in `conductor-client`. This document is the design of record for that implementation. Numeric defaults are starting points for validation through load testing.
 
 ## Purpose and scope
 
@@ -149,10 +149,14 @@ ProcessState:
     lastResumeAt                     // -infinity at startup
     lastReductionAt                  // -infinity at startup
     surplusSince                     // when total demand last fell below the target; NONE while demand covers it
+    heapGrowthCeiling                // growth limit left by heap pressure; unlimited until a heap reduction or pause sets it
+    heapCeilingSince                 // when the ceiling was set; it holds 120 seconds, then rises one slot per control tick
 
     cpu:  supported, raw, smoothed, observedAt, pressureSince              // observedAt is NONE after a failed sample
     heap: supported, postGcUtilization, collectionAt, observedAt,
-          lastHighCollectionAt       // collectionAt of the latest collection at or above the pause threshold
+          lastHighCollectionAt,      // collectionAt of the latest collection at or above the pause threshold
+          baseline,                  // lowest post-collection utilization seen: the heap the process needs without tasks, or close to it
+          recentReadings             // post-collection readings of the last 30 seconds; their peak gates growth
 
 WorkerQueueState:
     queueIdentity                    // scope, task type, resolved domain
@@ -162,8 +166,12 @@ WorkerQueueState:
     depth                            // last sampled queue size
     depthObservedAt                  // NONE until the first successful sample and after a failed one
     outstandingPolls
-    nextHeartbeatAt                  // now at startup; pushed forward by every grant and every refused heartbeat
+    nextHeartbeatAt                  // now at startup; pushed forward by every granted poll; a refused heartbeat stays due
+    nextStandbyAt                    // now at startup; a delivery resets it, an expired standby wait pushes it one standby timeout
+    standbyPolls                     // outstanding standby polls; their slots are not part of the backlog
     consecutiveEmptyPolls            // poll errors count as empty responses
+    depthAtEmptyPoll                 // sampled depth when the latest empty response settled; zero if the depth was stale
+    pollableAtSample                 // worker pause and poll filter result at the latest depth sweep
     nextPollAllowedAt
     configuredPollInterval
     configuredPollTimeout
@@ -202,16 +210,19 @@ function start(workerQueues):
     process.lastResumeAt = -infinity
     process.lastReductionAt = -infinity
     process.surplusSince = NONE
+    process.heapGrowthCeiling = unlimited; process.heapCeilingSince = NONE
     cpu.observedAt = NONE;  cpu.pressureSince = NONE
     heap.observedAt = NONE; heap.lastHighCollectionAt = NONE
+    heap.baseline = undefined; heap.recentReadings = empty
 
     for each queue:
         queue.heldSlots = 0
         queue.outstandingPolls = 0
         queue.depth = 0; queue.depthObservedAt = NONE          // unknown until the first sample
-        queue.consecutiveEmptyPolls = 0
+        queue.consecutiveEmptyPolls = 0;  queue.depthAtEmptyPoll = 0
+        queue.standbyPolls = 0;  queue.pollableAtSample = true
         queue.nextPollAllowedAt = now
-        queue.nextHeartbeatAt = now
+        queue.nextHeartbeatAt = now;  queue.nextStandbyAt = now
         initialize adaptive execution pool with size 1
     allocate(now)                      // unknown depth counts as one, so every queue starts with a one-task share
 
@@ -297,6 +308,10 @@ function sampleResources(now):
                 heap.observedAt = now
                 if collectionAt is defined AND heap.postGcUtilization >= heapPauseThreshold:
                     heap.lastHighCollectionAt = collectionAt
+                if collectionAt is defined:
+                    heap.baseline = min(heap.baseline, heap.postGcUtilization)   // the first collection sets it
+                    append (collectionAt, now, heap.postGcUtilization) to heap.recentReadings
+                        if collectionAt is newer than the last entry's
             else:
                 heap.observedAt = NONE
 
@@ -315,6 +330,7 @@ function reconcileHeapPause(now):
            AND heap.postGcUtilization >= heapPauseThreshold
            AND heap.collectionAt > process.lastResumeAt:
             process.admissionPaused = true
+            limitHeapGrowth(floor(0.75 * max(process.targetConcurrency, process.heldSlots)), now)
             applyTargets()                                   // publishes the pause
         return
 
@@ -544,7 +560,7 @@ function unclaimedSlots():                                   // neither held nor
     return max(0, process.targetConcurrency - sum(max(q.targetConcurrency, q.heldSlots) for each queue q))
 ```
 
-A poller that cannot reserve waits on the resource it lacks. Each logical queue keeps a FIFO of pollers waiting for its worker target, since pollers of one queue are interchangeable. The process keeps the set of queues waiting for a process slot and grants by deficit as described, so every wakeup goes to a poller that can use the freed slot and hundreds of waiting queues never stampede. A finished task frees a worker slot and a process slot, so it wakes one worker waiter of its queue and the process waiter with the largest positive deficit. `applyTargets()` wakes as many waiters per resource as the new targets admit, in deficit order for the process, and every waiter when the pause lifts; a sweep that raises an idle queue's share from zero wakes it this way. It also wakes any process waiter whose deficit is no longer positive, so that poller re-enters `reserveBatch()` and parks on its worker target instead; the process waiting set therefore holds only queues that a freed slot could serve. The deficit check in `reserveBatch()` means a poller that arrives while a needier queue waits joins the waiters instead of taking the slot, so one queue cannot monopolize freed capacity by re-polling immediately. A woken poller re-checks worker pause and shutdown before reserving.
+A poller that cannot reserve waits on the resource it lacks. Each logical queue keeps a FIFO of pollers waiting for its worker target, since pollers of one queue are interchangeable. Every wait is bounded: a poller re-attempts at least once per second, so it re-checks worker pause and shutdown on that cadence and a missed wakeup costs at most that bound rather than a hang. The process keeps the set of queues waiting for a process slot and grants by deficit as described, so every wakeup goes to a poller that can use the freed slot and hundreds of waiting queues never stampede. A finished task frees a worker slot and a process slot, so it wakes one worker waiter of its queue and the process waiter with the largest positive deficit. `applyTargets()` wakes as many waiters per resource as the new targets admit, in deficit order for the process, and every waiter when the pause lifts; a sweep that raises an idle queue's share from zero wakes it this way. It also wakes any process waiter whose deficit is no longer positive, so that poller re-enters `reserveBatch()` and parks on its worker target instead; the process waiting set therefore holds only queues that a freed slot could serve. The deficit check in `reserveBatch()` means a poller that arrives while a needier queue waits joins the waiters instead of taking the slot, so one queue cannot monopolize freed capacity by re-polling immediately. A woken poller re-checks worker pause and shutdown before reserving.
 
 An outstanding empty long poll holds only the slots it was granted, and all requests have a finite timeout. The design provides fair opportunities rather than preemption: an outstanding request cannot be revoked safely because a different queue became busy.
 
@@ -580,7 +596,8 @@ function pollLoop(queue):
         reservation = controller.reserveBatch(queue, now)
         if reservation is a WAIT_FOR result:
             wait in that resource's FIFO until woken or shut down,
-                or, in the worker FIFO, until queue.nextHeartbeatAt
+                or, in the worker FIFO, until queue.nextHeartbeatAt or queue.nextStandbyAt,
+                and at most one second before re-attempting
             continue
 
         pollStartedAt = now
@@ -603,6 +620,7 @@ function pollLoop(queue):
                     pass                                        // its wait ran out; nextStandbyAt paces the next one
                 else if tasks is empty:
                     queue.consecutiveEmptyPolls += 1
+                    queue.depthAtEmptyPoll = (now - queue.depthObservedAt <= depthFreshness) ? queue.depth : 0
                     queue.nextPollAllowedAt = max(now, pollStartedAt + emptyDelay(queue))
                     applyTargets()                              // the share now counts one waiting task; see "Demand and allocation"
                 else:
