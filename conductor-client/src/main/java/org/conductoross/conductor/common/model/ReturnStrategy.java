@@ -35,5 +35,11 @@ public enum ReturnStrategy {
      * The input for the task that is currently blocking is returned. This might be a task in a potentially deep
      * subworkflow of the workflow specified in the initial API request.
      */
-    BLOCKING_TASK_INPUT;
+    BLOCKING_TASK_INPUT,
+
+    /**
+     * Same as {@link #BLOCKING_TASK}, but the blocking task is returned inside {@code tasks} instead of the flattened
+     * task fields. Servers that predate this value reject it with HTTP 400.
+     */
+    BLOCKING_TASK_LIST;
 }

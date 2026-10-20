@@ -49,7 +49,7 @@ public class Example29IncludeContents {
             .build();
 
         LlmAgent coordinator = LlmAgent.builder()
-            .name("coordinator")
+            .name("adk_coordinator_29")
             .description("Routes summarization to the independent summarizer and questions to the helper.")
             .model(Settings.LLM_MODEL)
             .instruction(

@@ -30,7 +30,7 @@ import org.conductoross.conductor.ai.model.AgentResult;
  *
  * <p>Requirements:
  * <ul>
- *   <li>CONDUCTOR_SERVER_URL=http://localhost:6767/api</li>
+ *   <li>CONDUCTOR_SERVER_URL=http://localhost:8080/api</li>
  *   <li>CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini</li>
  * </ul>
  */
@@ -39,7 +39,7 @@ public class Example01BasicAgent {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         Agent agent = OpenAIAgent.builder()
-                .name("greeter")
+                .name("openai_greeter_01")
                 .instructions("You are a friendly assistant. Keep your responses concise and helpful.")
                 .model(Settings.LLM_MODEL)
                 .build();

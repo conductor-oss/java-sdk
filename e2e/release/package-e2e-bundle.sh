@@ -7,9 +7,8 @@ set -euo pipefail
 # org.conductoross:conductor-client-ai:<version> artifact (no SDK source vendored).
 #
 # Downstream repos (e.g. orkes-io/orkes-conductor) download the bundle from
-# the java-sdk GitHub release and run it against their own server build. This
-# replaces the agentspan-sdk-e2e-java-* bundles formerly cut from
-# agentspan-ai/agentspan — java-sdk is now the canonical home of these suites.
+# the java-sdk GitHub release and run it against their own server build.
+# java-sdk is the canonical home of these suites.
 #
 # Usage:
 #   ./e2e/release/package-e2e-bundle.sh --version 6.0.0 [--out DIR]
@@ -170,8 +169,7 @@ Self-contained end-to-end tests for the Conductor Java agent SDK, pinned to
 release **@VERSION@**. Resolves `org.conductoross:conductor-client-ai:@VERSION@` from
 Maven Central — no SDK source is vendored. Cut from
 [conductor-oss/java-sdk](https://github.com/conductor-oss/java-sdk)
-(`e2e/`); supersedes the `agentspan-sdk-e2e-java-*` bundles
-formerly released from agentspan-ai/agentspan.
+(`e2e/`), the canonical home of these suites.
 
 ## Prerequisites (you provide these)
 

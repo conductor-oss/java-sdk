@@ -30,7 +30,7 @@ import com.netflix.conductor.common.run.Workflow;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 public class ApiClientTest {
     private static final String workflowName = "test_api_client_wf";

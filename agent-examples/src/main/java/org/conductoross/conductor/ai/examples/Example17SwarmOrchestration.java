@@ -57,7 +57,7 @@ public class Example17SwarmOrchestration {
         // ── Front-line support with SWARM strategy ───────────────────────
 
         Agent support = Agent.builder()
-            .name("support")
+            .name("support_17")
             .model(Settings.LLM_MODEL)
             .instructions(
                 "You are the front-line customer support agent. Triage customer requests. "

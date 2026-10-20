@@ -56,6 +56,7 @@ jobs:
               owner, repo, sha,
               state: '${{ job.status }}' === 'success' ? 'success' : 'failure',
               context: 'Integration Tests',
+              target_url: `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
               description: 'Integration tests ${{ job.status }}'
             });
 

@@ -65,7 +65,7 @@ public class Example09bHandoffHumanInTheLoop {
             .build();
 
         Agent support = Agent.builder()
-            .name("support")
+            .name("support_09b")
             .model(Settings.LLM_MODEL)
             .instructions("Route any database task to the dba sub-agent.")
             .agents(dba)

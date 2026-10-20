@@ -140,7 +140,7 @@ null, empty, and whitespace-only values are omitted.
 1. Workers for the agent's tools are registered with the Conductor task runner.
 2. `POST /api/agent/start` — server compiles, registers, and starts the workflow.
 3. Polls `GET /api/agent/{id}/status` every 2 seconds until terminal.
-4. On completion, calls `GET /api/workflow/{id}` once to aggregate token usage and tool calls into the `AgentResult`.
+4. On completion, calls `GET /api/workflow/{id}` once to aggregate token usage, tool calls and events into the `AgentResult`.
 
 **Returns `AgentResult`:**
 
@@ -151,7 +151,7 @@ null, empty, and whitespace-only values are omitted.
 | `getExecutionId()` | `String` | Conductor workflow ID |
 | `getTokenUsage()` | `TokenUsage` | Aggregated `promptTokens`, `completionTokens`, `totalTokens` |
 | `getToolCalls()` | `List<Map<String,Object>>` | All tool invocations: `{name, args, result}` |
-| `getEvents()` | `List<AgentEvent>` | Full event log (populated by streaming paths) |
+| `getEvents()` | `List<AgentEvent>` | Event log, oldest first, always ending in `done` or `error`. Streaming paths report what the server emitted; polled runs reconstruct a `tool_call`/`tool_result` pair per tool task, without the incremental `thinking` and `message` events |
 | `getError()` | `String` | Failure/termination reason when `status != COMPLETED` |
 | `isSuccess()` | `boolean` | `true` when `status == COMPLETED` |
 

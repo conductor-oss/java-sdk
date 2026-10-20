@@ -111,7 +111,7 @@ public class McpTool {
             }
 
             Map<String, Object> config = new HashMap<>(additionalConfig);
-            // AgentSpan's MCP compiler consumes snake_case config keys, matching the
+            // The server's MCP compiler consumes snake_case config keys, matching the
             // cross-SDK agent schema. Using serverUrl silently drops the MCP server
             // from the compiled workflow.
             if (serverUrl != null) config.put("server_url", serverUrl);

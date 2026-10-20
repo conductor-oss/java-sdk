@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
@@ -291,6 +292,7 @@ public class TaskClientTests {
                 break;
 
             case BLOCKING_TASK:
+            case BLOCKING_TASK_LIST:
                 // Should work for task responses
                 assertDoesNotThrow(() -> response.getBlockingTask(), "getBlockingTask() should work for " + strategy);
                 assertNotNull(response.getBlockingTask(), "getBlockingTask() should return non-null task");
@@ -372,6 +374,23 @@ public class TaskClientTests {
     }
 
     @Test
+    void testSyncBlockingTaskList() throws Exception {
+        String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_LIST);
+
+        var response = taskClient.signal(workflowId, Task.Status.COMPLETED,
+                Map.of("result", "test"), ReturnStrategy.BLOCKING_TASK_LIST);
+
+        validateSignalResponse(response, ReturnStrategy.BLOCKING_TASK_LIST);
+        assertTrue(response.isBlockingTaskList());
+        assertNull(response.getTaskId());
+        assertEquals(1, response.getTasks().size());
+        assertNotNull(response.getTargetWorkflowVariables());
+        validateHelperMethods(response, ReturnStrategy.BLOCKING_TASK_LIST);
+
+        completeWorkflow(workflowId);
+    }
+
+    @Test
     void testSyncBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_INPUT);
 
@@ -385,8 +404,11 @@ public class TaskClientTests {
         completeWorkflow(workflowId);
     }
 
-    // Durable tests - just copy the above and change Consistency
+    // Needs a server with cross-region replication configured.
+    private static final String REGION_DURABLE_ENABLED = "CONDUCTOR_REGION_DURABLE_ENABLED";
+
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableTargetWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -401,6 +423,7 @@ public class TaskClientTests {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableBlockingWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_WORKFLOW);
 
@@ -429,6 +452,7 @@ public class TaskClientTests {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
     void testDurableBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_TASK_INPUT);
 
@@ -469,10 +493,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -494,10 +516,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -519,10 +539,8 @@ public class TaskClientTests {
         assertNotNull(workflow);
         String workflowId = workflow.getTargetWorkflowId();
 
-        // Wait for initial execution
-        Thread.sleep(20);
+        TestUtil.waitUntilSignalable(workflowClient, workflowId, 30_000, 100);
 
-        // Signal with async execution
         taskClient.signalAsync(workflowId, Task.Status.COMPLETED, Map.of("result", "test"));
 
         // Wait for completion
@@ -735,9 +753,8 @@ public class TaskClientTests {
         String workflowId = workflowClient.startWorkflow(request);
 
         try {
-            Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
-
-            var result = taskClient.search("workflowId='" + workflowId + "'");
+            var result = TestUtil.retryUntil(
+                    () -> taskClient.search("workflowId='" + workflowId + "'"), 30_000, 2_000);
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");

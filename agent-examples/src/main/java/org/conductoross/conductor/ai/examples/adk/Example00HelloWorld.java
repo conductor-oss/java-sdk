@@ -27,7 +27,7 @@ import com.google.adk.agents.LlmAgent;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:8080/api}</li>
  *   <li>OpenAI/Gemini key configured in server credentials</li>
  * </ul>
  */
@@ -35,7 +35,7 @@ public class Example00HelloWorld {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         LlmAgent greeter = LlmAgent.builder()
-                .name("greeter")
+                .name("adk_greeter_00")
                 .description("A friendly greeter that says hello and shares a fun fact.")
                 .model(Settings.LLM_MODEL)
                 .instruction("You are a friendly greeter. Reply with a warm hello and one fun fact.")

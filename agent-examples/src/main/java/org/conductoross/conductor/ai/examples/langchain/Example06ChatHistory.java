@@ -54,7 +54,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
  *
  * <p>Requirements:
  * <ul>
- *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:6767/api}</li>
+ *   <li>{@code CONDUCTOR_SERVER_URL=http://localhost:8080/api}</li>
  *   <li>Conductor server with OpenAI credentials configured server-side.</li>
  * </ul>
  */

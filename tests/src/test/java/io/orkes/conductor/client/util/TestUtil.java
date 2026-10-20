@@ -15,6 +15,8 @@ package io.orkes.conductor.client.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
@@ -24,6 +26,8 @@ import com.netflix.conductor.common.run.Workflow;
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.awaitility.Awaitility.await;
 
 public class TestUtil {
     private static int RETRY_ATTEMPT_LIMIT = 4;
@@ -114,7 +118,8 @@ public class TestUtil {
             // Check if workflow failed or terminated
             if (workflowDetails.getStatus() == Workflow.WorkflowStatus.FAILED ||
                     workflowDetails.getStatus() == Workflow.WorkflowStatus.TERMINATED) {
-                throw new RuntimeException("Workflow ended in unexpected state: " + workflowDetails.getStatus());
+                throw new RuntimeException("Workflow ended in unexpected state: " + workflowDetails.getStatus()
+                        + ", reason: " + workflowDetails.getReasonForIncompletion());
             }
 
             Thread.sleep(pollIntervalMs);
@@ -125,5 +130,34 @@ public class TestUtil {
         throw new TimeoutException(
                 String.format("Workflow %s did not reach status %s within %dms. Current status: %s",
                         workflowId, expectedStatus, maxWaitTimeMs, finalState.getStatus()));
+    }
+
+    /** Waits until the workflow is RUNNING with a non-terminal task, i.e. safe to signal. */
+    public static void waitUntilSignalable(OrkesWorkflowClient workflowClient,
+                                           String workflowId,
+                                           long maxWaitTimeMs,
+                                           long pollIntervalMs) {
+        await().atMost(Duration.ofMillis(maxWaitTimeMs))
+                .pollInterval(Duration.ofMillis(pollIntervalMs))
+                .failFast(() -> isTerminalFailure(workflowClient.getWorkflow(workflowId, true)))
+                .until(() -> {
+                    Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+                    return workflow.getStatus() == Workflow.WorkflowStatus.RUNNING
+                            && workflow.getTasks() != null
+                            && workflow.getTasks().stream().anyMatch(t -> !t.getStatus().isTerminal());
+                });
+    }
+
+    /** Retries {@code call} until it returns without throwing. */
+    public static <T> T retryUntil(Callable<T> call, long maxWaitTimeMs, long pollIntervalMs) {
+        return await().atMost(Duration.ofMillis(maxWaitTimeMs))
+                .pollInterval(Duration.ofMillis(pollIntervalMs))
+                .ignoreExceptions()
+                .until(call, result -> true);
+    }
+
+    private static boolean isTerminalFailure(Workflow workflow) {
+        return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
+                || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;
     }
 }

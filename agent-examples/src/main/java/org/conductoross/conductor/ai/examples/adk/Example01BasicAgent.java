@@ -31,7 +31,7 @@ public class Example01BasicAgent {
     public static void main(String[] args) {
         AgentRuntime runtime = new AgentRuntime();
         LlmAgent researcher = LlmAgent.builder()
-            .name("greeter")
+            .name("adk_greeter_01")
             .description("A friendly assistant that gives concise, helpful answers.")
             .model(Settings.LLM_MODEL)
             .instruction("You are a friendly assistant. Keep your responses concise and helpful.")

@@ -16,6 +16,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
     testImplementation "ch.qos.logback:logback-classic:1.5.32"
     testImplementation "org.mockito:mockito-core:${versions.mockito}"
+    testImplementation "org.awaitility:awaitility:${versions.awaitility}"
     testImplementation "org.testcontainers:localstack:${versions.testContainers}"
     testImplementation "org.testcontainers:testcontainers:${versions.testContainers}"
 }
