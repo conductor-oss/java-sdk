@@ -108,9 +108,11 @@ public class MetadataClientTests {
             }
         }
         metadataClient.addWorkflowTag(tagObject, Commons.WORKFLOW_NAME);
-        metadataClient.setWorkflowTags(List.of(tagObject), Commons.WORKFLOW_NAME);
+        // A different tag, so the assertion fails unless setWorkflowTags replaces the existing one.
+        TagObject replacement = new TagObject().key(tagObject.getKey()).value(tagObject.getValue() + "-replaced");
+        metadataClient.setWorkflowTags(List.of(replacement), Commons.WORKFLOW_NAME);
         List<TagObject> tags = metadataClient.getWorkflowTags(Commons.WORKFLOW_NAME);
-        Assertions.assertIterableEquals(List.of(tagObject), tags);
+        Assertions.assertIterableEquals(List.of(replacement), tags);
     }
 
     // ==================== Additional CRUD Tests ====================
