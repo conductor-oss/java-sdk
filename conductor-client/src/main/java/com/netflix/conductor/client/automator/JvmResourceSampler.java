@@ -38,9 +38,8 @@ import javax.management.openmbean.CompositeData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.management.GarbageCollectionNotificationInfo;
-
 import com.google.common.annotations.VisibleForTesting;
+import com.sun.management.GarbageCollectionNotificationInfo;
 
 /**
  * Reads JVM process CPU from the growth of {@code OperatingSystemMXBean.getProcessCpuTime()} between samples, relative
