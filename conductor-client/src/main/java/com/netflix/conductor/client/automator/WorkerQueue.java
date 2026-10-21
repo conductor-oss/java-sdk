@@ -73,6 +73,10 @@ final class WorkerQueue {
     long nextStandbyAt;
     /** Outstanding standby polls; their slots are not part of the backlog. */
     int standbyPolls;
+    /** Slots held by outstanding poll requests; the rest of {@link #heldSlots} back accepted tasks. */
+    int reservedPollSlots;
+    /** When a task slot was last released, or tasks last started arriving; a wedged worker's age grows from here. */
+    long lastTaskSlotReleaseAt;
     /** Pause and poll filter result at the latest depth sample. */
     boolean pollableAtSample = true;
     /** Pollers waiting for an open slot for a due heartbeat. */
@@ -100,6 +104,7 @@ final class WorkerQueue {
         this.nextPollAllowedAt = now;
         this.nextHeartbeatAt = now;
         this.nextStandbyAt = now;
+        this.lastTaskSlotReleaseAt = now;
         if (useVirtualThreads) {
             this.platformPool = null;
             this.executionPool = Executors.newThreadPerTaskExecutor(threadFactory);

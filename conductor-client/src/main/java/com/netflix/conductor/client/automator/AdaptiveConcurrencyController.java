@@ -491,6 +491,7 @@ public class AdaptiveConcurrencyController {
         int count = Math.min(Math.min(workerAvailable, processAvailable - forHeartbeats), config.getMaxPollBatch());
         queue.heldSlots += count;
         heldSlots += count;
+        queue.reservedPollSlots += count;
         queue.outstandingPolls++;
         queue.nextHeartbeatAt = now + heartbeatInterval;
         queue.resizePool();
@@ -514,15 +515,19 @@ public class AdaptiveConcurrencyController {
      * as demand, so the process target leaves room for them while resources allow.
      */
     private SlotReservation tryReserveStandbyLocked(WorkerQueue queue, long now) {
+        // Like every poll it also needs an open process slot: unclaimed slots are computed over registered
+        // queues, which can overstate free capacity while a deregistered worker's tasks drain.
         if (standbyPollTimeout == 0
                 || queue.outstandingPolls > 0
                 || now < queue.nextStandbyAt
                 || queue.heldSlots >= queue.maximumConcurrency
+                || heldSlots >= targetConcurrency
                 || unclaimedSlots() <= dueHeartbeatWaiters(now, queue)) {
             return null;
         }
         queue.heldSlots++;
         heldSlots++;
+        queue.reservedPollSlots++;
         queue.outstandingPolls++;
         queue.standbyPolls++;
         // It refreshes the server's active-poller window, as a heartbeat would.
@@ -563,6 +568,7 @@ public class AdaptiveConcurrencyController {
         }
         queue.heldSlots++;
         heldSlots++;
+        queue.reservedPollSlots++;
         queue.outstandingPolls++;
         queue.nextHeartbeatAt = now + heartbeatInterval;
         queue.resizePool();
@@ -616,13 +622,20 @@ public class AdaptiveConcurrencyController {
         try {
             WorkerQueue queue = reservation.queue();
             long now = clock.getAsLong();
+            boolean hadTaskSlots = queue.heldSlots - queue.reservedPollSlots > 0;
             int unused = reservation.count() - delivered;
             queue.heldSlots -= unused;
             heldSlots -= unused;
+            queue.reservedPollSlots -= reservation.count();
             queue.outstandingPolls--;
             if (reservation.standby()) {
                 queue.standbyPolls--;
             }
+            if (!hadTaskSlots && delivered > 0) {
+                // The slot-age observation restarts when an idle queue accepts work again.
+                queue.lastTaskSlotReleaseAt = now;
+            }
+            guardCounters(queue);
             // A standby wait that ran out on an empty queue is expected: nextStandbyAt paces it, not the backoff.
             boolean standbyExpired = reservation.standby() && delivered == 0 && !failed;
             if (delivered == 0 && !standbyExpired) {
@@ -655,10 +668,31 @@ public class AdaptiveConcurrencyController {
         try {
             queue.heldSlots--;
             heldSlots--;
+            queue.lastTaskSlotReleaseAt = clock.getAsLong();
+            guardCounters(queue);
             queue.resizePool();
             wakeAfterRelease(queue);
         } finally {
             lock.unlock();
+        }
+    }
+
+    /**
+     * Invariant backstop: a counter driven negative by a release bug would inflate deficits and over-admit, the one
+     * direction the design forbids, so a breach is clamped and reported instead of compounding silently.
+     */
+    private void guardCounters(WorkerQueue queue) {
+        if (queue.heldSlots < 0 || queue.outstandingPolls < 0 || queue.standbyPolls < 0
+                || queue.reservedPollSlots < 0 || heldSlots < 0) {
+            LOGGER.error("Slot accounting breach for {}: heldSlots={}, outstandingPolls={}, standbyPolls={}, "
+                            + "reservedPollSlots={}, processHeldSlots={}; clamping to zero",
+                    queue.queueName, queue.heldSlots, queue.outstandingPolls, queue.standbyPolls,
+                    queue.reservedPollSlots, heldSlots);
+            queue.heldSlots = Math.max(0, queue.heldSlots);
+            queue.outstandingPolls = Math.max(0, queue.outstandingPolls);
+            queue.standbyPolls = Math.max(0, queue.standbyPolls);
+            queue.reservedPollSlots = Math.max(0, queue.reservedPollSlots);
+            heldSlots = Math.max(0, heldSlots);
         }
     }
 
@@ -689,6 +723,8 @@ public class AdaptiveConcurrencyController {
         lock.lock();
         try {
             queue.consecutiveEmptyPolls = 0;
+            // A replacement means a task just finished and handed over its slot: release activity for the slot age.
+            queue.lastTaskSlotReleaseAt = clock.getAsLong();
         } finally {
             lock.unlock();
         }
@@ -1169,11 +1205,16 @@ public class AdaptiveConcurrencyController {
             boolean changed = queue.targetConcurrency != queue.publishedTarget;
             queue.resizePool();
             if (changed || processChanged || publishAll) {
+                int taskSlots = queue.heldSlots - queue.reservedPollSlots;
+                long taskSlotAgeSeconds = taskSlots > 0
+                        ? TimeUnit.NANOSECONDS.toSeconds(Math.max(0, now - queue.lastTaskSlotReleaseAt))
+                        : 0;
                 queue.eventDispatcher().publish(new AdaptiveConcurrencyChanged(
                         queue.taskType(),
                         queue.domain(),
                         queue.targetConcurrency,
                         queue.heldSlots,
+                        taskSlotAgeSeconds,
                         queue.depth,
                         targetConcurrency,
                         heldSlots,

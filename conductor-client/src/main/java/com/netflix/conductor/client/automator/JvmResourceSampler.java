@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Reads JVM process CPU from the growth of {@code OperatingSystemMXBean.getProcessCpuTime()} between samples, relative
  * to the CPUs the process may use, and post-collection heap from GC notifications, falling back to
@@ -89,6 +91,14 @@ class JvmResourceSampler implements ResourceSampler {
     // Fallback path state, sampling thread only.
     private long lastCollectionCount = -1;
     private long lastCollectionAt = AdaptiveConcurrencyController.NONE;
+
+    /** Collections tolerated without a notification before the notification pipeline counts as stalled. */
+    private static final int NOTIFICATION_STALL_COLLECTIONS = 4;
+    // Stall detection, sampling thread only: re-reading one notification forever while collections continue would
+    // freeze the heap estimate at a stale value that still looks fresh.
+    private CollectionResult lastSeenNotification;
+    private long collectionCountAtNotification;
+    private boolean notificationStallLogged;
 
     JvmResourceSampler() {
         var osBean = ManagementFactory.getOperatingSystemMXBean();
@@ -229,7 +239,26 @@ class JvmResourceSampler implements ResourceSampler {
             }
             CollectionResult notified = lastNotified;
             if (notified != null) {
-                return new HeapSample(notified.utilization(), notified.collectionAtNanos());
+                if (notified != lastSeenNotification) {
+                    lastSeenNotification = notified;
+                    collectionCountAtNotification = collectionCount;
+                    // Keep the fallback primed so a later stall can detect the next collection and its time.
+                    lastCollectionCount = collectionCount;
+                    lastCollectionAt = notified.collectionAtNanos();
+                    if (notificationStallLogged) {
+                        notificationStallLogged = false;
+                        LOGGER.info("GC notifications resumed");
+                    }
+                }
+                if (collectionCount - collectionCountAtNotification <= NOTIFICATION_STALL_COLLECTIONS) {
+                    return new HeapSample(notified.utilization(), notified.collectionAtNanos());
+                }
+                if (!notificationStallLogged) {
+                    notificationStallLogged = true;
+                    LOGGER.warn("{} collections happened without a GC notification; reading collection usage "
+                                    + "until notifications resume",
+                            collectionCount - collectionCountAtNotification);
+                }
             }
             return sampleCollectionUsage(max, collectionCount);
         } catch (RuntimeException e) {
@@ -308,6 +337,12 @@ class JvmResourceSampler implements ResourceSampler {
     }
 
     private record CollectionResult(double utilization, long collectionAtNanos) {}
+
+    /** Simulates a notification that no longer updates, for stall-detection tests. */
+    @VisibleForTesting
+    void injectNotificationForTest(double utilization) {
+        lastNotified = new CollectionResult(utilization, System.nanoTime());
+    }
 
     /** A pool's used share of its own capacity, or of the heap when the pool has no fixed maximum. */
     static double poolUtilization(MemoryUsage usage, long heapMax) {

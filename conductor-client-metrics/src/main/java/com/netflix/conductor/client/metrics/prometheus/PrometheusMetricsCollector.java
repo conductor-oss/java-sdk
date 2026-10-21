@@ -207,6 +207,9 @@ public class PrometheusMetricsCollector implements MetricsCollector {
                 taskType).set(e.getTargetConcurrency());
         adaptiveGauge("adaptive_worker_held_slots", "Slots held by the worker's polls and tasks",
                 taskType).set(e.getHeldSlots());
+        adaptiveGauge("adaptive_worker_task_slot_age_seconds",
+                "Seconds since the worker last released a task slot, while any are held; a wedged worker grows this",
+                taskType).set((int) Math.min(Integer.MAX_VALUE, e.getTaskSlotAgeSeconds()));
         adaptiveGauge("adaptive_queue_depth", "Last sampled queue depth of the worker's task queue",
                 taskType).set(e.getQueueDepth());
         adaptiveGauge("adaptive_process_concurrency_target", "Adaptive concurrency target of the process",

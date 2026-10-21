@@ -137,11 +137,12 @@ class PrometheusMetricsCollectorTest {
 
     @Test
     void adaptiveConcurrencyChangedUpdatesGauges() {
-        collector.consume(new AdaptiveConcurrencyChanged("SIMPLE", null, 29, 12, 48, 32, 30, false, "DEPTH_SAMPLE"));
-        collector.consume(new AdaptiveConcurrencyChanged("SIMPLE", null, 24, 12, 48, 24, 30, true, "HEAP_PAUSE"));
+        collector.consume(new AdaptiveConcurrencyChanged("SIMPLE", null, 29, 12, 3, 48, 32, 30, false, "DEPTH_SAMPLE"));
+        collector.consume(new AdaptiveConcurrencyChanged("SIMPLE", null, 24, 12, 7, 48, 24, 30, true, "HEAP_PAUSE"));
 
         assertEquals(24.0, registry.get("adaptive_worker_concurrency_target").tag("taskType", "SIMPLE").gauge().value());
         assertEquals(12.0, registry.get("adaptive_worker_held_slots").tag("taskType", "SIMPLE").gauge().value());
+        assertEquals(7.0, registry.get("adaptive_worker_task_slot_age_seconds").tag("taskType", "SIMPLE").gauge().value());
         assertEquals(48.0, registry.get("adaptive_queue_depth").tag("taskType", "SIMPLE").gauge().value());
         assertEquals(24.0, registry.get("adaptive_process_concurrency_target").gauge().value());
         assertEquals(1.0, registry.get("adaptive_admission_paused").gauge().value());

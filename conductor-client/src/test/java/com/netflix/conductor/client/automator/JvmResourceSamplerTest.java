@@ -103,4 +103,30 @@ class JvmResourceSamplerTest {
         double cpu = sampler.sampleCpu();
         assertTrue(Double.isNaN(cpu) || (cpu >= 0 && cpu <= 1), "cpu " + cpu);
     }
+
+    @Test
+    void stalledNotificationsFallBackToCollectionUsage() throws Exception {
+        // A notification pipeline that stops while collections continue must not freeze the heap estimate at a
+        // stale value that still looks fresh.
+        assertTrue(sampler.isHeapSupported());
+        System.gc();                                   // at least one collection has happened
+        Thread.sleep(50);
+        sampler.close();                               // notifications stop; collections continue
+        Thread.sleep(50);                              // let any in-flight notification land first
+        sampler.injectNotificationForTest(0.123);
+        assertEquals(0.123, sampler.sampleHeap().utilization(), 1e-9, "a fresh notification is trusted");
+
+        ResourceSampler.HeapSample sample = null;
+        for (int i = 0; i < 50; i++) {
+            System.gc();
+            Thread.sleep(20);
+            sample = sampler.sampleHeap();
+            if (sample != null && Math.abs(sample.utilization() - 0.123) > 1e-9) {
+                break;
+            }
+        }
+        assertNotNull(sample);
+        assertNotEquals(0.123, sample.utilization(), 1e-9);
+        assertTrue(sample.utilization() > 0 && sample.utilization() < 1, "utilization " + sample.utilization());
+    }
 }

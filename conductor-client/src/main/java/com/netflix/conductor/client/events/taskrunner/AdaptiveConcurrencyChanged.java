@@ -25,6 +25,8 @@ public final class AdaptiveConcurrencyChanged extends TaskRunnerEvent {
     private final String domain;
     private final int targetConcurrency;
     private final int heldSlots;
+    /** Seconds since a task slot was last released while any are held; a wedged worker's age keeps growing. */
+    private final long taskSlotAgeSeconds;
     private final int queueDepth;
     private final int processTargetConcurrency;
     private final int processHeldSlots;
@@ -35,6 +37,7 @@ public final class AdaptiveConcurrencyChanged extends TaskRunnerEvent {
                                       String domain,
                                       int targetConcurrency,
                                       int heldSlots,
+                                      long taskSlotAgeSeconds,
                                       int queueDepth,
                                       int processTargetConcurrency,
                                       int processHeldSlots,
@@ -44,6 +47,7 @@ public final class AdaptiveConcurrencyChanged extends TaskRunnerEvent {
         this.domain = domain;
         this.targetConcurrency = targetConcurrency;
         this.heldSlots = heldSlots;
+        this.taskSlotAgeSeconds = taskSlotAgeSeconds;
         this.queueDepth = queueDepth;
         this.processTargetConcurrency = processTargetConcurrency;
         this.processHeldSlots = processHeldSlots;

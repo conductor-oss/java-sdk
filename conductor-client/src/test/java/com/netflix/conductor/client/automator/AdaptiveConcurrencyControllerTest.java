@@ -380,6 +380,70 @@ class AdaptiveConcurrencyControllerTest {
     }
 
     @Test
+    void standbyNeedsAFreeProcessSlot() {
+        // Unclaimed slots are computed over registered queues, so a deregistered worker's draining tasks could
+        // otherwise let a standby poll admit past the process target.
+        controller(2);
+        WorkerQueue leaving = register("leaving", null);
+        WorkerQueue idle = register("idle", null);
+        controller.activate();
+        depths(Map.of("leaving", 5, "idle", 0));
+
+        SlotReservation work = reserve(leaving);
+        assertEquals(2, work.count());
+        controller.deregister(leaving);                 // its two accepted tasks are still draining
+        registered.remove(leaving);
+        idle.nextHeartbeatAt = clock.get() + 5 * SECOND;
+
+        assertTrue(reserve(idle) == null, "every process slot is still held by the departed queue's tasks");
+        assertEquals(2, controller.getHeldSlots());
+        controller.releaseTaskSlot(leaving);
+        controller.releaseTaskSlot(leaving);
+    }
+
+    @Test
+    void doubleSlotReleaseIsClampedAndReported() {
+        controller(4);
+        WorkerQueue queue = register("pay", null);
+        controller.activate();
+        depths(Map.of("pay", 2));
+        SlotReservation work = reserve(queue);
+        assertEquals(2, work.count());
+        controller.completePoll(work, 2, clock.get());  // both delivered: the tasks own the slots
+
+        controller.releaseTaskSlot(queue);
+        controller.releaseTaskSlot(queue);
+        controller.releaseTaskSlot(queue);              // a release bug fires once too often
+
+        assertEquals(0, controller.getHeldSlots(), "the breach is clamped instead of inflating future grants");
+        assertEquals(0, queue.heldSlots);
+        SlotReservation next = reserve(queue);
+        assertEquals(2, next.count(), "the deficit is not inflated by the breach");
+        controller.completePoll(next, 0, clock.get());
+    }
+
+    @Test
+    void taskSlotAgeRunsFromDeliveryOrLastRelease() {
+        controller(4);
+        WorkerQueue queue = register("age", null);
+        controller.activate();
+        depths(Map.of("age", 3));
+
+        SlotReservation work = reserve(queue);
+        assertEquals(3, queue.reservedPollSlots, "poll reservations are not task slots");
+        advance(10 * SECOND);
+        controller.completePoll(work, 2, clock.get());
+        assertEquals(0, queue.reservedPollSlots);
+        assertEquals(2, queue.heldSlots);
+        assertEquals(clock.get(), queue.lastTaskSlotReleaseAt, "the age restarts when an idle queue accepts work");
+
+        advance(10 * SECOND);
+        controller.releaseTaskSlot(queue);
+        assertEquals(clock.get(), queue.lastTaskSlotReleaseAt, "each task release restarts the age");
+        controller.releaseTaskSlot(queue);
+    }
+
+    @Test
     void standbyDeliveryKeepsItsSlotAndCountsAsBacklog() {
         controller(4);
         WorkerQueue queue = register("a", null);
