@@ -219,3 +219,4 @@ For worker patterns, workflow definitions, and testing, continue with the [core 
 ## License
 
 Apache 2.0. See [LICENSE](LICENSE).
+
