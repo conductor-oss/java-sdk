@@ -211,7 +211,28 @@ public class AgentConfigSerializer {
         }
 
         // Router agent (for ROUTER strategy)
-        if (agent.getRouter() != null) {
+        if (agent.getDecisionRouter() != null) {
+            ToolDef router = agent.getDecisionRouter();
+            if (!"decision".equals(router.getToolType())) {
+                throw new IllegalArgumentException("Only a decision ToolDef can be used as a router");
+            }
+            Map<String, Object> config = router.getConfig();
+            if (config == null || !(config.get("model") instanceof String model) || model.isBlank()) {
+                throw new IllegalArgumentException("Decision router tool config requires 'model'");
+            }
+            if (!(config.get("questions") instanceof Map<?, ?> questions) || questions.isEmpty()) {
+                throw new IllegalArgumentException("Decision router tool config requires 'questions'");
+            }
+            Map<String, Object> selector = new LinkedHashMap<>();
+            selector.put("name", router.getName());
+            selector.put("kind", "decision");
+            selector.put("model", config.get("model"));
+            selector.put("questions", config.get("questions"));
+            if (config.get("provider") != null) {
+                selector.put("provider", config.get("provider"));
+            }
+            agentMap.put("router", selector);
+        } else if (agent.getRouter() != null) {
             agentMap.put("router", serializeAgent(agent.getRouter()));
         }
 

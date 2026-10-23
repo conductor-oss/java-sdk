@@ -15,7 +15,7 @@ below lists its builder method, the JSON key it serializes to, and any behavior 
 | `tools` | `tools(ToolDef...)` | `tools` | List of tool configs. |
 | `agents` | `agents(Agent...)` | `agents` | Sub-agents (recursive). Requires a strategy. |
 | `strategy` | `strategy(Strategy)` | `strategy` | Emitted only when sub-agents or planner/fallback slots are present. Default `HANDOFF`. |
-| `router` | `router(Agent)` | `router` | For `ROUTER` strategy. Nested agent config. |
+| `router` | `router(Agent)` or `router(ToolDef)` | `router` | For `ROUTER` strategy. Nested agent config or decision tool selector (`toolType="decision"`, nonempty `config.model` and `config.questions`, optional `config.provider`). |
 | `guardrails` | `guardrails(GuardrailDef...)` | `guardrails` | Input/output guardrail configs. |
 | `maxTurns` | `maxTurns(int)` | `maxTurns` | Default 25. Emitted only if > 0. |
 | `maxTokens` | `maxTokens(int)` | `maxTokens` | LLM token cap. |
