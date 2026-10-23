@@ -461,6 +461,32 @@ public class TaskConversionsTests {
     }
 
     @Test
+    public void testHttpAsyncComplete() {
+        Http httpTask = new Http("http_ref");
+        httpTask.asyncComplete(true);
+
+        WorkflowTask workflowTask = httpTask.getWorkflowDefTasks().get(0);
+        assertTrue(workflowTask.isAsyncComplete());
+
+        Task fromWorkflowTask = TaskRegistry.getTask(workflowTask);
+        assertTrue(fromWorkflowTask instanceof Http);
+        assertTrue(((Http) fromWorkflowTask).isAsyncComplete());
+    }
+
+    @Test
+    public void testEventAsyncComplete() {
+        Event eventTask = new Event("event_ref", "sqs:my-queue");
+        eventTask.asyncComplete(true);
+
+        WorkflowTask workflowTask = eventTask.getWorkflowDefTasks().get(0);
+        assertTrue(workflowTask.isAsyncComplete());
+
+        Task fromWorkflowTask = TaskRegistry.getTask(workflowTask);
+        assertTrue(fromWorkflowTask instanceof Event);
+        assertTrue(((Event) fromWorkflowTask).isAsyncComplete());
+    }
+
+    @Test
     public void testJQTaskConversion() {
         JQ jqTask = new JQ("task_name", "{ key3: (.key1.value1 + .key2.value2) }");
 
