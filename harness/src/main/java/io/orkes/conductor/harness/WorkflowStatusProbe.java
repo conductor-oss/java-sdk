@@ -28,7 +28,7 @@ import com.netflix.conductor.client.http.WorkflowClient;
  * endpoints, so {@code http_api_client_request_seconds} on the canonical
  * Prometheus surface picks up entries with {@code uri=/api/workflow/&lt;uuid&gt;}
  * and {@code uri=/api/workflow/&lt;uuid&gt;/status}. The default
- * {@link HarnessMain} traffic only ever hits bounded, no-path-param URLs
+ * {@link HarnessBootstrap} traffic only ever hits bounded, no-path-param URLs
  * ({@code /api/tasks/poll/batch/&lt;taskType&gt;}, {@code /api/tasks},
  * {@code /api/workflow}, etc.), so the high-cardinality concern on the
  * {@code uri} label is invisible without something like this probe.

@@ -1,0 +1,50 @@
+# The harness listens on a single HTTP port that serves the Actuator
+# endpoints. The Prometheus scrape endpoint is remapped to /metrics so it
+# matches the cross-SDK PodMonitor contract (port name "metrics" -> 9991,
+# path /metrics) without any SDK-owned web server.
+server:
+  port: ${HARNESS_METRICS_PORT:9991}
+
+management:
+  endpoints:
+    web:
+      # Serve endpoints at the root (e.g. /metrics, /health) instead of the
+      # default /actuator/* prefix.
+      base-path: /
+      exposure:
+        include: health,prometheus,metrics
+      path-mapping:
+        # Prometheus text exposition (what Prometheus scrapes) -> /metrics
+        prometheus: metrics
+        # Actuator's JSON metrics browser -> /metrics-json (renamed to avoid
+        # colliding with the Prometheus endpoint above).
+        metrics: metrics-json
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+conductor:
+  client:
+    base-path: ${CONDUCTOR_SERVER_URL:}
+    key-id: ${CONDUCTOR_AUTH_KEY:}
+    secret: ${CONDUCTOR_AUTH_SECRET:}
+  # Thread count per worker (polling concurrency). Mirrors HARNESS_BATCH_SIZE.
+  worker:
+    java_worker_0:
+      threadCount: ${HARNESS_BATCH_SIZE:20}
+    java_worker_1:
+      threadCount: ${HARNESS_BATCH_SIZE:20}
+    java_worker_2:
+      threadCount: ${HARNESS_BATCH_SIZE:20}
+    java_worker_3:
+      threadCount: ${HARNESS_BATCH_SIZE:20}
+    java_worker_4:
+      threadCount: ${HARNESS_BATCH_SIZE:20}
+
+harness:
+  workflows-per-sec: ${HARNESS_WORKFLOWS_PER_SEC:2}
+  batch-size: ${HARNESS_BATCH_SIZE:20}
+  poll-interval-ms: ${HARNESS_POLL_INTERVAL_MS:100}
+  probe-rate-per-sec: ${HARNESS_PROBE_RATE_PER_SEC:0}
+  workers-only: ${HARNESS_WORKERS_ONLY:false}

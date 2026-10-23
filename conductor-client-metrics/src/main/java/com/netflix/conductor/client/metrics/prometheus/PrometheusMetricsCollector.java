@@ -47,13 +47,36 @@ import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.sun.net.httpserver.HttpServer;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
- * Prometheus metrics implementation emitting the harmonized metric names
- * defined in the cross-SDK metrics catalog.
+ * Micrometer-backed {@link MetricsCollector} that records the harmonized metric
+ * names defined in the cross-SDK metrics catalog into a caller-supplied
+ * {@link MeterRegistry}.
+ *
+ * <p>The recommended usage is to <b>not</b> let the SDK start any HTTP server and
+ * instead let the embedding application expose the metrics:
+ *
+ * <ul>
+ *   <li><b>Spring Boot:</b> hand in the application's Micrometer
+ *       {@code MeterRegistry} (e.g. the one backing
+ *       {@code /actuator/prometheus}). The
+ *       {@code conductor-client-metrics} auto-configuration does this
+ *       automatically when a {@code MeterRegistry} bean is present.</li>
+ *   <li><b>Plain Java:</b> construct a
+ *       {@code io.micrometer.prometheusmetrics.PrometheusMeterRegistry}
+ *       (or any other registry), pass it here, and expose it however you
+ *       like &mdash; e.g. serve {@code registry.scrape()} from your own
+ *       HTTP endpoint.</li>
+ * </ul>
+ *
+ * <p>For backward compatibility, the no-argument constructor plus
+ * {@link #startServer()} still spin up a minimal embedded scrape server, but
+ * both are deprecated &mdash; a library should not run a web server. Prefer the
+ * {@link #PrometheusMetricsCollector(MeterRegistry)} constructor.
  */
 public class PrometheusMetricsCollector implements MetricsCollector {
 
@@ -85,10 +108,33 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     private static final String STATUS_SUCCESS = "SUCCESS";
     private static final String STATUS_FAILURE = "FAILURE";
 
-    private final PrometheusMeterRegistry registry;
+    private final MeterRegistry registry;
     private final PrometheusApiClientMetrics apiClientMetrics;
     private final ConcurrentHashMap<String, AtomicInteger> activeWorkerGauges = new ConcurrentHashMap<>();
 
+    /**
+     * Create a collector that records into the supplied {@link MeterRegistry}.
+     *
+     * @param registry the Micrometer registry to publish metrics into; in a
+     *                 Spring Boot app this is typically the application's
+     *                 registry backing {@code /actuator/prometheus}.
+     */
+    public PrometheusMetricsCollector(MeterRegistry registry) {
+        this.registry = registry;
+        this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
+    }
+
+    /**
+     * Create a collector backed by a shared internal {@link PrometheusMeterRegistry}
+     * and expose it via {@link #startServer()}.
+     *
+     * @deprecated A library should not run its own web server. Pass in the
+     *     application's {@link MeterRegistry} via
+     *     {@link #PrometheusMetricsCollector(MeterRegistry)} instead (in Spring
+     *     Boot this is auto-configured), and let the application expose the
+     *     scrape endpoint (e.g. Actuator's {@code /actuator/prometheus}).
+     */
+    @Deprecated
     public PrometheusMetricsCollector() {
         this(SHARED_REGISTRY);
         if (instantiated.getAndSet(true)) {
@@ -99,29 +145,77 @@ public class PrometheusMetricsCollector implements MetricsCollector {
         }
     }
 
-    /** Package-private constructor for test isolation. */
-    PrometheusMetricsCollector(PrometheusMeterRegistry registry) {
-        this.registry = registry;
-        this.apiClientMetrics = new PrometheusApiClientMetrics(registry);
-    }
-
     @Override
     public ApiClientMetrics getApiClientMetrics() {
         return apiClientMetrics;
     }
 
+    /**
+     * @return the registry as a {@link PrometheusMeterRegistry}
+     * @deprecated prefer {@link #getMeterRegistry()}, which returns the registry
+     *     as the {@link MeterRegistry} interface and works for any registry
+     *     type. This method only succeeds when the collector was constructed
+     *     with a Prometheus registry (the default / deprecated embedded path).
+     * @throws IllegalStateException if this collector was constructed with a
+     *     non-Prometheus {@link MeterRegistry}
+     */
+    @Deprecated
     public PrometheusMeterRegistry getRegistry() {
+        if (registry instanceof PrometheusMeterRegistry prometheusRegistry) {
+            return prometheusRegistry;
+        }
+        throw new IllegalStateException(
+                "getRegistry() returns a PrometheusMeterRegistry, but this collector was "
+                        + "constructed with " + registry.getClass().getName()
+                        + ". Use getMeterRegistry() instead.");
+    }
+
+    /**
+     * @return the {@link MeterRegistry} this collector records metrics into
+     */
+    public MeterRegistry getMeterRegistry() {
         return registry;
     }
 
+    /**
+     * Start a minimal embedded HTTP server exposing the Prometheus scrape
+     * endpoint at {@code http://localhost:9991/metrics}.
+     *
+     * @deprecated The SDK should not run a web server. Expose metrics from the
+     *     embedding application instead (Spring Boot Actuator, or serve
+     *     {@link #getRegistry()}'s {@code scrape()} from your own endpoint).
+     * @throws IOException if the server cannot bind
+     * @throws IllegalStateException if this collector was constructed with a
+     *     non-Prometheus {@link MeterRegistry} (such a registry cannot be
+     *     scraped by this server; expose it through your application instead)
+     */
+    @Deprecated
     public void startServer() throws IOException {
         startServer(DEFAULT_PORT, DEFAULT_ENDPOINT);
     }
 
+    /**
+     * Start a minimal embedded HTTP server exposing the Prometheus scrape
+     * endpoint on the given port and path.
+     *
+     * @deprecated The SDK should not run a web server. Expose metrics from the
+     *     embedding application instead (Spring Boot Actuator, or serve
+     *     {@link #getRegistry()}'s {@code scrape()} from your own endpoint).
+     * @throws IOException if the server cannot bind
+     * @throws IllegalStateException if this collector was constructed with a
+     *     non-Prometheus {@link MeterRegistry}
+     */
+    @Deprecated
     public void startServer(int port, String endpoint) throws IOException {
+        if (!(registry instanceof PrometheusMeterRegistry prometheusRegistry)) {
+            throw new IllegalStateException(
+                    "startServer() requires a PrometheusMeterRegistry, but this collector was "
+                            + "constructed with " + registry.getClass().getName() + ". Expose the "
+                            + "registry through your application (e.g. Spring Boot Actuator) instead.");
+        }
         var server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext(endpoint, exchange -> {
-            var body = registry.scrape();
+            var body = prometheusRegistry.scrape();
             exchange.getResponseHeaders().set("Content-Type", "text/plain");
             exchange.sendResponseHeaders(200, body.getBytes().length);
             try (var os = exchange.getResponseBody()) {

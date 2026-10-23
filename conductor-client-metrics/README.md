@@ -1,6 +1,13 @@
 # Conductor Client Metrics
 
-The `conductor-client-metrics` module provides Prometheus metrics for Java SDK clients and workers. It helps operators monitor worker polling, task execution, task result updates, payload sizes, workflow starts, and HTTP client latency.
+The `conductor-client-metrics` module records Micrometer metrics for Java SDK clients and workers. It helps operators monitor worker polling, task execution, task result updates, payload sizes, workflow starts, and HTTP client latency.
+
+The SDK **should not start a metrics web server**. Metrics are published into a Micrometer `MeterRegistry` that you supply, and exposing them for scraping is the responsibility of the embedding application:
+
+- **Spring Boot apps** hand in the application's `MeterRegistry` (the one backing `/actuator/prometheus`), so SDK metrics appear alongside the app's own metrics. This module ships a Spring Boot auto-configuration that does this automatically.
+- **Plain Java apps** create a `PrometheusMeterRegistry` (or any other registry), pass it to the collector, and expose it however they like (e.g. serve `registry.scrape()` from an HTTP endpoint they own).
+
+> **Deprecated:** the no-argument `new PrometheusMetricsCollector()` plus `startServer()` still spin up a minimal embedded scrape server for backward compatibility, but both are deprecated and will be removed in a future major release. Prefer supplying a `MeterRegistry`.
 
 ## Installation
 
@@ -16,13 +23,48 @@ dependencies {
 
 ## Usage
 
-Create a `PrometheusMetricsCollector`, start the scrape server, and pass the collector to `ConductorClient.Builder`. All downstream clients and the task runner auto-register themselves as listeners.
+### Spring Boot (recommended)
+
+Add this module and Spring Boot Actuator with the Prometheus registry to a Spring Boot worker app:
+
+```groovy
+dependencies {
+    implementation 'org.conductoross:conductor-client-metrics:5.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}
+```
+
+That's it. When a `MeterRegistry` bean is present, `ConductorMetricsAutoConfiguration` creates a `MetricsCollector` bound to it, and the Conductor Spring auto-configuration wires that collector into the client and task runner. SDK metrics then show up on the app's existing scrape endpoint (by default `/actuator/prometheus`).
+
+To serve them at a custom path/port, use the standard Actuator properties, e.g.:
+
+```yaml
+server:
+  port: 9991
+management:
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health,prometheus
+      path-mapping:
+        prometheus: metrics   # scrape endpoint at /metrics
+```
+
+To provide your own collector (or a non-Prometheus registry), just declare a `MetricsCollector` bean; the auto-configuration backs off (`@ConditionalOnMissingBean`).
+
+### Plain Java
+
+Create a registry, pass it to the collector, and expose the registry yourself. Passing the collector to `ConductorClient.Builder` auto-registers all downstream clients and the task runner as listeners.
 
 ```java
 import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(); // http://localhost:9991/metrics
+PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector(registry);
 
 ConductorClient client = ConductorClient.builder()
         .basePath("http://conductor-server:8080/api")
@@ -36,9 +78,18 @@ TaskRunnerConfigurer configurer = new TaskRunnerConfigurer.Builder(taskClient, w
         .withThreadCount(10)
         .build();
 configurer.init();
+
+// Expose the metrics from an HTTP endpoint you own, e.g.:
+// var server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(9991), 0);
+// server.createContext("/metrics", exchange -> {
+//     byte[] body = registry.scrape().getBytes();
+//     exchange.sendResponseHeaders(200, body.length);
+//     try (var os = exchange.getResponseBody()) { os.write(body); }
+// });
+// server.start();
 ```
 
-`startServer()` also accepts `(port, endpoint)` for custom scrape configurations. The client builder accepts the usual timeouts, SSL, authentication, and other options alongside `withMetricsCollector` -- none of them change how metrics wiring works.
+The client builder accepts the usual timeouts, SSL, authentication, and other options alongside `withMetricsCollector` -- none of them change how metrics wiring works.
 
 ### How Auto-Registration Works
 
@@ -59,9 +110,11 @@ For advanced use cases where you need fine-grained control over which listeners 
 
 ```java
 import com.netflix.conductor.client.metrics.prometheus.PrometheusMetricsCollector;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
-PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
-metricsCollector.startServer(); // http://localhost:9991/metrics
+PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector(registry);
 
 ConductorClient client = ConductorClient.builder()
         .basePath("http://conductor-server:8080/api")
@@ -170,9 +223,9 @@ Micrometer publishes a `*_max` Gauge alongside every Timer and DistributionSumma
 
 ### Metrics Are Empty
 
-- Verify that the collector is wired into the client. The simplest check: was `withMetricsCollector` called on `ConductorClient.Builder`?
+- Verify that the collector is wired into the client. In Spring Boot, confirm a `MeterRegistry` bean exists (add `spring-boot-starter-actuator` + `micrometer-registry-prometheus`). In plain Java, confirm `withMetricsCollector` was called on `ConductorClient.Builder`.
 - Verify workers have polled or executed tasks. Metrics are created lazily when the relevant event occurs.
-- Confirm the scrape endpoint is reachable at the expected host and port.
+- Confirm the scrape endpoint is reachable at the expected host and port (Actuator's `/actuator/prometheus` by default, or whatever your app exposes).
 
 ### Missing HTTP or Size Metrics
 
