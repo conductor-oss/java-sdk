@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
+import com.netflix.conductor.client.events.taskrunner.AdaptiveConcurrencyChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -88,6 +89,7 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     private final PrometheusMeterRegistry registry;
     private final PrometheusApiClientMetrics apiClientMetrics;
     private final ConcurrentHashMap<String, AtomicInteger> activeWorkerGauges = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicInteger> adaptiveGauges = new ConcurrentHashMap<>();
 
     public PrometheusMetricsCollector() {
         this(SHARED_REGISTRY);
@@ -196,6 +198,31 @@ public class PrometheusMetricsCollector implements MetricsCollector {
                 .set(Math.max(0, e.getCount()));
     }
 
+    // ----- Adaptive concurrency -----
+
+    @Override
+    public void consume(AdaptiveConcurrencyChanged e) {
+        String taskType = nullToEmpty(e.getTaskType());
+        adaptiveGauge("adaptive_worker_concurrency_target", "Adaptive concurrency share of the worker",
+                taskType).set(e.getTargetConcurrency());
+        adaptiveGauge("adaptive_worker_held_slots", "Slots held by the worker's polls and tasks",
+                taskType).set(e.getHeldSlots());
+        adaptiveGauge("adaptive_worker_task_slot_age_seconds",
+                "Seconds since the worker last released a task slot, while any are held; a wedged worker grows this",
+                taskType).set((int) Math.min(Integer.MAX_VALUE, e.getTaskSlotAgeSeconds()));
+        adaptiveGauge("adaptive_queue_depth", "Last sampled queue depth of the worker's task queue",
+                taskType).set(e.getQueueDepth());
+        adaptiveGauge("adaptive_process_concurrency_target", "Adaptive concurrency target of the process",
+                null).set(e.getProcessTargetConcurrency());
+        adaptiveGauge("adaptive_process_held_slots", "Slots held by all adaptive workers of the process",
+                null).set(e.getProcessHeldSlots());
+        adaptiveGauge("adaptive_admission_paused", "1 while task acquisition is paused by heap pressure",
+                null).set(e.isAdmissionPaused() ? 1 : 0);
+        counter("adaptive_concurrency_changes_total", "Adaptive concurrency observations by reason",
+                "taskType", taskType,
+                "reason", nullToEmpty(e.getReason())).increment();
+    }
+
     // ----- Task update -----
 
     @Override
@@ -290,6 +317,19 @@ public class PrometheusMetricsCollector implements MetricsCollector {
     }
 
     // ----- Helpers -----
+
+    private AtomicInteger adaptiveGauge(String name, String description, String taskType) {
+        return adaptiveGauges.computeIfAbsent(taskType == null ? name : name + "|" + taskType, k -> {
+            AtomicInteger val = new AtomicInteger(0);
+            Gauge.Builder<AtomicInteger> builder = Gauge.builder(name, val, AtomicInteger::doubleValue)
+                    .description(description);
+            if (taskType != null) {
+                builder.tag("taskType", taskType);
+            }
+            builder.register(registry);
+            return val;
+        });
+    }
 
     private Counter counter(String name, String description, String... tagKv) {
         return Counter.builder(name)

@@ -24,6 +24,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyController;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
@@ -51,6 +52,13 @@ public class ConductorWorkerAutoConfiguration {
         if (beanNames.length > 0) {
             annotatedWorkerExecutor.setMetricsCollector(applicationContext.getBean(MetricsCollector.class));
         }
+        ClientProperties clientProperties = applicationContext.getBeanProvider(ClientProperties.class).getIfAvailable();
+        if (clientProperties != null) {
+            annotatedWorkerExecutor.setUseVirtualThreads(clientProperties.isUseVirtualThreads());
+            annotatedWorkerExecutor.setUpdateV2(clientProperties.isUpdateV2());
+        }
+        applicationContext.getBeanProvider(AdaptiveConcurrencyController.class)
+                .ifAvailable(annotatedWorkerExecutor::setAdaptiveConcurrencyController);
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(Component.class);
         beans.values().forEach(annotatedWorkerExecutor::addBean);
         annotatedWorkerExecutor.startPolling();
