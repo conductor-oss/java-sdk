@@ -86,3 +86,17 @@ subprojects {
     }
 
 }
+
+// CVE scan coverage: lock the runtime classpath of the published client libraries
+// so the dependency scanner sees pinned, resolved transitive versions (committed
+// gradle.lockfile per module). Only runtimeClasspath is locked -- that is what
+// actually ships; test and compile-only configs are left unlocked.
+def publishedProjects = [
+    'conductor-client', 'conductor-client-ai', 'conductor-client-metrics',
+    'conductor-client-spring', 'conductor-client-ai-spring', 'conductor-client-spring-boot4',
+]
+configure(subprojects.findAll { it.name in publishedProjects }) {
+    configurations.matching { it.name == 'runtimeClasspath' }.configureEach {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}

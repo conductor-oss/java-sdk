@@ -13,7 +13,7 @@ ext {
 apply plugin: 'publish-config'
 
 dependencies {
-    api 'io.micrometer:micrometer-registry-prometheus:1.15.1'
+    api 'io.micrometer:micrometer-registry-prometheus:1.15.12'
     implementation project(":conductor-client")
     implementation "com.squareup.okhttp3:okhttp:${versions.okHttp}"
 
