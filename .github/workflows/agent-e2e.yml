@@ -20,8 +20,11 @@ concurrency:
   group: agent-e2e-${{ github.ref }}
   cancel-in-progress: true
 
+# Same org variable that selects the Docker image tag for the OSS integration
+# tests. Here it names a Maven Central version, so it must be a real release
+# (e.g. 3.33.0) — Maven Central has no `latest`.
 env:
-  CONDUCTOR_SERVER_VERSION: ${{ vars.CONDUCTOR_SERVER_VERSION || '3.32.1' }}
+  CONDUCTOR_SERVER_VERSION: ${{ vars.E2E_TEST_OSS_CONDUCTOR_VERSION || '3.33.0' }}
 
 jobs:
   agent-e2e:
