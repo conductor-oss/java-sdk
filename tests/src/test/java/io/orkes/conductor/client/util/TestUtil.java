@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
+import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
@@ -159,5 +160,27 @@ public class TestUtil {
     private static boolean isTerminalFailure(Workflow workflow) {
         return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
                 || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;
+    }
+
+    /**
+     * Tolerates a caught exception that represents "resource doesn't exist", in either shape a
+     * Conductor server reports it in: a proper 404, or -- on plain OSS Conductor, for the
+     * endpoints where this has been empirically confirmed -- a 500 whose message contains
+     * {@code ossMessageSubstring}. Anything else is rethrown, since it isn't the "doesn't exist"
+     * case this is meant to tolerate.
+     *
+     * <p>Both shapes are accepted regardless of {@code CONDUCTOR_SERVER_TYPE}. Keying off that
+     * variable would break two ways: {@code run-integration-oss.sh --include-gated} runs against
+     * OSS with it deliberately unset, and OSS returning a correct 404 for one of these endpoints
+     * should not start failing the suite.
+     */
+    public static void tolerateNotFound(ConductorClientException e, String ossMessageSubstring) {
+        if (e.getStatus() == 404) {
+            return;
+        }
+        if (e.getStatus() == 500 && e.getMessage() != null && e.getMessage().contains(ossMessageSubstring)) {
+            return;
+        }
+        throw e;
     }
 }

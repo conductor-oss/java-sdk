@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.model.OrkesCircuitBreakerConfig;
 import com.netflix.conductor.common.model.ServiceMethod;
@@ -30,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+        disabledReason = "the Service Registry API (/registry/service) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/registry/service')")
 public class ServiceRegistryClientTest {
 
     private static final String PROTO_FILENAME = "compiled.bin";

@@ -16,11 +16,14 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import io.orkes.conductor.client.model.GenerateTokenRequest;
 import io.orkes.conductor.client.model.TokenResponse;
 import io.orkes.conductor.client.util.ClientTestUtil;
 
+@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+        disabledReason = "the auth Token API (/token) is not implemented by plain OSS Conductor (which has no authentication layer), confirmed empirically (404 'No static resource api/token')")
 public class TokenClientTest {
 
     public static OrkesTokenClient tokenClient;

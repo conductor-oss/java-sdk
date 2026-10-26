@@ -19,11 +19,14 @@ import io.orkes.conductor.client.util.ClientTestUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+        disabledReason = "environment variable writes are not supported by plain OSS Conductor, confirmed empirically: OSS added read-only GET /environment in 3.32.0-rc.9 but PUT /environment/{key} still 405s ('Request method 'PUT' is not supported')")
 public class EnvironmentClientTests {
 
     private static EnvironmentClient envClient;
