@@ -67,6 +67,13 @@ kubectl rollout status deployment/java-sdk-harness-worker -n $NS
 | `HARNESS_WORKFLOWS_PER_SEC` | no | 2 | Workflows to start per second |
 | `HARNESS_BATCH_SIZE` | no | 20 | Thread count per worker (controls polling concurrency) |
 | `HARNESS_POLL_INTERVAL_MS` | no | 100 | Milliseconds between poll cycles |
+| `HARNESS_ADAPTIVE` | no | false | Use adaptive concurrency instead of `HARNESS_BATCH_SIZE` threads per worker |
+| `HARNESS_ADAPTIVE_MAX_PROCESS_CONCURRENCY` | no | 256 | Adaptive concurrency ceiling for the process |
+| `HARNESS_ADAPTIVE_INITIAL_PROCESS_CONCURRENCY` | no | 0 | Adaptive starting target; 0 uses min(task types, processors) |
+| `HARNESS_ADAPTIVE_MIN_PROCESS_CONCURRENCY` | no | 1 | Target an idle process decays to, so bursts do not start from one slot |
+| `HARNESS_ADAPTIVE_STANDBY_POLL_TIMEOUT_MS` | no | 1000 | Server wait of the long poll each queue keeps open on spare capacity; 0 disables it |
+| `HARNESS_ADAPTIVE_MAX_WORKER_CONCURRENCY` | no | 64 | Adaptive concurrency ceiling per worker |
+| `HARNESS_VIRTUAL_THREADS` | no | false | Run tasks on virtual threads |
 
 ## Kubernetes
 

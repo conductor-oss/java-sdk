@@ -38,6 +38,7 @@ public interface Worker {
     String PROP_POLLER_COUNT = "poller_count";
     String PROP_LEASE_EXTEND_ENABLED = "leaseExtendEnabled";
     String PROP_PAUSED = "paused";
+    String PROP_ADAPTIVE_MAX_CONCURRENCY = "adaptive_max_concurrency";
 
     /**
      * Retrieve the name of the task definition the worker is currently working on.

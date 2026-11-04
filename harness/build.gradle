@@ -4,7 +4,8 @@ plugins {
 }
 
 application {
-    mainClass = 'io.orkes.conductor.harness.HarnessMain'
+    // Override with -PharnessMain=<fqcn>, e.g. io.orkes.conductor.harness.ControllerOverheadMain
+    mainClass = providers.gradleProperty('harnessMain').getOrElse('io.orkes.conductor.harness.HarnessMain')
 }
 
 repositories {

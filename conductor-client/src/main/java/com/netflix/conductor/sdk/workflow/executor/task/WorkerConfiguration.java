@@ -41,4 +41,11 @@ public class WorkerConfiguration {
     public int getPollerCount(String taskName) {
         return 0;
     }
+
+    /**
+     * @return the worker's adaptive concurrency ceiling, or 0 to use the controller default
+     */
+    public int getAdaptiveMaxConcurrency(String taskName) {
+        return 0;
+    }
 }

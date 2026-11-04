@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
@@ -89,6 +90,9 @@ class TaskRunner {
     private Map<String, ScheduledFuture<?>> leaseExtendMap = new ConcurrentHashMap<>();
     private final AtomicInteger activeWorkerCount = new AtomicInteger(0);
     private Runnable exitAction = () -> System.exit(1);
+    // Adaptive mode only; null in fixed mode.
+    private final AdaptiveConcurrencyController adaptiveController;
+    private final WorkerQueue workerQueue;
 
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -100,6 +104,29 @@ class TaskRunner {
                List<PollFilter> pollFilters,
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean useVirtualThreads) {
+        this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
+                pollFilters, eventDispatcher, useVirtualThreads, false, null, 0);
+    }
+
+    /**
+     * @param enableUpdateV2             use update-and-fetch; the {@code taskUpdateV2} system property or
+     *                                   environment variable also enables it
+     * @param adaptiveController         controller for adaptive mode, or null for fixed mode
+     * @param adaptiveMaxConcurrency     ceiling for this worker's adaptive concurrency; ignored in fixed mode
+     */
+    TaskRunner(Worker worker,
+               TaskClient taskClient,
+               int updateRetryCount,
+               Map<String, String> taskToDomain,
+               String workerNamePrefix,
+               int threadCount,
+               int taskPollTimeout,
+               List<PollFilter> pollFilters,
+               EventDispatcher<TaskRunnerEvent> eventDispatcher,
+               boolean useVirtualThreads,
+               boolean enableUpdateV2,
+               AdaptiveConcurrencyController adaptiveController,
+               int adaptiveMaxConcurrency) {
         this.worker = worker;
         this.taskClient = taskClient;
         this.updateRetryCount = updateRetryCount;
@@ -110,7 +137,8 @@ class TaskRunner {
         this.pollFilters = pollFilters;
         this.eventDispatcher = eventDispatcher;
         this.tasksTobeExecuted = new LinkedBlockingQueue<>();
-        this.enableUpdateV2 = Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
+        this.enableUpdateV2 = enableUpdateV2 || Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
+        this.adaptiveController = adaptiveController;
 
         LOGGER.info("taskUpdateV2 is set to {} for {}", this.enableUpdateV2, worker.getTaskDefName());
         //1. Is there a worker level override?
@@ -135,21 +163,55 @@ class TaskRunner {
         this.errorAt = errorInterval;
         LOGGER.info("Polling errors will be sampled at every {} error (after the first 100 errors) for taskType {}", this.errorAt, taskType);
         this.uncaughtExceptionHandler = this::onUncaughtException;
-        ThreadFactory threadFactory = null;
-        if(useVirtualThreads) {
-            threadFactory = Thread.ofVirtual().name(workerNamePrefix).uncaughtExceptionHandler(uncaughtExceptionHandler).factory();
+        if (adaptiveController != null) {
+            ThreadFactory threadFactory;
+            if (useVirtualThreads) {
+                // Numbered names; the pattern form leaves every virtual thread with the literal prefix.
+                threadFactory = Thread.ofVirtual()
+                        .name(workerNamePrefix.replace("%d", ""), 0)
+                        .uncaughtExceptionHandler(uncaughtExceptionHandler)
+                        .factory();
+            } else {
+                threadFactory = new BasicThreadFactory.Builder()
+                        .namingPattern(workerNamePrefix)
+                        .uncaughtExceptionHandler(uncaughtExceptionHandler)
+                        .build();
+            }
+            this.workerQueue = adaptiveController.register(
+                    taskClient,
+                    taskType,
+                    domain,
+                    adaptiveMaxConcurrency,
+                    pollingIntervalInMillis,
+                    this::isPollable,
+                    threadFactory,
+                    useVirtualThreads,
+                    eventDispatcher);
+            this.executorService = workerQueue.executionPool();
+            LOGGER.info("Starting adaptive Worker for taskType '{}' with maximum concurrency {}, {} threads, {} ms polling interval and domain {}",
+                    taskType,
+                    workerQueue.maximumConcurrency,
+                    useVirtualThreads ? "virtual" : "platform",
+                    pollingIntervalInMillis,
+                    domain);
         } else {
-            threadFactory = new BasicThreadFactory.Builder()
-                .namingPattern(workerNamePrefix)
-                .uncaughtExceptionHandler(uncaughtExceptionHandler)
-                .build();
+            this.workerQueue = null;
+            ThreadFactory threadFactory = null;
+            if(useVirtualThreads) {
+                threadFactory = Thread.ofVirtual().name(workerNamePrefix).uncaughtExceptionHandler(uncaughtExceptionHandler).factory();
+            } else {
+                threadFactory = new BasicThreadFactory.Builder()
+                    .namingPattern(workerNamePrefix)
+                    .uncaughtExceptionHandler(uncaughtExceptionHandler)
+                    .build();
+            }
+            this.executorService = Executors.newFixedThreadPool(threadCount, threadFactory);
+            LOGGER.info("Starting Worker for taskType '{}' with {} threads, {} ms polling interval and domain {}",
+                    taskType,
+                    threadCount,
+                    pollingIntervalInMillis,
+                    domain);
         }
-        this.executorService = Executors.newFixedThreadPool(threadCount, threadFactory);
-        LOGGER.info("Starting Worker for taskType '{}' with {} threads, {} ms polling interval and domain {}",
-                taskType,
-                threadCount,
-                pollingIntervalInMillis,
-                domain);
         LOGGER.info("Polling errors for taskType {} will be printed at every {} occurrence.", taskType, errorAt);
 
         LOGGER.info("Initialized the task lease extend executor");
@@ -168,6 +230,10 @@ class TaskRunner {
     }
 
     public void pollAndExecute() {
+        if (workerQueue != null) {
+            pollAndExecuteAdaptive();
+            return;
+        }
         Stopwatch stopwatch = null;
         while (pollingAndExecuting) {
             if (Thread.currentThread().isInterrupted()) {
@@ -188,37 +254,84 @@ class TaskRunner {
                     LOGGER.trace("Poller for task {} waited for {} ms before getting {} tasks to execute", taskType, stopwatch.elapsed(TimeUnit.MILLISECONDS), tasks.size());
                     stopwatch = null;
                 }
-                tasks.forEach(task -> {
-                    Future<Task> taskFuture;
-                    try {
-                        taskFuture = this.executorService.submit(() -> this.processTask(task));
-                    } catch (java.util.concurrent.RejectedExecutionException e) {
-                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
-                                task.getTaskId(), taskType, e);
-                        permits.release();
-                        return;
-                    }
-
-                    if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-                        ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
-                        if (existingFuture != null) {
-                            existingFuture.cancel(false);
-                        }
-
-                        long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-                        ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                                extendLease(task, taskFuture),
-                                delay,
-                                delay,
-                                TimeUnit.SECONDS
-                        );
-                        leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
-                    }
-                });
+                tasks.forEach(this::dispatch);
             } catch (Throwable t) {
                 LOGGER.error(t.getMessage(), t);
             }
         }
+    }
+
+    private void pollAndExecuteAdaptive() {
+        while (pollingAndExecuting) {
+            if (Thread.currentThread().isInterrupted()) {
+                break; // Exit the loop if interrupted
+            }
+
+            try {
+                List<Task> tasks = pollTasksAdaptive();
+                tasks.forEach(this::dispatch);
+            } catch (Throwable t) {
+                LOGGER.error(t.getMessage(), t);
+            }
+        }
+    }
+
+    /**
+     * Submits a task that owns a slot to the executor and schedules its lease extension. Used for polled tasks and
+     * for tasks returned by update-and-fetch.
+     */
+    private void dispatch(Task task) {
+        Future<Task> taskFuture;
+        try {
+            taskFuture = this.executorService.submit(() -> this.processTask(task));
+        } catch (Throwable e) {
+            LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                    task.getTaskId(), taskType, e);
+            releaseSlot();
+            return;
+        }
+
+        // The submitted task owns the slot now; a failure below must neither leak nor double-release it.
+        if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
+            try {
+                ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+                if (existingFuture != null) {
+                    existingFuture.cancel(false);
+                }
+
+                long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
+                ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                        extendLease(task, taskFuture),
+                        delay,
+                        delay,
+                        TimeUnit.SECONDS
+                );
+                leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+            } catch (RejectedExecutionException e) {
+                LOGGER.warn("Unable to schedule lease extension for task {} (likely shutting down); "
+                        + "the task runs without lease extension", task.getTaskId(), e);
+            }
+        }
+    }
+
+    private void releaseSlot() {
+        if (workerQueue != null) {
+            adaptiveController.releaseTaskSlot(workerQueue);
+        } else {
+            permits.release();
+        }
+    }
+
+    private boolean isPollable() {
+        if (worker.paused()) {
+            return false;
+        }
+        for (PollFilter filter : pollFilters) {
+            if (!filter.filter(taskType, domain)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void shutdown(int timeout) {
@@ -232,6 +345,11 @@ class TaskRunner {
             if (!leaseExtendExecutorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
                 LOGGER.warn("Lease extend executor service did not terminate within {} seconds, forcing shutdown", timeout);
                 leaseExtendExecutorService.shutdownNow();
+            }
+
+            // Pollers of one logical queue share its execution pool; the last one to leave drains it.
+            if (workerQueue != null && !adaptiveController.deregister(workerQueue)) {
+                return;
             }
             
             executorService.shutdown();
@@ -294,32 +412,113 @@ class TaskRunner {
             eventDispatcher.publish(new PollCompleted(taskType, elapsed));
         } catch (Throwable e) {
             permits.release(pollCount - tasks.size());
-
-            if (hasFatalAuthCause(e)) {
-                LOGGER.error("Fatal authentication failure — terminating JVM");
-                exitAction.run();
-            }
-
-            //For the first 100 errors, just print them as is...
-            boolean printError = pollingErrorCount < 100 || pollingErrorCount % errorAt == 0;
-            pollingErrorCount++;
-            if (pollingErrorCount > 10_000_000) {
-                //Reset after 10 million errors
-                pollingErrorCount = 0;
-            }
-            if (printError) {
-                LOGGER.error("Error polling for taskType: {}, error = {}", taskType, e.getMessage(), e);
-            }
-
-            if (stopwatch.isRunning()) {
-                stopwatch.stop();
-            }
-
-            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-            eventDispatcher.publish(new PollFailure(taskType, elapsed, e));
+            onPollError(e, stopwatch);
         }
 
         return tasks;
+    }
+
+    /**
+     * Adaptive counterpart of {@link #pollTasksForWorker()}: slots come from the controller instead of the
+     * semaphore, and an empty response or error sets a backoff instead of sleeping for the polling interval.
+     */
+    private List<Task> pollTasksAdaptive() {
+        if (worker.paused()) {
+            LOGGER.trace("Worker {} has been paused. Not polling anymore!", worker.getClass());
+            eventDispatcher.publish(new TaskPaused(taskType));
+            Uninterruptibles.sleepUninterruptibly(pollingIntervalInMillis, TimeUnit.MILLISECONDS);
+            return List.of();
+        }
+
+        for (PollFilter filter : pollFilters) {
+            if (!filter.filter(taskType, domain)) {
+                LOGGER.trace("Filter returned false, not polling.");
+                Uninterruptibles.sleepUninterruptibly(pollingIntervalInMillis, TimeUnit.MILLISECONDS);
+                return List.of();
+            }
+        }
+
+        long pollDelay = adaptiveController.pollDelayNanos(workerQueue);
+        if (pollDelay > 0) {
+            // Bounded so pause and shutdown are re-checked at least once a second.
+            Uninterruptibles.sleepUninterruptibly(Math.min(pollDelay, TimeUnit.SECONDS.toNanos(1)), TimeUnit.NANOSECONDS);
+            return List.of();
+        }
+
+        SlotReservation reservation = adaptiveController.reserve(workerQueue, () -> pollingAndExecuting);
+        if (reservation == null) {
+            return List.of();
+        }
+
+        eventDispatcher.publish(new PollStarted(taskType));
+        long pollStartedAt = adaptiveController.now();
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        List<Task> tasks;
+        try {
+            LOGGER.trace("Polling task of type: {} in domain: '{}' with size {}", taskType, domain, reservation.count());
+            tasks = taskClient.batchPollTasksInDomain(taskType, domain, worker.getIdentity(),
+                    reservation.count(), adaptivePollTimeout(reservation));
+        } catch (Throwable e) {
+            adaptiveController.failPoll(reservation, pollStartedAt);
+            onPollError(e, stopwatch);
+            return List.of();
+        }
+        if (tasks == null) {
+            tasks = List.of();
+        }
+        adaptiveController.completePoll(reservation, tasks.size(), pollStartedAt);
+
+        // The returned tasks own their slots now; a bookkeeping failure must not drop them.
+        try {
+            long receiveTime = System.currentTimeMillis();
+            for (Task task : tasks) {
+                task.getExecutionMetadata().setClientReceiveTime(receiveTime);
+            }
+            stopwatch.stop();
+            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            LOGGER.trace("Time taken to poll {} task with a batch size of {} is {} ms", taskType, tasks.size(), elapsed);
+            eventDispatcher.publish(new PollCompleted(taskType, elapsed));
+        } catch (Throwable e) {
+            LOGGER.warn("Poll bookkeeping failed for {}; the polled tasks still execute", taskType, e);
+        }
+        return tasks;
+    }
+
+    /**
+     * A heartbeat does not wait on the server: its slot is spare capacity other queues may need. A standby poll waits
+     * for the standby timeout, which bounds how long a queue whose share grows waits for that slot.
+     */
+    private int adaptivePollTimeout(SlotReservation reservation) {
+        return switch (reservation.kind()) {
+            case HEARTBEAT -> 0;
+            case STANDBY -> (int) adaptiveController.getConfig().getStandbyPollTimeout().toMillis();
+            case SHARE -> this.taskPollTimeout;
+        };
+    }
+
+    private void onPollError(Throwable e, Stopwatch stopwatch) {
+        if (hasFatalAuthCause(e)) {
+            LOGGER.error("Fatal authentication failure — terminating JVM");
+            exitAction.run();
+        }
+
+        //For the first 100 errors, just print them as is...
+        boolean printError = pollingErrorCount < 100 || pollingErrorCount % errorAt == 0;
+        pollingErrorCount++;
+        if (pollingErrorCount > 10_000_000) {
+            //Reset after 10 million errors
+            pollingErrorCount = 0;
+        }
+        if (printError) {
+            LOGGER.error("Error polling for taskType: {}, error = {}", taskType, e.getMessage(), e);
+        }
+
+        if (stopwatch.isRunning()) {
+            stopwatch.stop();
+        }
+
+        long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+        eventDispatcher.publish(new PollFailure(taskType, elapsed, e));
     }
 
     private List<Task> pollTask(int count) {
@@ -373,8 +572,9 @@ class TaskRunner {
         LOGGER.trace("Executing task: {} of type: {} in worker: {} at {}", task.getTaskId(), taskType, worker.getClass().getSimpleName(), worker.getIdentity());
         LOGGER.trace("task {} is getting executed after {} ms of getting polled", task.getTaskId(), (System.currentTimeMillis() - task.getStartTime()));
         Stopwatch stopwatch = Stopwatch.createStarted();
+        TaskInvocation invocation = new TaskInvocation();
         try {
-            executeTask(worker, task);
+            executeTask(worker, task, invocation);
             stopwatch.stop();
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             LOGGER.trace(
@@ -384,16 +584,21 @@ class TaskRunner {
         } catch (Throwable t) {
             task.setStatus(Task.Status.FAILED);
             TaskResult result = new TaskResult(task);
-            handleException(t, result, worker, task);
+            handleException(t, result, worker, task, invocation);
         } finally {
             cancelLeaseExtension(task.getTaskId());
-            permits.release();
+            if (invocation.replacementTask != null) {
+                // The replacement takes over this task's slot.
+                dispatch(invocation.replacementTask);
+            } else {
+                releaseSlot();
+            }
             eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
         }
         return task;
     }
 
-    private void executeTask(Worker worker, Task task) {
+    private void executeTask(Worker worker, Task task, TaskInvocation invocation) {
         if (task == null || task.getTaskDefName().isEmpty()) {
             LOGGER.warn("Empty task {}", worker.getTaskDefName());
             return;
@@ -442,7 +647,7 @@ class TaskRunner {
                 task.setStatus(Task.Status.FAILED);
                 result = new TaskResult(task);
             }
-            handleException(e, result, worker, task);
+            handleException(e, result, worker, task, invocation);
         }
 
         LOGGER.trace(
@@ -451,10 +656,10 @@ class TaskRunner {
                 worker.getClass().getSimpleName(),
                 worker.getIdentity(),
                 result.getStatus());
-        updateTaskResult(updateRetryCount, task, result, worker);
+        updateTaskResult(updateRetryCount, task, result, worker, invocation);
     }
 
-    private void updateTaskResult(int count, Task task, TaskResult result, Worker worker) {
+    private void updateTaskResult(int count, Task task, TaskResult result, Worker worker, TaskInvocation invocation) {
         Stopwatch updateStopwatch = Stopwatch.createStarted();
         try {
             // upload if necessary
@@ -475,14 +680,21 @@ class TaskRunner {
             result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
-            if(enableUpdateV2) {
+            if(enableUpdateV2 && isReplacementAllowed(invocation)) {
                 Task nextTask = retryOperation(
                         (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
                         count,
                         result,
                         "updateTaskV2");
                 if (nextTask != null) {
-                    tasksTobeExecuted.add(nextTask);
+                    if (workerQueue != null) {
+                        // Dispatched with this task's slot once the invocation finishes.
+                        adaptiveController.recordReplacement(workerQueue);
+                        nextTask.getExecutionMetadata().setClientReceiveTime(System.currentTimeMillis());
+                        invocation.replacementTask = nextTask;
+                    } else {
+                        tasksTobeExecuted.add(nextTask);
+                    }
                 }
             } else {
                 retryOperation(
@@ -547,14 +759,34 @@ class TaskRunner {
         throw new RuntimeException("Exhausted retries performing " + opName);
     }
 
-    private void handleException(Throwable t, TaskResult result, Worker worker, Task task) {
+    private void handleException(Throwable t, TaskResult result, Worker worker, Task task, TaskInvocation invocation) {
         LOGGER.error(String.format("Error while executing task %s", task.toString()), t);
         result.setStatus(TaskResult.Status.FAILED);
         result.setReasonForIncompletion("Error while executing the task: " + t);
         StringWriter stringWriter = new StringWriter();
         t.printStackTrace(new PrintWriter(stringWriter));
         result.log(stringWriter.toString());
-        updateTaskResult(updateRetryCount, task, result, worker);
+        updateTaskResult(updateRetryCount, task, result, worker, invocation);
+    }
+
+    /**
+     * In adaptive mode a replacement is requested at most once per invocation, and only when the controller would
+     * grant the freed slot back to this worker. A worker that fails after a successful update reports again with
+     * the plain update.
+     */
+    private boolean isReplacementAllowed(TaskInvocation invocation) {
+        if (workerQueue == null) {
+            return true;
+        }
+        return invocation.replacementTask == null && adaptiveController.isReplacementAllowed(workerQueue);
+    }
+
+    /**
+     * Per-invocation state of {@link #processTask(Task)}.
+     */
+    private static final class TaskInvocation {
+        // Task returned by update-and-fetch that takes over this invocation's slot; adaptive mode only.
+        Task replacementTask;
     }
 
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {

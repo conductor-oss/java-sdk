@@ -24,12 +24,14 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyController;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.TaskClient;
@@ -78,6 +80,13 @@ public class ConductorClientAutoConfiguration {
         return new AnnotatedWorkerExecutor(taskClient);
     }
 
+    @Bean
+    @ConditionalOnProperty(prefix = "conductor.client.adaptive-concurrency", name = "enabled", havingValue = "true")
+    @ConditionalOnMissingBean
+    public AdaptiveConcurrencyController adaptiveConcurrencyController(ClientProperties clientProperties) {
+        return new AdaptiveConcurrencyController(clientProperties.getAdaptiveConcurrency().toConfig());
+    }
+
     @Bean(initMethod = "init", destroyMethod = "shutdown")
     @ConditionalOnBean(ConductorClient.class)
     @ConditionalOnMissingBean
@@ -85,7 +94,8 @@ public class ConductorClientAutoConfiguration {
                                                      TaskClient taskClient,
                                                      ClientProperties clientProperties,
                                                      List<Worker> workers,
-                                                     Optional<MetricsCollector> metricsCollector) {
+                                                     Optional<MetricsCollector> metricsCollector,
+                                                     Optional<AdaptiveConcurrencyController> adaptiveConcurrencyController) {
         Map<String, Integer> taskThreadCount = new HashMap<>();
         for (Worker worker : workers) {
             String key = "conductor.worker." + worker.getTaskDefName() + ".threadCount";
@@ -107,8 +117,22 @@ public class ConductorClientAutoConfiguration {
                 .withUpdateRetryCount(clientProperties.getUpdateRetryCount())
                 .withTaskToDomain(clientProperties.getTaskToDomain())
                 .withShutdownGracePeriodSeconds(clientProperties.getShutdownGracePeriodSeconds())
-                .withTaskPollTimeout(clientProperties.getTaskPollTimeout());
+                .withTaskPollTimeout(clientProperties.getTaskPollTimeout())
+                .withUseVirtualThreads(clientProperties.isUseVirtualThreads())
+                .withUpdateV2(clientProperties.isUpdateV2());
         metricsCollector.ifPresent(builder::withMetricsCollector);
+        adaptiveConcurrencyController.ifPresent(controller -> {
+            var workerConfiguration = new SpringWorkerConfiguration(env);
+            Map<String, Integer> taskAdaptiveMaxConcurrency = new HashMap<>();
+            for (Worker worker : workers) {
+                int maxConcurrency = workerConfiguration.getAdaptiveMaxConcurrency(worker.getTaskDefName());
+                if (maxConcurrency > 0) {
+                    taskAdaptiveMaxConcurrency.put(worker.getTaskDefName(), maxConcurrency);
+                }
+            }
+            builder.withAdaptiveConcurrency(controller)
+                    .withTaskAdaptiveMaxConcurrency(taskAdaptiveMaxConcurrency);
+        });
         return builder.build();
     }
 
