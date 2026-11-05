@@ -34,6 +34,8 @@ public class Http extends Task<Http> {
 
     private final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
+    private boolean asyncComplete;
+
     private Input httpRequest;
 
     public Http(String taskReferenceName) {
@@ -45,6 +47,7 @@ public class Http extends Task<Http> {
 
     Http(WorkflowTask workflowTask) {
         super(workflowTask);
+        this.asyncComplete = Boolean.TRUE.equals(workflowTask.isAsyncComplete());
 
         Object inputRequest = workflowTask.getInputParameters().get(INPUT_PARAM);
         if (inputRequest != null) {
@@ -54,6 +57,15 @@ public class Http extends Task<Http> {
                 LOGGER.error("Error while trying to convert input request " + e.getMessage(), e);
             }
         }
+    }
+
+    public Http asyncComplete(boolean asyncComplete) {
+        this.asyncComplete = asyncComplete;
+        return this;
+    }
+
+    public boolean isAsyncComplete() {
+        return asyncComplete;
     }
 
     public Http input(Input httpRequest) {
@@ -92,6 +104,7 @@ public class Http extends Task<Http> {
 
     @Override
     protected void updateWorkflowTask(WorkflowTask workflowTask) {
+        workflowTask.setAsyncComplete(asyncComplete);
         workflowTask.getInputParameters().put(INPUT_PARAM, httpRequest);
     }
 
