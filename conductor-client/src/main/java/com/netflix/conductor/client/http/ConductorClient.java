@@ -154,6 +154,15 @@ public class ConductorClient {
         this(new Builder<>().basePath(basePath));
     }
 
+    /**
+     * A client configured from the environment: the server from {@code CONDUCTOR_SERVER_URL}
+     * (default {@code http://localhost:8080/api}), and key credentials from {@code
+     * CONDUCTOR_AUTH_KEY} and {@code CONDUCTOR_AUTH_SECRET} when both are set.
+     */
+    public static ConductorClient fromEnvironment() {
+        return new io.orkes.conductor.client.ApiClient();
+    }
+
     public String getBasePath() {
         return basePath;
     }

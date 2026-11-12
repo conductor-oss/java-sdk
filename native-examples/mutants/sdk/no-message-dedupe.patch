@@ -1,0 +1,12 @@
+diff --git a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+--- a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
++++ b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+@@ -353,7 +353,7 @@
+             String name = String.valueOf(payload.get("name"));
+             // the sender's id survives a retried send; the queue's id does not
+             String id = payload.get("id") != null ? String.valueOf(payload.get("id")) : String.valueOf(message.get("id"));
+-            if (seen.contains(id)) {
++            if (false) { // mutant no-message-dedupe
+                 LOGGER.debug("message {} of execution {} was already handled", id, exec.workflowId);
+                 continue;
+             }

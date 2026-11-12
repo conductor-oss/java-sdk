@@ -1,0 +1,12 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -613,7 +613,7 @@
+         int n = out.get(OUTPUT_N) instanceof Number number ? number.intValue() : -1;
+         if (!marker.isLeased()
+                 || marker.getN() != n
+-                || marker.getEpoch() != epoch
++                || false // mutant ignore-epoch
+                 // the lease ran out and another continuation has run since: this result was
+                 // computed without it, so the continuation runs again
+                 || !messageId.equals(state.getActiveContinuation())) {

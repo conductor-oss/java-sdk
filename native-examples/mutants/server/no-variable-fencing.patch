@@ -1,0 +1,22 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -1292,7 +1292,7 @@
+         if (changed == null || changed.isEmpty()) {
+             return;
+         }
+-        Map<String, Object> base = mapOrNull(output.get(OUTPUT_RESUMED_WITH));
++        Map<String, Object> base = null; // mutant no-variable-fencing
+         if (base != null) {
+             // apply only what this continuation changed, so a value another completion wrote
+             // since this continuation read the variables is kept (see variableConflict)
+@@ -1324,6 +1324,9 @@
+      * one's writes with its stale copy. The caller runs a conflicting continuation again.
+      */
+     public String variableConflict(WorkflowModel workflow, Map<String, Object> output) {
++        if (true) { // mutant no-variable-fencing
++            return null;
++        }
+         Map<String, Object> base = mapOrNull(output.get(OUTPUT_RESUMED_WITH));
+         Object raw = output.get(OUTPUT_VARIABLES);
+         if (base == null || !(raw instanceof Map)) {

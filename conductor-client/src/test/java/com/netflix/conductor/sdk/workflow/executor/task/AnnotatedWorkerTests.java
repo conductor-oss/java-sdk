@@ -414,4 +414,29 @@ public class AnnotatedWorkerTests {
         final RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> annotatedWorker.execute(task));
         assertInstanceOf(IllegalArgumentException.class, runtimeException.getCause());
     }
+
+    public enum Shade {
+        DARK
+    }
+
+    public static class EnumWorker {
+        @com.netflix.conductor.sdk.workflow.task.WorkerTask("enum_result")
+        public Shade doWork() {
+            return Shade.DARK;
+        }
+    }
+
+    @Test
+    @DisplayName("a result that is not a JSON object is carried under result")
+    void enumResult() throws NoSuchMethodException {
+        var worker = new EnumWorker();
+        var annotatedWorker =
+                new AnnotatedWorker("enum_result", worker.getClass().getMethod("doWork"), worker);
+        var task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+
+        var result = annotatedWorker.execute(task);
+
+        assertEquals("DARK", result.getOutputData().get("result"));
+    }
 }

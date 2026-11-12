@@ -134,6 +134,11 @@ public class AnnotatedWorker implements Worker {
                 Type type = parameters[i].getParameterizedType();
                 Class<?> parameterType = parameterTypes[i];
                 values[i] = getInputValue(task, parameterType, type, paramAnnotation);
+            } else if (parameters[i].isNamePresent()
+                    && task.getInputData().containsKey(parameters[i].getName())) {
+                // Compiled with -parameters and the input has a key with the parameter's name, as
+                // native workflows send it: bind that value.
+                values[i] = convertNamed(task.getInputData().get(parameters[i].getName()), parameters[i]);
             } else {
                 values[i] = convertValue(task.getInputData(), parameterTypes[i]);
             }
@@ -187,6 +192,13 @@ public class AnnotatedWorker implements Worker {
         } else {
             return convertValue(value, parameterType);
         }
+    }
+
+    private Object convertNamed(Object value, Parameter parameter) {
+        if (value == null) {
+            return parameter.getType().isPrimitive() ? convertValue(0, parameter.getType()) : null;
+        }
+        return om.convertValue(value, om.getTypeFactory().constructType(parameter.getParameterizedType()));
     }
 
     private Object convertValue(Object source, Class<?> targetType) {
@@ -257,8 +269,13 @@ public class AnnotatedWorker implements Worker {
             return result;
 
         } else {
-            Map resultAsMap = om.convertValue(invocationResult, Map.class);
-            result.getOutputData().putAll(resultAsMap);
+            // an object spreads into the output; anything else (an enum, a date, an array) is one value
+            Object plain = om.convertValue(invocationResult, Object.class);
+            if (plain instanceof Map) {
+                result.getOutputData().putAll((Map) plain);
+            } else {
+                result.getOutputData().put("result", plain);
+            }
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;
         }

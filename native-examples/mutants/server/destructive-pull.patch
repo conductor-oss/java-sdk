@@ -1,0 +1,29 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java b/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
+@@ -327,7 +327,7 @@
+      */
+     private long reserveSeconds(TaskModel task, WorkflowSystemTask systemTask) {
+         return isStartIdempotent(task)
+-                        || systemTask.isExecuteIdempotent()
++                        || false // mutant destructive-pull
+                 ? SHORT_RESERVE_CALLBACKS * systemTaskCallbackTime
+                 : effectiveResponseTimeoutSeconds(task);
+     }
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/tasks/PullWorkflowMessages.java b/core/src/main/java/com/netflix/conductor/core/execution/tasks/PullWorkflowMessages.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/tasks/PullWorkflowMessages.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/tasks/PullWorkflowMessages.java
+@@ -83,12 +83,7 @@
+             // claimed under the task's reference name (unique per loop iteration), so running
+             // this task again returns the same messages rather than losing the first run's
+             // fenced by the loop iteration: a stale run of an older pull takes nothing new
+-            messages =
+-                    dao.claim(
+-                            workflow.getWorkflowId(),
+-                            batchSize,
+-                            task.getReferenceTaskName(),
+-                            task.getIteration());
++            messages = dao.pop(workflow.getWorkflowId(), batchSize); // mutant destructive-pull
+         } catch (RuntimeException e) {
+             // The pop rolled back, so the messages are still queued. Stay IN_PROGRESS and try
+             // again on the next poll instead of leaving the task unscheduled.

@@ -3,9 +3,11 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'signing'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.5'
     id 'groovy'
 }
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 ext {
     artifactName = 'Conductor Client'
@@ -14,8 +16,24 @@ ext {
 
 apply plugin: 'publish-config'
 
+configurations {
+    // compiled and tested against, shipped inside the jar, never listed in the POM
+    bundled
+    compileOnly.extendsFrom bundled
+    testImplementation.extendsFrom bundled
+}
+
 dependencies {
     api "com.squareup.okhttp3:okhttp:${versions.okHttp}"
+
+    // Bundled into the jar under org.conductoross.conductor.shaded (see bundledJar below), so they
+    // are not dependencies of the published artifact and cannot clash with an application's own.
+    // ASM reads compiled workflow code to draw untaken branches and definitions; ByteBuddy
+    // generates the task stubs a workflow's task calls go through.
+    bundled 'org.ow2.asm:asm:9.9'
+    bundled 'org.ow2.asm:asm-tree:9.9'
+    bundled 'org.ow2.asm:asm-analysis:9.9'
+    bundled 'net.bytebuddy:byte-buddy:1.18.3'
 
     // test dependencies
     testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
@@ -39,9 +57,40 @@ test {
     maxParallelForks = 1
 }
 
+def relocateBundled = { task ->
+    task.relocate 'net.bytebuddy', 'org.conductoross.conductor.shaded.bytebuddy'
+    task.relocate 'org.objectweb.asm', 'org.conductoross.conductor.shaded.asm'
+    task.exclude 'module-info.class', 'META-INF/versions/*/module-info.class'
+    // ByteBuddy is a multi-release jar: keep its Java 9 and Java 24 classes in use
+    task.manifest { attributes 'Multi-Release': 'true' }
+}
+
 shadowJar {
     archiveFileName = "conductor-client-$version-all.jar"
+    configurations = [project.configurations.runtimeClasspath, project.configurations.bundled]
     mergeServiceFiles()
+    relocateBundled(it)
+}
+
+// The module's jar: its classes plus the bundled libraries, relocated. It replaces the plain jar
+// for everything that uses this module, the published artifact and the other modules here alike.
+def bundledJar = tasks.register('bundledJar', ShadowJar) {
+    from sourceSets.main.output
+    configurations = [project.configurations.bundled]
+    archiveClassifier = ''
+    mergeServiceFiles()
+    relocateBundled(it)
+}
+
+jar {
+    archiveClassifier = 'plain'
+}
+
+['apiElements', 'runtimeElements'].each { name ->
+    configurations.named(name) {
+        outgoing.artifacts.clear()
+        outgoing.artifact(bundledJar)
+    }
 }
 
 tasks.build {

@@ -15,6 +15,7 @@ package com.netflix.conductor.client.spring;
 import java.lang.reflect.Method;
 import java.time.Duration;
 
+import org.conductoross.conductor.sdk.Conductor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -31,6 +32,9 @@ import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
+
+import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -161,5 +165,25 @@ class ConductorClientAutoConfigurationTest {
         ConductorClient conductorClient() {
             return USER_CLIENT;
         }
+    }
+
+    @Test
+    void conductorBeanWrapsTheClientBean() {
+        contextRunner
+                .withPropertyValues("conductor.client.base-path=http://localhost:8080/api")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(Conductor.class);
+                    assertThat(context.getBean(Conductor.class).client())
+                            .isSameAs(context.getBean(ConductorClient.class));
+                });
+    }
+
+    @Test
+    void conductorBeanUsesTheOrkesClientWhenOneIsConfigured() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(
+                        OrkesConductorClientAutoConfiguration.class, ConductorClientAutoConfiguration.class))
+                .withPropertyValues("conductor.client.root-uri=http://localhost:8080/api")
+                .run(context -> assertThat(context.getBean(Conductor.class).client()).isInstanceOf(ApiClient.class));
     }
 }

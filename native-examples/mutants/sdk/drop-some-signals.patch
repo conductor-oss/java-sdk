@@ -1,0 +1,13 @@
+diff --git a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+--- a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
++++ b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+@@ -358,6 +358,9 @@
+                 continue;
+             }
+             seen.add(id);
++            if ("signal".equals(kind) && Math.floorMod(id.hashCode(), 50) == 0) {
++                continue; // mutant drop-some-signals: loses about one signal in 50
++            }
+             // a query (sent as a message by older clients) must not change the execution:
+             // whatever its handler does to the instance is undone
+             Map<String, Object> beforeQuery = "query".equals(kind) ? spec.captureVariables(instance) : null;

@@ -186,6 +186,21 @@ public class Task {
      */
     private Map<String, String> runtimeMetadata;
 
+    /**
+     * Set on a task of a native (code-first) workflow that the code paused on: when the task
+     * finishes, the server hands this continuation to a host of the workflow code.
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private TaskContinuation continuation;
+
+    public TaskContinuation getContinuation() {
+        return continuation;
+    }
+
+    public void setContinuation(TaskContinuation continuation) {
+        this.continuation = continuation;
+    }
+
     public void setInputData(Map<String, Object> inputData) {
         if (inputData == null) {
             inputData = new HashMap<>();
@@ -300,6 +315,7 @@ public class Task {
         copy.setSubworkflowChanged(subworkflowChanged);
         copy.setParentTaskId(parentTaskId);
         copy.setFirstStartTime(firstStartTime);
+        copy.setContinuation(continuation);
         return copy;
     }
 

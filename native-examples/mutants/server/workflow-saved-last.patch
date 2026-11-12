@@ -1,0 +1,15 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java b/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
+@@ -1081,9 +1081,9 @@
+                                 completion.ackId,
+                                 completion.retryDelaySeconds)
+                         : null;
+-        // the definition that holds the fragment first, then the marker that says it applied
+-        executionDAOFacade.updateWorkflow(workflow);
++        // mutant workflow-saved-last: the marker first, then the definition
+         executionDAOFacade.updateTasks(completion.touchedTasks);
++        executionDAOFacade.updateWorkflow(workflow);
+         if (completion.ackQueue != null) {
+             queueDAO.remove(completion.ackQueue, completion.ackId);
+         }

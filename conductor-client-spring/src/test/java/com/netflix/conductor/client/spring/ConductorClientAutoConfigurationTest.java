@@ -14,9 +14,15 @@ package com.netflix.conductor.client.spring;
 
 import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.client.FileClientProperties;
+import org.conductoross.conductor.sdk.Conductor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+
+import com.netflix.conductor.client.http.ConductorClient;
+
+import io.orkes.conductor.client.ApiClient;
+import io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,4 +55,23 @@ class ConductorClientAutoConfigurationTest {
                 });
     }
 
+    @Test
+    void conductorBeanWrapsTheClientBean() {
+        contextRunner
+                .withPropertyValues("conductor.client.base-path=http://localhost:8080/api")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(Conductor.class);
+                    assertThat(context.getBean(Conductor.class).client())
+                            .isSameAs(context.getBean(ConductorClient.class));
+                });
+    }
+
+    @Test
+    void conductorBeanUsesTheOrkesClientWhenOneIsConfigured() {
+        new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(
+                        OrkesConductorClientAutoConfiguration.class, ConductorClientAutoConfiguration.class))
+                .withPropertyValues("conductor.client.root-uri=http://localhost:8080/api")
+                .run(context -> assertThat(context.getBean(Conductor.class).client()).isInstanceOf(ApiClient.class));
+    }
 }

@@ -1,0 +1,13 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -923,6 +923,9 @@
+      * yet in the copy of the definition being read.
+      */
+     public static boolean lanesSettled(WorkflowModel workflow, List<String> tails) {
++        if (true) { // mutant join-ignores-lanes
++            return true;
++        }
+         for (String ref : tails) {
+             TaskModel task = workflow.getTaskByRefName(ref);
+             if (task == null || !task.getStatus().isTerminal()) {

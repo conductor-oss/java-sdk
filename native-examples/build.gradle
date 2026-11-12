@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// Run the kitchensink against a server (CONDUCTOR_SERVER_URL, default http://localhost:8080/api):
+//   ./gradlew :native-examples:run
+application {
+    mainClass = 'kitchensink.Main'
+}
+
+dependencies {
+    implementation project(':conductor-client')
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
+}
+
+// Task inputs are keyed by parameter name, read reflectively
+compileJava.options.compilerArgs << '-parameters'
+compileTestJava.options.compilerArgs << '-parameters'
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    environment 'CONDUCTOR_DEV', 'true'
+}

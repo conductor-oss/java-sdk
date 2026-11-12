@@ -1,0 +1,13 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java b/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/AsyncSystemTaskExecutor.java
+@@ -277,6 +277,9 @@
+ 
+     /** Whether the stored task is already terminal, finished by some other run of it. */
+     private boolean completedElsewhere(TaskModel task) {
++        if (true) { // mutant no-stale-write-guard
++            return false;
++        }
+         try {
+             // the stored row only; no payloads needed to read the status
+             com.netflix.conductor.common.metadata.tasks.Task stored =
