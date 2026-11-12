@@ -21,7 +21,15 @@ import java.util.Map;
 import com.netflix.conductor.common.metadata.tasks.TaskType;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 
-/** Switch Task */
+/**
+ * Switch Task.
+ *
+ * <p>By default the case expression is a value parameter, or a JavaScript statement when {@code
+ * useJavascript} is true. Call {@link #evaluatorType(String)} to use another server evaluator. For
+ * example, {@link #DECISION_NAME} lets the server choose the branch with a decision model: pass
+ * {@code model}, {@code state}, {@code questions} and optional {@code provider} as inputs, and set
+ * the case expression to the name of the choice question whose choices match the case names.
+ */
 public class Switch extends Task<Switch> {
 
     public static final String VALUE_PARAM_NAME = "value-param";
@@ -140,6 +148,14 @@ public class Switch extends Task<Switch> {
 
     public Map<String, List<Task<?>>> getBranches() {
         return branches;
+    }
+
+    /**
+     * Returns the evaluator type set explicitly or read from a workflow definition; null if
+     * neither.
+     */
+    public String getEvaluatorType() {
+        return evaluatorType;
     }
 
     @Override

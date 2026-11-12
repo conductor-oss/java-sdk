@@ -226,8 +226,8 @@ public class AgentConfigSerializer {
             Map<String, Object> selector = new LinkedHashMap<>();
             selector.put("name", router.getName());
             selector.put("kind", "decision");
-            selector.put("model", config.get("model"));
-            selector.put("questions", config.get("questions"));
+            selector.put("model", model);
+            selector.put("questions", questions);
             if (config.get("provider") != null) {
                 selector.put("provider", config.get("provider"));
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Conductor Authors.
+ * Copyright 2025 Conductor Authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package com.netflix.conductor.sdk.workflow.def;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,8 @@ class DecisionSwitchTest {
                 .input("model", "jev-1.13").input("state", "${workflow.input.request}")
                 .input("questions", Map.of("route", Map.of("type", "choice")))
                 .switchCase("billing", new Javascript("billing", "'invoice'"));
+        assertEquals(Switch.DECISION_NAME, decision.getEvaluatorType());
+        assertNull(new Switch("route", "${workflow.input.route}").getEvaluatorType());
         WorkflowTask task = decision.getWorkflowDefTasks().get(0);
         assertEquals("SWITCH", task.getType());
         assertEquals("decision", task.getEvaluatorType());
@@ -44,7 +47,7 @@ class DecisionSwitchTest {
     @Test
     void roundTripsDecisionAndLegacySwitchesThroughTaskRegistry() {
         WorkflowExecutor.initTaskImplementations();
-        for (Switch original : java.util.List.of(
+        for (Switch original : List.of(
                 new Switch("decision", "route").evaluatorType("decision")
                         .input("model", "jev-1.13").switchCase("billing", new Javascript("handle", "'invoice'")),
                 new Switch("value", "${workflow.input.route}"),

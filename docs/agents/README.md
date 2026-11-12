@@ -33,7 +33,7 @@ Replace `<VERSION>` with a published version from [Maven Central](https://search
 
 ## Decision inference examples
 
-These examples require a server with the synchronous decision evaluator and server-managed Decision credentials. No Java decision worker is needed. The router and tool examples also require a configured chat provider. Set `CONDUCTOR_DECISION_PROVIDER=openrouter` when using OpenRouter and optionally `CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini`.
+These examples require conductor-oss 3.33.0+ (synchronous decision evaluator) with server-managed Decision credentials. No Java decision worker is needed. The router and tool examples also require a configured chat provider. Set `CONDUCTOR_DECISION_PROVIDER=openrouter` when using OpenRouter and optionally `CONDUCTOR_AGENT_LLM_MODEL=openai/gpt-4o-mini`.
 
 - [Traditional workflow](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/ExampleDecisionRouting.java): one decision-backed SWITCH chooses billing or technical INLINE handling and returns the selected result, answers, usage, cost, and latency.
 - [Decision router](../../agent-examples/src/main/java/org/conductoross/conductor/ai/examples/ExampleDecisionRouter.java): a decision `ToolDef` selects a child chat agent; `synthesize(false)` returns its result directly.

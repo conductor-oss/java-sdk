@@ -12,6 +12,7 @@
  */
 package org.conductoross.conductor.ai;
 
+import java.util.List;
 import java.util.Map;
 
 import org.conductoross.conductor.ai.enums.Strategy;
@@ -54,7 +55,7 @@ class DecisionRouterTest {
         assertEquals(Map.of("name", "classify", "kind", "decision", "model", "jev-1.13",
                 "questions", QUESTIONS), config.get("router"));
         Agent normal = Agent.builder().name("assistant").model("openai/gpt-4o-mini").tools(tool).build();
-        Map<?, ?> serializedTool = (Map<?, ?>) ((java.util.List<?>)
+        Map<?, ?> serializedTool = (Map<?, ?>) ((List<?>)
                 new AgentConfigSerializer().serialize(normal).get("tools")).get(0);
         assertEquals("decision", serializedTool.get("toolType"));
         assertEquals(tool.getConfig(), serializedTool.get("config"));
@@ -62,7 +63,7 @@ class DecisionRouterTest {
 
     @Test
     void rejectsInvalidDecisionSelectors() {
-        for (Map<String, Object> config : java.util.List.of(Map.<String, Object>of(),
+        for (Map<String, Object> config : List.of(Map.<String, Object>of(),
                 Map.<String, Object>of("model", "", "questions", QUESTIONS),
                 Map.<String, Object>of("model", "jev-1.13", "questions", Map.of()))) {
             ToolDef tool = ToolDef.builder().name("select").toolType("decision").config(config).build();
