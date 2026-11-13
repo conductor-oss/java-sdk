@@ -101,7 +101,7 @@ public final class Replayer {
      * continuation being processed) and returns its completion. With a null active lane only the
      * replay runs, which checks that the code still matches the recording.
      */
-    public Outcome process(String activeLane, int activeContinuation, Map<String, Object> extraVariables) {
+    public Outcome process(String activeLane, int activeContinuation) {
         Outcome outcome = new Outcome();
         outcome.instance = instance;
         Lane main = new Lane("main", true, this::invokeWorkflowMethod);
@@ -122,8 +122,6 @@ public final class Replayer {
             this.activeN = activeContinuation;
             Lane lane = runSegment(activeLane, activeContinuation, Mode.ACTIVE, current);
             Map<String, Object> out = outcome.output;
-            out.put("protocol", 2);
-            out.put("n", activeContinuation);
             out.put("resumedWith", spec.captureVariablesOf(current));
             out.put("recorded", recorded);
             List<Map<String, Object>> fragment = lane.root;
@@ -145,11 +143,7 @@ public final class Replayer {
                 out.put("done", false);
             }
             out.put("fragment", fragment);
-            Map<String, Object> vars = spec.captureVariables(instance);
-            if (extraVariables != null) {
-                vars.putAll(extraVariables);
-            }
-            out.put("variables", vars);
+            out.put("variables", spec.captureVariables(instance));
             outcome.pendingConditions.putAll(pendingConditions);
             return outcome;
         } finally {
@@ -488,7 +482,6 @@ public final class Replayer {
     /** The error a lane ended with; for the main lane its message is the workflow's failure reason. */
     private static Map<String, Object> errorOf(Throwable t) {
         Map<String, Object> e = new LinkedHashMap<>();
-        e.put("type", t.getClass().getName());
         e.put(
                 "message",
                 t instanceof WorkflowFailedException || t instanceof TaskFailure
@@ -796,7 +789,6 @@ public final class Replayer {
             if (site != null) {
                 metadata.put("site", site);
             }
-            metadata.put("thrown", t.getClass().getName());
             entry.put("metadata", metadata);
             emit(entry);
             // what the code would have called next, had it not thrown: previews, never scheduled.

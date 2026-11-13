@@ -62,7 +62,6 @@ public final class Workers {
     private String buildId;
     private boolean devMode;
     private boolean discovery = true;
-    private double timeScale = 20;
     private int threads = 8;
     private java.time.Duration continuationTimeout = java.time.Duration.ofSeconds(30);
     private TaskRunnerConfigurer taskRunner;
@@ -104,17 +103,15 @@ public final class Workers {
         return this;
     }
 
-    /**
-     * Development mode: generous continuation timeouts (for breakpoints) and timers divided by the
-     * time scale, when the server has {@code conductor.app.nativeWorkflow.waitTimeScaleEnabled}.
-     */
+    /** Development mode: generous continuation timeouts, for breakpoints. */
     public Workers devMode(boolean devMode) {
         this.devMode = devMode;
         return this;
     }
 
+    /** @deprecated timers run in real time; this does nothing. */
+    @Deprecated
     public Workers timeScale(double timeScale) {
-        this.timeScale = timeScale;
         return this;
     }
 
@@ -386,14 +383,14 @@ public final class Workers {
                 processHandlers(codeType, spec, exec, task);
                 return;
             }
-            Map<String, Object> extra = null;
-            if (devMode && "main".equals(marker.getLane()) && marker.getN() == 1) {
-                extra = Map.of("__timeScale", timeScale);
-            }
             Replayer.Outcome outcome =
-                    new Replayer(spec, spec.newInstance(), exec)
-                            .process(marker.getLane(), marker.getN(), extra);
+                    new Replayer(spec, spec.newInstance(), exec).process(marker.getLane(), marker.getN());
             logLaneError(task, marker.getLane(), outcome.output);
+            if (!"main".equals(marker.getLane())) {
+                // the server reads what a lane returned or raised for the main lane only
+                outcome.output.remove("result");
+                outcome.output.remove("error");
+            }
             complete(codeType, task, TaskResult.Status.COMPLETED, outcome.output, null);
         } catch (NonDeterminismException e) {
             LOGGER.error("Execution {} diverged from its code: {}", task.getWorkflowInstanceId(), e.getMessage());
@@ -472,11 +469,7 @@ public final class Workers {
             }
         }
         Map<String, Object> vars = spec.captureVariables(instance);
-        TaskContinuation marker = task.getContinuation();
         Map<String, Object> output = new LinkedHashMap<>();
-        output.put("protocol", 2);
-        output.put("n", marker.getN());
-        output.put("fragment", List.of());
         output.put("variables", vars);
         // what this handler started from: the server applies only what the handler changed,
         // and runs it again if another completion changed the same variables meanwhile
@@ -485,7 +478,6 @@ public final class Workers {
         // the ids of recent messages, so a message queued twice by a retried send applies once
         output.put("seen", seen.size() > SEEN_LIMIT ? new ArrayList<>(seen.subList(seen.size() - SEEN_LIMIT, seen.size())) : seen);
         output.put("releases", releases(spec, exec, vars));
-        output.put("done", false);
         complete(codeType, task, TaskResult.Status.COMPLETED, output, null);
     }
 
@@ -496,7 +488,7 @@ public final class Workers {
             return List.of();
         }
         List<Map<String, Object>> releases = new ArrayList<>();
-        Replayer.Outcome outcome = new Replayer(spec, spec.newInstance(), exec).process(null, 0, null);
+        Replayer.Outcome outcome = new Replayer(spec, spec.newInstance(), exec).process(null, 0);
         spec.restoreVariables(outcome.instance, vars);
         for (Map.Entry<String, BooleanSupplier> c : outcome.pendingConditions.entrySet()) {
             if (c.getValue().getAsBoolean()) {

@@ -63,6 +63,27 @@ class CodeLoopsTest {
     }
 
     @Test
+    void aGuardedPatternSwitchIsNotALoop() throws Exception {
+        onOwnThread(() -> {
+            // javac restarts the switch at the next case when a guard fails: a jump back that is
+            // not a loop in the code
+            assertEquals(List.of(List.of(), List.of()), guarded(3));
+            assertEquals(List.of(List.of(), List.of()), guarded(9));
+            assertEquals(List.of(List.of(), List.of()), guarded("s"));
+        });
+    }
+
+    private static List<List<String>> guarded(Object value) {
+        List<String> before = CodeLoops.here();
+        List<String> inCase = switch (value) {
+            case Integer i when i > 5 -> CodeLoops.here();
+            case Integer i -> CodeLoops.here();
+            default -> CodeLoops.here();
+        };
+        return List.of(before, inCase);
+    }
+
+    @Test
     void nestedLoopsAreListedOutermostFirst() throws Exception {
         onOwnThread(CodeLoopsTest::nestedLoopsAreListedOutermostFirstBody);
     }

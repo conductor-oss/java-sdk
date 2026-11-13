@@ -26,7 +26,6 @@ import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
  */
 public class NativeState {
 
-    private int protocol;
     private String codeType;
     private int continuationTimeoutSeconds;
     private long step;
@@ -64,14 +63,6 @@ public class NativeState {
 
     public void setActiveUntil(long activeUntil) {
         this.activeUntil = activeUntil;
-    }
-
-    public int getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(int protocol) {
-        this.protocol = protocol;
     }
 
     public String getCodeType() {

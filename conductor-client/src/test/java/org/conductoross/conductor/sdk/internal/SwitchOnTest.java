@@ -155,7 +155,7 @@ class SwitchOnTest {
     @Test
     void theFirstContinuationEmitsTheSwitchWithEveryCaseAndTheTakenBodyInsideIt() {
         Execution exec = execution(Map.of("route", "a"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1);
 
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
         assertEquals(1, fragment.size(), "only the switch is at the top level: the code paused inside it");
@@ -180,7 +180,7 @@ class SwitchOnTest {
     @Test
     void anEmptyCaseContinuesInlineAfterTheSwitch() {
         Execution exec = execution(Map.of("route", "none"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1);
 
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
         assertEquals(List.of("route", "notify"), fragment.stream().map(e -> e.get("taskReferenceName")).toList());
@@ -193,7 +193,7 @@ class SwitchOnTest {
     @Test
     void anUnhandledValueTakesTheDefaultCase() {
         Execution exec = execution(Map.of("route", "zzz"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 1);
 
         Map<String, Object> sw = ((List<Map<String, Object>>) out.output.get("fragment")).get(0);
         assertEquals(Map.of("switchCaseValue", "zzz"), sw.get("inputParameters"));
@@ -208,7 +208,7 @@ class SwitchOnTest {
     @Test
     void anUnhandledValueWithoutOtherwiseFailsTheWorkflow() {
         Execution exec = execution(Map.of("route", "zzz"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Replayer.Outcome out = new Replayer(spec(NoOtherwise.class), new NoOtherwise(), exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(spec(NoOtherwise.class), new NoOtherwise(), exec).process("main", 1);
         assertEquals(true, out.output.get("done"));
         assertTrue(String.valueOf(((Map<?, ?>) out.output.get("error")).get("message")).contains("no case for zzz"));
     }
@@ -224,7 +224,7 @@ class SwitchOnTest {
                 List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "a"), null),
                         doneTask("shipA", "shipA", 2, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
                 marker("main", 1, "APPLIED", 1));
-        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2, null);
+        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2);
 
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
         assertEquals(1, fragment.size());
@@ -248,7 +248,7 @@ class SwitchOnTest {
                         doneTask("notify", "notify", 2, Map.of("result", "y"), null)),
                 marker("main", 1, "APPLIED", 1));
         org.junit.jupiter.api.Assertions.assertThrows(org.conductoross.conductor.sdk.NonDeterminismException.class,
-                () -> new Replayer(spec(DroppedCall.class), new DroppedCall(), exec).process(null, 0, null));
+                () -> new Replayer(spec(DroppedCall.class), new DroppedCall(), exec).process(null, 0));
     }
 
     public static class Previewed {
@@ -282,7 +282,7 @@ class SwitchOnTest {
     @Test
     void aValueNoCaseHandlesIsDrawnBeforeTheWorkflowFails() {
         Execution exec = execution(Map.of("route", "nowhere"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Map<String, Object> out = new Replayer(WorkflowSpec.of(NoOtherwise.class).get(0), new NoOtherwise(), exec).process("main", 1, null).output;
+        Map<String, Object> out = new Replayer(WorkflowSpec.of(NoOtherwise.class).get(0), new NoOtherwise(), exec).process("main", 1).output;
         Map<String, Object> sw = ((List<Map<String, Object>>) out.get("fragment")).get(0);
         assertEquals("SWITCH", sw.get("type"));
         assertTrue(((Map<String, List<?>>) sw.get("decisionCases")).values().stream().anyMatch(c -> !c.isEmpty()), sw.toString());
@@ -336,7 +336,7 @@ class SwitchOnTest {
     @SuppressWarnings("unchecked")
     private static List<Map<String, Object>> fragmentOf(Class<?> flow, Object instance) {
         Execution exec = execution(Map.of(), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        return (List<Map<String, Object>>) new Replayer(WorkflowSpec.of(flow).get(0), instance, exec).process("main", 1, null).output.get("fragment");
+        return (List<Map<String, Object>>) new Replayer(WorkflowSpec.of(flow).get(0), instance, exec).process("main", 1).output.get("fragment");
     }
 
     @Test
@@ -363,7 +363,7 @@ class SwitchOnTest {
     @Test
     void lanesThatAreNeverJoinedAreForkedWithAJoinThatDoesNotWait() {
         Execution exec = execution(Map.of(), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Map<String, Object> out = new Replayer(WorkflowSpec.of(Unjoined.class).get(0), new Unjoined(), exec).process("main", 1, null).output;
+        Map<String, Object> out = new Replayer(WorkflowSpec.of(Unjoined.class).get(0), new Unjoined(), exec).process("main", 1).output;
         assertEquals(true, out.get("done"));
         assertNull(out.get("error"));
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.get("fragment");
@@ -402,7 +402,7 @@ class SwitchOnTest {
     @Test
     void anUntakenFanOutIsADynamicForkAndJoinEvenWithNoItemsToShow() {
         Execution exec = execution(Map.of("route", "a"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
-        Replayer.Outcome out = new Replayer(WorkflowSpec.of(FannedOut.class).get(0), new FannedOut(), exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(WorkflowSpec.of(FannedOut.class).get(0), new FannedOut(), exec).process("main", 1);
 
         Map<String, Object> sw = ((List<Map<String, Object>>) out.output.get("fragment")).get(0);
         List<Map<String, Object>> b = ((Map<String, List<Map<String, Object>>>) sw.get("decisionCases")).get("b");
@@ -419,7 +419,7 @@ class SwitchOnTest {
     void untakenCasesShowTheTasksTheyWouldHaveCalled() {
         Execution exec = execution(Map.of("route", "a"), List.of(), List.of(), marker("main", 1, "LEASED", 0));
         Previewed instance = new Previewed();
-        Replayer.Outcome out = new Replayer(WorkflowSpec.of(Previewed.class).get(0), instance, exec).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(WorkflowSpec.of(Previewed.class).get(0), instance, exec).process("main", 1);
 
         Map<String, Object> sw = ((List<Map<String, Object>>) out.output.get("fragment")).get(0);
         Map<String, List<Map<String, Object>>> cases = (Map<String, List<Map<String, Object>>>) sw.get("decisionCases");
@@ -456,7 +456,7 @@ class SwitchOnTest {
                         doneTask("shipA", "shipA", 2, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
                 marker("main", 1, "APPLIED", 1));
         NonDeterminismException e = assertThrows(NonDeterminismException.class,
-                () -> new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2, null));
+                () -> new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2));
         assertTrue(e.getMessage().contains("took case a"), e.getMessage());
     }
 
@@ -467,7 +467,7 @@ class SwitchOnTest {
                 List.of(doneTask("shipA", "shipA", 1, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
                 marker("main", 1, "APPLIED", 1));
         NonDeterminismException e = assertThrows(NonDeterminismException.class,
-                () -> new Replayer(spec(ChangedFirstCall.class), new ChangedFirstCall(), exec).process("main", 2, null));
+                () -> new Replayer(spec(ChangedFirstCall.class), new ChangedFirstCall(), exec).process("main", 2));
         assertTrue(e.getMessage().startsWith("The running code differs from what this execution recorded: at "),
                 e.getMessage());
         assertTrue(e.getMessage().endsWith(

@@ -100,8 +100,7 @@ Checks that mattered:
 `Join.execute`, for a native JOIN whose `joinOn` is empty: targets are the last entry of each
 branch of the preceding fork in the current definition; the JOIN waits while the fork is not in
 the definition it read, and while any target is not terminal or carries a marker that is not
-`APPLIED` with `done` (`NativeContinuationService.lanesSettled`). `inputParameters.joinStrategy:
-ANY` completes on the first settled success.
+`APPLIED` with `done` (`NativeContinuationService.lanesSettled`).
 
 ### B4. Recorded values (none)
 
@@ -122,11 +121,10 @@ preview entries the SDK puts in untaken cases (`metadata.preview: true`, `<base>
 ordinary definition entries to the server, validated like any other and never scheduled; neither
 the server nor `ui-next` reads `metadata.preview`.
 
-### B6. Per-execution time scale for WAIT (small)
+### B6. Per-execution time scale for WAIT (removed)
 
-`WaitTaskMapper` divides the duration by `variables.__timeScale` when
-`conductor.app.nativeWorkflow.waitTimeScaleEnabled` is true. Dev mode sets the variable in the
-first continuation's completion; production never does.
+Dropped: timers run in real time in development too. `Workers.timeScale` is deprecated and does
+nothing; `WaitTaskMapper` is unchanged from `main`.
 
 ## Standing items from earlier passes
 
@@ -145,9 +143,9 @@ when `idempotencyKey` is set; `RETURN_EXISTING` or `FAIL`.
   `handlers#<n>`, fenced by `n`. `awaitCondition` waits are completed through the handler
   completion's `releases`.
 
-### S3. JOIN any-of (done)
+### S3. JOIN any-of (removed)
 
-`inputParameters.joinStrategy: ANY` on the JOIN; the other branches are not cancelled.
+Dropped: nothing used it.
 
 ## Not server changes
 

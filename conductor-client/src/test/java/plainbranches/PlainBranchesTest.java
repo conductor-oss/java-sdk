@@ -357,7 +357,7 @@ class PlainBranchesTest {
     private static Replayer.Outcome first(Class<?> type, Map<String, Object> input) {
         WorkflowSpec spec = spec(type);
         return new Replayer(spec, spec.newInstance(), execution(input, List.of(), List.of(), marker(1, "LEASED", 0)))
-                .process("main", 1, null);
+                .process("main", 1);
     }
 
     private static List<Map<String, Object>> fragment(Replayer.Outcome out) {
@@ -424,7 +424,7 @@ class PlainBranchesTest {
     @Test
     void theCallAfterAnArmEndedInAnEarlierContinuationGoesAfterTheSwitch() {
         WorkflowSpec spec = spec(IfElse.class);
-        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), ifElseAfterA("true")).process("main", 2, null);
+        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), ifElseAfterA("true")).process("main", 2);
         List<Map<String, Object>> fragment = fragment(out);
         assertEquals(List.of("pb_done"), refs(fragment));
         assertEquals("if_route", metadata(fragment.get(0)).get("after"));
@@ -434,7 +434,7 @@ class PlainBranchesTest {
     void anotherArmThanTheRecordedOneIsADivergence() {
         WorkflowSpec spec = spec(IfElse.class);
         NonDeterminismException e = assertThrows(NonDeterminismException.class,
-                () -> new Replayer(spec, spec.newInstance(), ifElseAfterA("false")).process(null, 0, null));
+                () -> new Replayer(spec, spec.newInstance(), ifElseAfterA("false")).process(null, 0));
         assertTrue(e.getMessage().contains("if_route took false in the recorded execution but the code now takes true"), e.getMessage());
     }
 
@@ -445,7 +445,7 @@ class PlainBranchesTest {
                 List.of(done("pb_a", "pb_a", 1, Map.of("result", "x"), marker(2, "LEASED", 0))),
                 marker(1, "APPLIED", 1));
         WorkflowSpec spec = spec(IfElse.class);
-        Replayer.Outcome out = assertDoesNotThrow(() -> new Replayer(spec, spec.newInstance(), exec).process("main", 2, null));
+        Replayer.Outcome out = assertDoesNotThrow(() -> new Replayer(spec, spec.newInstance(), exec).process("main", 2));
         List<Map<String, Object>> fragment = fragment(out);
         assertEquals(List.of("pb_done"), refs(fragment));
         assertNull(metadata(fragment.get(0)).get("after"));
@@ -458,7 +458,7 @@ class PlainBranchesTest {
                 List.of(done("pb_a", "pb_a", 1, Map.of("result", "x"), marker(2, "LEASED", 0))),
                 marker(1, "APPLIED", 1));
         WorkflowSpec spec = spec(Tail.class);
-        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), exec).process("main", 2, null);
+        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), exec).process("main", 2);
         assertEquals(true, out.output.get("done"));
         List<Map<String, Object>> fragment = fragment(out);
         assertEquals(List.of("if_route"), refs(fragment));
@@ -484,7 +484,7 @@ class PlainBranchesTest {
                         done("pb_a", "pb_a", 2, Map.of("result", "a"), marker(2, "LEASED", 0))),
                 marker(1, "APPLIED", 1));
         WorkflowSpec spec = spec(Loops.class);
-        List<Map<String, Object>> fragment = fragment(new Replayer(spec, spec.newInstance(), exec).process("main", 2, null));
+        List<Map<String, Object>> fragment = fragment(new Replayer(spec, spec.newInstance(), exec).process("main", 2));
         assertEquals(List.of("if_route_2"), refs(fragment));
         assertEquals("if_route", metadata(fragment.get(0)).get("after"));
         assertEquals(1, ((List<?>) metadata(fragment.get(0)).get("loops")).size(), "the if is inside the for loop");
@@ -641,7 +641,7 @@ class PlainBranchesTest {
 
     private static Replayer.Outcome second(Class<?> type, String value) {
         WorkflowSpec spec = spec(type);
-        return new Replayer(spec, spec.newInstance(), afterA(value)).process("main", 2, null);
+        return new Replayer(spec, spec.newInstance(), afterA(value)).process("main", 2);
     }
 
     @Test
@@ -694,6 +694,6 @@ class PlainBranchesTest {
                 List.of(done("pb_a", "pb_a", 1, Map.of("result", "seven"), marker(2, "APPLIED", 2))),
                 marker(1, "APPLIED", 1));
         WorkflowSpec spec = spec(Between.class);
-        assertDoesNotThrow(() -> new Replayer(spec, spec.newInstance(), failed).process(null, 0, null));
+        assertDoesNotThrow(() -> new Replayer(spec, spec.newInstance(), failed).process(null, 0));
     }
 }

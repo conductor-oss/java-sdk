@@ -205,12 +205,32 @@ public final class CodeLoops {
         return out;
     }
 
+    /**
+     * Whether code at {@code head} is a pattern switch's dispatch: a guard that fails jumps back to
+     * it to try the next case, which is no loop in the code.
+     */
+    private static boolean restartsAPatternSwitch(InsnList code, int head) {
+        for (int i = head; i < code.size(); i++) {
+            AbstractInsnNode insn = code.get(i);
+            if (insn instanceof org.objectweb.asm.tree.InvokeDynamicInsnNode indy) {
+                return indy.bsm.getOwner().equals("java/lang/runtime/SwitchBootstraps");
+            }
+            if (insn instanceof JumpInsnNode || insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode
+                    || insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode
+                    || insn instanceof org.objectweb.asm.tree.MethodInsnNode) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     /** A backward jump closes a loop: the lines between its target and the jump are the loop. */
     private static List<Loop> loops(MethodNode method, String className) {
         InsnList code = method.instructions;
         Map<Integer, Integer> lastByFirst = new TreeMap<>();
         for (int at = 0; at < code.size(); at++) {
-            if (code.get(at) instanceof JumpInsnNode jump && code.indexOf(jump.label) < at) {
+            if (code.get(at) instanceof JumpInsnNode jump && code.indexOf(jump.label) < at
+                    && !restartsAPatternSwitch(code, code.indexOf(jump.label))) {
                 // the line in effect at the loop's start (a for-each's hasNext has no line entry of
                 // its own: its line is the one its iterator() call started)
                 int first = Integer.MAX_VALUE;

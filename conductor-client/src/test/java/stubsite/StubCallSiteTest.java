@@ -68,7 +68,7 @@ class StubCallSiteTest {
         marker.put("resumedWith", Map.of());
         marker.put("recorded", Map.of());
         json.put("nativeState", Map.of("bootstrap", marker));
-        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), new Execution(json)).process("main", 1, null);
+        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), new Execution(json)).process("main", 1);
 
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
         assertEquals(1, fragment.size(), "the replay paused on the task: " + out.output);

@@ -154,7 +154,6 @@ final class Registration {
         }
         Map<String, Object> nativeMeta = new LinkedHashMap<>();
         nativeMeta.put("sdk", "java");
-        nativeMeta.put("protocol", 2);
         nativeMeta.put("class", spec.type.getName());
         nativeMeta.put("method", spec.method.getName());
         nativeMeta.put("codeType", spec.codeTaskName());

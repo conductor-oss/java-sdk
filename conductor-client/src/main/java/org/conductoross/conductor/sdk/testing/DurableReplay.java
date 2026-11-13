@@ -56,7 +56,7 @@ public final class DurableReplay {
                         .orElseThrow(() -> new AssertionError(workflowClass.getSimpleName() + " has no @Workflow named " + name));
         Object instance = factory != null ? factory.get() : spec.newInstance();
         try {
-            new Replayer(spec, instance, exec).process(null, 0, null);
+            new Replayer(spec, instance, exec).process(null, 0);
         } catch (NonDeterminismException e) {
             throw new AssertionError("the code no longer matches execution " + exec.workflowId + ": " + e.getMessage(), e);
         }

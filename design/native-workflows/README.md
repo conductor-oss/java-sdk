@@ -257,8 +257,8 @@ cd order-service && ./mvnw -q compile exec:java
 - Tier 1, in memory: `DurableTestEnvironment.inMemory()` runs the workflow code in process and
   simulates server steps. The task class is a Mockito mock, and `tasks.task1(...)`
   in the workflow lands on it. Milliseconds per test. `KitchenSinkTest` shows it.
-- Tier 2, embedded: same API on the real server in the same JVM, in-memory persistence, timers
-  scaled with the WAIT time-scale knob.
+- Tier 2, embedded: same API on the real server in the same JVM, in-memory persistence; timers run
+  in real time.
 - The graph is assertable: `run.ran("forkx")`, `run.tasks("sub_flow_1")`, `run.task("charge").input()`;
   a `switchOn` counts as ran under its name (`run.ran("route")`), and in memory
   (`DirectEngine.switchOn`) the taken body simply runs; a plain `if` or `switch` is code there,
@@ -546,8 +546,8 @@ flat graph need Phase B:
 5. The definition view: planned as an observed graph merged from executions by call site; built
    instead as the graph the SDK discovers from the code at registration (above), with the server
    clearing it from each execution's copy (`NativeContinuationService.initialize`).
-6. Per-execution time scale for WAIT, used by dev mode and the embedded test environment.
-7. Standing items: JOIN any-of, early-signal buffering in the per-workflow message queue,
+6. (Removed: a per-execution time scale for WAIT.)
+7. Standing items: early-signal buffering in the per-workflow message queue,
    idempotency key on the public start endpoint, hide-by-metadata and source links in the diagram.
 
 SDK: `retryCount`, `retryDelay` and `responseTimeout` attributes on `@WorkerTask`, so the task

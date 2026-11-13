@@ -74,7 +74,14 @@ public class OperatorChecks {
             check("the execution fails while the carrier is down", e.getMessage().contains("carrier unavailable"));
         }
         // the failure workflow named in @Workflow(failureWorkflow) ran for the failed execution
-        Object failureId = output(conductor, run.workflowId()).get("conductor.failure_workflow");
+        // the server saves the execution FAILED, then starts its failure workflow and records it
+        Object failureId = null;
+        for (int i = 0; i < 50 && failureId == null; i++) {
+            failureId = output(conductor, run.workflowId()).get("conductor.failure_workflow");
+            if (failureId == null) {
+                Thread.sleep(100);
+            }
+        }
         check("the failed execution started its failure workflow", failureId != null);
         check("the failure workflow received the failed execution", waitFor(() -> ShipmentTasks.failedShipments.contains(run.workflowId()), 60));
 
