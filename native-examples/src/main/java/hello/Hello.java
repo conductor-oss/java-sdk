@@ -21,8 +21,6 @@ import org.conductoross.conductor.sdk.WorkflowHandle;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
-import static org.conductoross.conductor.sdk.Conductor.llm;
-
 
 /** Hello world: a workflow that calls two tasks, one after the other. */
 public class Hello {
@@ -49,28 +47,8 @@ public class Hello {
 
     @Workflow(name = "hello", version = 1)
     public String hello(String name) {
-        int maxTurns = 100;
-        String note = "";
-        String notes = "";
-        maxTurns = maxTurns + 100;
-        for (int i = 0; i < maxTurns; i++) {
-            // the same name every turn: the tasks are delivery_note, delivery_note_2, ...
-            note = llm("delivery_note")
-                    .model("anthropic/claude-haiku-5-5")
-                    .prompt("Delivery notes so far: [" + notes + "]. If there are fewer than 3, reply with"
-                            + " one new short delivery note for " + name + " and nothing else."
-                            + " If there are 3 or more, reply with exactly OK.")
-                    .as(String.class)
-                    .trim();
-            if (note.equals("OK")) {
-                return notes;
-            }
-            notes = notes.isEmpty() ? note : notes + "; " + note;
-        }
-        return notes;
-
-        //String greeting = tasks.greet(name);
-        //return tasks.shout(greeting);
+        String greeting = tasks.greet(name);
+        return tasks.shout(greeting);
     }
 
     public static void main(String[] args) {
