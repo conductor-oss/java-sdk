@@ -210,6 +210,8 @@ public class Conformance {
     @Workflow(name="c_int") public String num(String x) { int n = t.num(41); return a("" + (n + 0)); }
     @Workflow(name="c_named") public String named(String x) { String r = task("ta").ref("zed").input("x", x).as(String.class); return b(r); }
     @Workflow(name="c_refdup") public String refDup(String x) { task("ta").ref("zed").input("x", x).as(String.class); return task("tb").ref("zed").input("x", x).as(String.class); }
+    @Workflow(name="c_refloop") public String refLoop(String x) { String r = x; for (int i = 0; i < 3; i++) r = task("ta").ref("zed").input("x", r).as(String.class); return r; }
+    @Workflow(name="c_refunrolled") public String refUnrolled(String x) { String r = task("ta").ref("zed").input("x", x).as(String.class); r = task("ta").ref("zed").input("x", r).as(String.class); return task("ta").ref("zed").input("x", r).as(String.class); }
 
     // ---- round 2
     @Workflow(name="c_instant") public String instant(String x) { java.time.Instant i = t.instant(x); return a(i.toString()); }
@@ -481,7 +483,9 @@ public class Conformance {
         c("map", Conformance::map, "x", "a(8)", "tmap;ta");
         c("int", Conformance::num, "x", "a(42)", "tint;ta");
         c("named", Conformance::named, "x", "b(a(x))", "zed;tb");
-        c("ref-dup", Conformance::refDup, "x", "FAILED:used twice", "");
+        c("ref-dup", Conformance::refDup, "x", "b(x)", "zed;zed_2");
+        c("ref-loop", Conformance::refLoop, "x", "a(a(a(x)))", "zed;zed_2;zed_3");
+        c("ref-unrolled", Conformance::refUnrolled, "x", "a(a(a(x)))", "zed;zed_2;zed_3");
         c("instant", Conformance::instant, "x", "a(2026-01-02T03:04:05Z)", "tinstant;ta");
         c("uuid", Conformance::uuid, "x", "a(00000000-0000-0000-0000-000000000007)", "tuuid;ta");
         c("array", Conformance::arr, "x", "a(xy)", "tarr;ta");
@@ -520,7 +524,9 @@ public class Conformance {
         c("empty", Conformance::emptyWf, "x", "vx", "");
         c("empty-fail", Conformance::emptyFail, "x", "FAILED:nope", "");
         c("empty-null", Conformance::emptyNull, "x", "null", "");
-        c("recursion", Conformance::recur, "x", "4", "ta;ta_2;ta_3;ta_4");
+        // each level's call is in the false arm of its base case (the code after a guard is its false arm)
+        c("recursion", Conformance::recur, "x", "4",
+                "if_n[true:|default:ta;if_n_2[true:|default:ta_2;if_n_3[true:|default:ta_3;if_n_4[true:|default:ta_4]]]]");
         c("long", Conformance::longSeq, "x", "a(59)", "");
         c("finally", Conformance::tryFinally, "x", "cb(x)", "tboom;tb");
         c("break", Conformance::breakLoop, "x", "i=2", "ta;ta_2;ta_3");

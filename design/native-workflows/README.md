@@ -365,33 +365,66 @@ entries are never scheduled, since the switch takes another case; the server val
 any fragment entry (unique references, known types, lane). In the kitchensink's odd run, case
 `"0"` shows `task_4_if_0`, then the dynamic fork `fanout1_if_0` and its join.
 
-**Plain ifs and switches.** When `CodeReader` reads a method, each `if` and `switch` whose arms
-call the server (directly, or through a lambda or a helper it follows) becomes a branch: its arms
-as instruction ranges, the lines each arm's calls are made from, what each arm would call, and
-whether the code can go through an arm without a call. javac's shapes are recognised: the jumps of
-an `a && b` or `a || b` condition are one if; a jump that ends a loop is the loop's condition, not
-an if; an else is the code a then-arm jumps over (a then-arm ending in `return`, `throw`, `break`
-or `continue` has none, and the code after it follows the switch); string switches are labelled by
-their strings and enum switches by their constants. A branch is named after what it decides on:
-the last method its condition calls, else a field, else a local variable (`if_flagged`,
-`switch_kind`, `if_pass`), numbered when repeated (`if_pass_2`).
+**Plain ifs and switches.** What is drawn is defined on the method's control flow, not on how
+javac happens to lay the code out. A *step* is an instruction that calls the server: a task, an SDK
+call, or a call into workflow code that makes one (a helper, a lambda, the method itself
+recursively). The rules, written once; `CodeReader` implements them and the spec checker
+(`proposals/native-workflows/spec/check_drawing.py`) computes the same definitions on its own
+graph of the program:
+
+1. **Loops.** A loop is a natural loop: a jump back to an instruction that every way to the jump
+   passes first. It is a *real* loop when what goes round holds a step; one that does not (a
+   failed `when` guard going back to its switch) is plain code. A loop's *follow* is the one place
+   every way out of it leads to, among the ways out that can go on (a way out that only throws is
+   not one); its *extent* is what runs from its head before the follow. A `break` block is in the
+   extent; with a single `break` as the only way out, the break block is the follow, and the code
+   is the same as `do { ... } while (!c)` followed by it.
+2. **Decisions.** A decision is a `switch`, or the jumps of one condition (`a && b`, `a || b` are
+   one jump per operand). Its condition is the switch with what it comes round to without a step
+   (a failed `when` guard dispatches again); its outcomes are the places the condition goes on to.
+   A loop's condition is the loop's own, not a decision: the jump out of it that the straight code
+   from its head comes to (a `while`, `for`, or a `while` whose condition calls a task), or the jump
+   back that closes it (a do-while). Any other jump out of a loop is a `break` (javac jumps
+   `else { break; }` straight out), and the if around it a decision.
+3. **Arms.** An arm holds what runs only because its outcome was taken: the code every way to
+   which, from the start of the method, goes through that outcome, without leaving the extent of
+   the loop the decision is in. So the code after a guard clause (`if (bad) { reject(); continue; }`,
+   `if (x == null) return;`, `if (n == 0) return 0;` in a recursion) is the guard's false arm, and an
+   arm need not be one stretch of bytecode.
+4. **Drawn.** A decision is drawn when an arm holds a step, every line with a step is in one arm
+   or in none (so a call tells the arm it was made in; a one-line ternary calling in both arms is
+   plain code), and no arm runs into a written `case` whose code reaches a step before the place
+   every arm meets (a case falling through into the next). Falling into the default is the same
+   code as a switch without one followed by that code, and is drawn as such.
+5. **Labels.** An if has `true` and `false` (its default case). A case is keyed by its labels as
+   written: numbers, characters (`a`), strings, enum constants, pattern types (`Circle`), `null`; a
+   guarded pattern is `Integer when` (numbered when two read the same). javac's synthetic default
+   of an exhaustive switch (`throw new MatchException`) is the `default` arm, which only throws.
+   A branch is named after what it decides on: the last method its condition calls, else a field,
+   else a local variable (`if_flagged`, `switch_kind`, `if_pass`), numbered when repeated (`if_pass_2`).
 
 While the code runs, each call reports the lines its workflow frames are on (`StackWalker`), and
 those lines say which arms it is in, since no other code of the method calls from an arm's lines.
 The lane (`Replayer.Lane.follow`) keeps the branches it is inside: a call in an arm it has not
 entered draws the branch as a SWITCH with every arm and the others previewed, and the calls that
 follow go in that arm's case, exactly as for a `switchOn`, including resuming inside it in a later
-continuation (`metadata.after`). A call outside the arm ends it. A call from a line before the last
-one in the same arm means a loop around the branch came round: the branch is drawn again. A branch
-the code went past without a call, between two calls of the same frame, is drawn with the arm that
-must have been taken, when only one arm can be passed without a call and no loop around it could
-have run it more than once; after the lane's last call, also only when every return of the method
-comes after it.
+continuation (`metadata.after`). A call outside the arm ends it. Whether the branch was decided again
+between two calls in its arm comes from the method's instructions (`CodeReader.Paths`): when every
+way between the calls without another call goes through its decision, it was, and is drawn again;
+when none does, the call stays in the same case; when only some do (a loop in the arm, in a loop),
+the code cannot tell, so the call is drawn outside the branch, and the branch is drawn again only
+when a later call shows for sure it was decided again. A branch the code went past without a call
+is drawn with the arm it took when every way between the two calls (or from the start of the
+method, or to a return) goes through its decision exactly once and in one arm only; it goes in the
+case of the branch it is in, also one the lane is just leaving or entering, or of another drawn
+this way.
 
 What is not drawn stays plain code, as it was before: an `if` whose arms share a line with each
 other or with code outside them (a one-line ternary with a call in each arm), a switch whose cases
-fall through, a branch passed without a call where more than one arm could have been. An execution
-recorded by a build that did not draw a branch replays without it, and its calls stay where they
+fall through, a branch passed without a call where more than one arm or more than one pass could
+have been. These rules are checked against an oracle that runs generated programs on its own
+control-flow graph (`proposals/native-workflows/spec/check_drawing.py` in the conductor repo). An
+execution recorded by a build that did not draw a branch replays without it, and its calls stay where they
 were; one recorded with another arm than the code now takes is a divergence.
 
 **How a continuation reaches a worker.** When the task a lane paused on finishes, its marker

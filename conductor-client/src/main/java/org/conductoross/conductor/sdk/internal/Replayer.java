@@ -484,12 +484,6 @@ public final class Replayer {
         return ref;
     }
 
-    private String allocExact(String ref) {
-        if (!used.add(ref)) {
-            throw new IllegalArgumentException("reference name " + ref + " is used twice in this workflow");
-        }
-        return ref;
-    }
 
     /** The error a lane ended with; for the main lane its message is the workflow's failure reason. */
     private static Map<String, Object> errorOf(Throwable t) {
@@ -664,6 +658,9 @@ public final class Replayer {
         String anchorAfter;
         /** The entry that marks where the main lane's code threw, when it did. */
         String thrownRef;
+        /** Branches the lane is in an arm of, but cannot tell whether the code decided them again since. */
+        final java.util.Set<CodeReader.Branch> unsure = new java.util.HashSet<>();
+
         /** The plain Java ifs and switches the lane's code is inside, outermost first. */
         final List<Inside> inside = new ArrayList<>();
         /** The workflow frames of the lane's last call, outermost first. */
@@ -892,7 +889,10 @@ public final class Replayer {
             }
             flushSyncGroup(this);
             follow();
-            String ref = cmd.explicitRef != null ? allocExact(cmd.explicitRef) : alloc(cmd.refBase);
+            // a name given in the code is a base like a task's: a call made again, in a loop or
+            // written out again, is numbered by how many came before (x, x_2, x_3), never by the
+            // shape of the bytecode
+            String ref = alloc(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase);
             if (exec.entries.containsKey(ref)) {
                 if (!cmd.blocking()) {
                     return null;
@@ -1286,6 +1286,12 @@ public final class Replayer {
                 if (sites.get(same - 1).line() != lastSites.get(same - 1).line()) {
                     break; // a different call from this frame: the frames below it are new
                 }
+                if (same < sites.size() && same < lastSites.size() && sites.get(same).sameMethod(lastSites.get(same))
+                        && !sites.get(same).shape().paths().reachable(lastSites.get(same).line(), sites.get(same).line())) {
+                    // the same call, but the method it called cannot get from its last call to this
+                    // one: it returned and was called again (a loop around the call)
+                    break;
+                }
             }
             List<Inside> path = new ArrayList<>();
             for (int d = 0; d < sites.size(); d++) {
@@ -1296,26 +1302,94 @@ public final class Replayer {
                     }
                 }
             }
+            // a branch the lane is unsure about is not followed until it is decided again for sure
+            final int sameFrames = same;
+            path.removeIf(in -> {
+                if (!unsure.contains(in.branch)) {
+                    return false;
+                }
+                boolean again = sameFrames > in.depth && lastSites.size() > in.depth
+                        && sites.get(in.depth).shape().paths().decidesAgain(lastSites.get(in.depth).line(), sites.get(in.depth).line(), in.branch);
+                if (again) {
+                    unsure.remove(in.branch);
+                }
+                return !again;
+            });
             int keep = 0;
             while (keep < inside.size() && keep < path.size() && stillIn(inside.get(keep), path.get(keep), sites, same)) {
+                Inside open = inside.get(keep);
+                if (open.depth == same - 1 && lastSites.size() > open.depth
+                        && sites.get(open.depth).shape().paths().mayDecideAgain(open.lastLine, sites.get(open.depth).line(), open.branch)) {
+                    // the code may have gone round and decided it again, or not: no way to tell, so the
+                    // call is not drawn in it, nor in a new one, until it is decided again for sure
+                    unsure.add(open.branch);
+                    break;
+                }
                 keep++;
             }
+            // Between the two calls the code returned out of the frames it called from (from their
+            // calls to their returns, deepest first), went along the frame both share (from one call
+            // line to the other), and into the frames it calls from now (from their start)
+            List<Went> olds = new ArrayList<>();
+            for (int k = lastSites.size() - 1; k >= same; k--) {
+                olds.add(new Went(lastSites, k, lastSites.get(k).line(), -1));
+            }
+            Went went = same > 0 ? new Went(sites, same - 1, lastSites.get(same - 1).line(), sites.get(same - 1).line()) : null;
+            List<Went> news = new ArrayList<>();
+            for (int k = same; k < sites.size(); k++) {
+                news.add(new Went(sites, k, 0, sites.get(k).line())); // the lane's first call: from the top of its code
+            }
             while (inside.size() > keep) {
+                Inside in = inside.get(inside.size() - 1);
+                for (Went w : olds) {
+                    w.drawIn(in); // before the arm ends: they go in its case
+                }
+                if (went != null) {
+                    went.drawIn(in);
+                }
                 leave(inside.remove(inside.size() - 1));
             }
-            if (same > 0) {
-                int d = same - 1;
-                passed(sites, d, lastSites.get(d).line(), sites.get(d).line());
-            } else if (lastSites.isEmpty() && !sites.isEmpty()) {
-                passed(sites, 0, 0, sites.get(0).line()); // the lane's first call: from the top of its code
-            }
+            List<Inside> entering = new ArrayList<>();
             for (Inside in : path.subList(keep, path.size())) {
-                enter(in, sites);
+                if (!unsure.contains(in.branch)) {
+                    entering.add(in);
+                }
+            }
+            // a branch the call is no longer in is not unsure any more
+            unsure.removeIf(b -> sites.stream().noneMatch(site -> b.armAt(site.line()) != null && site.shape().branches().contains(b)));
+            for (Went w : olds) {
+                w.drawRest(entering);
+            }
+            if (went != null) {
+                went.drawRest(entering);
+            }
+            int next = 0;
+            for (Went w : news) {
+                // a frame's own ifs come after the branches of the frames around it are entered
+                while (next < entering.size() && entering.get(next).depth < w.depth) {
+                    enterNext(entering, next++, sites, went, news);
+                }
+                w.drawRest(entering.subList(next, entering.size()));
+            }
+            while (next < entering.size()) {
+                enterNext(entering, next++, sites, went, news);
             }
             for (Inside in : inside) {
                 in.lastLine = sites.get(in.depth).line();
             }
             lastSites = sites;
+        }
+
+        private void enterNext(List<Inside> entering, int k, List<Site> sites, Went went, List<Went> news) {
+            Inside in = entering.get(k);
+            enter(in, sites);
+            List<Inside> later = entering.subList(k + 1, entering.size());
+            if (went != null) {
+                went.drawEntered(in, later);
+            }
+            for (Went w : news) {
+                w.drawEntered(in, later);
+            }
         }
 
         /** Whether a call is still in the same pass through an arm, not in a later one. */
@@ -1331,7 +1405,9 @@ public final class Replayer {
             int l = open.lastLine;
             boolean deepest = d == sites.size() - 1 && d == lastSites.size() - 1;
             if (q > l || (q == l && !deepest)) {
-                return true;
+                // forward in the code, unless every way there decides the if or switch again: a
+                // continue that jumps forward to a loop's condition comes round to it
+                return !sites.get(d).shape().paths().decidesAgain(l, q, open.branch);
             }
             for (int[] loop : open.arm.loops()) {
                 if (loop[0] <= q && l <= loop[1]) {
@@ -1341,24 +1417,115 @@ public final class Replayer {
             return false; // around a loop outside it: the if or switch was decided again
         }
 
-        /** Draws the ifs and switches a frame went past without a call, between lines p and q. */
-        private void passed(List<Site> sites, int d, int p, int q) {
-            if (q <= p) {
-                return;
+        /**
+         * The ifs and switches a frame went through between two of its calls without making one: each
+         * is drawn with the arm it took when every way between the calls goes through it exactly once
+         * and in one arm only ({@link CodeReader.Paths#passed}). One inside an arm the lane is leaving
+         * goes in that arm's case, one inside another drawn here in that one's case, and one inside an
+         * if or switch that is not drawn is not drawn either.
+         */
+        private final class Went {
+            private final List<Site> sites;
+            private final int depth;
+            private final List<CodeReader.Passed> todo = new ArrayList<>();
+            private final CodeReader.Shape shape;
+            /** Those drawn so far, innermost last, with their case lists. */
+            private final List<Object[]> open = new ArrayList<>();
+
+            Went(List<Site> sites, int depth, int fromLine, int toLine) {
+                this.sites = sites;
+                this.depth = depth;
+                this.shape = sites.get(depth).shape();
+                for (CodeReader.Passed p : shape.paths().passed(fromLine, toLine)) {
+                    if (toLine <= 0 || p.branch().armAt(toLine) == null) {
+                        todo.add(p); // one the next call is in is entered instead
+                    }
+                }
             }
-            CodeReader.Shape shape = sites.get(d).shape();
-            for (CodeReader.Branch b : shape.branches()) {
-                if (b.line() < p || b.lastLine() >= q || !outermost(b, shape, d)) {
-                    continue;
+
+            /** Draws those whose innermost enclosing branch the lane is in is {@code in}. */
+            void drawIn(Inside in) {
+                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                    CodeReader.Passed p = it.next();
+                    if (container(p) == in) {
+                        it.remove();
+                        draw(p);
+                    }
                 }
-                boolean looped = false;
-                for (int[] loop : shape.loops()) {
-                    looped |= loop[0] <= b.line() && b.lastLine() <= loop[1] && (p < loop[0] || q > loop[1]);
+                open.clear();
+            }
+
+            /** Draws those outside the branches the next call enters (those are drawn as each is entered). */
+            void drawRest(List<Inside> entering) {
+                Inside innermost = inside.isEmpty() ? null : inside.get(inside.size() - 1);
+                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                    CodeReader.Passed p = it.next();
+                    if (!within(p, entering) && container(p) == innermost) {
+                        it.remove();
+                        draw(p);
+                    }
                 }
-                CodeReader.Arm taken = b.onlyArmWithoutCalls();
-                if (!looped && taken != null) {
-                    drawPassed(b, taken, loopsAt(sites, d, b.line()));
+                open.clear();
+            }
+
+            /** Draws those in the case of a branch just entered, and not in a branch entered after it. */
+            void drawEntered(Inside in, List<Inside> later) {
+                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                    CodeReader.Passed p = it.next();
+                    if (!within(p, later) && container(p) == in) {
+                        it.remove();
+                        draw(p);
+                    }
                 }
+                open.clear();
+            }
+
+            private boolean within(CodeReader.Passed p, List<Inside> branches) {
+                return branches.stream().anyMatch(i -> i.depth == depth && i.branch.contains(p.branch()));
+            }
+
+            private Inside container(CodeReader.Passed p) {
+                for (int k = inside.size() - 1; k >= 0; k--) {
+                    Inside in = inside.get(k);
+                    if (in.depth < depth || (in.depth == depth && in.branch != p.branch() && in.branch.contains(p.branch()))) {
+                        return in;
+                    }
+                }
+                return null;
+            }
+
+            private void draw(CodeReader.Passed p) {
+                CodeReader.Branch b = p.branch();
+                while (!open.isEmpty() && !((CodeReader.Branch) open.get(open.size() - 1)[0]).contains(b)) {
+                    open.remove(open.size() - 1);
+                }
+                for (CodeReader.Branch other : shape.branches()) {
+                    boolean drawnAround = open.stream().anyMatch(o -> o[0] == other)
+                            || inside.stream().anyMatch(i -> i.depth == depth && i.branch == other);
+                    if (other != b && other.contains(b) && !drawnAround) {
+                        return; // inside an if or switch that is not drawn
+                    }
+                }
+                String ref = alloc(b.name());
+                Map<String, Object> entry = exec.entries.get(ref);
+                if (entry != null) {
+                    checkTaken(ref, entry, p.arm());
+                    open.add(new Object[] {b, null});
+                    return;
+                }
+                if (mode != Mode.ACTIVE) {
+                    return;
+                }
+                Map<String, Object> sw = branchEntry(b, ref, p.arm());
+                tagLoops(sw, loopsAt(sites, depth, b.line()));
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> parent = open.isEmpty() ? null : (List<Map<String, Object>>) open.get(open.size() - 1)[1];
+                if (parent != null) {
+                    parent.add(sw);
+                } else {
+                    emit(sw);
+                }
+                open.add(new Object[] {b, caseList(sw, p.arm())});
             }
         }
 
@@ -1372,40 +1539,31 @@ public final class Replayer {
             return loops;
         }
 
-        /** Not inside another if or switch of the method, except one the lane is in. */
-        private boolean outermost(CodeReader.Branch b, CodeReader.Shape shape, int d) {
-            for (CodeReader.Branch other : shape.branches()) {
-                if (other != b && other.contains(b)
-                        && inside.stream().noneMatch(i -> i.depth == d && i.branch == other)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
         /**
          * The lane's code returned: its ifs and switches end, and one it went past after its last
          * call is drawn when every return of the method comes after it.
          */
         private void ended() {
+            // every frame the last call was made from returned: from that call to its return, deepest first
+            List<Went> wents = new ArrayList<>();
+            for (int k = lastSites.size() - 1; k >= 0; k--) {
+                wents.add(new Went(lastSites, k, lastSites.get(k).line(), -1));
+            }
+            if (lastSites.isEmpty() && id.equals("main")) {
+                // code that made no call at all still went through its ifs and switches
+                Site root = new Site(spec.method.getDeclaringClass(), spec.method.getName(),
+                        org.objectweb.asm.Type.getMethodDescriptor(spec.method), 0);
+                wents.add(new Went(List.of(root), 0, 0, -1));
+            }
             while (!inside.isEmpty()) {
+                Inside in = inside.get(inside.size() - 1);
+                for (Went w : wents) {
+                    w.drawIn(in);
+                }
                 leave(inside.remove(inside.size() - 1));
             }
-            if (lastSites.isEmpty()) {
-                return;
-            }
-            Site root = lastSites.get(0);
-            CodeReader.Shape shape = root.shape();
-            for (CodeReader.Branch b : shape.branches()) {
-                if (b.line() < root.line() || !outermost(b, shape, -1)) {
-                    continue;
-                }
-                boolean unsure = shape.loops().stream().anyMatch(l -> l[0] <= b.line() && b.lastLine() <= l[1])
-                        || shape.returnLines().stream().anyMatch(r -> r <= b.lastLine());
-                CodeReader.Arm taken = b.onlyArmWithoutCalls();
-                if (!unsure && taken != null) {
-                    drawPassed(b, taken, loopsAt(List.of(root), 0, b.line()));
-                }
+            for (Went w : wents) {
+                w.drawRest(List.of());
             }
         }
 
@@ -1439,18 +1597,6 @@ public final class Replayer {
                 out = in.outer;
             } else if (mode == Mode.ACTIVE && counter != in.pausesBefore) {
                 anchorAfter = in.ref; // it ended in a later continuation: what follows goes after it
-            }
-        }
-
-        private void drawPassed(CodeReader.Branch b, CodeReader.Arm taken, List<String> loops) {
-            String ref = alloc(b.name());
-            Map<String, Object> entry = exec.entries.get(ref);
-            if (entry != null) {
-                checkTaken(ref, entry, taken);
-            } else if (mode == Mode.ACTIVE) {
-                Map<String, Object> sw = branchEntry(b, ref, taken);
-                tagLoops(sw, loops);
-                emit(sw);
             }
         }
 

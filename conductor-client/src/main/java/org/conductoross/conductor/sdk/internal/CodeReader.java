@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,8 +38,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
@@ -104,9 +104,10 @@ public final class CodeReader {
      * A plain Java {@code if} or {@code switch} whose arms call the server, drawn as a SWITCH. An
      * {@code if} has the arms {@code true} and {@code false} (the default case); a {@code switch}
      * has one arm per case, keyed by its labels, and {@code default}. {@code line} is the line the
-     * code decides on and {@code lastLine} the last line of its arms.
+     * code decides on and {@code lastLine} the last line of its arms; {@code at} is the instruction
+     * that decides and {@code region} the instructions of its arms.
      */
-    public record Branch(String name, int line, int lastLine, List<Arm> arms, String site) {
+    public record Branch(String name, int line, int lastLine, List<Arm> arms, String site, int at, java.util.BitSet region) {
         /** The arm whose calls are made from this line, or null. */
         public Arm armAt(int callLine) {
             for (Arm arm : arms) {
@@ -117,9 +118,9 @@ public final class CodeReader {
             return null;
         }
 
-        /** Whether {@code other} lies inside one of this branch's arms. */
+        /** Whether {@code other}, of the same method, lies inside one of this branch's arms. */
         public boolean contains(Branch other) {
-            return line < other.line && other.lastLine <= lastLine;
+            return other != this && region.get(other.at);
         }
 
         /** The arm to draw as taken when the code went past without a call: the only one that can. */
@@ -158,8 +159,360 @@ public final class CodeReader {
     public record Arm(String key, boolean otherwise, Set<Integer> lines, List<Step> steps, boolean canSkip, List<int[]> loops) {}
 
     /** What following a method as it runs needs: its branches, outermost first; its loops; the lines it returns from. */
-    public record Shape(List<Branch> branches, List<int[]> loops, Set<Integer> returnLines) {
-        static final Shape NONE = new Shape(List.of(), List.of(), Set.of());
+    public record Shape(List<Branch> branches, List<int[]> loops, Set<Integer> returnLines, Paths paths) {
+        static final Shape NONE = new Shape(List.of(), List.of(), Set.of(), Paths.NONE);
+    }
+
+    /** A branch the code went through between two calls, and the arm it took. */
+    public record Passed(Branch branch, Arm arm) {}
+
+    /**
+     * The ways through one method's instructions, to tell which ifs and switches the code must have
+     * gone through between two calls it made, and how.
+     */
+    public static final class Paths {
+        static final Paths NONE = new Paths(new int[0], new int[0][], new boolean[0], new boolean[0], new boolean[0], Map.of(), Map.of(), Map.of());
+
+        private final int[] lineAt;
+        private final int[][] succ;
+        private final int[][] pred;
+        private final boolean[] step;
+        private final boolean[] returns;
+        private final boolean[] throwsAt;
+        /** Each branch by the instruction that decides, with the instructions of its condition. */
+        private final Map<Integer, Branch> branches;
+        private final Map<Integer, int[]> condition;
+        /** The arm each instruction a decision can jump to starts, by the deciding instruction. */
+        private final Map<Integer, Map<Integer, Arm>> armAt;
+
+        Paths(int[] lineAt, int[][] succ, boolean[] step, boolean[] returns, boolean[] throwsAt, Map<Integer, Branch> branches,
+                Map<Integer, int[]> condition, Map<Integer, Map<Integer, Arm>> armAt) {
+            this.lineAt = lineAt;
+            this.succ = succ;
+            this.step = step;
+            this.returns = returns;
+            this.throwsAt = throwsAt;
+            this.branches = branches;
+            this.condition = condition;
+            this.armAt = armAt;
+            List<List<Integer>> p = new ArrayList<>();
+            for (int i = 0; i < succ.length; i++) {
+                p.add(new ArrayList<>());
+            }
+            for (int i = 0; i < succ.length; i++) {
+                for (int t : succ[i]) {
+                    if (t < succ.length) {
+                        p.get(t).add(i);
+                    }
+                }
+            }
+            this.pred = new int[succ.length][];
+            for (int i = 0; i < succ.length; i++) {
+                pred[i] = p.get(i).stream().mapToInt(Integer::intValue).toArray();
+            }
+        }
+
+        /**
+         * The branches every way from the call made on {@code fromLine} (0: the start of the
+         * method) to the call made on {@code toLine} (-1: a return) goes through exactly once,
+         * taking one arm only, without making another call: in the order the code reaches them.
+         */
+        public List<Passed> passed(int fromLine, int toLine) {
+            int n = succ.length;
+            if (n == 0) {
+                return List.of();
+            }
+            List<Integer> sources = new ArrayList<>();
+            boolean[] target = new boolean[n];
+            boolean anyStep = false;
+            for (int i = 0; i < n; i++) {
+                if (fromLine > 0 && step[i] && lineAt[i] == fromLine) {
+                    for (int t : succ[i]) {
+                        sources.add(t);
+                    }
+                }
+                target[i] = toLine < 0 ? returns[i] : step[i] && lineAt[i] == toLine;
+                anyStep |= target[i];
+            }
+            if (toLine > 0 && !anyStep) {
+                for (int i = 0; i < n; i++) {
+                    target[i] = throwsAt[i] && lineAt[i] == toLine; // the code threw there instead of calling
+                }
+            }
+            if (fromLine <= 0) {
+                sources.add(0);
+            }
+            // forward from the call, stopping at any other call; then back from the next call
+            boolean[] fwd = new boolean[n];
+            int[] depth = new int[n];
+            java.util.Arrays.fill(depth, Integer.MAX_VALUE);
+            ArrayDeque<Integer> todo = new ArrayDeque<>();
+            boolean[] reached = new boolean[n];
+            for (int s : sources) {
+                if (s < n && depth[s] == Integer.MAX_VALUE) {
+                    depth[s] = 0;
+                    todo.add(s);
+                }
+            }
+            while (!todo.isEmpty()) {
+                int i = todo.poll();
+                if (target[i]) {
+                    reached[i] = true;
+                    continue;
+                }
+                if (step[i] || fwd[i]) {
+                    continue;
+                }
+                fwd[i] = true;
+                for (int t : succ[i]) {
+                    if (t < n && depth[t] == Integer.MAX_VALUE) {
+                        depth[t] = depth[i] + 1;
+                    }
+                    if (t < n && !fwd[t]) {
+                        todo.add(t);
+                    }
+                }
+            }
+            boolean[] rel = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                if (reached[i]) {
+                    todo.add(i);
+                }
+            }
+            while (!todo.isEmpty()) {
+                int i = todo.poll();
+                for (int p : pred[i]) {
+                    if (fwd[p] && !rel[p]) {
+                        rel[p] = true;
+                        todo.add(p);
+                    }
+                }
+            }
+            List<Passed> out = new ArrayList<>();
+            List<Integer> order = new ArrayList<>();
+            for (Map.Entry<Integer, Branch> e : branches.entrySet()) {
+                int[] cond = condition.get(e.getKey());
+                boolean[] in = new boolean[n];
+                boolean touched = false;
+                for (int i : cond) {
+                    in[i] = true;
+                    touched |= rel[i];
+                }
+                if (!touched || reaches(sources, target, rel, in) || loopsBack(cond, rel, in)) {
+                    continue; // a way avoids it, or goes round to it again
+                }
+                Arm only = null;
+                boolean unknown = false;
+                for (int x : cond) {
+                    for (int y : succ[x]) {
+                        if (y >= n || in[y] || !(rel[y] || target[y])) {
+                            continue;
+                        }
+                        Arm arm = armAt.get(e.getKey()).get(y);
+                        if (arm == null || (only != null && only != arm)) {
+                            unknown = true;
+                        }
+                        only = arm;
+                    }
+                }
+                if (!unknown && only != null) {
+                    out.add(new Passed(e.getValue(), only));
+                    order.add(depth[cond[0]]);
+                }
+            }
+            List<Integer> idx = new ArrayList<>();
+            for (int k = 0; k < out.size(); k++) {
+                idx.add(k);
+            }
+            idx.sort(Comparator.comparingInt(order::get));
+            List<Passed> sorted = new ArrayList<>();
+            idx.forEach(k -> sorted.add(out.get(k)));
+            return sorted;
+        }
+
+        /**
+         * Whether every way from the call on {@code fromLine} to the call on {@code toLine}, without
+         * another call, goes through the decision of {@code branch}: the code decided it again.
+         */
+        public boolean decidesAgain(int fromLine, int toLine, Branch branch) {
+            int n = succ.length;
+            Integer at = null;
+            for (Map.Entry<Integer, Branch> e : branches.entrySet()) {
+                if (e.getValue() == branch) {
+                    at = e.getKey();
+                }
+            }
+            if (at == null || n == 0) {
+                return false;
+            }
+            List<Integer> sources = new ArrayList<>();
+            boolean[] target = callAt(toLine);
+            boolean any = false;
+            for (int i = 0; i < n; i++) {
+                if (step[i] && lineAt[i] == fromLine) {
+                    for (int t : succ[i]) {
+                        sources.add(t);
+                    }
+                }
+                any |= target[i];
+            }
+            if (sources.isEmpty() || !any) {
+                return false;
+            }
+            boolean[] all = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                all[i] = !step[i] || target[i];
+            }
+            int[] cond = condition.get(at);
+            boolean[] in = new boolean[n];
+            for (int i : cond) {
+                in[i] = true;
+            }
+            return !reaches(sources, target, all, in) && reaches(sources, target, all, new boolean[n]);
+        }
+
+        /**
+         * Whether some way from the call on {@code fromLine} to the call on {@code toLine}, without
+         * another call, goes through the decision of {@code branch}: the code may have decided it
+         * again in between.
+         */
+        public boolean mayDecideAgain(int fromLine, int toLine, Branch branch) {
+            int n = succ.length;
+            Integer at = null;
+            for (Map.Entry<Integer, Branch> e : branches.entrySet()) {
+                if (e.getValue() == branch) {
+                    at = e.getKey();
+                }
+            }
+            if (at == null || n == 0) {
+                return false;
+            }
+            List<Integer> sources = new ArrayList<>();
+            boolean[] target = callAt(toLine);
+            for (int i = 0; i < n; i++) {
+                if (step[i] && lineAt[i] == fromLine) {
+                    for (int t : succ[i]) {
+                        sources.add(t);
+                    }
+                }
+            }
+            int[] cond = condition.get(at);
+            boolean[] all = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                all[i] = !step[i] || target[i];
+            }
+            // from the call to the decision, and from the decision on to the next call
+            boolean[] atDecision = new boolean[n];
+            atDecision[cond[0]] = true;
+            boolean[] noCall = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                noCall[i] = !step[i]; // on the way to the decision, the next call is not passed either
+            }
+            if (!reaches(sources, atDecision, noCall, new boolean[n])) {
+                return false;
+            }
+            boolean[] in = new boolean[n];
+            for (int i : cond) {
+                in[i] = true;
+            }
+            List<Integer> after = new ArrayList<>();
+            for (int x : cond) {
+                for (int y : succ[x]) {
+                    if (y < n && !in[y]) {
+                        after.add(y);
+                    }
+                }
+            }
+            return reaches(after, target, all, new boolean[n]);
+        }
+
+        /**
+         * Whether the code can get from the call on {@code fromLine} to the call on {@code toLine}
+         * without another call, staying in one invocation of the method.
+         */
+        public boolean reachable(int fromLine, int toLine) {
+            int n = succ.length;
+            List<Integer> sources = new ArrayList<>();
+            boolean[] target;
+            boolean[] noCall = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                if (step[i] && lineAt[i] == fromLine) {
+                    for (int t : succ[i]) {
+                        sources.add(t);
+                    }
+                }
+                noCall[i] = !step[i];
+            }
+            target = callAt(toLine);
+            return reaches(sources, target, noCall, new boolean[n]);
+        }
+
+        /** Where a call on {@code toLine} is: its calls, or, when the code threw there instead, its throw. */
+        private boolean[] callAt(int toLine) {
+            int n = succ.length;
+            boolean[] target = new boolean[n];
+            boolean any = false;
+            for (int i = 0; i < n; i++) {
+                target[i] = step[i] && lineAt[i] == toLine;
+                any |= target[i];
+            }
+            if (!any) {
+                for (int i = 0; i < n; i++) {
+                    target[i] = throwsAt[i] && lineAt[i] == toLine;
+                }
+            }
+            return target;
+        }
+
+        /** Whether some way from the sources reaches a target without touching the excluded instructions. */
+        private boolean reaches(List<Integer> sources, boolean[] target, boolean[] rel, boolean[] excluded) {
+            boolean[] seen = new boolean[succ.length];
+            ArrayDeque<Integer> todo = new ArrayDeque<>(sources);
+            while (!todo.isEmpty()) {
+                int i = todo.poll();
+                if (i >= succ.length || excluded[i] || seen[i]) {
+                    continue;
+                }
+                if (target[i]) {
+                    return true;
+                }
+                if (!rel[i]) {
+                    continue;
+                }
+                seen[i] = true;
+                for (int t : succ[i]) {
+                    todo.add(t);
+                }
+            }
+            return false;
+        }
+
+        /** Whether the code can come round from a decision to the same decision without a call. */
+        private boolean loopsBack(int[] cond, boolean[] rel, boolean[] in) {
+            boolean[] seen = new boolean[succ.length];
+            ArrayDeque<Integer> todo = new ArrayDeque<>();
+            for (int x : cond) {
+                for (int y : succ[x]) {
+                    if (y < succ.length && !in[y]) {
+                        todo.add(y);
+                    }
+                }
+            }
+            while (!todo.isEmpty()) {
+                int i = todo.poll();
+                if (i >= succ.length || seen[i] || !rel[i]) {
+                    continue;
+                }
+                if (in[i]) {
+                    return true;
+                }
+                seen[i] = true;
+                for (int t : succ[i]) {
+                    todo.add(t);
+                }
+            }
+            return false;
+        }
     }
 
     private static final Map<String, List<Step>> CACHE = new ConcurrentHashMap<>();
@@ -327,10 +680,17 @@ public final class CodeReader {
     }
 
     /**
-     * An if or switch read from the instructions: the instruction that decides, the arms as
-     * instruction ranges with their keys, which one is the default, and where the arms meet.
+     * A decision that may be drawn: the instruction that decides, its line, one past the last
+     * instruction of its arms, each arm's key, which arm is the default, the instructions of its
+     * condition, the arm each place the condition goes on to starts, each arm's code and first
+     * instruction, and all its instructions.
      */
-    private record Candidate(int b, String name, int end, List<int[]> ranges, List<String> keys, int otherwise) {}
+    private record Candidate(int b, int line, String name, int end, List<String> keys, int otherwise,
+            int[] condition, Map<Integer, Integer> exitArm, List<boolean[]> regions, List<Integer> entries, boolean[] covers) {
+        int extent() {
+            return end;
+        }
+    }
 
     /** One method's instructions, read in order. */
     private final class Reading {
@@ -357,6 +717,10 @@ public final class CodeReader {
         private final Set<Integer> stepAt = new HashSet<>();
         /** Branches read, by the instruction that decides. */
         private final Map<Integer, Branch> found = new TreeMap<>();
+        /** The arm that starts at each instruction a branch's decision can jump to, by the instruction that decides. */
+        private final Map<Integer, Map<Integer, Arm>> armStarts = new HashMap<>();
+        /** The instructions of each drawn branch's condition, by the instruction that decides. */
+        private final Map<Integer, int[]> conditions = new HashMap<>();
         /** Thread.sleep calls in this method and in the code it calls. */
         private final List<String> sleeps = new ArrayList<>();
         private int current;
@@ -380,6 +744,14 @@ public final class CodeReader {
                 }
                 lineAt[i] = at;
             }
+            // first, where the steps are: what decisions and loops are depends on it
+            consumeLambdas();
+            readRange(0, insns.length);
+            steps.clear();
+            branches.clear();
+            unjoined = 0;
+            seenInFinally.clear();
+            sleeps.clear();
             findCandidates();
         }
 
@@ -412,14 +784,18 @@ public final class CodeReader {
             int pos = at + 1;
             while (pos < insns.length) {
                 Candidate around = null; // the innermost arm the position is in
-                int armEnd = 0;
+                boolean[] arm = null;
                 int armSize = Integer.MAX_VALUE;
                 for (Candidate c : candidates.values()) {
-                    for (int[] r : c.ranges()) {
-                        if (r[0] <= pos && pos < r[1] && r[1] - r[0] < armSize) {
+                    for (boolean[] r : c.regions()) {
+                        int size = 0;
+                        for (boolean x : r) {
+                            size += x ? 1 : 0;
+                        }
+                        if (r[pos] && size < armSize) {
                             around = c;
-                            armEnd = r[1];
-                            armSize = r[1] - r[0];
+                            arm = r;
+                            armSize = size;
                         }
                     }
                 }
@@ -427,7 +803,11 @@ public final class CodeReader {
                     readRange(pos, insns.length);
                     break;
                 }
-                readRange(pos, armEnd);
+                boolean[] rest = new boolean[insns.length];
+                for (int i = pos; i < insns.length; i++) {
+                    rest[i] = arm[i];
+                }
+                readIn(rest);
                 if (branchLines.contains(lineAt[around.b()])) {
                     flushFork(false);
                     segments.add(List.copyOf(steps)); // the code leaves a drawn if or switch here
@@ -456,7 +836,20 @@ public final class CodeReader {
 
         /** Reads the instructions from {@code from} up to {@code to}, adding their steps. */
         private void readRange(int from, int to) {
-            for (int i = from; i < to; i++) {
+            boolean[] in = new boolean[insns.length];
+            for (int i = Math.max(0, from); i < Math.min(to, insns.length); i++) {
+                in[i] = true;
+            }
+            readIn(in);
+        }
+
+        /** Reads the instructions in the set, in order, adding their steps: an if or switch in it as a whole. */
+        private void readIn(boolean[] in) {
+            boolean[] done = new boolean[insns.length];
+            for (int i = 0; i < insns.length; i++) {
+                if (!in[i] || done[i]) {
+                    continue;
+                }
                 AbstractInsnNode insn = insns[i];
                 line = lineAt[i];
                 if (frames[i] == null) {
@@ -464,8 +857,10 @@ public final class CodeReader {
                 }
                 current = i;
                 Candidate candidate = candidates.get(i);
-                if (candidate != null && candidate.end() <= to && branch(candidate)) {
-                    i = candidate.end() - 1;
+                if (candidate != null && within(candidate.covers(), in) && branch(candidate)) {
+                    for (int k = 0; k < insns.length; k++) {
+                        done[k] |= candidate.covers()[k];
+                    }
                     continue;
                 }
                 if (insn instanceof InvokeDynamicInsnNode indy && !consumed.contains(insn) && implementation(indy) != null) {
@@ -489,11 +884,23 @@ public final class CodeReader {
                     } else if ("java/lang/Thread".equals(m.owner) && m.name.equals("sleep")) {
                         sleeps.add(site());
                     } else if (!m.name.equals("<init>") && inScope(m.owner)) {
+                        if (active.contains(key(m.owner, m.name, m.desc))) {
+                            stepAt.add(i); // a recursive call: into code that calls the server (when any does)
+                        }
                         add(walk(m.owner, m.name, m.desc, active));
                         sleeps.addAll(SLEEPS.getOrDefault(key(m.owner, m.name, m.desc), List.of()));
                     }
                 }
             }
+        }
+
+        private boolean within(boolean[] part, boolean[] whole) {
+            for (int k = 0; k < part.length; k++) {
+                if (part[k] && !whole[k] && frames[k] != null && insns[k].getOpcode() >= 0) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void add(List<Step> more) {
@@ -532,6 +939,7 @@ public final class CodeReader {
 
         private void call(Command command) {
             if (hasFinally && !seenInFinally.add(line + ":" + command.name)) {
+                stepAt.add(current); // a copy of a finally block: drawn once, yet a call wherever it runs
                 return;
             }
             add(new Call(command, site()));
@@ -551,13 +959,13 @@ public final class CodeReader {
         private boolean branch(Candidate c) {
             List<List<Step>> armSteps = new ArrayList<>();
             boolean calls = false;
-            for (int[] range : c.ranges()) {
+            for (boolean[] region : c.regions()) {
                 List<Step> savedSteps = new ArrayList<>(steps);
                 List<List<Step>> savedForks = new ArrayList<>(branches);
                 int savedUnjoined = unjoined;
                 steps.clear();
                 branches.clear();
-                readRange(range[0], range[1]);
+                readIn(region);
                 flushFork(false);
                 List<Step> arm = List.copyOf(steps);
                 steps.clear();
@@ -568,30 +976,57 @@ public final class CodeReader {
                 armSteps.add(arm);
                 calls |= !arm.isEmpty();
             }
-            if (!calls) {
-                return false;
+            if (!calls || c.regions().size() < 2) {
+                return false; // nothing to show, or only a default: the code always goes the same way
             }
-            line = lineAt[c.b()];
+            line = c.line();
             int last = line;
             List<Arm> arms = new ArrayList<>();
-            for (int k = 0; k < c.ranges().size(); k++) {
-                int[] range = c.ranges().get(k);
+            for (int k = 0; k < c.regions().size(); k++) {
+                boolean[] region = c.regions().get(k);
                 Set<Integer> lines = new TreeSet<>();
-                for (int i = range[0]; i < range[1]; i++) {
-                    if (frames[i] != null && insns[i].getOpcode() >= 0) {
+                for (int i = 0; i < insns.length; i++) {
+                    if (region[i] && frames[i] != null && insns[i].getOpcode() >= 0) {
                         last = Math.max(last, lineAt[i]);
-                        if (isCall(insns[i])) {
-                            lines.add(lineAt[i]);
+                        if (stepAt.contains(i) || (sitesFrom(insns[i]) && onlyIn(lineAt[i], region))) {
+                            lines.add(lineAt[i]); // a call, or a throw or helper the code may fail in
                         }
                     }
                 }
                 arms.add(new Arm(c.keys().get(k), k == c.otherwise(), Collections.unmodifiableSet(lines), armSteps.get(k),
-                        canSkip(range[0], range[1]), loopsIn(range[0], range[1])));
+                        canSkip(region, c.entries().get(k)), loopsIn(region)));
             }
-            Branch b = new Branch(c.name(), lineAt[c.b()], last, List.copyOf(arms), site());
+            java.util.BitSet region = new java.util.BitSet();
+            for (boolean[] r : c.regions()) {
+                for (int i = 0; i < r.length; i++) {
+                    if (r[i]) {
+                        region.set(i);
+                    }
+                }
+            }
+            Branch b = new Branch(c.name(), c.line(), last, List.copyOf(arms), site(), c.b(), region);
             found.put(c.b(), b);
+            Map<Integer, Arm> starts = new HashMap<>();
+            c.exitArm().forEach((at, k) -> starts.put(at, arms.get(k)));
+            armStarts.put(c.b(), starts);
+            conditions.put(c.b(), c.condition());
             flushFork(false);
             steps.add(b.decision());
+            return true;
+        }
+
+        /** Whether the code can fail at the instruction: a throw, or any call. */
+        private boolean sitesFrom(AbstractInsnNode insn) {
+            return insn.getOpcode() == Opcodes.ATHROW || isCall(insn);
+        }
+
+        /** Whether all the code on {@code line} is in the region. */
+        private boolean onlyIn(int line, boolean[] region) {
+            for (int i = 0; i < insns.length; i++) {
+                if (frames[i] != null && insns[i].getOpcode() >= 0 && lineAt[i] == line && !region[i]) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -605,19 +1040,36 @@ public final class CodeReader {
             }
             List<Branch> sorted = new ArrayList<>(found.values());
             sorted.sort(Comparator.comparingInt(Branch::line).thenComparing(Comparator.comparingInt(Branch::lastLine).reversed()));
-            return new Shape(List.copyOf(sorted), loopsIn(0, insns.length), Collections.unmodifiableSet(returns));
+            boolean[] all = new boolean[insns.length];
+            java.util.Arrays.fill(all, true);
+            return new Shape(List.copyOf(sorted), loopsIn(all), Collections.unmodifiableSet(returns), paths());
+        }
+
+        /** The ways through the method's instructions, for {@link Paths#passed}. */
+        private Paths paths() {
+            int n = insns.length;
+            int[][] succ = new int[n][];
+            boolean[] step = new boolean[n];
+            boolean[] returns = new boolean[n];
+            boolean[] throwsAt = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                succ[i] = frames[i] == null ? new int[0] : successors(i).stream().mapToInt(Integer::intValue).toArray();
+                step[i] = stepAt.contains(i);
+                int op = insns[i].getOpcode();
+                returns[i] = frames[i] != null && op >= Opcodes.IRETURN && op <= Opcodes.RETURN;
+                throwsAt[i] = frames[i] != null && op == Opcodes.ATHROW;
+            }
+            Map<Integer, int[]> condition = new HashMap<>(conditions);
+            return new Paths(lineAt.clone(), succ, step, returns, throwsAt, new TreeMap<>(found), condition, new HashMap<>(armStarts));
         }
 
         /** Whether the code can go from {@code from} out of the range without making a call. */
-        private boolean canSkip(int from, int to) {
-            if (from >= to) {
-                return true;
-            }
+        private boolean canSkip(boolean[] region, int from) {
             ArrayDeque<Integer> todo = new ArrayDeque<>(List.of(from));
             Set<Integer> seen = new HashSet<>();
             while (!todo.isEmpty()) {
                 int i = todo.pop();
-                if (i < from || i >= to || exits(insns[i])) {
+                if (i >= insns.length || !region[i] || exits(insns[i])) {
                     return true;
                 }
                 if (!seen.add(i) || stepAt.contains(i) || frames[i] == null) {
@@ -628,11 +1080,12 @@ public final class CodeReader {
             return false;
         }
 
-        /** The loops in a range, as their first and last line: a backward jump closes one. */
-        private List<int[]> loopsIn(int from, int to) {
+        /** The loops in a region, as their first and last line: a backward jump closes one. */
+        private List<int[]> loopsIn(boolean[] region) {
             List<int[]> loops = new ArrayList<>();
-            for (int i = from; i < to; i++) {
-                if (frames[i] != null && insns[i] instanceof JumpInsnNode j && index(j.label) <= i && index(j.label) >= from) {
+            for (int i = 0; i < insns.length; i++) {
+                if (region[i] && frames[i] != null && insns[i] instanceof JumpInsnNode j && index(j.label) <= i
+                        && region[index(j.label)] && realBackEdge(i, index(j.label))) {
                     int first = Integer.MAX_VALUE;
                     int last = 0;
                     for (int k = index(j.label); k <= i; k++) {
@@ -649,95 +1102,343 @@ public final class CodeReader {
             return List.copyOf(loops);
         }
 
-        private void findCandidates() {
-            Map<Integer, Integer> backEdge = new HashMap<>();
-            for (int i = 0; i < insns.length; i++) {
-                if (frames[i] != null && insns[i] instanceof JumpInsnNode j && index(j.label) <= i) {
-                    backEdge.merge(index(j.label), i, Math::max);
-                }
+        // ------------------------------------------------------------ control flow
+        //
+        // The rules, written once (design/native-workflows/README.md, "How plain Java control flow
+        // is drawn"):
+        //  - a loop is a natural loop: a jump back to an instruction every way to the jump passes
+        //    first. A loop that goes round a step is a real loop; one that does not is plain code.
+        //  - a decision is a switch, or the jumps of one condition (`a && b` is one jump per operand).
+        //    Its condition is what it can come round to without a step (a failed `when` guard goes
+        //    back to the switch), and its outcomes are the places the condition goes on to.
+        //  - a loop's condition is its own, not a decision: the jump out of it that the straight
+        //    code from its head comes to, or the jump back that closes it. Any other jump out of
+        //    a loop is a break, and the if around it a decision.
+        //  - an arm holds what runs only because its outcome was taken: the code every way to which
+        //    goes through that outcome, without leaving the loop the decision is in.
+        //  - a decision is drawn when an arm holds a step, the arms take up all the code from the
+        //    decision to where they meet, and every line with a step is in one arm or in none.
+
+        /** Every way on from each instruction, without (flow) and with (flowAll) the ways into catch handlers. */
+        private int[][] flow;
+        private int[][] flowAll;
+        private int[][] backAll;
+        /** Instructions code jumps to or a handler starts at: where a block of straight code starts. */
+        private boolean[] entered;
+        /** The natural loops, and which of them go round a step. */
+        private final List<NaturalLoop> naturalLoops = new ArrayList<>();
+
+        /**
+         * A natural loop: its head, the code that goes round to it, the jumps back, whether it goes
+         * round a step, and its extent: what runs from its head before its follow, the one place
+         * every way out of it leads to (all of the code after it when there is no such place).
+         */
+        private record NaturalLoop(int head, boolean[] body, Set<Integer> backFrom, boolean real, boolean[] extent, int size) {
+            boolean spans(int i) {
+                return extent[i];
             }
-            // javac evaluates `a && b` as one jump per operand, all to the same place: the last decides
-            Map<Long, Candidate> ifs = new LinkedHashMap<>();
-            List<Candidate> all = new ArrayList<>();
-            for (int b = 0; b < insns.length; b++) {
-                if (frames[b] == null) {
+        }
+
+        private interface Edge {
+            boolean ok(int from, int to);
+        }
+
+        private void buildFlow() {
+            int n = insns.length;
+            List<List<Integer>> plain = new ArrayList<>();
+            List<List<Integer>> all = new ArrayList<>();
+            List<List<Integer>> back = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                plain.add(new ArrayList<>());
+                all.add(new ArrayList<>());
+                back.add(new ArrayList<>());
+            }
+            entered = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                if (frames[i] == null) {
                     continue;
                 }
-                if (insns[b] instanceof JumpInsnNode j && conditional(j.getOpcode())) {
-                    Candidate c = ifCandidate(b, index(j.label), backEdge);
-                    if (c != null) {
-                        long key = ((long) c.ranges().get(1)[0] << 32) | c.end();
-                        Candidate before = ifs.put(key, c);
-                        if (before != null && !sameCondition(before.b(), b)) {
-                            all.add(before);
+                for (int t : successors(i)) {
+                    if (t < n) {
+                        plain.get(i).add(t);
+                        all.get(i).add(t);
+                    }
+                }
+                for (int t : targets(i)) {
+                    entered[t] = true;
+                }
+            }
+            for (TryCatchBlockNode tc : method.tryCatchBlocks) {
+                int h = index(tc.handler);
+                entered[h] = true;
+                for (int i = index(tc.start); i < index(tc.end); i++) {
+                    if (frames[i] != null && insns[i].getOpcode() >= 0) {
+                        all.get(i).add(h);
+                    }
+                }
+            }
+            for (int i = 0; i < n; i++) {
+                for (int t : all.get(i)) {
+                    back.get(t).add(i);
+                }
+            }
+            flow = toArrays(plain);
+            flowAll = toArrays(all);
+            backAll = toArrays(back);
+        }
+
+        private int[][] toArrays(List<List<Integer>> lists) {
+            int[][] out = new int[lists.size()][];
+            for (int i = 0; i < out.length; i++) {
+                out[i] = lists.get(i).stream().mapToInt(Integer::intValue).toArray();
+            }
+            return out;
+        }
+
+        /** What the sources reach along {@code graph}, entering only instructions {@code ok} and taking only edges {@code edge}. */
+        private boolean[] reach(int[][] graph, List<Integer> sources, java.util.function.IntPredicate ok, Edge edge) {
+            boolean[] seen = new boolean[graph.length];
+            ArrayDeque<Integer> todo = new ArrayDeque<>();
+            for (int s : sources) {
+                if (s < graph.length && !seen[s] && ok.test(s)) {
+                    seen[s] = true;
+                    todo.add(s);
+                }
+            }
+            while (!todo.isEmpty()) {
+                int i = todo.poll();
+                for (int t : graph[i]) {
+                    if (!seen[t] && ok.test(t) && edge.ok(i, t)) {
+                        seen[t] = true;
+                        todo.add(t);
+                    }
+                }
+            }
+            return seen;
+        }
+
+        /** Natural loops: a jump back to {@code h} from {@code s} where every way from the start to {@code s} passes {@code h}. */
+        private void findLoops() {
+            int n = insns.length;
+            Map<Integer, Set<Integer>> byHead = new TreeMap<>();
+            Map<Integer, boolean[]> withoutHead = new HashMap<>();
+            for (int i = 0; i < n; i++) {
+                for (int t : flowAll[i]) {
+                    if (t <= i) {
+                        int h = t;
+                        boolean[] r = withoutHead.computeIfAbsent(h, x -> reach(flowAll, List.of(0), k -> k != x, (a, b) -> true));
+                        if (!r[i]) {
+                            byHead.computeIfAbsent(h, x -> new TreeSet<>()).add(i);
                         }
                     }
-                } else if (insns[b] instanceof TableSwitchInsnNode || insns[b] instanceof LookupSwitchInsnNode) {
+                }
+            }
+            for (Map.Entry<Integer, Set<Integer>> e : byHead.entrySet()) {
+                int h = e.getKey();
+                boolean[] body = reach(backAll, new ArrayList<>(e.getValue()), k -> k != h, (a, b) -> true);
+                body[h] = true;
+                boolean real = false;
+                for (int i = 0; i < n; i++) {
+                    real |= body[i] && stepAt.contains(i); // (what goes round: not the code breaking out)
+                }
+                // the ways out: where code in it goes to outside it
+                Set<Integer> exits = new TreeSet<>();
+                for (int i = 0; i < n; i++) {
+                    if (body[i]) {
+                        for (int t : flow[i]) {
+                            if (!body[t]) {
+                                exits.add(t);
+                            }
+                        }
+                    }
+                }
+                Map<Integer, boolean[]> from = new HashMap<>();
+                for (int t : exits) {
+                    from.put(t, reach(flowAll, List.of(t), k -> !body[k], (a, b) -> true));
+                }
+                // the follow: where every way out that can go on (not only throw) leads; else the last
+                // of them, where javac puts the code after the loop
+                Set<Integer> goOn = new TreeSet<>();
+                for (int t : exits) {
+                    boolean[] r = from.get(t);
+                    for (int i = 0; i < n && !goOn.contains(t); i++) {
+                        int op = insns[i].getOpcode();
+                        if (r[i] && op >= Opcodes.IRETURN && op <= Opcodes.RETURN) {
+                            goOn.add(t);
+                        }
+                    }
+                }
+                Set<Integer> ways = goOn.isEmpty() ? exits : goOn;
+                Integer follow = null;
+                for (int t : ways) {
+                    if (ways.stream().allMatch(u -> from.get(u)[t])) {
+                        follow = t;
+                    }
+                }
+                if (follow == null && !ways.isEmpty()) {
+                    follow = Collections.max(ways);
+                }
+                final Integer f = follow;
+                boolean[] extent = f == null ? reach(flowAll, List.of(0), k -> true, (a, b) -> true)
+                        : reach(flowAll, List.of(h), k -> k != f, (a, b) -> true);
+                int size = 0;
+                for (boolean x : extent) {
+                    size += x ? 1 : 0;
+                }
+                naturalLoops.add(new NaturalLoop(h, body, e.getValue(), real, extent, size));
+            }
+        }
+
+        /** The innermost natural loop around {@code i} that {@code skip} does not reject, or null. */
+        private NaturalLoop loopAround(int i, java.util.function.Predicate<NaturalLoop> skip) {
+            NaturalLoop best = null;
+            for (NaturalLoop l : naturalLoops) {
+                if (l.spans(i) && !skip.test(l) && (best == null || l.size() < best.size())) {
+                    best = l;
+                }
+            }
+            return best;
+        }
+
+        private boolean realBackEdge(int from, int to) {
+            for (NaturalLoop l : naturalLoops) {
+                if (l.real() && l.head() == to && l.backFrom().contains(from)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** The first instruction of the straight code that ends at {@code j}: after a jump, a return, a step, or where code jumps in. */
+        private int blockStart(int j) {
+            int k = j;
+            while (k > 0 && !entered[k]) {
+                AbstractInsnNode prev = insns[k - 1];
+                boolean ends = prev.getOpcode() >= 0 && (prev instanceof JumpInsnNode || prev instanceof TableSwitchInsnNode
+                        || prev instanceof LookupSwitchInsnNode || exits(prev));
+                if (ends || stepAt.contains(k - 1)) {
+                    break;
+                }
+                k--;
+            }
+            return k;
+        }
+
+        private void findCandidates() {
+            int n = insns.length;
+            buildFlow();
+            findLoops();
+            List<Candidate> all = new ArrayList<>();
+            boolean[] taken = new boolean[n];
+            for (int b = 0; b < n; b++) {
+                if (frames[b] != null && (insns[b] instanceof TableSwitchInsnNode || insns[b] instanceof LookupSwitchInsnNode)) {
                     Candidate c = switchCandidate(b);
                     if (c != null) {
                         all.add(c);
+                        for (int k : c.condition()) {
+                            taken[k] = true;
+                        }
                     }
                 }
             }
-            all.addAll(ifs.values());
+            // the jumps of one condition, read from its last: a jump whose fall-through starts the
+            // condition after it, and whose other way goes into that condition or where it goes, is
+            // one of its operands
+            Map<Integer, IfGroup> byEntry = new HashMap<>();
+            List<IfGroup> groups = new ArrayList<>();
+            for (int j = n - 1; j >= 0; j--) {
+                if (frames[j] == null || taken[j] || !(insns[j] instanceof JumpInsnNode jump) || !conditional(jump.getOpcode())) {
+                    continue;
+                }
+                int start = blockStart(j);
+                int fall = realAt(j + 1);
+                int to = realAt(index(jump.label));
+                IfGroup g = byEntry.get(fall);
+                if (g != null && (g.nodes.contains(to) || g.exits.contains(to))) {
+                    byEntry.remove(fall);
+                    for (int k = start; k <= j; k++) {
+                        g.nodes.add(k);
+                    }
+                    g.first = j;
+                    byEntry.put(realAt(start), g);
+                } else if (fall != to) {
+                    IfGroup ng = new IfGroup(j, fall, to);
+                    ng.first = j;
+                    for (int k = start; k <= j; k++) {
+                        ng.nodes.add(k);
+                    }
+                    byEntry.put(realAt(start), ng);
+                    groups.add(ng);
+                }
+            }
+            for (IfGroup g : groups) {
+                NaturalLoop around = loopAround(g.last, l -> false);
+                if (around != null && (!around.spans(g.then) || !around.spans(g.otherwise)) && condition(around, g)) {
+                    continue; // the loop's condition (any other jump out of it is a break)
+                }
+                int[] cond = g.nodes.stream().mapToInt(Integer::intValue).sorted().toArray();
+                Map<Integer, String> keyOf = new LinkedHashMap<>();
+                keyOf.put(g.then, "true");
+                keyOf.put(g.otherwise, "false");
+                Candidate c = decision(g.last, lineAt[g.first], name("if", g.last), cond, keyOf, g.otherwise, Set.of());
+                if (c != null) {
+                    all.add(c);
+                }
+            }
             for (Candidate c : all) {
-                if (valid(c)) {
-                    candidates.put(c.b(), c);
-                }
+                candidates.put(c.b(), c);
             }
-        }
-
-        /** Two jumps of one condition: the same line, no statement between them. */
-        private boolean sameCondition(int first, int second) {
-            for (int i = first + 1; i < second; i++) {
-                if (insns[i] instanceof LineNumberNode) {
-                    return false;
-                }
-            }
-            return lineAt[first] == lineAt[second];
         }
 
         /**
-         * An if: the jump at {@code b} skips the then-arm to {@code t}. A then-arm ending in a jump
-         * past the else-arm has one; a jump back to before {@code b} that closes a loop makes the
-         * jump the loop's condition, not an if.
+         * Whether the jumps are the loop's condition: the first jump the straight code from its head
+         * comes to (a while or for), or the jump back that closes it (a do-while).
          */
-        private Candidate ifCandidate(int b, int t, Map<Integer, Integer> backEdge) {
-            if (t <= b) {
-                return null;
-            }
-            int before = prevReal(t);
-            if (before <= b) {
-                return null;
-            }
-            AbstractInsnNode last = insns[before];
-            int end = t;
-            if (last instanceof JumpInsnNode lj) {
-                int target = index(lj.label);
-                if (conditional(lj.getOpcode()) && target > before) {
-                    return null; // one operand of an `a || b`
-                }
-                if (lj.getOpcode() == Opcodes.GOTO && target <= b && backEdge.get(target) == before) {
-                    return null; // the condition of a loop
-                }
-                if (lj.getOpcode() == Opcodes.GOTO && target > t) {
-                    boolean leaves = false;
-                    for (int i = t; i < target && !leaves; i++) {
-                        for (int to : targets(i)) {
-                            leaves |= frames[i] != null && to < t;
-                        }
-                    }
-                    if (!leaves) {
-                        end = target; // an else arm; otherwise the jump is a break or continue
-                    }
+        private boolean condition(NaturalLoop loop, IfGroup g) {
+            for (int j : g.nodes) {
+                if (loop.backFrom().contains(j)) {
+                    return true;
                 }
             }
-            return new Candidate(b, name("if", b), end, List.of(new int[] {b + 1, t}, new int[] {t, end}),
-                    List.of("true", "false"), 1);
+            for (int i = loop.head(); i < insns.length; i++) {
+                if (i > loop.head() && entered[i]) {
+                    return false;
+                }
+                AbstractInsnNode insn = insns[i];
+                if (insn instanceof JumpInsnNode || insn instanceof TableSwitchInsnNode || insn instanceof LookupSwitchInsnNode) {
+                    return g.nodes.contains(i);
+                }
+                if (exits(insn)) {
+                    return false;
+                }
+            }
+            return false;
         }
 
-        /** A switch: an arm per case target, in order, each ending in a break, a return or a throw. */
+        /** The jumps of one if's condition, its last, and its two outcomes. */
+        private static final class IfGroup {
+            final int last;
+            final int then;
+            final int otherwise;
+            int first;
+            final Set<Integer> nodes = new TreeSet<>();
+            final Set<Integer> exits;
+
+            IfGroup(int last, int then, int otherwise) {
+                this.last = last;
+                this.then = then;
+                this.otherwise = otherwise;
+                this.exits = Set.of(then, otherwise);
+            }
+        }
+
+        /**
+         * A switch: its condition is the switch and what it comes round to without a step (a
+         * failed {@code when} guard goes back to it); each place the condition goes on to is an
+         * outcome, named by the cases that lead there.
+         */
         private Candidate switchCandidate(int b) {
+            int n = insns.length;
             List<Integer> keys = new ArrayList<>();
             List<LabelNode> labels;
             LabelNode dflt;
@@ -753,135 +1454,258 @@ public final class CodeReader {
                 labels = l.labels;
                 dflt = l.dflt;
             }
+            java.util.function.IntPredicate free = k -> !stepAt.contains(k);
+            Edge forward = (a, t) -> !realBackEdge(a, t);
+            boolean[] from = reach(flow, List.of(b), free, forward);
+            int[][] rev = new int[n][];
+            List<List<Integer>> r = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                r.add(new ArrayList<>());
+            }
+            for (int i = 0; i < n; i++) {
+                for (int t : flow[i]) {
+                    r.get(t).add(i);
+                }
+            }
+            rev = toArrays(r);
+            boolean[] to = reach(rev, List.of(b), free, (a, t) -> !realBackEdge(t, a));
+            Set<Integer> cond = new TreeSet<>();
+            for (int i = 0; i < n; i++) {
+                if (from[i] && to[i]) {
+                    cond.add(i);
+                }
+            }
+            for (int k = blockStart(b); k <= b; k++) {
+                cond.add(k);
+            }
             Map<Integer, String> names = caseNames(b);
-            int d = index(dflt);
-            TreeMap<Integer, List<String>> byStart = new TreeMap<>();
+            boolean chars = isChar(source(b, 1, 0));
+            int d = realAt(index(dflt));
+            Map<Integer, List<String>> byExit = new LinkedHashMap<>();
             for (int k = 0; k < keys.size(); k++) {
                 int start = index(labels.get(k));
-                if (start <= b) {
-                    return null;
-                }
-                if (start != d) {
-                    byStart.computeIfAbsent(start, x -> new ArrayList<>())
-                            .add(names.getOrDefault(keys.get(k), String.valueOf(keys.get(k))));
-                }
-            }
-            if (d <= b) {
-                return null;
-            }
-            List<Integer> starts = new ArrayList<>(new TreeSet<>(byStart.keySet()));
-            if (!starts.contains(d)) {
-                starts.add(d);
-                starts.sort(null);
-            }
-            int lastStart = starts.get(starts.size() - 1);
-            Integer end = null;
-            for (int k = 1; k < starts.size(); k++) {
-                AbstractInsnNode prev = insns[prevReal(starts.get(k))];
-                if (prev instanceof JumpInsnNode g && g.getOpcode() == Opcodes.GOTO && index(g.label) >= lastStart) {
-                    if (end != null && end != index(g.label)) {
-                        return null;
+                String name = names.getOrDefault(keys.get(k), chars ? String.valueOf((char) keys.get(k).intValue()) : String.valueOf(keys.get(k)));
+                if (!cond.contains(start)) {
+                    if (realAt(start) != d) {
+                        byExit.computeIfAbsent(realAt(start), x -> new ArrayList<>()).add(name);
                     }
-                    end = index(g.label);
-                } else if (!exits(prev) && !(prev instanceof JumpInsnNode g2 && g2.getOpcode() == Opcodes.GOTO)) {
-                    return null; // falls through into the next case
-                }
-            }
-            if (end == null) {
-                end = reachEnd(lastStart);
-            }
-            List<int[]> ranges = new ArrayList<>();
-            List<String> armKeys = new ArrayList<>();
-            int otherwise = -1;
-            for (int k = 0; k < starts.size(); k++) {
-                int a = starts.get(k);
-                if (a >= end) {
-                    continue; // no default: the switch's default goes to the code after it
-                }
-                int z = k + 1 < starts.size() ? Math.min(starts.get(k + 1), end) : end;
-                if (a == d) {
-                    otherwise = ranges.size();
-                    armKeys.add("default");
-                } else {
-                    armKeys.add(String.join(",", byStart.get(a)));
-                }
-                ranges.add(new int[] {a, z});
-            }
-            if (otherwise < 0) {
-                otherwise = ranges.size();
-                armKeys.add("default");
-                ranges.add(new int[] {end, end});
-            }
-            return new Candidate(b, name("switch", b), end, List.copyOf(ranges), List.copyOf(armKeys), otherwise);
-        }
-
-        /** One past the last instruction reachable from {@code from} without going back before it. */
-        private int reachEnd(int from) {
-            int max = from;
-            ArrayDeque<Integer> todo = new ArrayDeque<>(List.of(from));
-            Set<Integer> seen = new HashSet<>();
-            while (!todo.isEmpty()) {
-                int i = todo.pop();
-                if (i < from || i >= insns.length || !seen.add(i)) {
                     continue;
                 }
-                max = Math.max(max, i);
-                if (!exits(insns[i])) {
-                    todo.addAll(successors(i));
+                // a guarded case: where its guard lets the code on to
+                boolean[] inGuard = reach(flow, List.of(start), i -> cond.contains(i) && i != b, (x, y) -> true);
+                for (int i = 0; i < n; i++) {
+                    if (inGuard[i]) {
+                        for (int y : flow[i]) {
+                            if (!cond.contains(y) && realAt(y) != d) {
+                                byExit.computeIfAbsent(realAt(y), x -> new ArrayList<>()).add(name + " when");
+                            }
+                        }
+                    }
                 }
             }
-            return max + 1;
+            if (cond.contains(d)) {
+                return null;
+            }
+            Map<Integer, String> keyOf = new LinkedHashMap<>();
+            Set<String> used = new HashSet<>();
+            used.add("default");
+            for (Map.Entry<Integer, List<String>> e : new TreeMap<>(byExit).entrySet()) {
+                String key = String.join(",", new java.util.LinkedHashSet<>(e.getValue()));
+                for (int k = 2; !used.add(key); k++) {
+                    key = String.join(",", new java.util.LinkedHashSet<>(e.getValue())) + " (" + k + ")";
+                }
+                keyOf.put(e.getKey(), key);
+            }
+            keyOf.put(d, "default");
+            // every place the condition goes on to is an outcome
+            for (int c : cond) {
+                for (int y : flow[c]) {
+                    if (!cond.contains(y) && !keyOf.containsKey(realAt(y))) {
+                        return null;
+                    }
+                }
+            }
+            Set<Integer> cases = new HashSet<>(keyOf.keySet());
+            cases.remove(d);
+            return decision(b, lineAt[b], name("switch", b), cond.stream().mapToInt(Integer::intValue).toArray(), keyOf, d, cases);
+        }
+
+        private boolean regionHasCode(boolean[] region) {
+            for (int i = 0; i < region.length; i++) {
+                if (region[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** Whether the value at {@code src} is a char: so a switch's cases are characters. */
+        private boolean isChar(AbstractInsnNode src) {
+            if (src instanceof MethodInsnNode m) {
+                return m.desc.endsWith(")C");
+            }
+            if (src instanceof FieldInsnNode f) {
+                return f.desc.equals("C");
+            }
+            if (src instanceof InsnNode i) {
+                return i.getOpcode() == Opcodes.I2C || i.getOpcode() == Opcodes.CALOAD;
+            }
+            if (src instanceof VarInsnNode v && v.getOpcode() == Opcodes.ILOAD && method.localVariables != null) {
+                int at = indexOf(v);
+                for (LocalVariableNode local : method.localVariables) {
+                    if (local.index == v.var && index(local.start) <= at + 1 && at < index(local.end)) {
+                        return local.desc.equals("C");
+                    }
+                }
+            }
+            return false;
         }
 
         /**
-         * Whether a candidate can be followed from the lines calls are made on: each line with a
-         * call is in one arm or outside them all, and an arm is entered only from its start.
+         * A decision at {@code b} with its condition and outcomes (by the first instruction each
+         * goes to, in the order to draw, {@code otherwise} the default): its arms, or null when it
+         * is not drawn.
          */
-        private boolean valid(Candidate c) {
-            Map<Integer, Integer> regionOfLine = new HashMap<>();
-            for (int i = 0; i < insns.length; i++) {
-                if (frames[i] != null && isCall(insns[i])) {
-                    Integer seen = regionOfLine.putIfAbsent(lineAt[i], region(c, i));
-                    if (seen != null && seen != region(c, i)) {
+        private Candidate decision(int b, int line, String name, int[] cond, Map<Integer, String> keyOf, int otherwise,
+                Set<Integer> cases) {
+            int n = insns.length;
+            boolean[] inCond = new boolean[n];
+            for (int c : cond) {
+                inCond[c] = true;
+            }
+            // the loop the decision is in (not one that is only its own condition going round)
+            NaturalLoop loop = loopAround(b, l -> {
+                for (int i = 0; i < n; i++) {
+                    if (l.body()[i] && !inCond[i] && insns[i].getOpcode() >= 0) {
                         return false;
                     }
                 }
-            }
-            for (int s = 0; s < insns.length; s++) {
-                if (frames[s] == null) {
-                    continue;
-                }
-                for (int t : targets(s)) {
-                    for (int[] r : c.ranges()) {
-                        boolean from = s >= r[0] && s < r[1];
-                        if (t < r[0] || t >= r[1] || from) {
-                            continue;
-                        }
-                        boolean chain = s < c.b() && lineAt[s] == lineAt[c.b()] && insns[s] instanceof JumpInsnNode;
-                        if (t > r[0] || (s != c.b() && !chain)) {
-                            return false;
+                return true;
+            });
+            List<Integer> exits = new ArrayList<>(keyOf.keySet());
+            exits.sort(null);
+            List<boolean[]> regions = new ArrayList<>();
+            List<Integer> entries = new ArrayList<>();
+            List<String> keys = new ArrayList<>();
+            int[] place = new int[n];
+            java.util.Arrays.fill(place, -1);
+            Map<Integer, Integer> exitArm = new HashMap<>();
+            boolean steps = false;
+            int end = cond[cond.length - 1] + 1;
+            int otherwiseAt = -1;
+            for (int x : exits) {
+                List<Integer> starts = new ArrayList<>();
+                for (int c : cond) {
+                    for (int y : flow[c]) {
+                        if (!inCond[y] && realAt(y) == x) {
+                            starts.add(y);
                         }
                     }
+                }
+                Set<Integer> startSet = new HashSet<>(starts);
+                boolean[] around = reach(flowAll, List.of(0), k -> true, (a, t) -> !(inCond[a] && startSet.contains(t)));
+                boolean[] region = reach(flowAll, starts, k -> !around[k] && !inCond[k] && (loop == null || loop.spans(k)), (a, t) -> true);
+                int k = regions.size();
+                for (int i = 0; i < n; i++) {
+                    if (region[i]) {
+                        if (place[i] >= 0) {
+                            return null; // (cannot happen: what runs only through one outcome is in no other)
+                        }
+                        place[i] = k;
+                        end = Math.max(end, i + 1); // (an empty arm is where the code goes on, not part of it)
+                        steps |= stepAt.contains(i);
+                    }
+                }
+                regions.add(region);
+                entries.add(starts.isEmpty() ? x : Collections.min(starts));
+                for (int s : starts) {
+                    exitArm.put(s, k);
+                }
+                exitArm.put(x, k);
+                if (x == otherwise) {
+                    otherwiseAt = k;
+                }
+                keys.add(keyOf.get(x));
+            }
+            if (!steps || regions.size() < 2) {
+                return null; // no arm calls the server: plain code
+            }
+            // a case another arm runs into, with a step before where all the arms meet: the case
+            // falls through, and its code runs for two cases (javac's code is the same as a
+            // switch followed by an if, so only the written case tells them apart)
+            boolean[] lim = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                lim[i] = !inCond[i] && (loop == null || (loop.spans(i) && i != loop.head()));
+            }
+            boolean[] common = null;
+            Map<Integer, List<Integer>> startsOf = new HashMap<>();
+            for (int c : cond) {
+                for (int y : flow[c]) {
+                    if (!inCond[y]) {
+                        startsOf.computeIfAbsent(realAt(y), z -> new ArrayList<>()).add(y);
+                    }
+                }
+            }
+            for (List<Integer> st : startsOf.values()) {
+                boolean[] r = reach(flowAll, st, k -> lim[k], (a, t) -> true);
+                if (common == null) {
+                    common = r;
+                } else {
+                    for (int i = 0; i < n; i++) {
+                        common[i] &= r[i];
+                    }
+                }
+            }
+            for (int x : cases) {
+                List<Integer> st = startsOf.getOrDefault(x, List.of());
+                Integer k = exitArm.get(x);
+                if (st.isEmpty() || k == null || regionHasCode(regions.get(k))) {
+                    continue; // only through its own case: no other arm runs into it
+                }
+                final boolean[] meet = common;
+                boolean[] own = reach(flowAll, st, i -> lim[i] && (meet == null || !meet[i]), (a, t) -> true);
+                for (int i = 0; i < n; i++) {
+                    if (own[i] && stepAt.contains(i)) {
+                        return null;
+                    }
+                }
+            }
+            // every line with a step is in one arm or in none, so a call tells the arm it was made in
+            Map<Integer, Integer> placeOfLine = new HashMap<>();
+            for (int i : stepAt) {
+                Integer seen = placeOfLine.putIfAbsent(lineAt[i], place[i]);
+                if (seen != null && seen != place[i]) {
+                    return null;
                 }
             }
             for (TryCatchBlockNode tc : method.tryCatchBlocks) {
                 int h = index(tc.handler);
-                for (int[] r : c.ranges()) {
-                    if (h >= r[0] && h < r[1] && (index(tc.start) < r[0] || index(tc.end) > r[1])) {
-                        return false;
+                for (boolean[] r : regions) {
+                    if (r[h]) {
+                        for (int i = index(tc.start); i < index(tc.end); i++) {
+                            if (!r[i] && frames[i] != null && insns[i].getOpcode() >= 0) {
+                                return null; // a catch in the arm of a try around more than the arm
+                            }
+                        }
                     }
                 }
             }
-            return true;
-        }
-
-        private int region(Candidate c, int i) {
-            for (int k = 0; k < c.ranges().size(); k++) {
-                if (i >= c.ranges().get(k)[0] && i < c.ranges().get(k)[1]) {
-                    return k;
+            boolean[] covers = inCond.clone();
+            for (boolean[] r : regions) {
+                for (int i = 0; i < n; i++) {
+                    covers[i] |= r[i];
                 }
             }
-            return -1;
+            return new Candidate(b, line, name, end, List.copyOf(keys), otherwiseAt, cond, Map.copyOf(exitArm),
+                    List.copyOf(regions), List.copyOf(entries), covers);
+        }
+
+        /** The first real instruction at or after {@code i} (a label comes before its line number). */
+        private int realAt(int i) {
+            while (i < insns.length - 1 && insns[i].getOpcode() < 0) {
+                i++;
+            }
+            return i;
         }
 
         /** The case labels of a switch by key: string and enum cases as written, others as numbers. */
@@ -897,8 +1721,14 @@ public final class CodeReader {
                     && source(indexOf(n), 2, 0) instanceof FieldInsnNode map && map.name.startsWith("$SwitchMap$")) {
                 names.putAll(switchMap(map));
             } else if (source instanceof VarInsnNode v && v.getOpcode() == Opcodes.ILOAD) {
-                // a string switch: javac numbers the strings, matched by equals, into a local
-                for (int i = 0; i < insns.length; i++) {
+                // a string switch: javac numbers the strings, matched by equals, into a local; the
+                // local is set to -1 first, and every string switch of the method may reuse it
+                int from = b - 1;
+                while (from > 0 && !(insns[from] instanceof VarInsnNode init && init.getOpcode() == Opcodes.ISTORE
+                        && init.var == v.var && "-1".equals(constant(from, 1, 0)))) {
+                    from--;
+                }
+                for (int i = from + 1; i < b; i++) {
                     if (frames[i] != null && insns[i] instanceof VarInsnNode store && store.getOpcode() == Opcodes.ISTORE
                             && store.var == v.var) {
                         String k = constant(i, 1, 0);
@@ -1049,14 +1879,6 @@ public final class CodeReader {
 
         private int index(LabelNode label) {
             return method.instructions.indexOf(label);
-        }
-
-        private int prevReal(int i) {
-            int j = i - 1;
-            while (j >= 0 && insns[j].getOpcode() < 0) {
-                j--;
-            }
-            return j;
         }
 
         private List<Integer> targets(int i) {

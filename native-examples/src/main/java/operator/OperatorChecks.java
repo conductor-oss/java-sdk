@@ -51,8 +51,8 @@ public class OperatorChecks {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
         conductor.host()
-                .workflows(ShipmentWorkflow.class, LaneFailureWorkflow.class, ShipmentFailureWorkflow.class, PingWorkflow.class, RouteWorkflow.class, ForkedWorkflow.class, LoopedWorkflow.class, SwitchLaneWorkflow.class)
-                .tasks(new ShipmentTasks())
+                .workflows(ShipmentWorkflow.class, LaneFailureWorkflow.class, ShipmentFailureWorkflow.class, PingWorkflow.class, RouteWorkflow.class, ForkedWorkflow.class, LoopedWorkflow.class, SwitchLaneWorkflow.class, FleetWorkflow.class)
+                .tasks(new ShipmentTasks(), new FleetTasks())
                 .start();
 
         // an uncaught failure in an async lane, joined without get(), fails the workflow
@@ -112,6 +112,7 @@ public class OperatorChecks {
         checkForkReruns(conductor);
         checkLoopReruns(conductor);
         checkSwitchLane(conductor);
+        checkFleet(conductor);
 
         // @Schedule registered the workflow with the scheduler, which runs it every 5 seconds
         check("the @Schedule workflow ran on the scheduler", waitFor(() -> ShipmentTasks.pings.get() >= 2, 60));
@@ -268,8 +269,78 @@ public class OperatorChecks {
         outcome(last);
         rerun(conductor, last, taskId(conductor, last.workflowId(), "loop_after"));
         check("rerun from the task after the loops completes", expected.equals(outcome(last)));
+        // the result can be read before the rerun reopens the execution: wait for the task to run again
+        String rerunId = id;
         check("rerun from the task after the loops runs only it again",
-                loopRuns("poll/" + id) == 3 && loopRuns("after/" + id) == 2);
+                waitFor(() -> loopRuns("after/" + rerunId) == 2, 30) && loopRuns("poll/" + id) == 3);
+    }
+
+    /**
+     * The fleet: loops nested in a loop, switches and if / else if / else inside them, a while loop
+     * and a do-while. A rerun from a host's probe runs that host and everything after it again; a
+     * patch failing deep in the nested loop fails the run at that task, and a retry continues from it;
+     * a restart runs it all again.
+     */
+    private static void checkFleet(Conductor conductor) throws InterruptedException {
+        String id = java.util.UUID.randomUUID().toString();
+        WorkflowHandle<String> run = conductor.start(FleetWorkflow::run, id);
+        check("the fleet run completes", FleetWorkflow.EXPECTED.equals(outcome(run)));
+        check("the fleet run took every path it should",
+                FleetTasks.runs(id, "approve", "us") == 1 && FleetTasks.runs(id, "announce", "eu") == 1
+                        && FleetTasks.runs(id, "drain", "db-1") == 1 && FleetTasks.runs(id, "verify", "db-1") == 2
+                        && FleetTasks.runs(id, "page", "cache-2") == 1 && FleetTasks.runs(id, "warm", "cache-1") == 1
+                        && FleetTasks.runs(id, "backup", "db-1") == 1 && FleetTasks.runs(id, "rollback", "eu") == 1
+                        && FleetTasks.runs(id, "report", "fleet") == 2);
+
+        // rerun from db-1's probe: db-1 and every host after it run again; web-1 and the gate do not
+        Map<String, Object> probe = taskOf(conductor, run.workflowId(), "fleet_probe", "db-1");
+        rerun(conductor, run, (String) probe.get("taskId"));
+        check("rerun from a task in the nested loop completes", FleetWorkflow.EXPECTED.equals(outcome(run)));
+        check("rerun from db-1's probe runs db-1 and the hosts after it again, not web-1 or the gate",
+                FleetTasks.runs(id, "probe", "web-1") == 1 && FleetTasks.runs(id, "approve", "us") == 1
+                        && FleetTasks.runs(id, "probe", "db-1") == 2 && FleetTasks.runs(id, "verify", "db-1") == 4
+                        && FleetTasks.runs(id, "probe", "web-3") == 2 && FleetTasks.runs(id, "report", "fleet") == 4);
+
+        // a patch failing in the second region fails the run at that task; retry continues from it
+        String broken = java.util.UUID.randomUUID().toString();
+        FleetTasks.broken.put(broken + "/web-2", true);
+        WorkflowHandle<String> failing = conductor.start(FleetWorkflow::run, broken);
+        String failure = outcome(failing);
+        check("a patch failing in the nested loop fails the run", failure.contains("patch repository unreachable from web-2"));
+        Map<String, Object> failedPatch = taskOf(conductor, failing.workflowId(), "fleet_patch", "web-2");
+        check("the failed run names the patch of web-2 as its failed task",
+                failedPatch.get("taskId").equals(workflow(conductor, failing.workflowId()).get("failedTaskId")));
+        FleetTasks.broken.remove(broken + "/web-2");
+        post(conductor, "/workflow/" + failing.workflowId() + "/retry", null);
+        check("retry after the failure completes the run", FleetWorkflow.EXPECTED.equals(outcome(failing)));
+        check("retry runs the failed patch again and nothing before it",
+                FleetTasks.runs(broken, "patch", "web-2") == 2 && FleetTasks.runs(broken, "patch", "web-1") == 1
+                        && FleetTasks.runs(broken, "announce", "eu") == 1 && FleetTasks.runs(broken, "inventory", "fleet") == 1);
+
+        // restart runs the whole fleet again
+        post(conductor, "/workflow/" + failing.workflowId() + "/restart", null);
+        check("restart completes the fleet run", FleetWorkflow.EXPECTED.equals(outcome(failing)));
+        check("restart ran everything again",
+                FleetTasks.runs(broken, "inventory", "fleet") == 2 && FleetTasks.runs(broken, "patch", "web-1") == 2
+                        && FleetTasks.runs(broken, "patch", "web-2") == 3);
+    }
+
+    /** The latest run of a task given this host or region. */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> taskOf(Conductor conductor, String workflowId, String taskType, String on) {
+        return ((List<Map<String, Object>>) workflow(conductor, workflowId).get("tasks")).stream()
+                .filter(t -> taskType.equals(t.get("taskType")))
+                .filter(t -> on.equals(((Map<String, Object>) t.get("inputData")).get("host"))
+                        || on.equals(((Map<String, Object>) t.get("inputData")).get("region")))
+                .reduce((a, b) -> b)
+                .orElseThrow();
+    }
+
+    private static Map<String, Object> workflow(Conductor conductor, String workflowId) {
+        return conductor.client().execute(
+                ConductorClientRequest.builder().method(ConductorClientRequest.Method.GET).path("/workflow/" + workflowId)
+                        .addQueryParam("includeTasks", true).build(),
+                new TypeReference<Map<String, Object>>() {}).getData();
     }
 
     private static int loopRuns(String key) {

@@ -88,12 +88,6 @@ final class DirectEngine implements Engine {
         return ref;
     }
 
-    private String allocExact(String ref) {
-        if (!used.add(ref)) {
-            throw new IllegalArgumentException("reference name " + ref + " is used twice in this workflow");
-        }
-        return ref;
-    }
 
     private void settleGroup() {
         if (pendingGroup != null) {
@@ -122,7 +116,8 @@ final class DirectEngine implements Engine {
             throw new Capture(cmd);
         }
         settleGroup();
-        String ref = cmd.explicitRef != null ? allocExact(cmd.explicitRef) : alloc(cmd.refBase);
+        // numbered like Replayer.call: x, x_2, x_3 by how many came before
+        String ref = alloc(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase);
         return execute(cmd, ref);
     }
 
@@ -139,15 +134,15 @@ final class DirectEngine implements Engine {
                 if (!cmd.emptyIsEmpty) {
                     yield null;
                 }
-                DurableTestEnvironment.Answer a = env.answers.get("external:" + ref);
+                DurableTestEnvironment.Answer a = answer("external:", cmd, ref);
                 yield a == null || a.timeout ? Optional.empty() : Optional.ofNullable(Json.convert(a.value, cmd.resultType));
             }
             case HUMAN -> {
-                DurableTestEnvironment.Answer a = env.answers.get("human:" + ref);
+                DurableTestEnvironment.Answer a = answer("human:", cmd, ref);
                 yield a == null || a.timeout ? Optional.empty() : Optional.ofNullable(Json.convert(a.value, cmd.resultType));
             }
             case HTTP -> {
-                DurableTestEnvironment.Answer a = env.answers.get("http:" + ref);
+                DurableTestEnvironment.Answer a = answer("http:", cmd, ref);
                 if (a == null || a.failure != null) {
                     throw new TaskFailure(ref, "FAILED", a == null ? "no http stub for " + ref : a.failure);
                 }
@@ -155,7 +150,7 @@ final class DirectEngine implements Engine {
             }
             case MCP_LIST, MCP_CALL, AGENT -> {
                 String kind = cmd.kind == Command.Kind.AGENT ? "agent:" : "mcp:";
-                DurableTestEnvironment.Answer a = env.answers.get(kind + ref);
+                DurableTestEnvironment.Answer a = answer(kind, cmd, ref);
                 if (a == null || a.failure != null) {
                     throw new TaskFailure(ref, "FAILED", a == null ? "no stub for " + ref : a.failure);
                 }
@@ -165,13 +160,19 @@ final class DirectEngine implements Engine {
                 yield decode(cmd, Json.encodeOutput(a.value));
             }
             case LLM -> {
-                DurableTestEnvironment.Answer a = env.answers.get("llm:" + ref);
+                DurableTestEnvironment.Answer a = answer("llm:", cmd, ref);
                 if (a == null || a.failure != null) {
                     throw new TaskFailure(ref, "FAILED", a == null ? "no llm stub for " + ref : a.failure);
                 }
                 yield decode(cmd, Map.of("result", a.value));
             }
         };
+    }
+
+    /** The stub for this call: one given for its numbered name (x_2), else for the name in the code (x). */
+    private DurableTestEnvironment.Answer answer(String kind, Command cmd, String ref) {
+        DurableTestEnvironment.Answer a = env.answers.get(kind + ref);
+        return a != null || cmd.explicitRef == null ? a : env.answers.get(kind + cmd.explicitRef);
     }
 
     private static Object parse(String json) {

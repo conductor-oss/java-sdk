@@ -12,51 +12,39 @@
  */
 package com.netflix.conductor.sdk.examples.shipment;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.List;
+
+import org.conductoross.conductor.sdk.Conductor;
+import org.conductoross.conductor.sdk.WorkflowHandle;
 
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.common.run.Workflow;
-import com.netflix.conductor.sdk.workflow.def.ConductorWorkflow;
-import com.netflix.conductor.sdk.workflow.executor.WorkflowExecutor;
 
 import io.orkes.conductor.sdk.examples.util.ClientUtil;
 
 public class Main {
+
     public static void main(String[] args) {
         ConductorClient client = ClientUtil.getClient();
-        WorkflowExecutor executor = new WorkflowExecutor(client, 100);
+        Conductor conductor = Conductor.of(client);
 
-        // Create the new shipment workflow
-        ShipmentWorkflow shipmentWorkflow = new ShipmentWorkflow(executor);
+        // Host both workflows: the shipment, and the order flow it runs for each line item
+        conductor.host()
+                .workflows(ShipmentWorkflow.class, OrderFlow.class)
+                .tasks(new ShipmentWorkers())
+                .start();
 
-        // Create two workflows
-
-        // 1. Order flow that ships an individual order
-        // 2. Shipment Workflow that tracks multiple orders in a shipment
-        shipmentWorkflow.createOrderFlow();
-        ConductorWorkflow<Shipment> workflow = shipmentWorkflow.createShipmentWorkflow();
-
-        // Execute the workflow and wait for it to complete
+        WorkflowHandle<List<String>> run =
+                conductor.start(ShipmentWorkflow::ship, new Shipment("userA", "order123"));
+        System.out.println("Workflow Id: " + run.workflowId());
         try {
-            Shipment workflowInput = new Shipment("userA", "order123");
-
-            // Execute returns a completable future.
-            CompletableFuture<Workflow> executionFuture = workflow.execute(workflowInput);
-
-            // Wait for a maximum of a minute for the workflow to complete.
-            Workflow run = executionFuture.get(1, TimeUnit.MINUTES);
-
-            System.out.println("Workflow Id: " + run);
-            System.out.println("Workflow Status: " + run.getStatus());
-            System.out.println("Workflow Output: " + run.getOutput());
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Shipping labels: " + run.result(Duration.ofMinutes(1)));
+        } catch (RuntimeException e) {
+            System.out.println("Workflow did not complete: " + e.getMessage());
         } finally {
-            executor.shutdown();
+            conductor.close();
+            client.shutdown();
         }
-
         System.out.println("Done");
     }
 }

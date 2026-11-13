@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
@@ -104,13 +105,127 @@ public final class CodeLoops {
         return List.of();
     }
 
+    /**
+     * The last line of the code right after a loop's conditional jump back, when that code ends by
+     * jumping to where the loop's own condition (a jump forward on the loop's first line) exits; 0
+     * when it does not.
+     */
+    private static int armAfter(InsnList code, int head, int at, int firstLine) {
+        java.util.Set<Integer> exits = new java.util.HashSet<>();
+        int line = 0;
+        for (int i = head; i <= at; i++) {
+            AbstractInsnNode insn = code.get(i);
+            if (insn instanceof LineNumberNode n) {
+                line = n.line;
+            } else if (insn instanceof JumpInsnNode j && j.getOpcode() != Opcodes.GOTO && line == firstLine
+                    && code.indexOf(j.label) > at) {
+                exits.add(code.indexOf(j.label));
+            }
+        }
+        if (exits.isEmpty()) {
+            return 0;
+        }
+        // only code the loop itself goes on to: the jump back falling through to it, or a jump from
+        // inside the loop to it, and nothing from outside (a switch's next case also follows a loop)
+        java.util.Set<Integer> start = new java.util.HashSet<>();
+        for (int i = at + 1; i < code.size(); i++) {
+            start.add(i);
+            if (code.get(i).getOpcode() >= 0) {
+                break;
+            }
+        }
+        boolean fromInside = code.get(at).getOpcode() != Opcodes.GOTO;
+        boolean fromOutside = false;
+        for (int i = 0; i < code.size(); i++) {
+            for (int t : jumpTargets(code, code.get(i))) {
+                if (start.contains(t)) {
+                    if (i >= head && i <= at) {
+                        fromInside = true;
+                    } else {
+                        fromOutside = true;
+                    }
+                }
+            }
+        }
+        if (!fromInside || fromOutside) {
+            return 0;
+        }
+        // the arm: what runs from just after the jump back, without going back into the loop
+        int last = 0;
+        boolean out = false;
+        java.util.ArrayDeque<Integer> todo = new java.util.ArrayDeque<>(List.of(at + 1));
+        java.util.Set<Integer> seen = new java.util.HashSet<>();
+        while (!todo.isEmpty()) {
+            int i = todo.pop();
+            if (i <= at || i >= code.size() || !seen.add(i)) {
+                continue;
+            }
+            if (exits.contains(i)) {
+                out = true;
+                continue;
+            }
+            AbstractInsnNode insn = code.get(i);
+            if (insn instanceof LineNumberNode n) {
+                last = Math.max(last, n.line);
+            }
+            int op = insn.getOpcode();
+            if ((op >= Opcodes.IRETURN && op <= Opcodes.RETURN) || op == Opcodes.ATHROW) {
+                continue;
+            }
+            if (insn instanceof JumpInsnNode j) {
+                todo.push(code.indexOf(j.label));
+                if (op == Opcodes.GOTO) {
+                    continue;
+                }
+            } else if (insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode t) {
+                todo.push(code.indexOf(t.dflt));
+                t.labels.forEach(l -> todo.push(code.indexOf(l)));
+                continue;
+            } else if (insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode l) {
+                todo.push(code.indexOf(l.dflt));
+                l.labels.forEach(x -> todo.push(code.indexOf(x)));
+                continue;
+            }
+            todo.push(i + 1);
+        }
+        return out ? last : 0;
+    }
+
+    private static List<Integer> jumpTargets(InsnList code, AbstractInsnNode insn) {
+        List<Integer> out = new ArrayList<>();
+        if (insn instanceof JumpInsnNode j) {
+            out.add(code.indexOf(j.label));
+        } else if (insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode t) {
+            out.add(code.indexOf(t.dflt));
+            t.labels.forEach(l -> out.add(code.indexOf(l)));
+        } else if (insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode l) {
+            out.add(code.indexOf(l.dflt));
+            l.labels.forEach(x -> out.add(code.indexOf(x)));
+        }
+        return out;
+    }
+
     /** A backward jump closes a loop: the lines between its target and the jump are the loop. */
     private static List<Loop> loops(MethodNode method, String className) {
         InsnList code = method.instructions;
         Map<Integer, Integer> lastByFirst = new TreeMap<>();
         for (int at = 0; at < code.size(); at++) {
             if (code.get(at) instanceof JumpInsnNode jump && code.indexOf(jump.label) < at) {
+                // the line in effect at the loop's start (a for-each's hasNext has no line entry of
+                // its own: its line is the one its iterator() call started)
                 int first = Integer.MAX_VALUE;
+                int head = code.indexOf(jump.label);
+                for (int i = head; i < code.size() && code.get(i).getOpcode() < 0; i++) {
+                    if (code.get(i) instanceof LineNumberNode line) {
+                        first = line.line; // the loop's own line, given right at its start
+                        break;
+                    }
+                }
+                for (int i = head; first == Integer.MAX_VALUE && i >= 0; i--) {
+                    if (code.get(i) instanceof LineNumberNode line) {
+                        first = line.line;
+                    }
+                }
                 int last = 0;
                 for (int i = code.indexOf(jump.label); i <= at; i++) {
                     AbstractInsnNode insn = code.get(i);
@@ -118,6 +233,12 @@ public final class CodeLoops {
                         first = Math.min(first, line.line);
                         last = Math.max(last, line.line);
                     }
+                }
+                if (last > 0) {
+                    // an arm after the last jump back that ends by breaking out (`if (c) { ...; break; }`
+                    // or an else that breaks, last in a loop): it jumps to where the loop's condition
+                    // exits, so it is in the loop
+                    last = Math.max(last, armAfter(code, code.indexOf(jump.label), at, first));
                 }
                 if (last > 0) {
                     lastByFirst.merge(first, last, Math::max);

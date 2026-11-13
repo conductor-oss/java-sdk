@@ -20,10 +20,11 @@ import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Workflow;
 import org.conductoross.conductor.sdk.WorkflowHandle;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import static org.conductoross.conductor.sdk.Conductor.async;
 

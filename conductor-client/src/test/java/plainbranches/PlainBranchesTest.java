@@ -178,7 +178,7 @@ class PlainBranchesTest {
         @Workflow(name = "pb_conditions")
         public String run(@InputParam("route") String route) {
             if (route == null) {
-                return "none"; // a guard without a call is plain code
+                return "none"; // a guard without a call: what runs after it is its false arm
             }
             if (route.length() > 3 && route.startsWith("x")) {
                 tasks.a("and");
@@ -278,8 +278,11 @@ class PlainBranchesTest {
     }
 
     @Test
-    void aCompoundConditionIsOneBranchAndAGuardWithoutACallIsPlainCode() {
-        List<Map<String, Object>> entries = Replayer.discover(spec(Conditions.class));
+    void aCompoundConditionIsOneBranchAndWhatFollowsAGuardIsItsFalseArm() {
+        List<Map<String, Object>> top = Replayer.discover(spec(Conditions.class));
+        assertEquals(List.of("if_route"), refs(top));
+        assertEquals(List.of(), refs(cases(top.get(0)).get("true")));
+        List<Map<String, Object>> entries = defaultCase(top.get(0));
         assertEquals(List.of("if_startsWith", "if_startsWith_2", "pb_done"), refs(entries));
         assertEquals(List.of("pb_a"), refs(cases(entries.get(0)).get("true")));
         assertEquals(List.of("pb_b"), refs(cases(entries.get(1)).get("true")));
