@@ -166,18 +166,39 @@ public final class Replayer {
         private final boolean preview;
         /** The case key this drawing is for, composed for nested cases, in preview names. */
         private final String key;
+        /** The Java loops around what this drawing draws, outermost first (not for previews). */
+        private final List<String> loops;
 
         Drawing(String lane, boolean preview, String key) {
+            this(lane, preview, key, List.of());
+        }
+
+        private Drawing(String lane, boolean preview, String key, List<String> loops) {
             this.lane = lane;
             this.preview = preview;
             this.key = key;
+            this.loops = loops;
+        }
+
+        List<Map<String, Object>> draw(List<CodeReader.Step> steps) {
+            List<Map<String, Object>> entries = new ArrayList<>();
+            drawInto(steps, entries, new java.util.ArrayDeque<>());
+            return entries;
         }
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> draw(List<CodeReader.Step> steps) {
-            List<Map<String, Object>> entries = new ArrayList<>();
-            java.util.ArrayDeque<String> running = new java.util.ArrayDeque<>();
+        private void drawInto(
+                List<CodeReader.Step> steps, List<Map<String, Object>> entries, java.util.Deque<String> running) {
             for (CodeReader.Step step : steps) {
+                if (step instanceof CodeReader.InLoops in) {
+                    // a preview stays in the loops its switch is in; the definition shows each loop
+                    List<String> around = new ArrayList<>(loops);
+                    in.loops().stream().filter(l -> !around.contains(l)).forEach(around::add);
+                    (preview ? this : new Drawing(lane, false, key, List.copyOf(around)))
+                            .drawInto(in.steps(), entries, running);
+                    continue;
+                }
+                int before = entries.size();
                 if (step instanceof CodeReader.Call c) {
                     Command cmd = c.command();
                     entries.add(finish(Entries.of(cmd, ref(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase), lane), c.site()));
@@ -214,8 +235,12 @@ public final class Replayer {
                 } else if (step instanceof CodeReader.Loop l) {
                     entries.add(loop(l));
                 }
+                if (!preview && !loops.isEmpty()) {
+                    for (Map<String, Object> entry : entries.subList(before, entries.size())) {
+                        ((Map<String, Object>) entry.get("metadata")).putIfAbsent("loops", loops);
+                    }
+                }
             }
-            return entries;
         }
 
         @SuppressWarnings("unchecked")
@@ -225,7 +250,7 @@ public final class Replayer {
             sw.put("name", ref);
             sw.put("taskReferenceName", ref);
             sw.put("type", "SWITCH");
-            sw.put("evaluatorType", "value-param");
+            sw.put("evaluatorType", "native-code"); // the code decided: the server reads the case it took
             sw.put("expression", "switchCaseValue");
             sw.put("inputParameters", Map.of("switchCaseValue", ""));
             Map<String, List<Map<String, Object>>> cases = new LinkedHashMap<>();
@@ -253,7 +278,7 @@ public final class Replayer {
         }
 
         private Drawing nested(String caseKey) {
-            return new Drawing(lane, preview, key == null ? caseKey : key + "_" + caseKey);
+            return new Drawing(lane, preview, key == null ? caseKey : key + "_" + caseKey, loops);
         }
 
         private Map<String, Object> structural(String name, String ref, String type, String site) {
@@ -1635,7 +1660,7 @@ public final class Replayer {
             sw.put("name", ref);
             sw.put("taskReferenceName", ref);
             sw.put("type", "SWITCH");
-            sw.put("evaluatorType", "value-param");
+            sw.put("evaluatorType", "native-code"); // the code decided: the server reads the case it took
             sw.put("expression", "switchCaseValue");
             sw.put("inputParameters", Map.of("switchCaseValue", Entries.escape(key)));
             sw.put("decisionCases", decisionCases);

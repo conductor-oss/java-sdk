@@ -77,6 +77,17 @@ public final class CodeLoops {
         return ids;
     }
 
+    /** The loops of a method read from its bytecode around a line, outermost first. */
+    public static List<String> around(MethodNode method, String className, int line) {
+        List<String> ids = new ArrayList<>();
+        for (Loop loop : loops(method, className)) {
+            if (loop.first <= line && line <= loop.last) {
+                ids.add(loop.id);
+            }
+        }
+        return ids;
+    }
+
     private static List<Loop> loopsOf(StackWalker.StackFrame frame) {
         return loopsOf(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor());
     }

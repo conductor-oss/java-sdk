@@ -137,7 +137,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `tasks.method(args...)` on a task stub, or `task(Tasks::method, args...)` | SIMPLE, named by `@WorkerTask`; retried per its definition (3 retries, exponential backoff by default), then marked optional so a final failure reaches the code | when the task completes, or fails after its retries |
 | `task(name).input(...).as(T)` | SIMPLE, name chosen at runtime | when the task completes |
 | `once(name, () -> ...)` | none; the value is recorded (`recorded`) on the continuation marker of the task the code pauses on next | never; runs in place |
-| an `if` or `switch` whose arms call the server | SWITCH named after what it decides on (`if_flagged`, `switch_paymentMethod`; `value-param` on `switchCaseValue`). An `if` has the case `true` and its else as the default case; a `switch` has a case per arm, keyed by its labels (`CARD`, `odd`, `even,zero`), and `default`. The arm taken holds the calls it made; the others show what they would call, as previews. Read from the compiled code; see Plain ifs and switches | never by itself; the arm's calls wake the code as usual |
+| an `if` or `switch` whose arms call the server | SWITCH named after what it decides on (`if_flagged`, `switch_paymentMethod`; `native-code` on `switchCaseValue`). An `if` has the case `true` and its else as the default case; a `switch` has a case per arm, keyed by its labels (`CARD`, `odd`, `even,zero`), and `default`. The arm taken holds the calls it made; the others show what they would call, as previews. Read from the compiled code; see Plain ifs and switches | never by itself; the arm's calls wake the code as usual |
 | a Java `for`, `while` or `do`-`while` | ordinary code, so it may hold ifs, switches, forks, sub workflows and other loops. There is no `DO_WHILE` task: the compiled method says which lines a loop covers, each step is tagged with the loops around it in `metadata.loops`, and the execution diagram draws those steps as one loop | at each call inside it |
 | `async(() -> ...)`, `join(p1, p2)`, `Promise.get()` | FORK_JOIN + JOIN, one branch per async block that calls the server, each with its own continuation points; a block that returns without a server call is plain Java. `async` does not wait: lanes still running at the next durable call get a JOIN that completes at once, and a later `join` or `get` adds a JOIN naming those lanes. It works inside another `async` block, and a join waits for what the lane started | each branch when its own task completes |
 | `fanOut(items, item -> ...)` | FORK_JOIN with one branch per item + JOIN; drawn as FORK_JOIN_DYNAMIC + JOIN in an untaken case or the registered definition, where the items are not known | once |
@@ -155,7 +155,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `http(ref).get/post(...).as(T)` / `.asJson()` | HTTP | when the call completes |
 | `event(ref).to(sink).send(payload)` | EVENT | never |
 | `llm(ref).model(...).prompt(...).as(T)` | LLM_CHAT_COMPLETE | when the call completes |
-| `switchOn(name, value).when(key, body)…otherwise(body).get()` / `.run()` | SWITCH named `name` (`evaluatorType: value-param`, `switchCaseValue` the value's string form), with every declared case as a branch and a default branch: the taken case's body runs inline as ordinary workflow code and its calls land inside that branch, in the fragment or after the task the code paused on there; each untaken case shows a preview of the calls its body would have made (`<task>_if_<key>` entries, never run); the first call after the body is anchored after the switch (`metadata.after`). The server records `selectedCase` in the task's output and the UI marks that branch. A key is compared with the value's string form; declaring a key twice is an error at the call | never by itself; the body's calls wake the code as usual |
+| `switchOn(name, value).when(key, body)…otherwise(body).get()` / `.run()` | SWITCH named `name` (`evaluatorType: native-code`, `switchCaseValue` the value's string form), with every declared case as a branch and a default branch: the taken case's body runs inline as ordinary workflow code and its calls land inside that branch, in the fragment or after the task the code paused on there; each untaken case shows a preview of the calls its body would have made (`<task>_if_<key>` entries, never run); the first call after the body is anchored after the switch (`metadata.after`). The server records `selectedCase` in the task's output and the UI marks that branch. A key is compared with the value's string form; declaring a key twice is an error at the call | never by itself; the body's calls wake the code as usual |
 | `now()`, `random()` | none; recorded with the continuation | never |
 | `@Variable` fields | workflow variables, written by every continuation's completion (only what changed); readable as `workflow.variables` | never |
 | `@Signal`, `@Update` methods | handler lane: no task; a marker on the execution (`nativeState.handlers`) that each message wakes, and whose poll hands the worker the claimed messages; each message applied once (the client's message id is de-duplicated through `nativeState.seen`); update replies in `nativeState.replies`, kept 10 minutes, at most 500 | handler runs on a worker between continuations |
@@ -297,7 +297,19 @@ cd order-service && ./mvnw -q compile exec:java
   single record parameter, or the parameter names) and, under `metadata.native`, the handler
   inventory (`signals`, `updates`, `queries`) and `discovered` (`false` with a `discoveryError` when
   the code could not be read). It shows every call the code can make, not one path: every arm of
-  an `if` or `switch`, a loop body once, and a catch block after its try.
+  an `if` or `switch`, a loop body once, and a catch block after its try. Entries inside plain Java
+  loops carry `metadata.loops` (`<Class>_loop_<first line>`, outermost first), as an execution's do,
+  and `metadata.native.codeVersion` is a short hash of the graph, which changes when its structure
+  does.
+- Schemas: registration reads, by reflection, the JSON Schema of each `@WorkerTask`'s input (one
+  property per parameter, named as calls name it) and output (an object's properties, any other
+  value as `result`), and of the `@Workflow` method's input and output, shaped as the SDK sends the
+  data (`JsonSchemas`). They are registered by name in the schema registry (`<task>_input`,
+  `<task>_output`, `<workflow>_input`, `<workflow>_output`), versioned by content: a schema
+  identical to a registered version reuses it, any other is the next version, so re-registering
+  the same code changes nothing and builds running side by side keep theirs. Task and workflow
+  definitions reference them with `enforceSchema: false`: they document the data, and the code
+  decides what it accepts. A server without a schema registry is skipped with a warning.
   Reading follows lambdas and methods of the workflow's own package. Inputs are not read beyond
   constant reference names, case keys, an HTTP method and URI and an event sink; a task name
   computed at run time shows as `task`; a call through an interface or into another package is not
@@ -519,7 +531,7 @@ link to the code.
 | `task_1` | SIMPLE | `tasks.task1(...)` |
 | `event_0` | EVENT | `event("event_0").to("conductor").send(stats)` |
 | `task_2` | DYNAMIC | `task(input.task2Name()).ref("task_2")...as(OddEven.class)` |
-| `oddEvenDecision` | DECISION | `switch (oddEven.oddEven()) { case "0" -> {...} case "1" -> {...} default -> throw new WorkflowFailedException(...); }`, a plain Java switch drawn as the SWITCH `switch_oddEven` (`value-param` on `switchCaseValue`) with cases `"0"` and `"1"`; the taken case holds the calls below. The JSON's reference name would need `switchOn("oddEvenDecision", ...)` |
+| `oddEvenDecision` | DECISION | `switch (oddEven.oddEven()) { case "0" -> {...} case "1" -> {...} default -> throw new WorkflowFailedException(...); }`, a plain Java switch drawn as the SWITCH `switch_oddEven` (`native-code` on `switchCaseValue`) with cases `"0"` and `"1"`; the taken case holds the calls below. The JSON's reference name would need `switchOn("oddEvenDecision", ...)` |
 | `task_4`, `fanout1`, `join1` | SIMPLE, FORK_JOIN_DYNAMIC, JOIN | `tasks.task4(...)`, `fanOut("fanout1", ...)`, inside case `"0"`; on the odd path the case shows the preview `task_4_if_0` |
 | `forkx`, `task_10`, `wf3`, `task_11`, `wf4`, `join2` | FORK_JOIN, SIMPLE, SUB_WORKFLOW, JOIN | two `async` blocks and `join(wf3, wf4)`, inside case `"1"`; each branch is `task → child` as in the JSON; fork and join refs derive as `fork`, `fork_join`, child refs as `sub_flow_1`, `sub_flow_1_2` |
 | `get_es_1` | HTTP | `http("get_es_1").get(...).asJson()` |

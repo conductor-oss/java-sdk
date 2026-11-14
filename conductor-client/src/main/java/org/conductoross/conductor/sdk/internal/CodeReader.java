@@ -97,6 +97,13 @@ public final class CodeReader {
     /** A {@code fanOut}: its items, and so its branches, exist only at run time. */
     public record FanOut(String name, String site) implements Step {}
 
+    /**
+     * Steps inside plain Java loops ({@code for}, {@code while}, {@code do}), named as the
+     * execution tags them ({@code <Class>_loop_<first line>}, outermost first). Code repeats them;
+     * the definition shows them grouped, as the execution does.
+     */
+    public record InLoops(List<String> loops, List<Step> steps, String site) implements Step {}
+
     /** A {@code forEach} or {@code repeatUntil}: the server repeats these steps. */
     public record Loop(String name, boolean perItem, List<Step> body, String site) implements Step {}
 
@@ -907,8 +914,14 @@ public final class CodeReader {
             if (!more.isEmpty()) {
                 stepAt.add(current);
                 flushFork(false);
-                steps.addAll(more);
+                steps.addAll(inLoops(more));
             }
+        }
+
+        /** The steps, inside the loops of this method around the current line, if any. */
+        private List<Step> inLoops(List<Step> more) {
+            List<String> loops = CodeLoops.around(method, owner.substring(owner.lastIndexOf('/') + 1), line);
+            return loops.isEmpty() ? more : List.of(new InLoops(loops, List.copyOf(more), site()));
         }
 
         /** The code waits here: for the lanes just started, or for a fork left running earlier. */
@@ -929,7 +942,7 @@ public final class CodeReader {
         private void flushFork(boolean joined) {
             branches.removeIf(List::isEmpty);
             if (!branches.isEmpty()) {
-                steps.add(new Fork(List.copyOf(branches), joined, site()));
+                steps.addAll(inLoops(List.of(new Fork(List.copyOf(branches), joined, site()))));
                 if (!joined) {
                     unjoined++;
                 }
@@ -1011,7 +1024,7 @@ public final class CodeReader {
             armStarts.put(c.b(), starts);
             conditions.put(c.b(), c.condition());
             flushFork(false);
-            steps.add(b.decision());
+            steps.addAll(inLoops(List.of(b.decision())));
             return true;
         }
 

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
+import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import okhttp3.mockwebserver.MockResponse;
@@ -92,14 +93,71 @@ class WorkerProtocolTest {
     @Test
     @SuppressWarnings("unchecked")
     void aTaskDefinitionOwnedBySomeoneElseIsLeftAlone() throws Exception {
-        server.enqueue(json("[{\"name\":\"shared_task\",\"ownerEmail\":\"team-a@example.com\",\"retryCount\":7}]"));
-        server.enqueue(json("\"ok\""));
+        List<String> posted = answer(
+                "[]", "[{\"name\":\"shared_task\",\"ownerEmail\":\"team-a@example.com\",\"retryCount\":7}]");
 
         Registration.register(conductor.client(), List.of(), List.of(new Mine()), 30);
 
-        server.takeRequest();
-        RecordedRequest post = server.takeRequest();
-        List<Map<String, Object>> defs = Json.MAPPER.readValue(post.getBody().readUtf8(), List.class);
+        List<Map<String, Object>> defs = Json.MAPPER.readValue(last(posted, "/api/metadata/taskdefs"), List.class);
         assertEquals(List.of("my_task"), defs.stream().map(d -> d.get("name")).toList());
+    }
+
+    public static class Typed {
+        @WorkerTask("typed_task")
+        public String typed(@InputParam("n") int n) {
+            return "x";
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void schemasAreRegisteredByNameVersionedByContentAndNotEnforced() throws Exception {
+        // the input schema is registered already as version 2; the output had another shape
+        String input = Json.MAPPER.writeValueAsString(org.conductoross.conductor.sdk.internal.JsonSchemas.taskInput(
+                Typed.class.getMethod("typed", int.class)));
+        List<String> posted = answer(
+                "[{\"name\":\"typed_task_input\",\"version\":2,\"data\":" + input + "},"
+                        + "{\"name\":\"typed_task_output\",\"version\":4,\"data\":{\"type\":\"string\"}}]",
+                "[]");
+
+        Registration.register(conductor.client(), List.of(), List.of(new Typed()), 30);
+
+        // only the output is new: the next version after the highest registered
+        List<Map<String, Object>> schemas = Json.MAPPER.readValue(last(posted, "/api/schema"), List.class);
+        assertEquals("typed_task_output", schemas.get(0).get("name"));
+        assertEquals(5, schemas.get(0).get("version"));
+        assertEquals(1, posted.stream().filter(p -> p.startsWith("/api/schema ")).count());
+        Map<String, Object> def = ((List<Map<String, Object>>) Json.MAPPER.readValue(
+                last(posted, "/api/metadata/taskdefs"), List.class)).get(0);
+        assertEquals(Map.of("name", "typed_task_input", "version", 2, "type", "JSON"), def.get("inputSchema"));
+        assertEquals(Map.of("name", "typed_task_output", "version", 5, "type", "JSON"), def.get("outputSchema"));
+        assertEquals(false, def.get("enforceSchema"));
+    }
+
+    /** Answers by path, the schemas and task definitions given; records each POST as "path body". */
+    private List<String> answer(String schemas, String taskDefs) {
+        List<String> posted = new java.util.concurrent.CopyOnWriteArrayList<>();
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                String path = request.getPath() == null ? "" : request.getPath().replaceAll("\\?.*", "");
+                if (request.getMethod().equals("POST") || request.getMethod().equals("PUT")) {
+                    posted.add(path + " " + request.getBody().readUtf8());
+                    return json("\"ok\"");
+                }
+                return json(path.equals("/api/schema") ? schemas : path.equals("/api/metadata/taskdefs") ? taskDefs : "[]");
+            }
+        });
+        return posted;
+    }
+
+    private static String last(List<String> posted, String path) {
+        String found = null;
+        for (String p : posted) {
+            if (p.startsWith(path + " ")) {
+                found = p.substring(path.length() + 1);
+            }
+        }
+        return found;
     }
 }

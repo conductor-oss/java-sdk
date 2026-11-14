@@ -113,8 +113,9 @@ marker. No task type; the earlier plan's RECORD task was dropped with protocol 2
 state, deferred reason, worker, applied time); `ExecutionSummary.tsx` shows `nativeState` (code
 type, continuations applied, bootstrap state while pending, handler run). There are
 no hidden tasks to fold. `metadata.site = "Class.method:line"` on every entry gives the source
-line. A SWITCH emitted by `switchOn` needs nothing new on either side: `SwitchTaskMapper`
-evaluates `value-param` on `switchCaseValue` and records `selectedCase` and `evaluationResult`;
+line. A SWITCH emitted by `switchOn` or drawn for a plain if or switch uses the evaluator
+`native-code`, which reads the case the code took from `switchCaseValue`; `SwitchTaskMapper`
+records `selectedCase` and `evaluationResult`;
 `ui-next`'s switch mapper (`src/components/features/flow/nodes/mapper/switch.ts`) draws every
 `decisionCases` key, empty lists and the default case included, and marks the selected one. The
 preview entries the SDK puts in untaken cases (`metadata.preview: true`, `<base>_if_<key>`) are

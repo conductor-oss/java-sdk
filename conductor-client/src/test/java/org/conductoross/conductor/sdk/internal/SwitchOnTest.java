@@ -161,7 +161,7 @@ class SwitchOnTest {
         assertEquals(1, fragment.size(), "only the switch is at the top level: the code paused inside it");
         Map<String, Object> sw = fragment.get(0);
         assertEquals("SWITCH", sw.get("type"));
-        assertEquals("value-param", sw.get("evaluatorType"));
+        assertEquals("native-code", sw.get("evaluatorType"));
         assertEquals(Map.of("switchCaseValue", "a"), sw.get("inputParameters"));
         Map<String, List<Map<String, Object>>> cases = (Map<String, List<Map<String, Object>>>) sw.get("decisionCases");
         assertEquals(List.of("a", "none"), new ArrayList<>(cases.keySet()), "every declared case is present");

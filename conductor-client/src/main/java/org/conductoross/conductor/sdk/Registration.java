@@ -53,11 +53,20 @@ final class Registration {
 
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
             long continuationTimeoutSeconds, boolean discover) {
+        Schemas schemas = new Schemas(client);
+        // each task's input and output schema references, by task name
+        Map<String, Map<String, Object>> taskSchemas = new LinkedHashMap<>();
         List<Map<String, Object>> taskDefs = new ArrayList<>();
         for (Object o : taskObjects) {
             for (Map.Entry<String, Method> e : workerMethods(o.getClass()).entrySet()) {
                 WorkerTask wt = e.getValue().getAnnotation(WorkerTask.class);
+                Map<String, Object> refs = schemas.refs(
+                        e.getKey(),
+                        org.conductoross.conductor.sdk.internal.JsonSchemas.taskInput(e.getValue()),
+                        org.conductoross.conductor.sdk.internal.JsonSchemas.taskOutput(e.getValue()));
+                taskSchemas.put(e.getKey(), refs);
                 Map<String, Object> def = new LinkedHashMap<>();
+                def.putAll(refs);
                 def.put("name", e.getKey());
                 // Conductor's default of three retries, with exponential backoff from one second
                 def.put("retryCount", wt.retryCount() >= 0 ? wt.retryCount() : 3);
@@ -82,7 +91,13 @@ final class Registration {
         }
         List<Map<String, Object>> workflowDefs = new ArrayList<>();
         for (WorkflowSpec spec : specs) {
-            workflowDefs.add(skeleton(spec, continuationTimeoutSeconds, discover));
+            Map<String, Object> def = skeleton(spec, continuationTimeoutSeconds, discover);
+            def.putAll(schemas.refs(
+                    spec.name,
+                    org.conductoross.conductor.sdk.internal.JsonSchemas.workflowInput(spec.method),
+                    org.conductoross.conductor.sdk.internal.JsonSchemas.workflowOutput(spec.method)));
+            withTaskSchemas((List<Map<String, Object>>) def.get("tasks"), taskSchemas);
+            workflowDefs.add(def);
         }
         if (!taskDefs.isEmpty()) {
             Http.post(client, "/metadata/taskdefs", taskDefs, String.class);
@@ -178,10 +193,23 @@ final class Registration {
                     .warn("Could not discover the graph of workflow {}: {}", spec.name, e.getMessage());
         }
         inlineTaskDefinitions(discovered);
+        // which build of the code the graph was read from: changes when its structure does
+        nativeMeta.put("codeVersion", codeVersion(discovered));
         def.put("metadata", Map.of("native", nativeMeta));
         def.put("inputParameters", inputParameters(spec));
         def.put("tasks", discovered);
         return def;
+    }
+
+    /** A short hash of the graph read from the code. */
+    static String codeVersion(List<Map<String, Object>> discovered) {
+        try {
+            byte[] json = org.conductoross.conductor.sdk.internal.Json.MAPPER.writeValueAsBytes(discovered);
+            byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(json);
+            return java.util.HexFormat.of().formatHex(hash, 0, 6);
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
     /** The workflow method's parameter names (a single record's components), for the definition. */
@@ -202,6 +230,106 @@ final class Registration {
             return List.of();
         }
         return List.of(org.conductoross.conductor.sdk.internal.MethodRefs.parameterNames(m));
+    }
+
+    /** The inline definitions of the discovered tasks reference their tasks' schemas, for the editor. */
+    @SuppressWarnings("unchecked")
+    private static void withTaskSchemas(List<Map<String, Object>> entries, Map<String, Map<String, Object>> schemas) {
+        for (Map<String, Object> e : entries) {
+            if (e.get("taskDefinition") instanceof Map<?, ?> td && schemas.containsKey(String.valueOf(e.get("name")))) {
+                ((Map<String, Object>) td).putAll(schemas.get(String.valueOf(e.get("name"))));
+            }
+            if (e.get("forkTasks") instanceof List<?> branches) {
+                branches.forEach(b -> withTaskSchemas((List<Map<String, Object>>) b, schemas));
+            }
+            if (e.get("decisionCases") instanceof Map<?, ?> dc) {
+                dc.values().forEach(c -> withTaskSchemas((List<Map<String, Object>>) c, schemas));
+            }
+            if (e.get("defaultCase") instanceof List<?> dflt) {
+                withTaskSchemas((List<Map<String, Object>>) dflt, schemas);
+            }
+            if (e.get("loopOver") instanceof List<?> body) {
+                withTaskSchemas((List<Map<String, Object>>) body, schemas);
+            }
+        }
+    }
+
+    /**
+     * Schemas registered by name ({@code <task or workflow>_input}, {@code _output}), versioned by
+     * content: a schema identical to a registered version reuses it, any other is the next version.
+     * Old executions keep the version they ran with, and builds running side by side each keep
+     * theirs. They document the data and are not enforced: the code decides what it accepts.
+     */
+    static final class Schemas {
+        private final ConductorClient client;
+        private Map<String, List<Map<String, Object>>> byName;
+
+        Schemas(ConductorClient client) {
+            this.client = client;
+        }
+
+        /** {@code inputSchema}, {@code outputSchema} and {@code enforceSchema: false}, for a definition. */
+        Map<String, Object> refs(String name, Map<String, Object> input, Map<String, Object> output) {
+            Map<String, Object> refs = new LinkedHashMap<>();
+            Map<String, Object> in = input == null ? null : ref(name + "_input", input);
+            Map<String, Object> out = output == null ? null : ref(name + "_output", output);
+            if (in != null) {
+                refs.put("inputSchema", in);
+            }
+            if (out != null) {
+                refs.put("outputSchema", out);
+            }
+            if (!refs.isEmpty()) {
+                refs.put("enforceSchema", false);
+            }
+            return refs;
+        }
+
+        private Map<String, Object> ref(String name, Map<String, Object> data) {
+            try {
+                List<Map<String, Object>> versions = registered().getOrDefault(name, new ArrayList<>());
+                var wanted = org.conductoross.conductor.sdk.internal.Json.MAPPER.valueToTree(data);
+                int version = 0;
+                int highest = 0;
+                for (Map<String, Object> v : versions) {
+                    int n = v.get("version") instanceof Number num ? num.intValue() : 0;
+                    highest = Math.max(highest, n);
+                    if (wanted.equals(org.conductoross.conductor.sdk.internal.Json.MAPPER.valueToTree(v.get("data")))) {
+                        version = n;
+                    }
+                }
+                if (version == 0) {
+                    version = highest + 1;
+                    Map<String, Object> schema = new LinkedHashMap<>();
+                    schema.put("name", name);
+                    schema.put("version", version);
+                    schema.put("type", "JSON");
+                    schema.put("data", data);
+                    Http.post(client, "/schema", List.of(schema), Object.class);
+                    versions.add(schema);
+                    byName.put(name, versions);
+                }
+                Map<String, Object> ref = new LinkedHashMap<>();
+                ref.put("name", name);
+                ref.put("version", version);
+                ref.put("type", "JSON");
+                return ref;
+            } catch (RuntimeException e) {
+                org.slf4j.LoggerFactory.getLogger(Registration.class)
+                        .warn("Could not register schema {} (does the server have a schema registry?): {}", name, e.toString());
+                return null;
+            }
+        }
+
+        private Map<String, List<Map<String, Object>>> registered() {
+            if (byName == null) {
+                byName = new LinkedHashMap<>();
+                for (Map<String, Object> s : Http.getList(client, "/schema")) {
+                    byName.computeIfAbsent(String.valueOf(s.get("name")), k -> new ArrayList<>()).add(s);
+                }
+            }
+            return byName;
+        }
     }
 
     /** Discovered SIMPLE tasks carry an inline definition, so registration validates without one. */
