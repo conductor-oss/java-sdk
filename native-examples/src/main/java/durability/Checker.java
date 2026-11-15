@@ -526,13 +526,17 @@ public final class Checker {
                 }
             }
             for (Map<String, Object> marker : markers(wf)) {
-                if (!"APPLIED".equals(marker.get("state")) || !(marker.get("appliedAt") instanceof Number at)
+                Object at = marker.get("endTime");
+                if (at == null && "main".equals(marker.get("lane")) && Integer.valueOf(1).equals(marker.get("n"))) {
+                    at = firstScheduled(wf); // the first continuation has no end time: its tasks follow it
+                }
+                if (!"APPLIED".equals(marker.get("state")) || !(at instanceof Number)
                         || !(marker.get("recorded") instanceof Map<?, ?> recorded)) {
                     continue;
                 }
                 for (Object ref : recorded.keySet()) {
                     String name = "now".equals(ref) ? "startedAt" : String.valueOf(ref);
-                    recordedAt.put(wf.get("workflowId") + ":" + name, at.longValue());
+                    recordedAt.put(wf.get("workflowId") + ":" + name, ((Number) at).longValue());
                 }
             }
         }
@@ -630,8 +634,8 @@ public final class Checker {
                 error("nondeterminism", key, reason);
             }
             for (Map<String, Object> marker : markers(wf)) {
-                int attempts = marker.get("epoch") instanceof Number n ? n.intValue() : 0; // one epoch per offer
-                Object deferred = marker.get("deferred");
+                int attempts = 1 + (marker.get("retryCount") instanceof Number n ? n.intValue() : 0);
+                Object deferred = marker.get("reasonForIncompletion");
                 if (attempts > 1 || deferred != null) {
                     info("continuation-retried", key, marker.get("lane") + "#" + marker.get("n") + " leased " + attempts
                             + " time(s)" + (deferred == null ? "" : ", deferred: " + deferred));
@@ -692,7 +696,7 @@ public final class Checker {
         for (Map.Entry<String, Map<String, Object>> e : executions.entrySet()) {
             for (Map<String, Object> marker : markers(e.getValue())) {
                 continuations++;
-                if (marker.get("queuedAt") instanceof Number s && marker.get("appliedAt") instanceof Number end
+                if (marker.get("scheduledTime") instanceof Number s && marker.get("endTime") instanceof Number end
                         && s.longValue() > 0 && end.longValue() >= s.longValue()) {
                     long ms = end.longValue() - s.longValue();
                     latencies.add(ms);
@@ -717,13 +721,31 @@ public final class Checker {
      * marker, when the class has handlers) from its native state, and the marker of each task the
      * code paused on.
      */
+    /** When the first task of an execution was scheduled, or when it was last updated without one. */
+    @SuppressWarnings("unchecked")
+    private static Object firstScheduled(Map<String, Object> wf) {
+        long first = Long.MAX_VALUE;
+        for (Map<String, Object> t : (List<Map<String, Object>>) wf.getOrDefault("tasks", List.of())) {
+            if (t.get("scheduledTime") instanceof Number s && s.longValue() > 0) {
+                first = Math.min(first, s.longValue());
+            }
+        }
+        return first < Long.MAX_VALUE ? first : wf.get("updateTime");
+    }
+
     @SuppressWarnings("unchecked")
     static List<Map<String, Object>> markers(Map<String, Object> wf) {
         List<Map<String, Object>> markers = new ArrayList<>();
         if (wf.get("nativeState") instanceof Map<?, ?> state) {
             for (String lane : List.of("bootstrap", "handlers")) {
                 if (state.get(lane) instanceof Map<?, ?> m) {
-                    markers.add((Map<String, Object>) m);
+                    // their lane, and the first continuation's number, are not stored
+                    Map<String, Object> marker = new LinkedHashMap<>((Map<String, Object>) m);
+                    marker.putIfAbsent("lane", lane.equals("bootstrap") ? "main" : "handlers");
+                    if (lane.equals("bootstrap")) {
+                        marker.putIfAbsent("n", 1);
+                    }
+                    markers.add(marker);
                 }
             }
         }

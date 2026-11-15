@@ -30,14 +30,17 @@ The code only ever pauses on a task, so the state the engine needs to drive the 
 those tasks.
 
 - `common/.../tasks/TaskContinuation.java`, and a `continuation` field on `Task` and `TaskModel`:
-  `lane`, `n`, `state` (`WAITING` → `RUNNABLE` → `LEASED` → `APPLIED`), `epoch`, `queuedAt`,
-  `leasedAt`, `appliedAt`, `deferred`, and once applied the
-  record a replay reads: `appliedAt` (its order), `recorded`, `resumedWith`, `done`. What the
+  `lane`, `n`, `state` (`WAITING` → `RUNNABLE` → `LEASED` → `APPLIED`), `retryCount` (0 on the
+  first offer, one more each time an attempt ends without applying), `scheduledTime` (when it
+  became runnable), `reasonForIncompletion` (why the last completion did not apply, display only),
+  and once applied the record a replay reads: `endTime` (its order, on a task's marker only),
+  `recorded`, `resumedWith`, `done`. What the
   main lane returned is the run's output, and its exception the run's `reasonForIncompletion`.
   Empty values are not stored.
 - `common/.../run/NativeState.java`, and a `nativeState` field on `Workflow` and `WorkflowModel`:
   `bootstrap` and `handlers` (markers for the two lanes that have no task), and `replies`
-  (every handled message). O(1) in the length of the execution. The code type and the
+  (every handled message). The bootstrap is stored without `lane` and `n` (always `main` #1) and
+  the handler marker without `lane`; they are restored when read. O(1) in the length of the execution. The code type and the
   continuation timeout stay in the definition's `metadata.native`.
 - `TaskMapperContext.createTaskModel` copies an entry's `metadata.continuation` onto the scheduled
   task as a `WAITING` marker. `NativeContinuationService.initialize` builds `nativeState` at start
@@ -67,18 +70,20 @@ those tasks.
   earlier per-worker routing: a worker killed right after its continuation was queued to its own
   domain queue, with the workflow postponed by an hour.
 - Offer and lease: a decide, under the lock it already takes, offers the next continuation
-  (`NativeContinuationService.offer` from `repairAndWake`): the marker `LEASED` with `epoch + 1`,
-  which makes it the slot, then the push. `ExecutionService.poll` hands a continuation queue's
+  (`NativeContinuationService.offer` from `repairAndWake`): a `RUNNABLE` handler lane first, else
+  the runnable continuation with the oldest `scheduledTime`; the marker `LEASED` at its
+  `retryCount`, which makes it the slot, then the push. `ExecutionService.poll` hands a continuation queue's
   messages to `NativeContinuationService.lease`, which takes no lock and writes nothing: it checks
   the message is the one offered, leaves it unacknowledged for `continuationTimeoutSeconds`, and
   returns the finished task itself, or a synthetic task (`<workflowId>|main`, `<workflowId>|handlers`) built
   from `nativeState` with the workflow input or the claimed messages.
 - Complete: `WorkflowExecutorOps.updateTask` routes a synthetic id, or a `LEASED` task whose
   result carries `protocol`, to `completeContinuation`, which runs inside the decide the
-  completion triggers and calls `NativeContinuationService.complete` under that decide's lock: lease check (`n`, `epoch`; else 409),
+  completion triggers and calls `NativeContinuationService.complete` under that decide's lock: lease check (`n`, `retryCount`; else 409),
   protocol check, variable conflict and pending-message deferral (a main lane that returned while
   the handler lane has work is deferred with `waiting for handlers: ` and not re-queued;
-  `repairAndWake` wakes it once that lane has settled), fragment validation and
+  `repairAndWake` offers the handler lane first and this one once that lane has settled; every
+  deferral adds one to `retryCount`), fragment validation and
   `WorkflowDef.insertAfter` (after the awaited task, or after the entry the fragment's first
   element names in `metadata.after`: the SDK sets it on the first call after a `switchOn` case
   the lane resumed in, so that call lands after the switch and not inside the case;
@@ -112,7 +117,7 @@ marker. No task type; the earlier plan's RECORD task was dropped with protocol 2
 ### B5. UI: continuation on the task panel, engine state on the summary (small)
 
 `ui-next/src/pages/execution/TaskSummary.tsx` shows a task's `continuation` (lane, number,
-state, deferred reason, worker, applied time); `ExecutionSummary.tsx` shows `nativeState` (code
+state, deferral reason from `reasonForIncompletion`, applied time from `endTime`); `ExecutionSummary.tsx` shows `nativeState` (code
 type, continuations applied, bootstrap state while pending, handler run). There are
 no hidden tasks to fold. `metadata.site = "Class.method:line"` on every entry gives the source
 line. A SWITCH emitted by `switchOn` or drawn for a plain if or switch uses the evaluator

@@ -117,9 +117,9 @@ Errors violate a guarantee. Information is allowed by the guarantees, and is mea
 | `indefinite-signal-applied`, `indefinite-signal-dropped` | info | what happened to signals whose outcome the client did not know |
 | `duplicate-task-execution` | info | a step succeeded more than once (at-least-once task execution) |
 | `concurrent-task-execution` | info | two attempts of one step overlapped in time |
-| `continuation-retried` | info | a continuation was offered more than once (`attempts > 1` on its marker), or its completion was deferred: a failover or a re-run. A redelivery to a second worker after the first died runs the same offer and does not raise `attempts` |
+| `continuation-retried` | info | a continuation was offered more than once (`retryCount > 0` on its marker), or its completion was deferred (`reasonForIncompletion` set): a failover or a re-run. A redelivery to a second worker after the first died runs the same offer and does not raise `retryCount` |
 | `query-lag` | info | a query missed deposits acknowledged before it was sent but not yet applied |
-| `continuation-stalled` | info | a continuation took more than 20 s from queued to applied (`appliedAt - queuedAt` on its marker); the stats give continuation latency percentiles |
+| `continuation-stalled` | info | a continuation took more than 20 s from queued to applied (`endTime - scheduledTime` on its marker); the stats give continuation latency percentiles |
 
 `CheckerTest` plants each error in a synthetic run and asserts that exactly that check fires.
 

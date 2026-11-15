@@ -69,7 +69,7 @@ class WorkerProtocolTest {
         server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\"}"));
         TaskContinuation marker = new TaskContinuation("main", 2);
         marker.setState(TaskContinuation.LEASED);
-        marker.setEpoch(3);
+        marker.setRetryCount(3);
         Task task = new Task();
         task.setTaskId("t-1");
         task.setWorkflowInstanceId("wf-1");
@@ -84,7 +84,7 @@ class WorkerProtocolTest {
         Map<String, Object> output = result.getOutputData();
         assertEquals(2, output.get("protocol"));
         assertEquals(2, output.get("n"));
-        assertEquals(3L, output.get("epoch"));
+        assertEquals(3, output.get("retryCount"));
     }
 
     public static class Notes {
@@ -111,7 +111,7 @@ class WorkerProtocolTest {
                 + "\"nativeState\":{\"replies\":{\"s-1\":{\"at\":" + now + "}}}}"));
         TaskContinuation marker = new TaskContinuation("handlers", 2);
         marker.setState(TaskContinuation.LEASED);
-        marker.setEpoch(1);
+        marker.setRetryCount(1);
         Task task = new Task();
         task.setTaskId("wf-1|handlers");
         task.setWorkflowInstanceId("wf-1");

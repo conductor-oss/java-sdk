@@ -120,7 +120,13 @@ public final class Execution {
     @SuppressWarnings("unchecked")
     public Marker bootstrap() {
         Object b = nativeState.get("bootstrap");
-        return b instanceof Map ? new Marker((Map<String, Object>) b) : null;
+        if (!(b instanceof Map)) {
+            return null;
+        }
+        Map<String, Object> m = new LinkedHashMap<>((Map<String, Object>) b);
+        m.putIfAbsent("lane", "main"); // always main #1, so not stored
+        m.putIfAbsent("n", 1);
+        return new Marker(m);
     }
 
     /** Every recently handled message, by the sender's id, with its reply when it has one. */
@@ -131,23 +137,23 @@ public final class Execution {
     }
 
     /**
-     * The continuations the server has applied, in the order it applied them (their {@code appliedAt},
-     * which the server keeps increasing within a run):
+     * The continuations the server has applied, in the order it applied them: the first one, then
+     * those on tasks by their {@code endTime}, which the server keeps increasing within a run;
      * the recording a replay follows. The handler lane is not part of it. For a task that was
      * retried, the latest attempt's marker counts.
      */
     public List<Marker> segments() {
         List<Marker> segments = new ArrayList<>();
-        Marker bootstrap = bootstrap();
-        if (bootstrap != null && bootstrap.applied()) {
-            segments.add(bootstrap);
-        }
         for (TaskView t : latest.values()) {
             if (t.marker != null && t.marker.applied() && !"handlers".equals(t.marker.lane)) {
                 segments.add(t.marker);
             }
         }
-        segments.sort(Comparator.comparingLong((Marker m) -> m.appliedAt).thenComparingInt(m -> m.n));
+        segments.sort(Comparator.comparingLong((Marker m) -> m.endTime).thenComparingInt(m -> m.n));
+        Marker bootstrap = bootstrap();
+        if (bootstrap != null && bootstrap.applied()) {
+            segments.add(0, bootstrap); // always the first to apply
+        }
         return segments;
     }
 
@@ -160,7 +166,7 @@ public final class Execution {
         public final String lane;
         public final int n;
         public final String state;
-        public final long appliedAt;
+        public final long endTime;
         public final boolean done;
         public final Map<String, Object> resumedWith;
         public final Map<String, Object> recorded;
@@ -170,7 +176,7 @@ public final class Execution {
             this.lane = String.valueOf(m.get("lane"));
             this.n = m.get("n") instanceof Number x ? x.intValue() : 0;
             this.state = String.valueOf(m.get("state"));
-            this.appliedAt = m.get("appliedAt") instanceof Number x ? x.longValue() : 0L;
+            this.endTime = m.get("endTime") instanceof Number x ? x.longValue() : 0L;
             this.done = Boolean.TRUE.equals(m.get("done"));
             this.resumedWith = orEmpty((Map<String, Object>) m.get("resumedWith"));
             this.recorded = orEmpty((Map<String, Object>) m.get("recorded"));

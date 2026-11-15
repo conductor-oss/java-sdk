@@ -438,15 +438,19 @@ becomes runnable and the server pushes a message to the continuation queue, the 
 type (`<workflow>.v<version>.code`). By default that is one shared queue and any worker can run
 any continuation; task domains do not apply to workflow code. The SDK holds no per-execution
 lock: the server's one-continuation-per-execution slot (the one `LEASED` marker) is what
-serializes an execution. Workers poll with the ordinary batch task poll; the poll leases the marker (`LEASED`, with an epoch) and hands back the finished
-task itself. The worker completes with the ordinary task update (`update-v2`), naming the lease's
-`n` and `epoch`; a completion from a stale lease is refused with 409. The first continuation
+serializes an execution. A decide offers the marker (`LEASED`, at its `retryCount`), and workers poll with the ordinary
+batch task poll, which hands back the finished task itself. The worker completes with the ordinary
+task update (`update-v2`), echoing the marker's `n` and `retryCount` (`Workers`); a completion from
+an earlier attempt, or one for an offer that already applied, is refused with 409. `retryCount` is
+0 on the first offer and goes up each time an attempt ends without applying. The first continuation
 (`<workflowId>|main`) and each handler run (`<workflowId>|handlers`) have no task, so the poll
 builds one from the execution's `nativeState`, with the workflow input or the claimed messages.
+`nativeState` stores the first continuation's marker without its `lane` and `n` (always `main`
+#1) and the handler marker without its `lane`; `Execution.bootstrap()` fills them in.
 
 **Every continuation is a replay.** The worker is stateless. For each continuation it creates a
 fresh instance of the class, fetches the execution with its tasks, replays every applied
-continuation in the order the server applied them (`appliedAt` on the markers, which the server keeps increasing within a run, with `@Variable` fields
+continuation in the order the server applied them (`Execution.segments()`: the first continuation, which always applies first and has no `endTime`, then the task markers by `endTime`, which the server keeps increasing within a run; `@Variable` fields
 restored to each one's `resumedWith`), then runs the active continuation against the current
 variables. Each call is matched by lane, task name and ordinal; a recorded result is returned, a
 missing one is scheduled. Handler runs are not replayed; their effect is in the variables. This is
@@ -546,7 +550,7 @@ flat graph need Phase B:
    fragment's first element names in `metadata.after` (code that left a `switchOn` case).
 2. JOIN with live targets: a fork branch ends when its last task is terminal and its marker, if
    any, is applied and ended the lane.
-3. Lease epoch: the server accepts a completion only for the current lease (`n` and `epoch`).
+3. Lease fencing: the server accepts a completion only for the current offer (`n` and `retryCount`).
 4. Recorded values: `once`, `now` and `random` ride in the completion's `recorded` map and are
    stored on the marker; no task.
 5. The definition view: planned as an observed graph merged from executions by call site; built

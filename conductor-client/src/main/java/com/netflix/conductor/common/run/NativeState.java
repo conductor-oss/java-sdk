@@ -17,19 +17,29 @@ import java.util.Map;
 
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Engine state of a native (code-defined) workflow that has no task to live on. Everything else
  * about the code's progress is on the tasks it paused on ({@link TaskContinuation}), so this stays
- * small however long the execution runs.
+ * small however long the execution runs. The code type and the continuation timeout are the
+ * definition's {@code metadata.native}, which the execution carries.
  */
 public class NativeState {
 
-    /** The main lane's first continuation, which runs before any task exists. */
+    /**
+     * The main lane's first continuation, which runs before any task exists. Always {@code main}
+     * #1, so neither is stored.
+     */
+    @JsonIgnoreProperties({"lane", "n"})
     private TaskContinuation bootstrap;
 
-    /** The handler lane: signal and update handlers schedule no tasks. Null without handlers. */
+    /**
+     * The handler lane: signal and update handlers schedule no tasks. Null without handlers. Its
+     * lane is always {@code handlers}, so it is not stored; its number counts its runs.
+     */
+    @JsonIgnoreProperties({"lane"})
     private TaskContinuation handlers;
-
     private Map<String, Object> replies = new HashMap<>();
 
     public TaskContinuation getBootstrap() {
@@ -37,6 +47,10 @@ public class NativeState {
     }
 
     public void setBootstrap(TaskContinuation bootstrap) {
+        if (bootstrap != null) {
+            bootstrap.setLane("main");
+            bootstrap.setN(1);
+        }
         this.bootstrap = bootstrap;
     }
 
@@ -45,6 +59,9 @@ public class NativeState {
     }
 
     public void setHandlers(TaskContinuation handlers) {
+        if (handlers != null) {
+            handlers.setLane("handlers");
+        }
         this.handlers = handlers;
     }
 
@@ -55,5 +72,4 @@ public class NativeState {
     public void setReplies(Map<String, Object> replies) {
         this.replies = replies;
     }
-
 }

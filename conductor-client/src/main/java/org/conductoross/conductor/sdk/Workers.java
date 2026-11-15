@@ -615,13 +615,13 @@ public final class Workers {
         sb.append("status=").append(exec.status).append(" active=").append(active.getLane()).append('#').append(active.getN());
         sb.append(" replay=");
         for (Execution.Marker m : exec.segments()) {
-            sb.append(m.lane).append('#').append(m.n).append("@").append(m.appliedAt).append(m.done ? "!" : "").append(' ');
+            sb.append(m.lane).append('#').append(m.n).append("@").append(m.endTime).append(m.done ? "!" : "").append(' ');
         }
         sb.append("tasks=");
         for (Execution.TaskView t : exec.tasks) {
             sb.append(t.seq).append(':').append(t.ref).append('=').append(t.status);
             if (t.marker != null) {
-                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state).append('@').append(t.marker.appliedAt).append(']');
+                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state).append('@').append(t.marker.endTime).append(']');
             }
             sb.append(' ');
         }
@@ -645,7 +645,7 @@ public final class Workers {
             // lands on the task the code paused on
             result.getOutputData().put("protocol", 2);
             result.getOutputData().put("n", marker.getN());
-            result.getOutputData().put("epoch", marker.getEpoch());
+            result.getOutputData().put("retryCount", marker.getRetryCount());
         }
         if (reason != null) {
             result.setReasonForIncompletion(reason.length() > 1000 ? reason.substring(0, 1000) : reason);

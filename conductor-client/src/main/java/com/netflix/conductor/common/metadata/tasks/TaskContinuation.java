@@ -34,22 +34,35 @@ public class TaskContinuation {
     public static final String RUNNABLE = "RUNNABLE";
     public static final String LEASED = "LEASED";
     public static final String APPLIED = "APPLIED";
-
     private String lane;
     private int n;
     private String state = WAITING;
 
+    /**
+     * How many times this continuation was offered again: 0 on its first offer, one more after each
+     * attempt that did not apply (deferred, retried, rerun), as a task's retry count. A completion
+     * names the count it was offered at, so one from an earlier attempt never applies.
+     */
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    private long epoch;
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    private long queuedAt;
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    private long leasedAt;
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-    private long appliedAt;
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String deferred;
+    private int retryCount;
 
+    /** When it became runnable; the oldest runnable continuation is offered first. */
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private long scheduledTime;
+
+    /**
+     * When it applied, on a task's marker: later than every earlier apply in the run, the order
+     * replay follows. The workflow's first continuation always applies first and does not need it.
+     */
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private long endTime;
+
+    /**
+     * Why its last completion did not apply, until one does: shown to people. A hold (a reason
+     * starting {@code diverged: }) keeps the time it became runnable while it lasts.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String reasonForIncompletion;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Object> recorded = new HashMap<>();
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -65,13 +78,13 @@ public class TaskContinuation {
     }
 
     /**
-     * A fresh marker for the same lane and continuation, as a retried or rerun task carries. It
-     * keeps the epoch: its next offer takes a new one, so a completion of an offer made before the
-     * reset can never match it.
+     * A fresh marker for the same lane and continuation, as a rerun task or a restarted run
+     * carries: another attempt, so its retry count goes up and a completion of an offer made before
+     * the reset can never match it.
      */
     public TaskContinuation reset() {
         TaskContinuation fresh = new TaskContinuation(lane, n);
-        fresh.epoch = epoch;
+        fresh.retryCount = retryCount + 1;
         return fresh;
     }
 
@@ -119,44 +132,36 @@ public class TaskContinuation {
         this.state = state;
     }
 
-    public long getEpoch() {
-        return epoch;
+    public int getRetryCount() {
+        return retryCount;
     }
 
-    public void setEpoch(long epoch) {
-        this.epoch = epoch;
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
     }
 
-    public long getQueuedAt() {
-        return queuedAt;
+    public long getScheduledTime() {
+        return scheduledTime;
     }
 
-    public void setQueuedAt(long queuedAt) {
-        this.queuedAt = queuedAt;
+    public void setScheduledTime(long scheduledTime) {
+        this.scheduledTime = scheduledTime;
     }
 
-    public long getLeasedAt() {
-        return leasedAt;
+    public long getEndTime() {
+        return endTime;
     }
 
-    public void setLeasedAt(long leasedAt) {
-        this.leasedAt = leasedAt;
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 
-    public long getAppliedAt() {
-        return appliedAt;
+    public String getReasonForIncompletion() {
+        return reasonForIncompletion;
     }
 
-    public void setAppliedAt(long appliedAt) {
-        this.appliedAt = appliedAt;
-    }
-
-    public String getDeferred() {
-        return deferred;
-    }
-
-    public void setDeferred(String deferred) {
-        this.deferred = deferred;
+    public void setReasonForIncompletion(String reasonForIncompletion) {
+        this.reasonForIncompletion = reasonForIncompletion;
     }
 
     public Map<String, Object> getRecorded() {
@@ -191,7 +196,7 @@ public class TaskContinuation {
                 + n
                 + " "
                 + state
-                + (epoch > 0 ? " epoch " + epoch : "")
+                + (retryCount > 0 ? " retry " + retryCount : "")
                 + "}";
     }
 }
