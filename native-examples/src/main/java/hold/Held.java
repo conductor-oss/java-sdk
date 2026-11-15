@@ -72,7 +72,7 @@ public class Held {
         for (Map<String, Object> t : (List<Map<String, Object>>) wf.get("tasks")) {
             Map<String, Object> c = (Map<String, Object>) t.get("continuation");
             System.out.println("  " + t.get("referenceTaskName") + " " + t.get("status") + " continuation "
-                    + c.get("state") + " attempts " + c.get("attempts") + " deferred " + c.get("deferred"));
+                    + c.get("state") + " epoch " + c.get("epoch") + " deferred " + c.get("deferred"));
         }
     }
 

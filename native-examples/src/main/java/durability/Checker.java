@@ -630,7 +630,7 @@ public final class Checker {
                 error("nondeterminism", key, reason);
             }
             for (Map<String, Object> marker : markers(wf)) {
-                int attempts = marker.get("attempts") instanceof Number n ? n.intValue() : 0;
+                int attempts = marker.get("epoch") instanceof Number n ? n.intValue() : 0; // one epoch per offer
                 Object deferred = marker.get("deferred");
                 if (attempts > 1 || deferred != null) {
                     info("continuation-retried", key, marker.get("lane") + "#" + marker.get("n") + " leased " + attempts
@@ -638,9 +638,6 @@ public final class Checker {
                 }
                 if (deferred != null && isDivergence(String.valueOf(deferred))) {
                     error("nondeterminism", key, marker.get("lane") + "#" + marker.get("n") + ": " + deferred);
-                }
-                if (marker.get("error") instanceof Map<?, ?> error && isDivergence(String.valueOf(error.get("message")))) {
-                    error("nondeterminism", key, marker.get("lane") + "#" + marker.get("n") + ": " + error.get("message"));
                 }
             }
         });

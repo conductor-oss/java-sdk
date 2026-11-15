@@ -24,4 +24,6 @@ background, retried with backoff until the server answers, with an error logged 
 attempt.
 
 Settings under `conductor.workflows`: `enabled` (set `false` in a service that only starts
-workflows), `worker-id`, `build-id`, `threads`, `continuation-timeout` and `dev-mode`.
+workflows), `worker-id` and `dev-mode`. Per workflow, as `conductor.worker.<task>.*` is per task:
+`conductor.workflow.<name>.threadCount`, `pollingInterval`, `pollTimeout`, `paused` and
+`continuationTimeout`, or `conductor.workflow.all.*` for every workflow.

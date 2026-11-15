@@ -282,7 +282,6 @@ final class Processes {
             pb.environment().put("CONDUCTOR_SERVER_URL", serverUrl);
             pb.environment().put("CONDUCTOR_WORKER_ID", workerId);
             pb.environment().put("LEDGER_DIR", out.resolve("ledger").toString());
-            pb.environment().putIfAbsent("BUILD_ID", "bench");
             // production settings: dev mode stretches the continuation response timeout to an hour
             pb.environment().remove("CONDUCTOR_DEV");
             pb.redirectErrorStream(true);

@@ -23,8 +23,12 @@ import java.lang.annotation.Target;
 public @interface WorkerTask {
     String value();
 
-    // No. of threads to use for executing the task
-    int threadCount() default 1;
+    /**
+     * Threads that execute the task at once. 0, the default, leaves it to the executor's {@code
+     * WorkerConfiguration.getDefaultThreadCount()}: 1 for {@code AnnotatedWorkerExecutor} and
+     * Spring, 8 for a native workflow host.
+     */
+    int threadCount() default 0;
 
     int pollingInterval() default 100;
 

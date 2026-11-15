@@ -12,7 +12,6 @@
  */
 package com.netflix.conductor.client.spring;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,8 +48,10 @@ import lombok.extern.slf4j.Slf4j;
  * real task object is rejected, since its calls would run in the workflow on every replay. Task beans keep running on the worker auto-configuration's executor; this only
  * registers their task definitions, from the {@code @WorkerTask} attributes.
  *
- * <p>Properties under {@code conductor.workflows}: {@code worker-id}, {@code build-id},
- * {@code threads}, {@code continuation-timeout} and {@code dev-mode}.
+ * <p>Properties under {@code conductor.workflows}: {@code worker-id} and {@code dev-mode}. Per
+ * workflow, read from the environment: {@code conductor.workflow.<name>.threadCount}, {@code
+ * pollingInterval}, {@code pollTimeout}, {@code paused} and {@code continuationTimeout}, or {@code
+ * conductor.workflow.all.*} (see {@link Workers}).
  */
 @Slf4j
 public class ConductorWorkflowHost implements SmartLifecycle {
@@ -79,10 +80,7 @@ public class ConductorWorkflowHost implements SmartLifecycle {
         if (workerId != null) {
             w.workerId(workerId);
         }
-        w.buildId(environment.getProperty("conductor.workflows.build-id"));
-        w.threads(environment.getProperty("conductor.workflows.threads", Integer.class, 8));
-        w.continuationTimeout(environment.getProperty("conductor.workflows.continuation-timeout", Duration.class,
-                Duration.ofSeconds(30)));
+        w.settings(environment::getProperty);
         w.devMode(environment.getProperty("conductor.workflows.dev-mode", Boolean.class, false));
         types.forEach(type -> host(w, type));
         w.taskDefinitions(taskBeans().toArray());

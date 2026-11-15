@@ -158,7 +158,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `switchOn(name, value).when(key, body)…otherwise(body).get()` / `.run()` | SWITCH named `name` (`evaluatorType: native-code`, `switchCaseValue` the value's string form), with every declared case as a branch and a default branch: the taken case's body runs inline as ordinary workflow code and its calls land inside that branch, in the fragment or after the task the code paused on there; each untaken case shows a preview of the calls its body would have made (`<task>_if_<key>` entries, never run); the first call after the body is anchored after the switch (`metadata.after`). The server records `selectedCase` in the task's output and the UI marks that branch. A key is compared with the value's string form; declaring a key twice is an error at the call | never by itself; the body's calls wake the code as usual |
 | `now()`, `random()` | none; recorded with the continuation | never |
 | `@Variable` fields | workflow variables, written by every continuation's completion (only what changed); readable as `workflow.variables` | never |
-| `@Signal`, `@Update` methods | handler lane: no task; a marker on the execution (`nativeState.handlers`) that each message wakes, and whose poll hands the worker the claimed messages; each message applied once (the client's message id is de-duplicated through `nativeState.seen`); update replies in `nativeState.replies`, kept 10 minutes, at most 500 | handler runs on a worker between continuations |
+| `@Signal`, `@Update` methods | handler lane: no task; a marker on the execution (`nativeState.handlers`) that each message wakes, and whose poll hands the worker the claimed messages; each message applied once: every handled message is in `nativeState.replies` by the client's message id (an update with its reply), kept 10 minutes, at most 500 | handler runs on a worker between continuations |
 | `@Query` methods | none: the client restores an instance from the execution's `@Variable` values and runs the method itself | never; works on completed executions, writes nothing, and any change the method makes is discarded. It sees messages the execution has applied, not ones still queued |
 | `return value` / `throw WorkflowFailedException` | workflow output / FAILED with reason | |
 | any other unchecked exception the workflow method throws | FAILED, with `<SimpleName>: <message>` as the reason; tasks that ran stay as they are, and a FAILED task named after the exception (a `TERMINATE` entry the code appends, never scheduled) marks where it threw, with that line as its site, inside the if or switch arm the code was in; what the code would have called next, had it not thrown, follows as previews (`task2_if_no_error`), read from the compiled code. An uncaught `TaskFailure` shows its own task FAILED instead. A retry removes the mark and runs the code again from its last continuation, so a fixed build continues the execution. In an `async` lane it is raised where the code waits for the lane (`join`, `get`); a lane nothing waits for does not fail the workflow, and the worker writes the exception to the log of the task the lane ran last | |
@@ -190,7 +190,8 @@ referenced unambiguously, and the compiler says so. Do not overload them.
 | failure workflow | `@Workflow(failureWorkflow = "name", failureWorkflowVersion = n)` | started when the execution fails or times out, with `workflowId`, `reason` and `failureStatus` in its input; the failed execution's output gets `conductor.failure_workflow` |
 | schedule | `@Schedule(cron = "0 0 9 * * MON-FRI", zone = "UTC", input = "{}")` on the `@Workflow` method, repeatable | registered with the Conductor scheduler (`POST /api/scheduler/schedules`) when the workers start; needs `conductor.scheduler.enabled=true`. Registration overwrites the schedule, including `paused`, so a schedule paused in the UI is resumed by the next worker start unless the annotation says `paused = true` |
 | priority | `conductor.workflow(X::run).priority(5).start(input)` | the execution's priority (0 to 99), used to order its tasks in the queues |
-| continuation timeout | `conductor.host().continuationTimeout(Duration.ofSeconds(30))` | the continuation lease (`metadata.native.continuationTimeoutSeconds`): how long a continuation handed to a worker may go unanswered before the server hands it to another worker; 30 s by default, an hour in dev mode; must exceed the longest replay |
+| continuation timeout | `conductor.host().continuationTimeout(Duration.ofSeconds(30))`, or `conductor.workflow.<name>.continuationTimeout` / `conductor.workflow.all.continuationTimeout` (seconds, or ISO-8601 such as `PT2M`) | the continuation lease (`metadata.native.continuationTimeoutSeconds`): how long a continuation handed to a worker may go unanswered before the server hands it to another worker; 30 s by default, an hour in dev mode; must exceed the longest replay |
+| hosting | `@Workflow(threadCount = 20, pollingInterval = 100, pollTimeout = 500)`, overridden by `conductor.workflow.<name>.threadCount` (and `pollingInterval`, `pollTimeout`), else `conductor.workflow.all.*`; `conductor.workflow.<name>.paused=true` stops polling | none: each hosted workflow is a `TaskRunner` worker of its code type, as a `@WorkerTask` is of its task type: at most `threadCount` continuations at once (virtual threads), long polls of `pollTimeout` ms, `pollingInterval` ms between empty polls, completed with update-v2, which hands back the next continuation. Properties are system properties, or the Spring environment. A hosted `@WorkerTask` reads `conductor.worker.<task>.*`, else `conductor.worker.all.*`, else its annotation, and gets 8 threads when none sets `threadCount` (`AnnotatedWorkerExecutor` and Spring keep 1) |
 
 ## The developer's day
 
@@ -272,14 +273,9 @@ cd order-service && ./mvnw -q compile exec:java
 
 ### Deploying
 
-- Continuations are fully distributed by default: any machine polling the shared queue can run
-  any of them. Build pinning is opt-in: `buildId(...)` on the host adds that build as a polled
-  domain, and a start names it with a fallback, `conductor.workflow(X::run).taskToDomain(Map.of("<name>.v1.code",
-  "build-7,NO_DOMAIN"))`. The first domain with a poller in the last 10 s wins, else the last
-  entry, `NO_DOMAIN` meaning the shared queue, so when old workers are gone name matching continues
-  the run on the new code. A worker's build is never captured automatically. The `*` key also
-  applies to ordinary tasks, and only workers polling that domain receive them; the SDK's task
-  workers poll the shared queue, so name the code type, or end a `*` list with `NO_DOMAIN`.
+- Continuations are fully distributed: any machine polling the shared queue of the code type can
+  run any of them. Task domains do not apply to workflow code: a start's `taskToDomain`, `*`
+  included, routes its tasks only. A new `@Workflow(version)` has its own code type and queue.
 - Definitions in GitOps: `start()` registers definitions from the annotations by default;
   `conductor.register(OrderService.class, …)` registers them without starting workers, for a
   deploy step, and the static `Conductor.definitions(OrderService.class)` returns the same JSON
@@ -294,13 +290,11 @@ cd order-service && ./mvnw -q compile exec:java
   `awaitCondition` as WAIT, child, HTTP, event, LLM, MCP and agent entries; no `metadata.preview`
   marks. Every SIMPLE entry gets an inline `taskDefinition` so registration validates without a
   registered task definition. The definition also carries `inputParameters` (the components of a
-  single record parameter, or the parameter names) and, under `metadata.native`, the handler
-  inventory (`signals`, `updates`, `queries`) and `discovered` (`false` with a `discoveryError` when
-  the code could not be read). It shows every call the code can make, not one path: every arm of
+  single record parameter, or the parameter names) and, under `metadata.native`, the class and
+  method it is generated from, the continuation timeout and whether it has handlers. When the code
+  cannot be read the graph is empty and registration logs why. It shows every call the code can make, not one path: every arm of
   an `if` or `switch`, a loop body once, and a catch block after its try. Entries inside plain Java
-  loops carry `metadata.loops` (`<Class>_loop_<first line>`, outermost first), as an execution's do,
-  and `metadata.native.codeVersion` is a short hash of the graph, which changes when its structure
-  does.
+  loops carry `metadata.loops` (`<Class>_loop_<first line>`, outermost first), as an execution's do.
 - Schemas: registration reads, by reflection, the JSON Schema of each `@WorkerTask`'s input (one
   property per parameter, named as calls name it) and output (an object's properties, any other
   value as `result`), and of the `@Workflow` method's input and output, shaped as the SDK sends the
@@ -442,8 +436,8 @@ were; one recorded with another arm than the code now takes is a divergence.
 **How a continuation reaches a worker.** When the task a lane paused on finishes, its marker
 becomes runnable and the server pushes a message to the continuation queue, the workflow's code
 type (`<workflow>.v<version>.code`). By default that is one shared queue and any worker can run
-any continuation; a start can name domains instead (see Deploying). The SDK holds no per-execution
-lock: the server's one-continuation-per-execution slot (`nativeState.activeContinuation`) is what
+any continuation; task domains do not apply to workflow code. The SDK holds no per-execution
+lock: the server's one-continuation-per-execution slot (the one `LEASED` marker) is what
 serializes an execution. Workers poll with the ordinary batch task poll; the poll leases the marker (`LEASED`, with an epoch) and hands back the finished
 task itself. The worker completes with the ordinary task update (`update-v2`), naming the lease's
 `n` and `epoch`; a completion from a stale lease is refused with 409. The first continuation
@@ -452,7 +446,7 @@ builds one from the execution's `nativeState`, with the workflow input or the cl
 
 **Every continuation is a replay.** The worker is stateless. For each continuation it creates a
 fresh instance of the class, fetches the execution with its tasks, replays every applied
-continuation in the order the server applied them (`step` on the markers, with `@Variable` fields
+continuation in the order the server applied them (`appliedAt` on the markers, which the server keeps increasing within a run, with `@Variable` fields
 restored to each one's `resumedWith`), then runs the active continuation against the current
 variables. Each call is matched by lane, task name and ordinal; a recorded result is returned, a
 missing one is scheduled. Handler runs are not replayed; their effect is in the variables. This is

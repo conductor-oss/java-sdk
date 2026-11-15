@@ -30,13 +30,14 @@ The code only ever pauses on a task, so the state the engine needs to drive the 
 those tasks.
 
 - `common/.../tasks/TaskContinuation.java`, and a `continuation` field on `Task` and `TaskModel`:
-  `lane`, `n`, `state` (`WAITING` → `RUNNABLE` → `LEASED` → `APPLIED`), `epoch`, `worker`,
-  `queue`, `queuedAt`, `leasedAt`, `appliedAt`, `attempts`, `deferred`, and once applied the
-  record a replay reads: `step`, `recorded`, `resumedWith`, `done`, `result`, `error`.
+  `lane`, `n`, `state` (`WAITING` → `RUNNABLE` → `LEASED` → `APPLIED`), `epoch`, `queuedAt`,
+  `leasedAt`, `appliedAt`, `deferred`, and once applied the
+  record a replay reads: `appliedAt` (its order), `recorded`, `resumedWith`, `done`, `result`. The main lane's
+  exception is the run's `reasonForIncompletion`.
 - `common/.../run/NativeState.java`, and a `nativeState` field on `Workflow` and `WorkflowModel`:
-  `protocol`, `codeType`, `continuationTimeoutSeconds`, `step`, `activeContinuation`, `activeUntil`, `bootstrap` and
-  `handlers` (markers for the two lanes that have no task), `replies`, `seen`. O(1) in the length
-  of the execution.
+  `bootstrap` and `handlers` (markers for the two lanes that have no task), and `replies`
+  (every handled message). O(1) in the length of the execution. The code type and the
+  continuation timeout stay in the definition's `metadata.native`.
 - `TaskMapperContext.createTaskModel` copies an entry's `metadata.continuation` onto the scheduled
   task as a `WAITING` marker. `NativeContinuationService.initialize` builds `nativeState` at start
   and restart from the skeleton's `metadata.native`.
@@ -66,7 +67,7 @@ those tasks.
   domain queue, with the workflow postponed by an hour.
 - Offer and lease: a decide, under the lock it already takes, offers the next continuation
   (`NativeContinuationService.offer` from `repairAndWake`): the marker `LEASED` with `epoch + 1`,
-  the slot, the queue, then the push. `ExecutionService.poll` hands a continuation queue's
+  which makes it the slot, then the push. `ExecutionService.poll` hands a continuation queue's
   messages to `NativeContinuationService.lease`, which takes no lock and writes nothing: it checks
   the message is the one offered, leaves it unacknowledged for `continuationTimeoutSeconds`, and
   returns the finished task itself, or a synthetic task (`<workflowId>|main`, `<workflowId>|handlers`) built
@@ -152,8 +153,8 @@ Dropped: nothing used it.
 
 - Replay, divergence detection, the in-memory test environment and `DurableReplay` are SDK work
   on top of the markers and the task list the server exposes.
-- Build pinning is opt-in: `buildId` on the host adds a polled domain, and a domain list in the
-  start's `taskToDomain` uses it. The SDK sends no routing data in a completion.
+- No build pinning: workflow code is polled on the shared queue of its code type only, and the
+  SDK sends no routing data in a completion.
 - `@WorkerTask` registration attributes (`retryCount`, `retryDelaySeconds`,
   `responseTimeoutSeconds`) are SDK changes that produce ordinary task definitions.
 

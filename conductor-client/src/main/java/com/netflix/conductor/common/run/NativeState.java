@@ -12,9 +12,7 @@
  */
 package com.netflix.conductor.common.run;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
@@ -26,10 +24,6 @@ import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
  */
 public class NativeState {
 
-    private String codeType;
-    private int continuationTimeoutSeconds;
-    private long step;
-
     /** The main lane's first continuation, which runs before any task exists. */
     private TaskContinuation bootstrap;
 
@@ -37,57 +31,6 @@ public class NativeState {
     private TaskContinuation handlers;
 
     private Map<String, Object> replies = new HashMap<>();
-    private List<String> seen = new ArrayList<>();
-
-    /**
-     * The continuation (queue message id) leased right now. One continuation of an execution runs
-     * at a time, on any host: reference names and recorded values are allocated from what its
-     * replay saw, so two running at once could pick the same ones.
-     */
-    private String activeContinuation;
-
-    /** When {@link #activeContinuation}'s lease ends, in epoch millis. */
-    private long activeUntil;
-
-    public String getActiveContinuation() {
-        return activeContinuation;
-    }
-
-    public void setActiveContinuation(String activeContinuation) {
-        this.activeContinuation = activeContinuation;
-    }
-
-    public long getActiveUntil() {
-        return activeUntil;
-    }
-
-    public void setActiveUntil(long activeUntil) {
-        this.activeUntil = activeUntil;
-    }
-
-    public String getCodeType() {
-        return codeType;
-    }
-
-    public void setCodeType(String codeType) {
-        this.codeType = codeType;
-    }
-
-    public int getContinuationTimeoutSeconds() {
-        return continuationTimeoutSeconds;
-    }
-
-    public void setContinuationTimeoutSeconds(int continuationTimeoutSeconds) {
-        this.continuationTimeoutSeconds = continuationTimeoutSeconds;
-    }
-
-    public long getStep() {
-        return step;
-    }
-
-    public void setStep(long step) {
-        this.step = step;
-    }
 
     public TaskContinuation getBootstrap() {
         return bootstrap;
@@ -113,11 +56,4 @@ public class NativeState {
         this.replies = replies;
     }
 
-    public List<String> getSeen() {
-        return seen;
-    }
-
-    public void setSeen(List<String> seen) {
-        this.seen = seen;
-    }
 }

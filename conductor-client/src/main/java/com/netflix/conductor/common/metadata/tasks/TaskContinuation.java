@@ -15,6 +15,8 @@ package com.netflix.conductor.common.metadata.tasks;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * The continuation of a native (code-defined) workflow that runs when this task finishes.
  *
@@ -37,20 +39,15 @@ public class TaskContinuation {
     private String state = WAITING;
 
     private long epoch;
-    private String worker;
-    private String queue;
     private long queuedAt;
     private long leasedAt;
     private long appliedAt;
-    private int attempts;
     private String deferred;
 
-    private long step;
     private Map<String, Object> recorded = new HashMap<>();
     private Map<String, Object> resumedWith = new HashMap<>();
     private boolean done;
     private Map<String, Object> result;
-    private Map<String, Object> error;
 
     public TaskContinuation() {}
 
@@ -64,18 +61,22 @@ public class TaskContinuation {
         return new TaskContinuation(lane, n);
     }
 
+    @JsonIgnore // derived from state, not stored
     public boolean isWaiting() {
         return WAITING.equals(state);
     }
 
+    @JsonIgnore
     public boolean isRunnable() {
         return RUNNABLE.equals(state);
     }
 
+    @JsonIgnore
     public boolean isLeased() {
         return LEASED.equals(state);
     }
 
+    @JsonIgnore
     public boolean isApplied() {
         return APPLIED.equals(state);
     }
@@ -112,22 +113,6 @@ public class TaskContinuation {
         this.epoch = epoch;
     }
 
-    public String getWorker() {
-        return worker;
-    }
-
-    public void setWorker(String worker) {
-        this.worker = worker;
-    }
-
-    public String getQueue() {
-        return queue;
-    }
-
-    public void setQueue(String queue) {
-        this.queue = queue;
-    }
-
     public long getQueuedAt() {
         return queuedAt;
     }
@@ -152,28 +137,12 @@ public class TaskContinuation {
         this.appliedAt = appliedAt;
     }
 
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
-    }
-
     public String getDeferred() {
         return deferred;
     }
 
     public void setDeferred(String deferred) {
         this.deferred = deferred;
-    }
-
-    public long getStep() {
-        return step;
-    }
-
-    public void setStep(long step) {
-        this.step = step;
     }
 
     public Map<String, Object> getRecorded() {
@@ -206,14 +175,6 @@ public class TaskContinuation {
 
     public void setResult(Map<String, Object> result) {
         this.result = result;
-    }
-
-    public Map<String, Object> getError() {
-        return error;
-    }
-
-    public void setError(Map<String, Object> error) {
-        this.error = error;
     }
 
     @Override

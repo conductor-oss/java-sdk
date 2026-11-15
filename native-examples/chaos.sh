@@ -22,7 +22,7 @@ LIB="$HERE/build/install/native-examples/lib"
 LOGS="${LOGS:-$HERE/build/chaos}"
 mkdir -p "$LOGS"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
-export CONDUCTOR_SERVER_URL="http://localhost:$SERVER_PORT/api" CONDUCTOR_DEV=true BUILD_ID=chaos
+export CONDUCTOR_SERVER_URL="http://localhost:$SERVER_PORT/api" CONDUCTOR_DEV=true
 
 wait_server() { for _ in $(seq 1 180); do curl -sf "localhost:$SERVER_PORT/api/metadata/taskdefs" >/dev/null && return 0; sleep 1; done; return 1; }
 start_worker() { CONDUCTOR_WORKER_ID="$1" "$JAVA" -cp "$LIB/*" kitchensink.Worker > "$LOGS/worker-$1.log" 2>&1 & echo $!; }

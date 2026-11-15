@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
+import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
@@ -66,7 +67,6 @@ class WorkerProtocolTest {
     @SuppressWarnings("unchecked")
     void aContinuationThatFailsIsReportedAsTheCodesResultNotTheTasks() throws Exception {
         server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\"}"));
-        server.enqueue(new MockResponse().setResponseCode(204));
         TaskContinuation marker = new TaskContinuation("main", 2);
         marker.setState(TaskContinuation.LEASED);
         marker.setEpoch(3);
@@ -77,17 +77,61 @@ class WorkerProtocolTest {
         task.setStatus(Task.Status.IN_PROGRESS);
         task.setContinuation(marker);
 
-        conductor.host().process("not.hosted.code", task); // no such workflow: replay fails
+        // no such workflow: the replay fails, and the completion TaskRunner sends says so
+        TaskResult result = conductor.host().process("not.hosted.code", task);
 
-        server.takeRequest(); // the fetch of the execution
-        RecordedRequest update = server.takeRequest();
-        assertEquals("/api/tasks/update-v2", update.getPath());
-        Map<String, Object> body = Json.MAPPER.readValue(update.getBody().readUtf8(), Map.class);
-        assertEquals("FAILED", body.get("status"));
-        Map<String, Object> output = (Map<String, Object>) body.get("outputData");
+        assertEquals(TaskResult.Status.FAILED, result.getStatus());
+        Map<String, Object> output = result.getOutputData();
         assertEquals(2, output.get("protocol"));
         assertEquals(2, output.get("n"));
-        assertEquals(3, output.get("epoch"));
+        assertEquals(3L, output.get("epoch"));
+    }
+
+    public static class Notes {
+        @Variable
+        private List<String> notes = new java.util.ArrayList<>();
+
+        @Signal("add")
+        public void add(String note) {
+            notes.add(note);
+        }
+
+        @Workflow(name = "notes_test", version = 1)
+        public String run() {
+            return "done";
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void aMessageAlreadyHandledIsSkippedAndEveryHandledMessageIsInTheReplies() throws Exception {
+        long now = System.currentTimeMillis();
+        // s-1 was handled by an earlier run; a retried send queued it again
+        server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\",\"variables\":{\"notes\":[\"first\"]},"
+                + "\"nativeState\":{\"replies\":{\"s-1\":{\"at\":" + now + "}}}}"));
+        TaskContinuation marker = new TaskContinuation("handlers", 2);
+        marker.setState(TaskContinuation.LEASED);
+        marker.setEpoch(1);
+        Task task = new Task();
+        task.setTaskId("wf-1|handlers");
+        task.setWorkflowInstanceId("wf-1");
+        task.setReferenceTaskName("handlers");
+        task.setStatus(Task.Status.IN_PROGRESS);
+        task.setContinuation(marker);
+        task.setInputData(Map.of("messages", List.of(
+                Map.of("id", "q-1", "payload", Map.of("kind", "signal", "name", "add", "id", "s-1", "args", "first")),
+                Map.of("id", "q-2", "payload", Map.of("kind", "signal", "name", "add", "id", "s-2", "args", "second")))));
+
+        TaskResult result = conductor.host().workflows(Notes.class).process("notes_test.v1.code", task);
+
+        assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
+        Map<String, Object> output = result.getOutputData();
+        assertEquals(List.of("first", "second"), ((Map<String, Object>) output.get("variables")).get("notes"));
+        Map<String, Object> replies = (Map<String, Object>) output.get("replies");
+        assertEquals(java.util.Set.of("s-1", "s-2"), replies.keySet());
+        // a signal's entry says only when it was handled
+        assertEquals(java.util.Set.of("at"), ((Map<String, Object>) replies.get("s-2")).keySet());
+        assertEquals(null, output.get("seen"));
     }
 
     @Test

@@ -24,7 +24,6 @@ public class Worker {
 
     static void host(Conductor conductor) {
         conductor.host()
-                .buildId(System.getenv().getOrDefault("BUILD_ID", "dev"))
                 .devMode(System.getenv("CONDUCTOR_DEV") != null)
                 .workflows(KitchenSinkWorkflow.class, SubFlow.class)
                 // the chaos run injects task failures through ChaosTasks

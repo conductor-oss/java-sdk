@@ -89,8 +89,7 @@ class DiscoveryTest {
         assertEquals("Picks, packs and ships an order", def.get("description"));
         assertEquals(List.of("item", "region", "quantity"), def.get("inputParameters"));
         Map<String, Object> nativeMeta = (Map<String, Object>) ((Map<String, Object>) def.get("metadata")).get("native");
-        assertEquals(true, nativeMeta.get("discovered"));
-        assertEquals(List.of("cancel"), nativeMeta.get("signals"));
+        assertEquals(true, nativeMeta.get("handlers")); // it has a signal
 
         List<Map<String, Object>> tasks = (List<Map<String, Object>>) def.get("tasks");
         assertEquals(List.of("pick", "fork", "fork_join", "sleep", "region"),
@@ -146,8 +145,6 @@ class DiscoveryTest {
     void codeThatLoopsForeverIsReadWithoutRunningIt() {
         WorkflowSpec spec = WorkflowSpec.of(Spins.class).get(0);
         Map<String, Object> def = Registration_skeleton(spec);
-        Map<?, ?> nativeMeta = (Map<?, ?>) ((Map<?, ?>) def.get("metadata")).get("native");
-        assertEquals(true, nativeMeta.get("discovered"));
         assertEquals(1, ((List<?>) def.get("tasks")).size());
     }
 

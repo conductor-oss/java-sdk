@@ -208,8 +208,8 @@ class CheckerTest {
     @Test
     void detectsNondeterminism() throws Exception {
         assertOnly("nondeterminism", r -> r.wf.put("tasks", List.of(Map.of("ref", "step_3", "type", "durability_step",
-                "status", "COMPLETED", "continuation", Map.of("lane", "main", "n", 3, "state", "APPLIED", "done", true,
-                        "error", Map.of("message", "NonDeterminismException: the code no longer matches"))))));
+                "status", "COMPLETED", "continuation", Map.of("lane", "main", "n", 3, "state", "RUNNABLE",
+                        "deferred", "diverged: the code no longer matches")))));
     }
 
     @Test

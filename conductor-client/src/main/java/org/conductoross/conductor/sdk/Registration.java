@@ -48,11 +48,12 @@ final class Registration {
 
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
             long continuationTimeoutSeconds) {
-        register(client, specs, taskObjects, continuationTimeoutSeconds, true);
+        register(client, specs, taskObjects, spec -> continuationTimeoutSeconds, true);
     }
 
+    /** @param continuationTimeoutSeconds each workflow's continuation lease, in seconds */
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
-            long continuationTimeoutSeconds, boolean discover) {
+            java.util.function.ToLongFunction<WorkflowSpec> continuationTimeoutSeconds, boolean discover) {
         Schemas schemas = new Schemas(client);
         // each task's input and output schema references, by task name
         Map<String, Map<String, Object>> taskSchemas = new LinkedHashMap<>();
@@ -91,7 +92,7 @@ final class Registration {
         }
         List<Map<String, Object>> workflowDefs = new ArrayList<>();
         for (WorkflowSpec spec : specs) {
-            Map<String, Object> def = skeleton(spec, continuationTimeoutSeconds, discover);
+            Map<String, Object> def = skeleton(spec, continuationTimeoutSeconds.applyAsLong(spec), discover);
             def.putAll(schemas.refs(
                     spec.name,
                     org.conductoross.conductor.sdk.internal.JsonSchemas.workflowInput(spec.method),
@@ -167,50 +168,31 @@ final class Registration {
                 def.put("failureWorkflowVersion", spec.failureWorkflowVersion);
             }
         }
+        // the code the definition is generated from; the server polls `<name>.v<version>.code`
         Map<String, Object> nativeMeta = new LinkedHashMap<>();
-        nativeMeta.put("sdk", "java");
         nativeMeta.put("class", spec.type.getName());
         nativeMeta.put("method", spec.method.getName());
-        nativeMeta.put("codeType", spec.codeTaskName());
         // how long the server waits for a continuation it handed to a worker before handing it
         // to another (the lease)
         nativeMeta.put("continuationTimeoutSeconds", continuationTimeoutSeconds);
         nativeMeta.put("handlers", spec.hasHandlers());
-        nativeMeta.put("signals", new ArrayList<>(spec.signals.keySet()));
-        nativeMeta.put("updates", new ArrayList<>(spec.updates.keySet()));
-        nativeMeta.put("queries", new ArrayList<>(spec.queries.keySet()));
         // The graph discovered from the code, for the definition view and inventory. An
         // execution's own copy of the definition starts empty and grows with what the code calls.
         List<Map<String, Object>> discovered;
         try {
             discovered = discover ? org.conductoross.conductor.sdk.internal.Replayer.discover(spec) : List.of();
-            nativeMeta.put("discovered", discover);
         } catch (RuntimeException e) {
             discovered = List.of();
-            nativeMeta.put("discovered", false);
-            nativeMeta.put("discoveryError", e.getMessage());
             org.slf4j.LoggerFactory.getLogger(Registration.class)
                     .warn("Could not discover the graph of workflow {}: {}", spec.name, e.getMessage());
         }
         inlineTaskDefinitions(discovered);
-        // which build of the code the graph was read from: changes when its structure does
-        nativeMeta.put("codeVersion", codeVersion(discovered));
         def.put("metadata", Map.of("native", nativeMeta));
         def.put("inputParameters", inputParameters(spec));
         def.put("tasks", discovered);
         return def;
     }
 
-    /** A short hash of the graph read from the code. */
-    static String codeVersion(List<Map<String, Object>> discovered) {
-        try {
-            byte[] json = org.conductoross.conductor.sdk.internal.Json.MAPPER.writeValueAsBytes(discovered);
-            byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(json);
-            return java.util.HexFormat.of().formatHex(hash, 0, 6);
-        } catch (Exception e) {
-            return "unknown";
-        }
-    }
 
     /** The workflow method's parameter names (a single record's components), for the definition. */
     static List<String> inputParameters(WorkflowSpec spec) {

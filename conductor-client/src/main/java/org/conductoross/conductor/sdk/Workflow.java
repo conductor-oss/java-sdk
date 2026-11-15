@@ -49,4 +49,23 @@ public @interface Workflow {
 
     /** Version of the failure workflow; 0 means the latest. */
     int failureWorkflowVersion() default 0;
+
+    /**
+     * How many continuations of this workflow a host runs at once. The property {@code
+     * conductor.workflow.<name>.threadCount}, else {@code conductor.workflow.all.threadCount},
+     * overrides it.
+     */
+    int threadCount() default 20;
+
+    /**
+     * Milliseconds a host waits before polling again after a poll found nothing. Overridden by
+     * {@code conductor.workflow.<name>.pollingInterval}, else {@code conductor.workflow.all.pollingInterval}.
+     */
+    int pollingInterval() default 100;
+
+    /**
+     * Milliseconds a poll waits on the server for a continuation (long poll). Overridden by
+     * {@code conductor.workflow.<name>.pollTimeout}, else {@code conductor.workflow.all.pollTimeout}.
+     */
+    int pollTimeout() default 500;
 }

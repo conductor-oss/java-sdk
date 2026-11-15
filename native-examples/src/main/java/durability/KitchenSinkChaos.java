@@ -86,7 +86,7 @@ public class KitchenSinkChaos {
 
         List<Processes.Server> servers = List.of(new Processes.Server(serverPort, script, out));
         Proxy proxy = new Proxy(proxyPort, "127.0.0.1", serverPort);
-        Map<String, String> workerEnv = new LinkedHashMap<>(Map.of("BUILD_ID", "chaos", "CHAOS_SEED", Long.toString(seed)));
+        Map<String, String> workerEnv = new LinkedHashMap<>(Map.of("CHAOS_SEED", Long.toString(seed)));
         for (String name : List.of("CHAOS_TASK_ERRORS", "CHAOS_TASK_FAILURES")) {
             if (System.getenv(name) != null) {
                 workerEnv.put(name, System.getenv(name));

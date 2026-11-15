@@ -238,7 +238,7 @@ class TaskStubsTest {
         marker.put("lane", "main");
         marker.put("n", 1);
         marker.put("state", "LEASED");
-        marker.put("step", 0L);
+        marker.put("appliedAt", 1L);
         marker.put("resumedWith", Map.of());
         marker.put("recorded", Map.of());
         json.put("nativeState", Map.of("bootstrap", marker));

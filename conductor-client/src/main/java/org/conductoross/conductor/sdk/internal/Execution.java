@@ -42,7 +42,7 @@ public final class Execution {
     public final Map<String, Object> output;
     public final Map<String, Object> variables;
     public final Map<String, Object> definition;
-    /** The engine's native state: bootstrap and handler markers, replies, seen message ids. */
+    /** The engine's native state: bootstrap and handler markers, and the handled messages. */
     public final Map<String, Object> nativeState;
     public final List<TaskView> tasks = new ArrayList<>();
     /** Every definition entry at any depth, by reference name. */
@@ -123,24 +123,16 @@ public final class Execution {
         return b instanceof Map ? new Marker((Map<String, Object>) b) : null;
     }
 
-    /** The replies to updates and queries, by message id. */
+    /** Every recently handled message, by the sender's id, with its reply when it has one. */
     @SuppressWarnings("unchecked")
     public Map<String, Object> replies() {
         Object r = nativeState.get("replies");
         return r instanceof Map ? (Map<String, Object>) r : Map.of();
     }
 
-    /** The ids of recently handled messages. */
-    public List<String> seen() {
-        List<String> ids = new ArrayList<>();
-        if (nativeState.get("seen") instanceof List<?> l) {
-            l.forEach(x -> ids.add(String.valueOf(x)));
-        }
-        return ids;
-    }
-
     /**
-     * The continuations the server has applied, in the order it applied them (their {@code step}):
+     * The continuations the server has applied, in the order it applied them (their {@code appliedAt},
+     * which the server keeps increasing within a run):
      * the recording a replay follows. The handler lane is not part of it. For a task that was
      * retried, the latest attempt's marker counts.
      */
@@ -155,7 +147,7 @@ public final class Execution {
                 segments.add(t.marker);
             }
         }
-        segments.sort(Comparator.comparingLong((Marker m) -> m.step).thenComparingInt(m -> m.n));
+        segments.sort(Comparator.comparingLong((Marker m) -> m.appliedAt).thenComparingInt(m -> m.n));
         return segments;
     }
 
@@ -168,7 +160,7 @@ public final class Execution {
         public final String lane;
         public final int n;
         public final String state;
-        public final long step;
+        public final long appliedAt;
         public final boolean done;
         public final Map<String, Object> resumedWith;
         public final Map<String, Object> recorded;
@@ -178,7 +170,7 @@ public final class Execution {
             this.lane = String.valueOf(m.get("lane"));
             this.n = m.get("n") instanceof Number x ? x.intValue() : 0;
             this.state = String.valueOf(m.get("state"));
-            this.step = m.get("step") instanceof Number x ? x.longValue() : 0L;
+            this.appliedAt = m.get("appliedAt") instanceof Number x ? x.longValue() : 0L;
             this.done = Boolean.TRUE.equals(m.get("done"));
             this.resumedWith = orEmpty((Map<String, Object>) m.get("resumedWith"));
             this.recorded = orEmpty((Map<String, Object>) m.get("recorded"));

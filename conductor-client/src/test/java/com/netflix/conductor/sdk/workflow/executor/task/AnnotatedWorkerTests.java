@@ -356,6 +356,34 @@ public class AnnotatedWorkerTests {
         assertEquals(2, taskThreadCount.get("test_2"));
     }
 
+    static class SingleThreaded {
+        @WorkerTask(value = "single", threadCount = 1)
+        public void single() {}
+    }
+
+    @Test
+    @DisplayName("a task that sets no thread count gets the configuration's default; one that sets 1 keeps 1")
+    void defaultThreadCount() {
+        WorkerConfiguration eight = new WorkerConfiguration() {
+            @Override
+            public int getDefaultThreadCount() {
+                return 8;
+            }
+        };
+        AnnotatedWorkerExecutor executor = new AnnotatedWorkerExecutor(mock(TaskClient.class), eight);
+        executor.addBean(new MultipleInputParams());
+        executor.addBean(new AnotherAnnotationInput());
+        executor.addBean(new SingleThreaded());
+
+        executor.startPolling();
+        Map<String, Integer> taskThreadCount = executor.getTaskRunner().getTaskThreadCount();
+        executor.shutdown();
+
+        assertEquals(3, taskThreadCount.get("test_1"));
+        assertEquals(8, taskThreadCount.get("test_2"));
+        assertEquals(1, taskThreadCount.get("single"));
+    }
+
     static class WorkflowInstanceIdInputParamAsStringWorker {
         @WorkerTask(value = "test_1", threadCount = 3, pollingInterval = 333)
         public Map<String, Object> doWork(

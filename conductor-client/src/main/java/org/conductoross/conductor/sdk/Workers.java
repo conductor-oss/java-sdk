@@ -18,9 +18,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.internal.Execution;
@@ -36,18 +35,30 @@ import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
-import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorker;
+import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
+import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 /**
  * Hosts workflow classes and task classes in this process.
  *
  * <p>{@link #start()} registers, from the annotations, a skeleton definition for each workflow and
- * a task definition for each task, then starts polling: one poller per {@code @WorkerTask} method,
- * and one per workflow for its continuations (the workflow's code type, polled like any task
- * type). A continuation arrives as the task the code paused on, carrying its continuation marker;
- * it is processed by re-running the workflow method against the execution's recorded tasks, so any
- * host of the same code can process any continuation. Continuations of one execution are processed
- * one at a time, and completed through the ordinary task update.
+ * a task definition for each task, then starts polling. The {@code @WorkerTask} methods run as
+ * {@link AnnotatedWorkerExecutor} runs them: thread count, polling interval, poll timeout, poller
+ * count and domain from {@code conductor.worker.<task>.<setting>}, else {@code
+ * conductor.worker.all.<setting>} (read like the workflow settings below), else the annotation; a
+ * task whose thread count none of them sets gets 8 threads. Each workflow runs on a {@link
+ * com.netflix.conductor.client.automator.TaskRunner} too, as the worker of its code type: a
+ * continuation arrives as the task the code paused on, carrying its continuation marker, and is
+ * processed by re-running the workflow method against the execution's recorded tasks, so any host
+ * of the same code can process any continuation. Continuations of one execution are processed one
+ * at a time, and completed with update-v2, which hands back the next one.
+ *
+ * <p>Per workflow, {@code conductor.workflow.<name>.<setting>}, else {@code
+ * conductor.workflow.all.<setting>}, read from the system properties (see {@link
+ * #settings(Function)}): {@code threadCount}, {@code pollingInterval} and {@code pollTimeout}
+ * (defaults from {@link Workflow}: 20, 100 ms and 500 ms), {@code paused} (read before each poll),
+ * and {@code continuationTimeout} (seconds, or an ISO-8601 duration). Workflows have no task
+ * domains: every host of a workflow polls its shared queue.
  */
 public final class Workers {
 
@@ -59,14 +70,13 @@ public final class Workers {
     private final List<Object> taskObjects = new ArrayList<>();
     private final List<Object> definedTaskObjects = new ArrayList<>();
     private String workerId;
-    private String buildId;
     private boolean devMode;
     private boolean discovery = true;
-    private int threads = 8;
     private java.time.Duration continuationTimeout = java.time.Duration.ofSeconds(30);
-    private TaskRunnerConfigurer taskRunner;
-    private ExecutorService codeExecutor;
-    private final List<Thread> pollers = new ArrayList<>();
+    private Function<String, String> settings = System::getProperty;
+    private TaskRunnerConfigurer workflowRunner;
+    private AnnotatedWorkerExecutor taskExecutor;
+    private Thread registrar;
     private volatile boolean running;
     private volatile boolean registered;
 
@@ -97,12 +107,6 @@ public final class Workers {
         return this;
     }
 
-    /** A task domain this host also polls for continuations; see {@code taskToDomain} on a start. */
-    public Workers buildId(String buildId) {
-        this.buildId = buildId;
-        return this;
-    }
-
     /** Development mode: generous continuation timeouts, for breakpoints. */
     public Workers devMode(boolean devMode) {
         this.devMode = devMode;
@@ -120,10 +124,20 @@ public final class Workers {
      * elsewhere (the continuation lease); default 30 seconds. It bounds how long an
      * execution stalls when a poll response is lost to a network failure or the worker dies while
      * processing. It must exceed the longest replay of an execution. Dev mode uses an hour, so a
-     * breakpoint does not trigger a retry.
+     * breakpoint does not trigger a retry. {@code conductor.workflow.<name>.continuationTimeout}
+     * overrides it for one workflow.
      */
     public Workers continuationTimeout(java.time.Duration timeout) {
         this.continuationTimeout = timeout;
+        return this;
+    }
+
+    /**
+     * Where the per-workflow settings are read, by key ({@code conductor.workflow.<name>.threadCount}
+     * and so on); {@link System#getProperty(String)} by default.
+     */
+    public Workers settings(Function<String, String> settings) {
+        this.settings = settings;
         return this;
     }
 
@@ -133,11 +147,6 @@ public final class Workers {
      */
     public Workers discovery(boolean discovery) {
         this.discovery = discovery;
-        return this;
-    }
-
-    public Workers threads(int threads) {
-        this.threads = threads;
         return this;
     }
 
@@ -198,77 +207,176 @@ public final class Workers {
             }
         }
         running = true;
-        Thread registrar = Thread.ofVirtual().name("conductor-register").start(this::registerUntilDone);
-        pollers.add(registrar);
-        List<Worker> workers = new ArrayList<>();
-        for (Object o : taskObjects) {
-            for (Map.Entry<String, Method> e : Registration.workerMethods(o.getClass()).entrySet()) {
-                workers.add(new AnnotatedWorker(e.getKey(), e.getValue(), o));
+        registrar = Thread.ofVirtual().name("conductor-register").start(this::registerUntilDone);
+        int tasks = 0;
+        if (!taskObjects.isEmpty()) {
+            taskExecutor = new AnnotatedWorkerExecutor(taskClient, new TaskSettings());
+            for (Object o : taskObjects) {
+                for (Method m : Registration.workerMethods(o.getClass()).values()) {
+                    taskExecutor.addMethod(m.getAnnotation(WorkerTask.class), m, o);
+                    tasks++;
+                }
             }
+            taskExecutor.startPolling();
         }
-        if (!workers.isEmpty()) {
-            taskRunner =
-                    new TaskRunnerConfigurer.Builder(taskClient, workers)
-                            .withThreadCount(Math.max(threads, workers.size()))
-                            .withTaskPollTimeout(100)
-                            .build();
-            taskRunner.init();
+        List<Worker> codeWorkers = new ArrayList<>();
+        Map<String, Integer> threadCounts = new LinkedHashMap<>();
+        Map<String, Integer> pollTimeouts = new LinkedHashMap<>();
+        for (Map.Entry<String, WorkflowSpec> e : specsByCodeType.entrySet()) {
+            WorkflowSpec spec = e.getValue();
+            Workflow annotation = spec.method.getAnnotation(Workflow.class);
+            threadCounts.put(e.getKey(), setting(spec, "threadCount", annotation.threadCount()));
+            pollTimeouts.put(e.getKey(), setting(spec, "pollTimeout", annotation.pollTimeout()));
+            codeWorkers.add(new CodeWorker(e.getKey(), setting(spec, "pollingInterval", annotation.pollingInterval()),
+                    () -> Boolean.parseBoolean(setting(spec, "paused"))));
         }
-        codeExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        for (String codeType : specsByCodeType.keySet()) {
-            // the shared queue, and the build's domain when one is set: an execution started with
-            // task domains for it prefers this build and falls back when none of it is polling
-            List<String> domains = new ArrayList<>();
-            if (buildId != null && !buildId.isBlank()) {
-                domains.add(buildId);
-            }
-            domains.add(null);
-            for (String domain : domains) {
-                Thread t = Thread.ofVirtual().name("conductor-code-" + codeType + "-" + domain).start(() -> poll(codeType, domain));
-                pollers.add(t);
-            }
+        if (!codeWorkers.isEmpty()) {
+            workflowRunner = new TaskRunnerConfigurer.Builder(taskClient, codeWorkers)
+                    .withTaskThreadCount(threadCounts)
+                    .withTaskPollTimeout(pollTimeouts)
+                    .withUseVirtualThreads(true)
+                    .withTaskUpdateV2(true)
+                    .withDomains(false)
+                    .withWorkerNamePrefix("conductor-workflow")
+                    .build();
+            workflowRunner.init();
         }
-        LOGGER.info("Hosting workflows {} and {} tasks as {}", specsByCodeType.keySet(), workers.size(), workerId);
+        LOGGER.info("Hosting workflows {} and {} tasks as {}", specsByCodeType.keySet(), tasks, workerId);
         return this;
     }
 
     public void shutdown() {
         running = false;
-        pollers.forEach(Thread::interrupt);
-        if (taskRunner != null) {
-            taskRunner.shutdown();
+        if (registrar != null) {
+            registrar.interrupt();
         }
-        if (codeExecutor != null) {
-            codeExecutor.shutdownNow();
+        if (workflowRunner != null) {
+            workflowRunner.shutdown();
+        }
+        if (taskExecutor != null) {
+            taskExecutor.shutdown();
         }
     }
 
-    private void poll(String codeType, String domain) {
-        int failures = 0;
-        while (running) {
-            try {
-                List<Task> tasks = taskClient.batchPollTasksInDomain(codeType, domain, workerId, 10, 500);
-                failures = 0;
-                if (tasks == null || tasks.isEmpty()) {
-                    Thread.sleep(50);
-                    continue;
-                }
-                for (Task task : tasks) {
-                    codeExecutor.submit(() -> process(codeType, task));
-                }
-            } catch (InterruptedException e) {
-                return;
-            } catch (Exception e) {
-                if (running) {
-                    failures++;
-                    java.time.Duration wait = OUTAGE.delay(failures);
-                    LOGGER.error("Polling {} failed ({} in a row), retrying in about {}s: {}",
-                            codeType, failures, wait.toSeconds(), e.toString());
-                    if (!pause(wait)) {
-                        return;
-                    }
-                }
+    /** The task runner of the hosted workflows, once started. */
+    TaskRunnerConfigurer workflowRunner() {
+        return workflowRunner;
+    }
+
+    /** A workflow's setting: {@code conductor.workflow.<name>.<key>}, else {@code conductor.workflow.all.<key>}. */
+    private String setting(WorkflowSpec spec, String key) {
+        String value = settings.apply("conductor.workflow." + spec.name + "." + key);
+        if (value == null || value.isBlank()) {
+            value = settings.apply("conductor.workflow.all." + key);
+        }
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private int setting(WorkflowSpec spec, String key, int otherwise) {
+        String value = setting(spec, key);
+        return value == null ? otherwise : Integer.parseInt(value);
+    }
+
+    /** A workflow's continuation lease in seconds: an hour in dev mode. */
+    long continuationTimeoutSeconds(WorkflowSpec spec) {
+        if (devMode) {
+            return 3600;
+        }
+        String value = setting(spec, "continuationTimeout");
+        java.time.Duration timeout = value == null ? continuationTimeout
+                : value.chars().allMatch(Character::isDigit) ? java.time.Duration.ofSeconds(Long.parseLong(value))
+                : java.time.Duration.parse(value);
+        return Math.max(1, timeout.toSeconds());
+    }
+
+    /**
+     * The settings of a {@code @WorkerTask} method, as Spring's worker configuration reads them:
+     * {@code conductor.worker.<task>.<setting>}, else {@code conductor.worker.all.<setting>}, from
+     * {@link #settings(Function)}; unset (0 or null) leaves the annotation's value.
+     */
+    private final class TaskSettings extends com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration {
+
+        private String get(String task, String key) {
+            String value = settings.apply("conductor.worker." + task + "." + key);
+            if (value == null || value.isBlank()) {
+                value = settings.apply("conductor.worker.all." + key);
             }
+            return value == null || value.isBlank() ? null : value.trim();
+        }
+
+        private int number(String task, String key) {
+            String value = get(task, key);
+            return value == null ? 0 : Integer.parseInt(value);
+        }
+
+        @Override
+        public int getThreadCount(String task) {
+            return number(task, "threadCount");
+        }
+
+        /** What every hosted task had before tasks were configured one by one. */
+        @Override
+        public int getDefaultThreadCount() {
+            return 8;
+        }
+
+        @Override
+        public int getPollingInterval(String task) {
+            return number(task, "pollingInterval");
+        }
+
+        @Override
+        public int getPollTimeout(String task) {
+            return number(task, "pollTimeout");
+        }
+
+        @Override
+        public int getPollerCount(String task) {
+            return number(task, "pollerCount");
+        }
+
+        @Override
+        public String getDomain(String task) {
+            return get(task, "domain");
+        }
+    }
+
+    /** The worker of a workflow's code type: running a task processes a continuation. */
+    private final class CodeWorker implements Worker {
+
+        private final String codeType;
+        private final int pollingInterval;
+        private final BooleanSupplier paused;
+
+        CodeWorker(String codeType, int pollingInterval, BooleanSupplier paused) {
+            this.codeType = codeType;
+            this.pollingInterval = pollingInterval;
+            this.paused = paused;
+        }
+
+        @Override
+        public String getTaskDefName() {
+            return codeType;
+        }
+
+        @Override
+        public TaskResult execute(Task task) {
+            return process(codeType, task);
+        }
+
+        @Override
+        public int getPollingInterval() {
+            return pollingInterval;
+        }
+
+        @Override
+        public boolean paused() {
+            return paused.getAsBoolean();
+        }
+
+        @Override
+        public String getIdentity() {
+            return workerId;
         }
     }
 
@@ -304,7 +412,7 @@ public final class Workers {
                 List<Object> defined = new ArrayList<>(taskObjects);
                 defined.addAll(definedTaskObjects);
                 Registration.register(conductor.client(), specsByCodeType.values(), defined,
-                        devMode ? 3600 : Math.max(1, continuationTimeout.toSeconds()), discovery);
+                        this::continuationTimeoutSeconds, discovery);
                 registered = true;
                 LOGGER.info("Registered the definitions of {} after {} attempt(s)", specsByCodeType.keySet(), attempt);
                 return;
@@ -337,9 +445,12 @@ public final class Workers {
     /** At most this many replies are kept, newest first, whatever their age. */
     static final int REPLY_LIMIT = 500;
 
+    /** A handled message's entry: its reply, if it has one ({@code key} null for a signal), and when. */
     private static Map<String, Object> reply(String key, Object value) {
         Map<String, Object> r = new LinkedHashMap<>();
-        r.put(key, value);
+        if (key != null) {
+            r.put(key, value);
+        }
         r.put("at", System.currentTimeMillis());
         return r;
     }
@@ -365,11 +476,12 @@ public final class Workers {
         return kept;
     }
 
-    /** How many handled message ids an execution remembers for de-duplication. */
-    static final int SEEN_LIMIT = 500;
 
-    /** Processes one continuation (or handler run) of an execution. */
-    void process(String codeType, Task task) {
+    /**
+     * Processes one continuation (or handler run) of an execution, and returns its completion. It
+     * never throws: a failure is the code's result, not the task's.
+     */
+    TaskResult process(String codeType, Task task) {
         String snapshot = "(not fetched)";
         try {
             WorkflowSpec spec = specsByCodeType.get(codeType);
@@ -380,8 +492,7 @@ public final class Workers {
             Execution exec = fetch(task.getWorkflowInstanceId());
             snapshot = describe(exec, marker);
             if ("handlers".equals(marker.getLane())) {
-                processHandlers(codeType, spec, exec, task);
-                return;
+                return processHandlers(spec, exec, task);
             }
             Replayer.Outcome outcome =
                     new Replayer(spec, spec.newInstance(), exec).process(marker.getLane(), marker.getN());
@@ -391,14 +502,14 @@ public final class Workers {
                 outcome.output.remove("result");
                 outcome.output.remove("error");
             }
-            complete(codeType, task, TaskResult.Status.COMPLETED, outcome.output, null);
+            return result(task, TaskResult.Status.COMPLETED, outcome.output, null);
         } catch (NonDeterminismException e) {
             LOGGER.error("Execution {} diverged from its code: {}", task.getWorkflowInstanceId(), e.getMessage());
             LOGGER.error("Execution {} as replayed: {}", task.getWorkflowInstanceId(), snapshot);
-            complete(codeType, task, TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, Map.of(), e.getMessage());
-        } catch (Exception e) {
+            return result(task, TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, Map.of(), e.getMessage());
+        } catch (Exception | StackOverflowError e) {
             LOGGER.error("Processing {} of execution {} failed", task.getReferenceTaskName(), task.getWorkflowInstanceId(), e);
-            complete(codeType, task, TaskResult.Status.FAILED, Map.of(), e.toString());
+            return result(task, TaskResult.Status.FAILED, Map.of(), e.toString());
         }
     }
 
@@ -430,38 +541,37 @@ public final class Workers {
      * whose condition now holds, which the server completes with the same update.
      */
     @SuppressWarnings("unchecked")
-    private void processHandlers(String codeType, WorkflowSpec spec, Execution exec, Task task) {
+    private TaskResult processHandlers(WorkflowSpec spec, Execution exec, Task task) {
         List<Map<String, Object>> messages =
                 (List<Map<String, Object>>) task.getInputData().getOrDefault("messages", List.of());
         Object instance = spec.newInstance();
         spec.restoreVariables(instance, exec.variables);
+        // every handled message is in the replies, by the sender's id: a message queued twice by
+        // a retried send applies once
         Map<String, Object> replies = new LinkedHashMap<>(exec.replies());
-        List<String> seen = exec.seen();
         for (Map<String, Object> message : messages) {
             Map<String, Object> payload = (Map<String, Object>) message.getOrDefault("payload", Map.of());
             String kind = String.valueOf(payload.get("kind"));
             String name = String.valueOf(payload.get("name"));
             // the sender's id survives a retried send; the queue's id does not
             String id = payload.get("id") != null ? String.valueOf(payload.get("id")) : String.valueOf(message.get("id"));
-            if (seen.contains(id)) {
+            if (replies.containsKey(id)) {
                 LOGGER.debug("message {} of execution {} was already handled", id, exec.workflowId);
                 continue;
             }
-            seen.add(id);
             // a query (sent as a message by older clients) must not change the execution:
             // whatever its handler does to the instance is undone
             Map<String, Object> beforeQuery = "query".equals(kind) ? spec.captureVariables(instance) : null;
             try {
                 Method handler = spec.handler(kind, name);
                 Object value = Replayer.invokeHandler(instance, handler, payload.get("args"));
-                if (!"signal".equals(kind)) {
-                    replies.put(id, reply("value", Json.plain(value) == null ? "" : Json.plain(value)));
-                }
+                // a signal's sender waits for no reply: its entry only says it was handled
+                replies.put(id, "signal".equals(kind)
+                        ? reply(null, null)
+                        : reply("value", Json.plain(value) == null ? "" : Json.plain(value)));
             } catch (RuntimeException e) {
                 LOGGER.warn("handler {} {} of execution {} failed: {}", kind, name, exec.workflowId, e.toString());
-                if (!"signal".equals(kind)) {
-                    replies.put(id, reply("error", e.toString()));
-                }
+                replies.put(id, "signal".equals(kind) ? reply(null, null) : reply("error", e.toString()));
             } finally {
                 if (beforeQuery != null) {
                     spec.restoreVariables(instance, beforeQuery);
@@ -475,10 +585,8 @@ public final class Workers {
         // and runs it again if another completion changed the same variables meanwhile
         output.put("resumedWith", spec.captureVariablesOf(exec.variables));
         output.put("replies", pruneReplies(replies, System.currentTimeMillis()));
-        // the ids of recent messages, so a message queued twice by a retried send applies once
-        output.put("seen", seen.size() > SEEN_LIMIT ? new ArrayList<>(seen.subList(seen.size() - SEEN_LIMIT, seen.size())) : seen);
         output.put("releases", releases(spec, exec, vars));
-        complete(codeType, task, TaskResult.Status.COMPLETED, output, null);
+        return result(task, TaskResult.Status.COMPLETED, output, null);
     }
 
     /** The condition waits whose condition holds over the variables the handlers produced. */
@@ -507,13 +615,13 @@ public final class Workers {
         sb.append("status=").append(exec.status).append(" active=").append(active.getLane()).append('#').append(active.getN());
         sb.append(" replay=");
         for (Execution.Marker m : exec.segments()) {
-            sb.append(m.lane).append('#').append(m.n).append("@").append(m.step).append(m.done ? "!" : "").append(' ');
+            sb.append(m.lane).append('#').append(m.n).append("@").append(m.appliedAt).append(m.done ? "!" : "").append(' ');
         }
         sb.append("tasks=");
         for (Execution.TaskView t : exec.tasks) {
             sb.append(t.seq).append(':').append(t.ref).append('=').append(t.status);
             if (t.marker != null) {
-                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state).append('@').append(t.marker.step).append(']');
+                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state).append('@').append(t.marker.appliedAt).append(']');
             }
             sb.append(' ');
         }
@@ -525,7 +633,7 @@ public final class Workers {
         return new Execution(Http.getMap(conductor.client(), "/workflow/" + workflowId, Map.of("includeTasks", "true")));
     }
 
-    private void complete(String codeType, Task task, TaskResult.Status status, Map<String, Object> output, String reason) {
+    private TaskResult result(Task task, TaskResult.Status status, Map<String, Object> output, String reason) {
         TaskResult result = new TaskResult(task);
         result.setStatus(status);
         result.setWorkerId(workerId);
@@ -542,38 +650,6 @@ public final class Workers {
         if (reason != null) {
             result.setReasonForIncompletion(reason.length() > 1000 ? reason.substring(0, 1000) : reason);
         }
-        // A server error (the workflow briefly busy) is retried for about 2 s; a refusal (4xx, e.g.
-        // the lease was superseded) is final. Longer retries hold a code thread, and under a
-        // database outage every code thread ends up waiting (found by the durability bench);
-        // past 2 s the server's continuation timeout retries the continuation instead.
-        for (int attempt = 1; ; attempt++) {
-            try {
-                // update-v2 hands back this worker's next continuation, if one is queued: it is
-                // leased to us now, so it must be processed, not dropped
-                Task next = taskClient.updateTaskV2(result);
-                if (next != null && next.getContinuation() != null && next.getContinuation().isLeased() && running) {
-                    codeExecutor.submit(() -> process(codeType, next));
-                }
-                return;
-            } catch (Exception e) {
-                boolean refused = e instanceof io.orkes.conductor.client.http.ApiException api
-                        && api.getStatusCode() >= 400 && api.getStatusCode() < 500;
-                if (!running) {
-                    // shutting down: the server retries the continuation if this one did not land
-                    LOGGER.debug("completing {} of execution {} interrupted by shutdown", task.getReferenceTaskName(), task.getWorkflowInstanceId());
-                    return;
-                }
-                if (refused || attempt >= 4) {
-                    LOGGER.warn("completing {} of execution {} was refused: {}", task.getReferenceTaskName(), task.getWorkflowInstanceId(), e.toString());
-                    return;
-                }
-                try {
-                    Thread.sleep(250L * attempt);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        }
+        return result;
     }
 }
