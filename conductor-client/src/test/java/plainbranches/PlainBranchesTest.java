@@ -632,6 +632,26 @@ class PlainBranchesTest {
         }
     }
 
+    public static class ThrowInLoop {
+        private final Tasks tasks;
+
+        public ThrowInLoop(Tasks tasks) {
+            this.tasks = tasks;
+        }
+
+        @Workflow(name = "pb_throw_in_loop")
+        public String run(@InputParam("x") String x) {
+            String raw = tasks.a(x);
+            for (int i = 0; i < 2; i++) {
+                if (raw.startsWith("s")) {
+                    Integer.parseInt(raw);
+                    tasks.b("parsed");
+                }
+            }
+            return tasks.done(raw);
+        }
+    }
+
     /** The recording after task a returned {@code value}; continuation 2 resumes after it. */
     private static Execution afterA(String value) {
         return execution(Map.of("x", "in"),
@@ -683,6 +703,17 @@ class PlainBranchesTest {
     void anExceptionInAHelperPreviewsTheRestOfTheHelperThenOfTheWorkflow() {
         List<Map<String, Object>> fragment = fragment(second(Nested.class, "x"));
         assertEquals(List.of("throw", "pb_b_if_no_error", "pb_done_if_no_error"), refs(fragment));
+    }
+
+    @Test
+    void theMarkOfAnExceptionInALoopIsInThatLoopLikeTheIfItThrewInside() {
+        List<Map<String, Object>> fragment = fragment(second(ThrowInLoop.class, "seven"));
+        Map<String, Object> sw = fragment.get(0);
+        List<?> loops = (List<?>) metadata(sw).get("loops");
+        assertEquals(1, loops.size(), "the if is inside the for loop");
+        Map<String, Object> thrown = cases(sw).get("true").get(0);
+        assertEquals("TERMINATE", thrown.get("type"));
+        assertEquals(loops, metadata(thrown).get("loops"), "the mark is where the code threw: in the loop");
     }
 
     @Test

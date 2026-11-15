@@ -814,6 +814,14 @@ public final class Replayer {
             if (site != null) {
                 metadata.put("site", site);
             }
+            // the stack has unwound by now: the loops are those around the lines it was thrown from
+            List<String> loops = new ArrayList<>(startedInLoops);
+            for (Site frame : at) {
+                loops.addAll(CodeLoops.around(frame.type(), frame.method(), frame.descriptor(), frame.line()));
+            }
+            if (!loops.isEmpty()) {
+                metadata.put("loops", loops);
+            }
             entry.put("metadata", metadata);
             emit(entry);
             // what the code would have called next, had it not thrown: previews, never scheduled.
