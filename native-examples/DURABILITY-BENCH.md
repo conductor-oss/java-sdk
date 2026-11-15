@@ -131,14 +131,14 @@ the shipped server or SDK. Each is a patch in `mutants/`:
 
 | Directory | Applies to | Mutants |
 |---|---|---|
-| `mutants/server/` | the server repository | `no-completion-deferral`, `no-variable-fencing`, `ignore-epoch`, `join-ignores-lanes`, `workflow-saved-last`, `no-claim-fence`, `destructive-pull`, `no-stale-write-guard`, `terminate-on-storage-errors` |
+| `mutants/server/` | the server repository | `no-completion-deferral`, `no-variable-fencing`, `no-retry-count-fence`, `join-ignores-lanes`, `workflow-saved-last`, `no-claim-fence`, `destructive-pull`, `no-stale-write-guard`, `terminate-on-storage-errors` |
 | `mutants/sdk/` | this repository | `no-message-dedupe`, `drop-some-signals`, `no-reply-prune` |
 
 Apply a patch to a scratch copy, build it, and bench the copy. For a server mutant:
 
 ```bash
 git -C /path/to/conductor worktree add /tmp/conductor-mutant
-git -C /tmp/conductor-mutant apply "$PWD/native-examples/mutants/server/ignore-epoch.patch"
+git -C /tmp/conductor-mutant apply "$PWD/native-examples/mutants/server/no-retry-count-fence.patch"
 (cd /tmp/conductor-mutant && ./gradlew :conductor-server:bootJar -x test)
 # BENCH_SERVER_SCRIPT runs /tmp/conductor-mutant/server/build/libs/conductor-server-*-boot.jar
 BENCH_SERVER_SCRIPT=/path/to/run-mutant-server.sh ./native-examples/bench.sh run   # must exit 1
