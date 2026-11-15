@@ -376,7 +376,8 @@ class PlainBranchesTest {
         assertEquals(Map.of("switchCaseValue", "true"), sw.get("inputParameters"));
         Map<String, Object> a = cases(sw).get("true").get(0);
         assertEquals("pb_a", a.get("taskReferenceName"));
-        assertEquals(Map.of("lane", "main", "n", 2), metadata(a).get("continuation"));
+        assertEquals(2, metadata(a).get("continuation"));
+        assertEquals("main", metadata(a).get("lane"));
         Map<String, Object> preview = defaultCase(sw).get(0);
         assertEquals("pb_b_if_false", preview.get("taskReferenceName"));
         assertEquals(true, metadata(preview).get("preview"));

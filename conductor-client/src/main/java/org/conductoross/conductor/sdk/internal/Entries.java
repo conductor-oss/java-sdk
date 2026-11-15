@@ -58,10 +58,9 @@ public final class Entries {
     @SuppressWarnings("unchecked")
     public static Map<String, Object> continuation(Map<String, Object> entry, String lane, int n) {
         Map<String, Object> m = (Map<String, Object>) entry.computeIfAbsent("metadata", k -> new LinkedHashMap<>());
-        Map<String, Object> c = new LinkedHashMap<>();
-        c.put("lane", lane);
-        c.put("n", n);
-        m.put("continuation", c);
+        // the lane's n-th continuation runs when this task ends; the lane is the entry's own
+        m.putIfAbsent("lane", lane);
+        m.put("continuation", n);
         return entry;
     }
 

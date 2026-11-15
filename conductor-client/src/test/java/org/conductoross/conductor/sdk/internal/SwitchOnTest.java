@@ -167,7 +167,7 @@ class SwitchOnTest {
         assertEquals(List.of("a", "none"), new ArrayList<>(cases.keySet()), "every declared case is present");
         assertEquals(1, cases.get("a").size());
         assertEquals("shipA", cases.get("a").get(0).get("name"));
-        assertEquals(Map.of("lane", "main", "n", 2), ((Map<String, Object>) cases.get("a").get(0).get("metadata")).get("continuation"));
+        assertEquals(2, ((Map<String, Object>) cases.get("a").get(0).get("metadata")).get("continuation"));
         assertTrue(cases.get("none").isEmpty(), "an untaken case with no calls is an empty branch");
         // the untaken default case shows the task it would have called, as a preview
         List<Map<String, Object>> defaultCase = (List<Map<String, Object>>) sw.get("defaultCase");

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * The continuation of a native (code-defined) workflow that runs when this task finishes.
@@ -38,16 +39,23 @@ public class TaskContinuation {
     private int n;
     private String state = WAITING;
 
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long epoch;
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long queuedAt;
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long leasedAt;
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long appliedAt;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String deferred;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Object> recorded = new HashMap<>();
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Object> resumedWith = new HashMap<>();
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private boolean done;
-    private Map<String, Object> result;
 
     public TaskContinuation() {}
 
@@ -56,9 +64,15 @@ public class TaskContinuation {
         this.n = n;
     }
 
-    /** A fresh marker for the same lane and continuation, as a retried attempt carries. */
+    /**
+     * A fresh marker for the same lane and continuation, as a retried or rerun task carries. It
+     * keeps the epoch: its next offer takes a new one, so a completion of an offer made before the
+     * reset can never match it.
+     */
     public TaskContinuation reset() {
-        return new TaskContinuation(lane, n);
+        TaskContinuation fresh = new TaskContinuation(lane, n);
+        fresh.epoch = epoch;
+        return fresh;
     }
 
     @JsonIgnore // derived from state, not stored
@@ -167,14 +181,6 @@ public class TaskContinuation {
 
     public void setDone(boolean done) {
         this.done = done;
-    }
-
-    public Map<String, Object> getResult() {
-        return result;
-    }
-
-    public void setResult(Map<String, Object> result) {
-        this.result = result;
     }
 
     @Override

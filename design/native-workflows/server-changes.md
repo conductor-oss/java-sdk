@@ -32,8 +32,9 @@ those tasks.
 - `common/.../tasks/TaskContinuation.java`, and a `continuation` field on `Task` and `TaskModel`:
   `lane`, `n`, `state` (`WAITING` → `RUNNABLE` → `LEASED` → `APPLIED`), `epoch`, `queuedAt`,
   `leasedAt`, `appliedAt`, `deferred`, and once applied the
-  record a replay reads: `appliedAt` (its order), `recorded`, `resumedWith`, `done`, `result`. The main lane's
-  exception is the run's `reasonForIncompletion`.
+  record a replay reads: `appliedAt` (its order), `recorded`, `resumedWith`, `done`. What the
+  main lane returned is the run's output, and its exception the run's `reasonForIncompletion`.
+  Empty values are not stored.
 - `common/.../run/NativeState.java`, and a `nativeState` field on `Workflow` and `WorkflowModel`:
   `bootstrap` and `handlers` (markers for the two lanes that have no task), and `replies`
   (every handled message). O(1) in the length of the execution. The code type and the
