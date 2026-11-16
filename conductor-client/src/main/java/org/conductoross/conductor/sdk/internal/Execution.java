@@ -123,10 +123,7 @@ public final class Execution {
         if (!(b instanceof Map)) {
             return null;
         }
-        Map<String, Object> m = new LinkedHashMap<>((Map<String, Object>) b);
-        m.putIfAbsent("lane", "main"); // always main #1, so not stored
-        m.putIfAbsent("n", 1);
-        return new Marker(m);
+        return new Marker((Map<String, Object>) b, "main", 1); // always main #1
     }
 
     /** Every recently handled message, by the sender's id, with its reply when it has one. */
@@ -137,23 +134,23 @@ public final class Execution {
     }
 
     /**
-     * The continuations the server has applied, in the order it applied them: the first one, then
-     * those on tasks by their {@code endTime}, which the server keeps increasing within a run;
-     * the recording a replay follows. The handler lane is not part of it. For a task that was
-     * retried, the latest attempt's marker counts.
+     * The continuations the server has applied, in the order it applied them: by their
+     * {@code endTime}, which the server keeps increasing within a run; the recording a replay
+     * follows. The handler lane is not part of it. For a task that was retried, the latest
+     * attempt's marker counts.
      */
     public List<Marker> segments() {
         List<Marker> segments = new ArrayList<>();
+        Marker bootstrap = bootstrap();
+        if (bootstrap != null && bootstrap.applied()) {
+            segments.add(bootstrap);
+        }
         for (TaskView t : latest.values()) {
-            if (t.marker != null && t.marker.applied() && !"handlers".equals(t.marker.lane)) {
+            if (t.marker != null && t.marker.applied()) {
                 segments.add(t.marker);
             }
         }
-        segments.sort(Comparator.comparingLong((Marker m) -> m.endTime).thenComparingInt(m -> m.n));
-        Marker bootstrap = bootstrap();
-        if (bootstrap != null && bootstrap.applied()) {
-            segments.add(0, bootstrap); // always the first to apply
-        }
+        segments.sort(Comparator.comparingLong((Marker m) -> m.endTime));
         return segments;
     }
 
@@ -161,21 +158,25 @@ public final class Execution {
         return m == null ? new LinkedHashMap<>() : m;
     }
 
-    /** A continuation marker: where the code paused, and what its completion recorded. */
+    /**
+     * A continuation marker: which continuation it is (the lane of the code and its number, which
+     * the entry the code paused on names), and what its completion recorded.
+     */
     public static final class Marker {
         public final String lane;
         public final int n;
-        public final String state;
+        public final boolean leased;
+        /** When it applied; 0 until then. */
         public final long endTime;
         public final boolean done;
         public final Map<String, Object> resumedWith;
         public final Map<String, Object> recorded;
 
         @SuppressWarnings("unchecked")
-        Marker(Map<String, Object> m) {
-            this.lane = String.valueOf(m.get("lane"));
-            this.n = m.get("n") instanceof Number x ? x.intValue() : 0;
-            this.state = String.valueOf(m.get("state"));
+        Marker(Map<String, Object> m, String lane, int n) {
+            this.lane = lane;
+            this.n = n;
+            this.leased = Boolean.TRUE.equals(m.get("leased"));
             this.endTime = m.get("endTime") instanceof Number x ? x.longValue() : 0L;
             this.done = Boolean.TRUE.equals(m.get("done"));
             this.resumedWith = orEmpty((Map<String, Object>) m.get("resumedWith"));
@@ -183,7 +184,12 @@ public final class Execution {
         }
 
         public boolean applied() {
-            return "APPLIED".equals(state);
+            return endTime > 0;
+        }
+
+        /** As the server would say: applied, leased, or not run yet. */
+        public String state() {
+            return applied() ? "applied" : leased ? "leased" : "not run";
         }
     }
 
@@ -218,7 +224,13 @@ public final class Execution {
             Map<String, Object> wt = (Map<String, Object>) t.get("workflowTask");
             this.definitionType = wt == null ? null : (String) wt.get("type");
             Object c = t.get("continuation");
-            this.marker = c instanceof Map ? new Marker((Map<String, Object>) c) : null;
+            Map<String, Object> meta = wt == null ? null : (Map<String, Object>) wt.get("metadata");
+            this.marker = c instanceof Map && meta != null
+                    ? new Marker(
+                            (Map<String, Object>) c,
+                            String.valueOf(meta.get("lane")),
+                            meta.get("continuation") instanceof Number x ? x.intValue() : 0)
+                    : null;
         }
 
         public boolean terminal() {

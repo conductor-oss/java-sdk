@@ -68,11 +68,13 @@ public class Held {
                         .method(com.netflix.conductor.client.http.ConductorClientRequest.Method.GET)
                         .path("/workflow/" + id).addQueryParam("includeTasks", true).build(),
                 new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}).getData();
-        System.out.println("status " + wf.get("status") + " output " + wf.get("output"));
+        System.out.println("status " + wf.get("status") + " output " + wf.get("output")
+                + " reason " + wf.get("reasonForIncompletion"));
         for (Map<String, Object> t : (List<Map<String, Object>>) wf.get("tasks")) {
             Map<String, Object> c = (Map<String, Object>) t.get("continuation");
             System.out.println("  " + t.get("referenceTaskName") + " " + t.get("status") + " continuation "
-                    + c.get("state") + " retry " + c.get("retryCount") + " reason " + c.get("reasonForIncompletion"));
+                    + (c.get("endTime") != null ? "applied" : Boolean.TRUE.equals(c.get("leased")) ? "leased" : "not run")
+                    + " retry " + c.get("retryCount"));
         }
     }
 
@@ -86,7 +88,7 @@ public class Held {
                     new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}).getData();
             List<Map<String, Object>> tasks = (List<Map<String, Object>>) wf.get("tasks");
             if (!tasks.isEmpty() && tasks.get(0).get("continuation") instanceof Map<?, ?> c
-                    && "APPLIED".equals(c.get("state"))) {
+                    && c.get("endTime") != null) {
                 return; // leaving earlier would strand a lease for the next build to wait out
             }
             Thread.sleep(100);

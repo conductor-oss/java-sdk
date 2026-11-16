@@ -490,14 +490,15 @@ public final class Workers {
                 throw new IllegalStateException("task " + task.getTaskId() + " carries no continuation");
             }
             Execution exec = fetch(task.getWorkflowInstanceId());
-            snapshot = describe(exec, marker);
-            if ("handlers".equals(marker.getLane())) {
+            String lane = laneOf(task);
+            snapshot = describe(exec, lane, numberOf(task));
+            if ("handlers".equals(lane)) {
                 return processHandlers(spec, exec, task);
             }
             Replayer.Outcome outcome =
-                    new Replayer(spec, spec.newInstance(), exec).process(marker.getLane(), marker.getN());
-            logLaneError(task, marker.getLane(), outcome.output);
-            if (!"main".equals(marker.getLane())) {
+                    new Replayer(spec, spec.newInstance(), exec).process(lane, numberOf(task));
+            logLaneError(task, lane, outcome.output);
+            if (!"main".equals(lane)) {
                 // the server reads what a lane returned or raised for the main lane only
                 outcome.output.remove("result");
                 outcome.output.remove("error");
@@ -609,10 +610,30 @@ public final class Workers {
         return releases;
     }
 
+    /**
+     * The lane of the code a handed-out continuation runs: its entry names it, as does the entry the
+     * server builds for the first continuation and the handler lane.
+     */
+    private static String laneOf(Task task) {
+        Object lane = entryMetadata(task).get("lane");
+        return lane == null ? "main" : lane.toString();
+    }
+
+    /** The continuation's number in its lane. */
+    private static int numberOf(Task task) {
+        return entryMetadata(task).get("continuation") instanceof Number n ? n.intValue() : 1;
+    }
+
+    private static Map<String, Object> entryMetadata(Task task) {
+        return task.getWorkflowTask() == null || task.getWorkflowTask().getMetadata() == null
+                ? Map.of()
+                : task.getWorkflowTask().getMetadata();
+    }
+
     /** What a replay saw, for the log when the code diverges: status, tasks, markers, replay order. */
-    private static String describe(Execution exec, TaskContinuation active) {
+    private static String describe(Execution exec, String lane, int n) {
         StringBuilder sb = new StringBuilder();
-        sb.append("status=").append(exec.status).append(" active=").append(active.getLane()).append('#').append(active.getN());
+        sb.append("status=").append(exec.status).append(" active=").append(lane).append('#').append(n);
         sb.append(" replay=");
         for (Execution.Marker m : exec.segments()) {
             sb.append(m.lane).append('#').append(m.n).append("@").append(m.endTime).append(m.done ? "!" : "").append(' ');
@@ -621,7 +642,7 @@ public final class Workers {
         for (Execution.TaskView t : exec.tasks) {
             sb.append(t.seq).append(':').append(t.ref).append('=').append(t.status);
             if (t.marker != null) {
-                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state).append('@').append(t.marker.endTime).append(']');
+                sb.append('[').append(t.marker.lane).append('#').append(t.marker.n).append(' ').append(t.marker.state()).append('@').append(t.marker.endTime).append(']');
             }
             sb.append(' ');
         }
@@ -644,7 +665,7 @@ public final class Workers {
             // marks the result as the code's, also when the code failed, so that it never
             // lands on the task the code paused on
             result.getOutputData().put("protocol", 2);
-            result.getOutputData().put("n", marker.getN());
+            result.getOutputData().put("n", numberOf(task));
             result.getOutputData().put("retryCount", marker.getRetryCount());
         }
         if (reason != null) {

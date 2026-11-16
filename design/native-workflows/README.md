@@ -337,8 +337,9 @@ cd order-service && ./mvnw -q compile exec:java
 
 **Lanes and continuation markers.** The `@Workflow` method is a lane. Each `async` block is
 another lane. A lane pauses when it needs a result from the server, and the pause is not a task:
-the last entry the lane scheduled, the task it waits on, carries `metadata.continuation = {lane,
-n}`, and the server copies it onto the task as a continuation marker. Everything the lane
+the last entry the lane scheduled, the task it waits on, carries `metadata.continuation = n` (its
+lane is the entry's `metadata.lane`), and the server gives that task a continuation marker, which
+holds the continuation's progress while the entry keeps saying which one it is. Everything the lane
 scheduled since its last pause is sent as the completion of its previous continuation, and the
 server appends it right after the task that lane last paused on: at the top level, inside a fork
 branch, or inside a switch case. An execution holds exactly the tasks the code called. Lanes never
@@ -433,24 +434,30 @@ control-flow graph (`proposals/native-workflows/spec/check_drawing.py` in the co
 execution recorded by a build that did not draw a branch replays without it, and its calls stay where they
 were; one recorded with another arm than the code now takes is a divergence.
 
-**How a continuation reaches a worker.** When the task a lane paused on finishes, its marker
-becomes runnable and the server pushes a message to the continuation queue, the workflow's code
+**How a continuation reaches a worker.** When the task a lane paused on finishes and the decider
+has evaluated it, its continuation can run, and the server pushes a message to the continuation queue, the workflow's code
 type (`<workflow>.v<version>.code`). By default that is one shared queue and any worker can run
 any continuation; task domains do not apply to workflow code. The SDK holds no per-execution
-lock: the server's one-continuation-per-execution slot (the one `LEASED` marker) is what
-serializes an execution. A decide offers the marker (`LEASED`, at its `retryCount`), and workers poll with the ordinary
-batch task poll, which hands back the finished task itself. The worker completes with the ordinary
-task update (`update-v2`), echoing the marker's `n` and `retryCount` (`Workers`); a completion from
+lock: the server's one-continuation-per-execution slot (the one leased marker) is what
+serializes an execution. A decide offers the marker (`leased`, at its `retryCount`): the handler
+lane while messages are queued, else the first continuation until it applied, else the one whose
+task ended first. Workers poll with the ordinary
+batch task poll, which hands back the finished task itself. The worker reads which continuation
+it is from the task's `workflowTask.metadata` (`lane`, `continuation`) and completes with the ordinary
+task update (`update-v2`), echoing that number as `n` and the marker's `retryCount` (`Workers`); a completion from
 an earlier attempt, or one for an offer that already applied, is refused with 409. `retryCount` is
 0 on the first offer and goes up each time an attempt ends without applying. The first continuation
 (`<workflowId>|main`) and each handler run (`<workflowId>|handlers`) have no task, so the poll
-builds one from the execution's `nativeState`, with the workflow input or the claimed messages.
-`nativeState` stores the first continuation's marker without its `lane` and `n` (always `main`
-#1) and the handler marker without its `lane`; `Execution.bootstrap()` fills them in.
+builds one from the execution's `nativeState`, with the claimed messages for a handler run, and
+gives it an entry whose `metadata` names the continuation (`main` #1, or `handlers` and the run
+number), so the SDK reads lane and number the same way for every continuation. The first
+continuation is always `main` #1 (`Execution.bootstrap()`); the handler marker's `n` is its run
+number. A marker stores only `leased`, `retryCount`, and once applied `endTime`, `done`,
+`recorded` and `resumedWith`; applied means `endTime` is set (`Execution.Marker.applied()`).
 
 **Every continuation is a replay.** The worker is stateless. For each continuation it creates a
 fresh instance of the class, fetches the execution with its tasks, replays every applied
-continuation in the order the server applied them (`Execution.segments()`: the first continuation, which always applies first and has no `endTime`, then the task markers by `endTime`, which the server keeps increasing within a run; `@Variable` fields
+continuation in the order the server applied them (`Execution.segments()`: the applied markers, the first continuation's included, by `endTime`, which the server keeps increasing within a run; `@Variable` fields
 restored to each one's `resumedWith`), then runs the active continuation against the current
 variables. Each call is matched by lane, task name and ordinal; a recorded result is returned, a
 missing one is scheduled. Handler runs are not replayed; their effect is in the variables. This is
@@ -502,7 +509,7 @@ same points as the first time.
 
 The live execution shows the path taken, with status, inputs, outputs and source line per task.
 There is nothing to fold: the execution holds exactly the tasks the code called, and a task the
-code paused on shows its continuation (lane, number, state, worker, applied time) in its panel.
+code paused on shows its continuation (lane, number, state, applied time) in its panel.
 
 A `switchOn` shows as a SWITCH node with every declared case as a branch, the default included,
 and the taken case marked from the task's `selectedCase`; the calls its body made sit inside that

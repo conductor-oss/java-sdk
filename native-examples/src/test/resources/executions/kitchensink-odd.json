@@ -20,54 +20,24 @@
   },
   "lastRetriedTime": 0,
   "nativeState": {
-    "activeUntil": 0,
     "bootstrap": {
-      "applied": true,
-      "attempts": 1,
-      "done": false,
-      "leased": false,
-      "queue": "kitchensink.v1.code",
-      "scheduledTime": 1794431527972,
       "recorded": {
         "runId": {
           "value": "ks-bb782fae-2c8c-4df3-9c61-07f7b71252b2",
           "type": "java.lang.String"
         }
       },
-      "resumedWith": {},
-      "runnable": false,
-      "state": "APPLIED",
-      "step": 1,
-      "waiting": false,
-      "worker": "nebula.local"
+      "endTime": 1794431527972
     },
-    "codeType": "kitchensink.v1.code",
-    "continuationTimeoutSeconds": 3600,
     "handlers": {
-      "applied": false,
-      "attempts": 0,
-      "done": false,
-      "leased": false,
-      "n": 5,
-      "recorded": {},
-      "resumedWith": {},
-      "runnable": false,
-      "state": "WAITING",
-      "step": 7,
-      "waiting": true
+      "n": 5
     },
-    "protocol": 2,
     "replies": {
       "f7eddd04-ecdd-45f9-9970-6592e9c51f05": {
         "value": 1,
         "at": 1794431528252
       }
-    },
-    "seen": [
-      "f7eddd04-ecdd-45f9-9970-6592e9c51f05",
-      "2c766276-b811-4b62-be4c-0f21a35ab1d6"
-    ],
-    "step": 69
+    }
   },
   "output": {
     "runId": "ks-bb782fae-2c8c-4df3-9c61-07f7b71252b2",
@@ -121,28 +91,14 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528354,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528320,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": false,
           "notes": [
             "first note"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 4,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528318,
@@ -224,10 +180,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:160",
-          "continuation": {
-            "lane": "main",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "main#1"
         },
         "name": "task_1",
@@ -397,16 +350,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528468,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 3,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528430,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -414,12 +358,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 6,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528430,
@@ -501,10 +440,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:169",
-          "continuation": {
-            "lane": "main",
-            "n": 3
-          },
+          "continuation": 3,
           "appendedBy": "main#2"
         },
         "name": "task_5",
@@ -774,10 +710,7 @@
                     "metadata": {
                       "lane": "fork_1.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:188",
-                      "continuation": {
-                        "lane": "fork_1.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "task_10",
                     "onStateChange": {},
@@ -826,10 +759,7 @@
                     "metadata": {
                       "lane": "fork_1.1",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:192",
-                      "continuation": {
-                        "lane": "fork_1.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "task_11",
                     "onStateChange": {},
@@ -917,10 +847,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:195",
-                "continuation": {
-                  "lane": "main",
-                  "n": 4
-                }
+                "continuation": 4
               },
               "name": "fork_join",
               "onStateChange": {},
@@ -1082,10 +1009,7 @@
               "metadata": {
                 "lane": "fork_1.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:188",
-                "continuation": {
-                  "lane": "fork_1.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "task_10",
               "onStateChange": {},
@@ -1134,10 +1058,7 @@
               "metadata": {
                 "lane": "fork_1.1",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:192",
-                "continuation": {
-                  "lane": "fork_1.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "task_11",
               "onStateChange": {},
@@ -1219,16 +1140,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528563,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_1.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528523,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -1236,12 +1148,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 8,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528522,
@@ -1314,10 +1221,7 @@
         "metadata": {
           "lane": "fork_1.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:188",
-          "continuation": {
-            "lane": "fork_1.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "task_10",
         "onStateChange": {},
@@ -1358,16 +1262,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528570,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_1.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528538,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -1375,12 +1270,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 9,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528537,
@@ -1453,10 +1343,7 @@
         "metadata": {
           "lane": "fork_1.1",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:192",
-          "continuation": {
-            "lane": "fork_1.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "task_11",
         "onStateChange": {},
@@ -1497,16 +1384,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528995,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 4,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528987,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -1514,12 +1392,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 12,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528987,
@@ -1608,10 +1481,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:195",
-          "continuation": {
-            "lane": "main",
-            "n": 4
-          }
+          "continuation": 4
         },
         "name": "fork_join",
         "onStateChange": {},
@@ -1650,25 +1520,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528879,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_1.0",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528850,
-        "recorded": {},
-        "result": {
-          "value": {
-            "task5": {
-              "mod": 5,
-              "oddEven": "1"
-            },
-            "task6": "task_6 after 1"
-          }
-        },
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -1676,12 +1529,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 10,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528845,
@@ -1774,10 +1622,7 @@
         "metadata": {
           "lane": "fork_1.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:189",
-          "continuation": {
-            "lane": "fork_1.0",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_1.0#1"
         },
         "name": "sub_flow_1",
@@ -1821,25 +1666,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431528886,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_1.1",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431528853,
-        "recorded": {},
-        "result": {
-          "value": {
-            "task5": {
-              "mod": 5,
-              "oddEven": "1"
-            },
-            "task6": "task_6 after 1"
-          }
-        },
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -1847,12 +1675,7 @@
             "first note",
             "cancelled: demo"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 11,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431528853,
@@ -1945,10 +1768,7 @@
         "metadata": {
           "lane": "fork_1.1",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:193",
-          "continuation": {
-            "lane": "fork_1.1",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_1.1#1"
         },
         "name": "sub_flow_1",
@@ -1991,20 +1811,7 @@
     {
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 5,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431529072,
       "executed": false,
@@ -2095,10 +1902,7 @@
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:208",
           "after": "switch_oddEven",
-          "continuation": {
-            "lane": "main",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "main#4"
         },
         "name": "get_es_1",
@@ -2138,20 +1942,7 @@
     {
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 5,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431530119,
       "executed": false,
@@ -2243,10 +2034,7 @@
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:208",
           "after": "switch_oddEven",
-          "continuation": {
-            "lane": "main",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "main#4"
         },
         "name": "get_es_1",
@@ -2286,20 +2074,7 @@
     {
       "callbackAfterSeconds": 2,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 5,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431532145,
       "executed": false,
@@ -2391,10 +2166,7 @@
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:208",
           "after": "switch_oddEven",
-          "continuation": {
-            "lane": "main",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "main#4"
         },
         "name": "get_es_1",
@@ -2435,16 +2207,7 @@
       "callbackAfterSeconds": 4,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431536266,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 5,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431536169,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -2453,12 +2216,7 @@
             "cancelled: demo",
             "sub flows: task_6 after 1 / task_6 after 1"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 13,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431536167,
@@ -2552,10 +2310,7 @@
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:208",
           "after": "switch_oddEven",
-          "continuation": {
-            "lane": "main",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "main#4"
         },
         "name": "get_es_1",
@@ -2596,16 +2351,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431536473,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 6,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431536374,
-        "recorded": {},
         "resumedWith": {
           "stage": "classic",
           "cancelled": true,
@@ -2615,12 +2361,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 14,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431536373,
@@ -2701,10 +2442,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:216",
-          "continuation": {
-            "lane": "main",
-            "n": 6
-          },
+          "continuation": 6,
           "appendedBy": "main#5"
         },
         "name": "task_30",
@@ -2746,16 +2484,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431536576,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 7,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431536531,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -2765,12 +2494,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 15,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431536530,
@@ -2850,10 +2574,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:229",
-          "continuation": {
-            "lane": "main",
-            "n": 7
-          },
+          "continuation": 7,
           "appendedBy": "main#6"
         },
         "name": "check_status",
@@ -2895,16 +2616,7 @@
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431537723,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 8,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431537661,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -2914,12 +2626,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 16,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431537657,
@@ -2996,10 +2703,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 8
-          },
+          "continuation": 8,
           "appendedBy": "main#7"
         },
         "name": "sleep",
@@ -3039,16 +2743,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431537829,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 9,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431537774,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3058,12 +2753,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 17,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431537773,
@@ -3146,10 +2836,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 9
-          },
+          "continuation": 9,
           "appendedBy": "main#8"
         },
         "name": "check_status",
@@ -3191,16 +2878,7 @@
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431538906,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 10,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431538854,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3210,12 +2888,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 18,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431538853,
@@ -3292,10 +2965,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 10
-          },
+          "continuation": 10,
           "appendedBy": "main#9"
         },
         "name": "sleep",
@@ -3335,16 +3005,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431539014,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 11,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431539007,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3354,12 +3015,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 19,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431539006,
@@ -3442,10 +3098,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 11
-          },
+          "continuation": 11,
           "appendedBy": "main#10"
         },
         "name": "check_status",
@@ -3487,16 +3140,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431539120,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 12,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431539080,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3506,12 +3150,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 20,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431539078,
@@ -3593,10 +3232,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:241",
-          "continuation": {
-            "lane": "main",
-            "n": 12
-          },
+          "continuation": 12,
           "appendedBy": "main#11"
         },
         "name": "charge",
@@ -3638,16 +3274,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431539224,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 13,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431539170,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3657,12 +3284,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 21,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431539168,
@@ -3747,10 +3369,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:244",
-          "continuation": {
-            "lane": "main",
-            "n": 13
-          },
+          "continuation": 13,
           "appendedBy": "main#12"
         },
         "name": "task_30",
@@ -3792,16 +3411,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431539428,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 14,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431539374,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3811,12 +3421,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 22,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431539372,
@@ -3898,10 +3503,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:256",
-          "continuation": {
-            "lane": "main",
-            "n": 14
-          },
+          "continuation": 14,
           "appendedBy": "main#13"
         },
         "name": "approval",
@@ -3942,16 +3544,7 @@
       "callbackAfterSeconds": 180,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431539741,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 15,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431539636,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -3961,12 +3554,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 23,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431539634,
@@ -4042,10 +3630,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:261",
-          "continuation": {
-            "lane": "main",
-            "n": 15
-          },
+          "continuation": 15,
           "appendedBy": "main#14"
         },
         "name": "callback",
@@ -4210,20 +3795,7 @@
     {
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 16,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431540101,
       "executed": false,
@@ -4310,10 +3882,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:277",
-          "continuation": {
-            "lane": "main",
-            "n": 16
-          },
+          "continuation": 16,
           "appendedBy": "main#15"
         },
         "name": "delivery_note",
@@ -4353,20 +3922,7 @@
     {
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 16,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431541233,
       "executed": false,
@@ -4454,10 +4010,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:277",
-          "continuation": {
-            "lane": "main",
-            "n": 16
-          },
+          "continuation": 16,
           "appendedBy": "main#15"
         },
         "name": "delivery_note",
@@ -4497,20 +4050,7 @@
     {
       "callbackAfterSeconds": 2,
       "callbackFromWorker": true,
-      "continuation": {
-        "applied": false,
-        "attempts": 0,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 16,
-        "recorded": {},
-        "resumedWith": {},
-        "runnable": false,
-        "state": "WAITING",
-        "step": 0,
-        "waiting": true
-      },
+      "continuation": {},
       "correlationId": "odd-1794431527939",
       "endTime": 1794431543350,
       "executed": false,
@@ -4598,10 +4138,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:277",
-          "continuation": {
-            "lane": "main",
-            "n": 16
-          },
+          "continuation": 16,
           "appendedBy": "main#15"
         },
         "name": "delivery_note",
@@ -4642,16 +4179,7 @@
       "callbackAfterSeconds": 4,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431547590,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 16,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431547543,
-        "recorded": {},
         "resumedWith": {
           "stage": "extended",
           "cancelled": true,
@@ -4661,12 +4189,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 24,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431547541,
@@ -4757,10 +4280,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:277",
-          "continuation": {
-            "lane": "main",
-            "n": 16
-          },
+          "continuation": 16,
           "appendedBy": "main#15"
         },
         "name": "delivery_note",
@@ -4801,16 +4321,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431547702,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 17,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431547695,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -4820,12 +4331,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 25,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431547694,
@@ -4907,10 +4413,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 17
-          },
+          "continuation": 17,
           "appendedBy": "main#16"
         },
         "name": "label_item",
@@ -4952,16 +4455,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431547811,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 18,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431547802,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -4971,12 +4465,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 26,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431547800,
@@ -5058,10 +4547,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 18
-          },
+          "continuation": 18,
           "appendedBy": "main#17"
         },
         "name": "label_item",
@@ -5103,15 +4589,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431547922,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 19,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431547906,
         "recorded": {
           "now": {
             "value": "2026-11-11T21:12:27.919867Z",
@@ -5127,12 +4605,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 27,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431547905,
@@ -5214,10 +4687,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 19
-          },
+          "continuation": 19,
           "appendedBy": "main#18"
         },
         "name": "label_item",
@@ -5259,16 +4729,7 @@
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553166,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 20,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553008,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -5278,12 +4739,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 28,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553006,
@@ -5357,10 +4813,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:292",
-          "continuation": {
-            "lane": "main",
-            "n": 20
-          },
+          "continuation": 20,
           "appendedBy": "main#19"
         },
         "name": "sleep_until",
@@ -5400,16 +4853,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553267,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 21,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553213,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -5419,12 +4863,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 29,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553212,
@@ -5532,10 +4971,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:295",
-          "continuation": {
-            "lane": "main",
-            "n": 21
-          },
+          "continuation": 21,
           "appendedBy": "main#20"
         },
         "name": "mcp_tools",
@@ -5576,16 +5012,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553370,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 22,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553308,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -5595,12 +5022,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 30,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553307,
@@ -5692,10 +5114,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:297",
-          "continuation": {
-            "lane": "main",
-            "n": 22
-          },
+          "continuation": 22,
           "appendedBy": "main#21"
         },
         "name": "mcp_weather",
@@ -5736,16 +5155,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553476,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 23,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553438,
-        "recorded": {},
         "resumedWith": {
           "stage": "ai",
           "cancelled": true,
@@ -5755,12 +5165,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 31,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553437,
@@ -5856,10 +5261,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:301",
-          "continuation": {
-            "lane": "main",
-            "n": 23
-          },
+          "continuation": 23,
           "appendedBy": "main#22"
         },
         "name": "support_agent",
@@ -5986,10 +5388,7 @@
                     "metadata": {
                       "lane": "main",
                       "site": "KitchenSinkWorkflow.kitchenSink:314",
-                      "continuation": {
-                        "lane": "main",
-                        "n": 24
-                      }
+                      "continuation": 24
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -6357,10 +5756,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:314",
-                "continuation": {
-                  "lane": "main",
-                  "n": 24
-                }
+                "continuation": 24
               },
               "name": "step",
               "onStateChange": {},
@@ -6497,16 +5893,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553581,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 24,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553565,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -6516,12 +5903,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 32,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553564,
@@ -6600,10 +5982,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:314",
-          "continuation": {
-            "lane": "main",
-            "n": 24
-          }
+          "continuation": 24
         },
         "name": "step",
         "onStateChange": {},
@@ -6729,10 +6108,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_329"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 25
-                }
+                "continuation": 25
               },
               "name": "step",
               "onStateChange": {},
@@ -6873,16 +6249,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553683,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 25,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553671,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -6892,12 +6259,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 33,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553670,
@@ -6979,10 +6341,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_329"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 25
-          }
+          "continuation": 25
         },
         "name": "step",
         "onStateChange": {},
@@ -7158,10 +6517,7 @@
               "loops": [
                 "KitchenSinkWorkflow_loop_329"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 26
-              }
+              "continuation": 26
             },
             "name": "step",
             "onStateChange": {},
@@ -7252,16 +6608,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553791,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 26,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553775,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -7271,12 +6618,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 34,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553773,
@@ -7358,10 +6700,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_329"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 26
-          }
+          "continuation": 26
         },
         "name": "step",
         "onStateChange": {},
@@ -7485,10 +6824,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_339"
                       ],
-                      "continuation": {
-                        "lane": "fork_2.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -7640,10 +6976,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_339"
                 ],
-                "continuation": {
-                  "lane": "fork_2.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -7814,10 +7147,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_339"
                 ],
-                "continuation": {
-                  "lane": "fork_2.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -7956,19 +7286,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553902,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_2.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553884,
-        "recorded": {},
-        "result": {
-          "value": "r1-first"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -7978,12 +7297,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 36,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553880,
@@ -8065,10 +7379,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
-          "continuation": {
-            "lane": "fork_2.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -8109,19 +7420,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553893,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_2.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553881,
-        "recorded": {},
-        "result": {
-          "value": "r1-right"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -8131,12 +7431,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 35,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553880,
@@ -8218,10 +7513,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
-          "continuation": {
-            "lane": "fork_2.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -8262,16 +7554,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431553963,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 27,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553941,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -8281,12 +7564,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 37,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553940,
@@ -8365,10 +7643,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:352",
-          "continuation": {
-            "lane": "main",
-            "n": 27
-          },
+          "continuation": 27,
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
@@ -8544,10 +7819,7 @@
                     "loops": [
                       "KitchenSinkWorkflow_loop_339"
                     ],
-                    "continuation": {
-                      "lane": "fork_3.0",
-                      "n": 1
-                    }
+                    "continuation": 1
                   },
                   "name": "step",
                   "onStateChange": {},
@@ -8649,10 +7921,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_339"
                 ],
-                "continuation": {
-                  "lane": "fork_3.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -8872,10 +8141,7 @@
               "loops": [
                 "KitchenSinkWorkflow_loop_339"
               ],
-              "continuation": {
-                "lane": "fork_3.0",
-                "n": 1
-              }
+              "continuation": 1
             },
             "name": "step",
             "onStateChange": {},
@@ -8964,19 +8230,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554026,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_3.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553994,
-        "recorded": {},
-        "result": {
-          "value": "r2-later"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -8986,12 +8241,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 39,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553987,
@@ -9073,10 +8323,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
-          "continuation": {
-            "lane": "fork_3.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -9117,19 +8364,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554017,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_3.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431553990,
-        "recorded": {},
-        "result": {
-          "value": "r2-right"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -9139,12 +8375,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 38,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431553987,
@@ -9226,10 +8457,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
-          "continuation": {
-            "lane": "fork_3.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -9270,16 +8498,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554082,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 28,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554046,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -9289,12 +8508,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 40,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554045,
@@ -9373,10 +8587,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:352",
-          "continuation": {
-            "lane": "main",
-            "n": 28
-          },
+          "continuation": 28,
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
@@ -9498,10 +8709,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_361"
                 ],
-                "continuation": {
-                  "lane": "fork_4.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "label_item",
               "onStateChange": {},
@@ -9555,10 +8763,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_367"
                 ],
-                "continuation": {
-                  "lane": "fork_4.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -9641,16 +8846,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554152,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_4.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554138,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -9660,12 +8856,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 42,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554136,
@@ -9747,10 +8938,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_361"
           ],
-          "continuation": {
-            "lane": "fork_4.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "label_item",
         "onStateChange": {},
@@ -9791,16 +8979,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554141,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_4.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554093,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -9810,12 +8989,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 41,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554092,
@@ -9897,10 +9071,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_367"
           ],
-          "continuation": {
-            "lane": "fork_4.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -9941,16 +9112,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554400,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 29,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554360,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -9960,12 +9122,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 45,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554358,
@@ -10044,10 +9201,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:372",
-          "continuation": {
-            "lane": "main",
-            "n": 29
-          },
+          "continuation": 29,
           "appendedBy": "main#28"
         },
         "name": "fork_4_join",
@@ -10087,19 +9241,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554266,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_4.1",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554198,
-        "recorded": {},
-        "result": {
-          "value": "code-loop-2"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -10109,12 +9252,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 43,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554196,
@@ -10196,10 +9334,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_367"
           ],
-          "continuation": {
-            "lane": "fork_4.1",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_4.1#1"
         },
         "name": "step",
@@ -10241,22 +9376,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554279,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_4.0",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554245,
-        "recorded": {},
-        "result": {
-          "value": [
-            "LABEL[x]",
-            "LABEL[y]"
-          ]
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -10266,12 +9387,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 44,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554243,
@@ -10353,10 +9469,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_361"
           ],
-          "continuation": {
-            "lane": "fork_4.0",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_4.0#1"
         },
         "name": "label_item",
@@ -10475,10 +9588,7 @@
               "metadata": {
                 "lane": "fork_5.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$10:378",
-                "continuation": {
-                  "lane": "fork_5.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "sub_flow_1",
               "onStateChange": {},
@@ -10535,10 +9645,7 @@
                     "metadata": {
                       "lane": "fork_5.1",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:383",
-                      "continuation": {
-                        "lane": "fork_5.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -10717,25 +9824,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554781,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_5.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554729,
-        "recorded": {},
-        "result": {
-          "value": {
-            "task5": {
-              "mod": 5,
-              "oddEven": "1"
-            },
-            "task6": "task_6 after 1"
-          }
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -10745,12 +9835,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 48,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554718,
@@ -10843,10 +9928,7 @@
         "metadata": {
           "lane": "fork_5.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$10:378",
-          "continuation": {
-            "lane": "fork_5.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "sub_flow_1",
         "onStateChange": {},
@@ -10971,10 +10053,7 @@
               "metadata": {
                 "lane": "fork_5.1",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:383",
-                "continuation": {
-                  "lane": "fork_5.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -11111,16 +10190,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554572,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_5.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554513,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -11130,12 +10200,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 46,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554510,
@@ -11214,10 +10279,7 @@
         "metadata": {
           "lane": "fork_5.1",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:383",
-          "continuation": {
-            "lane": "fork_5.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -11258,16 +10320,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554899,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 30,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554878,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -11277,12 +10330,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 49,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554876,
@@ -11366,10 +10414,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:388",
-          "continuation": {
-            "lane": "main",
-            "n": 30
-          },
+          "continuation": 30,
           "appendedBy": "main#29"
         },
         "name": "fork_5_join",
@@ -11409,19 +10454,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554674,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_5.1",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554618,
-        "recorded": {},
-        "result": {
-          "value": "beside-odd-then"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -11431,12 +10465,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 47,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554615,
@@ -11516,10 +10545,7 @@
           "lane": "fork_5.1",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:386",
           "after": "switch_side",
-          "continuation": {
-            "lane": "fork_5.1",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_5.1#1"
         },
         "name": "step",
@@ -11650,10 +10676,7 @@
                     "metadata": {
                       "lane": "fork_6.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$12:394",
-                      "continuation": {
-                        "lane": "fork_6.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -11741,10 +10764,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:398",
-                "continuation": {
-                  "lane": "main",
-                  "n": 31
-                }
+                "continuation": 31
               },
               "name": "fork_6_join",
               "onStateChange": {},
@@ -12050,10 +11070,7 @@
               "metadata": {
                 "lane": "fork_6.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$12:394",
-                "continuation": {
-                  "lane": "fork_6.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -12135,19 +11152,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431554987,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_6.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431554926,
-        "recorded": {},
-        "result": {
-          "value": "case-lane-odd"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -12157,12 +11163,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 50,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431554924,
@@ -12241,10 +11242,7 @@
         "metadata": {
           "lane": "fork_6.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$12:394",
-          "continuation": {
-            "lane": "fork_6.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -12285,16 +11283,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431555104,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 31,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431555082,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -12304,12 +11293,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 51,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431555081,
@@ -12385,10 +11369,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:398",
-          "continuation": {
-            "lane": "main",
-            "n": 31
-          }
+          "continuation": 31
         },
         "name": "fork_6_join",
         "onStateChange": {},
@@ -12514,10 +11495,7 @@
                           "metadata": {
                             "lane": "fork_8.0",
                             "site": "KitchenSinkWorkflow.lambda$kitchenSink$14:405",
-                            "continuation": {
-                              "lane": "fork_8.0",
-                              "n": 1
-                            }
+                            "continuation": 1
                           },
                           "name": "slow_step",
                           "onStateChange": {},
@@ -12701,10 +11679,7 @@
               "metadata": {
                 "lane": "fork_7.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$15:409",
-                "continuation": {
-                  "lane": "fork_7.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -12877,10 +11852,7 @@
                     "metadata": {
                       "lane": "fork_8.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$14:405",
-                      "continuation": {
-                        "lane": "fork_8.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "slow_step",
                     "onStateChange": {},
@@ -13132,10 +12104,7 @@
               "metadata": {
                 "lane": "fork_8.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$14:405",
-                "continuation": {
-                  "lane": "fork_8.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "slow_step",
               "onStateChange": {},
@@ -13217,19 +12186,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431558267,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_8.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431558171,
-        "recorded": {},
-        "result": {
-          "value": "inner-lane"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -13239,12 +12197,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 53,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431558164,
@@ -13323,10 +12276,7 @@
         "metadata": {
           "lane": "fork_8.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$14:405",
-          "continuation": {
-            "lane": "fork_8.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "slow_step",
         "onStateChange": {},
@@ -13476,16 +12426,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431558371,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 32,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431558312,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -13495,12 +12436,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 54,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431558310,
@@ -13579,10 +12515,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:411",
-          "continuation": {
-            "lane": "main",
-            "n": 32
-          },
+          "continuation": 32,
           "appendedBy": "main#31"
         },
         "name": "fork_8_join",
@@ -13622,19 +12555,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431555299,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_7.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431555236,
-        "recorded": {},
-        "result": {
-          "value": "after-case"
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -13644,12 +12566,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 52,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431555234,
@@ -13728,10 +12645,7 @@
         "metadata": {
           "lane": "fork_7.0",
           "site": "KitchenSinkWorkflow.lambda$kitchenSink$15:409",
-          "continuation": {
-            "lane": "fork_7.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "step",
         "onStateChange": {},
@@ -13772,16 +12686,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431558479,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 33,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431558451,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -13791,12 +12696,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 55,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431558448,
@@ -13875,10 +12775,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:412",
-          "continuation": {
-            "lane": "main",
-            "n": 33
-          },
+          "continuation": 33,
           "appendedBy": "main#32"
         },
         "name": "step",
@@ -14013,10 +12910,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_415"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "sub_flow_1",
                     "onStateChange": {},
@@ -14072,10 +12966,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_415"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "check_status",
                     "onStateChange": {},
@@ -14165,10 +13056,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:427",
-                "continuation": {
-                  "lane": "main",
-                  "n": 34
-                },
+                "continuation": 34,
                 "loops": [
                   "KitchenSinkWorkflow_loop_415"
                 ]
@@ -14436,10 +13324,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_415"
                 ],
-                "continuation": {
-                  "lane": "fork_9.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "sub_flow_1",
               "onStateChange": {},
@@ -14495,10 +13380,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_415"
                 ],
-                "continuation": {
-                  "lane": "fork_9.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "check_status",
               "onStateChange": {},
@@ -14582,25 +13464,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431558889,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_9.0",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431558786,
-        "recorded": {},
-        "result": {
-          "value": {
-            "task5": {
-              "mod": 5,
-              "oddEven": "1"
-            },
-            "task6": "task_6 after 1"
-          }
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -14610,12 +13475,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 57,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431558776,
@@ -14711,10 +13571,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_415"
           ],
-          "continuation": {
-            "lane": "fork_9.0",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "sub_flow_1",
         "onStateChange": {},
@@ -14757,16 +13614,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431558576,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_9.1",
-        "leased": false,
-        "n": 1,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431558513,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -14776,12 +13624,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 56,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431558511,
@@ -14864,10 +13707,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_415"
           ],
-          "continuation": {
-            "lane": "fork_9.1",
-            "n": 1
-          }
+          "continuation": 1
         },
         "name": "check_status",
         "onStateChange": {},
@@ -14908,16 +13748,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561314,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 34,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561259,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -14927,12 +13758,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 62,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561257,
@@ -15017,10 +13843,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:427",
-          "continuation": {
-            "lane": "main",
-            "n": 34
-          },
+          "continuation": 34,
           "loops": [
             "KitchenSinkWorkflow_loop_415"
           ]
@@ -15062,16 +13885,7 @@
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431559760,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_9.1",
-        "leased": false,
-        "n": 2,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431559675,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -15081,12 +13895,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 58,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431559672,
@@ -15164,10 +13973,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_421"
           ],
-          "continuation": {
-            "lane": "fork_9.1",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "fork_9.1#1"
         },
         "name": "sleep",
@@ -15207,16 +14013,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431559883,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_9.1",
-        "leased": false,
-        "n": 3,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431559866,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -15226,12 +14023,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 59,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431559863,
@@ -15315,10 +14107,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_421"
           ],
-          "continuation": {
-            "lane": "fork_9.1",
-            "n": 3
-          },
+          "continuation": 3,
           "appendedBy": "fork_9.1#2"
         },
         "name": "check_status",
@@ -15360,16 +14149,7 @@
       "callbackAfterSeconds": 1,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561001,
-        "attempts": 1,
-        "done": false,
-        "lane": "fork_9.1",
-        "leased": false,
-        "n": 4,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431560971,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -15379,12 +14159,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 60,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431560969,
@@ -15462,10 +14237,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_421"
           ],
-          "continuation": {
-            "lane": "fork_9.1",
-            "n": 4
-          },
+          "continuation": 4,
           "appendedBy": "fork_9.1#3"
         },
         "name": "sleep",
@@ -15505,22 +14277,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561207,
-        "attempts": 1,
         "done": true,
-        "lane": "fork_9.1",
-        "leased": false,
-        "n": 5,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561112,
-        "recorded": {},
-        "result": {
-          "value": {
-            "done": true,
-            "detail": "finished after 3 checks"
-          }
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -15530,12 +14288,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 61,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561110,
@@ -15619,10 +14372,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_421"
           ],
-          "continuation": {
-            "lane": "fork_9.1",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "fork_9.1#4"
         },
         "name": "check_status",
@@ -16036,10 +14786,7 @@
                 "KitchenSinkWorkflow_loop_415",
                 "KitchenSinkWorkflow_loop_432"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 35
-              }
+              "continuation": 35
             },
             "name": "label_item",
             "onStateChange": {},
@@ -16130,16 +14877,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561414,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 35,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561335,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -16149,12 +14887,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 63,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561333,
@@ -16237,10 +14970,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_432"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 35
-          }
+          "continuation": 35
         },
         "name": "label_item",
         "onStateChange": {},
@@ -16281,16 +15011,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561514,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 36,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561440,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -16300,12 +15021,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 64,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561438,
@@ -16388,10 +15104,7 @@
             "KitchenSinkWorkflow_loop_415",
             "KitchenSinkWorkflow_loop_432"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 36
-          },
+          "continuation": 36,
           "appendedBy": "main#35"
         },
         "name": "label_item",
@@ -16433,16 +15146,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561621,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 37,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561587,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -16452,12 +15156,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 65,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561585,
@@ -16539,10 +15238,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_415"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 37
-          },
+          "continuation": 37,
           "appendedBy": "main#36"
         },
         "name": "step",
@@ -16670,10 +15366,7 @@
                   "KitchenSinkWorkflow_loop_440",
                   "KitchenSinkWorkflow_loop_442"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 38
-                }
+                "continuation": 38
               },
               "name": "step",
               "onStateChange": {},
@@ -16815,16 +15508,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561727,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 38,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561691,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -16834,12 +15518,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 66,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561689,
@@ -16922,10 +15601,7 @@
             "KitchenSinkWorkflow_loop_440",
             "KitchenSinkWorkflow_loop_442"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 38
-          }
+          "continuation": 38
         },
         "name": "step",
         "onStateChange": {},
@@ -17102,10 +15778,7 @@
                 "KitchenSinkWorkflow_loop_440",
                 "KitchenSinkWorkflow_loop_442"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 39
-              }
+              "continuation": 39
             },
             "name": "step",
             "onStateChange": {},
@@ -17197,16 +15870,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561834,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 39,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561798,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -17216,12 +15880,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 67,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561795,
@@ -17304,10 +15963,7 @@
             "KitchenSinkWorkflow_loop_440",
             "KitchenSinkWorkflow_loop_442"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 39
-          }
+          "continuation": 39
         },
         "name": "step",
         "onStateChange": {},
@@ -17434,10 +16090,7 @@
                   "KitchenSinkWorkflow_loop_440",
                   "KitchenSinkWorkflow_loop_442"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 40
-                }
+                "continuation": 40
               },
               "name": "step",
               "onStateChange": {},
@@ -17579,16 +16232,7 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431561939,
-        "attempts": 1,
-        "done": false,
-        "lane": "main",
-        "leased": false,
-        "n": 40,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431561900,
-        "recorded": {},
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -17598,12 +16242,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 68,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431561898,
@@ -17686,10 +16325,7 @@
             "KitchenSinkWorkflow_loop_440",
             "KitchenSinkWorkflow_loop_442"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 40
-          }
+          "continuation": 40
         },
         "name": "step",
         "onStateChange": {},
@@ -17866,10 +16502,7 @@
                 "KitchenSinkWorkflow_loop_440",
                 "KitchenSinkWorkflow_loop_442"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 41
-              }
+              "continuation": 41
             },
             "name": "step",
             "onStateChange": {},
@@ -17961,57 +16594,8 @@
       "callbackAfterSeconds": 0,
       "callbackFromWorker": true,
       "continuation": {
-        "applied": true,
         "endTime": 1794431562046,
-        "attempts": 1,
         "done": true,
-        "lane": "main",
-        "leased": false,
-        "n": 41,
-        "queue": "kitchensink.v1.code",
-        "scheduledTime": 1794431562004,
-        "recorded": {},
-        "result": {
-          "runId": "ks-bb782fae-2c8c-4df3-9c61-07f7b71252b2",
-          "oddEven": "1",
-          "count": 0,
-          "statuses": [],
-          "workflowIds": [],
-          "charged": true,
-          "approvedBy": "finance-bot",
-          "callbackPayload": "delivered",
-          "note": "first note; cancelled: demo; sub flows: task_6 after 1 / task_6 after 1; search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused",
-          "cancelled": true,
-          "labels": [
-            "LABEL[box-1]",
-            "LABEL[box-2]",
-            "LABEL[box-3]"
-          ],
-          "toolCount": 2,
-          "weather": "Sunny and 18C in Seattle",
-          "agentReply": "Agent reply: Summarize order ks-bb782fae-2c8c-4df3-9c61-07f7b71252b2 has been reviewed.",
-          "composed": [
-            "odd-big",
-            "while-odd",
-            "while-even",
-            "r1-first",
-            "r1-right",
-            "r2-later",
-            "r2-right",
-            "LABEL[x]",
-            "LABEL[y]",
-            "code-loop-2",
-            "beside-odd-then",
-            "case-lane-odd",
-            "after-case",
-            "deep-done",
-            "deep-2",
-            "o1-first",
-            "o1-second",
-            "o2-first",
-            "o2-second"
-          ]
-        },
         "resumedWith": {
           "stage": "composition",
           "cancelled": true,
@@ -18021,12 +16605,7 @@
             "sub flows: task_6 after 1 / task_6 after 1",
             "search unavailable: task get_es_1 FAILED: Failed to invoke HTTP task due to: java.lang.Exception: I/O error on GET request for \"http://localhost:9200/conductor/_search\": Connect to http://localhost:9200 failed: Connection refused"
           ]
-        },
-        "runnable": false,
-        "state": "APPLIED",
-        "step": 69,
-        "waiting": false,
-        "worker": "nebula.local"
+        }
       },
       "correlationId": "odd-1794431527939",
       "endTime": 1794431562001,
@@ -18109,10 +16688,7 @@
             "KitchenSinkWorkflow_loop_440",
             "KitchenSinkWorkflow_loop_442"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 41
-          }
+          "continuation": 41
         },
         "name": "step",
         "onStateChange": {},
@@ -18217,10 +16793,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:160",
-          "continuation": {
-            "lane": "main",
-            "n": 2
-          },
+          "continuation": 2,
           "appendedBy": "main#1"
         },
         "name": "task_1",
@@ -18322,10 +16895,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:169",
-          "continuation": {
-            "lane": "main",
-            "n": 3
-          },
+          "continuation": 3,
           "appendedBy": "main#2"
         },
         "name": "task_5",
@@ -18525,10 +17095,7 @@
                     "metadata": {
                       "lane": "fork_1.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:188",
-                      "continuation": {
-                        "lane": "fork_1.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "task_10",
                     "onStateChange": {},
@@ -18578,10 +17145,7 @@
                     "metadata": {
                       "lane": "fork_1.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$2:189",
-                      "continuation": {
-                        "lane": "fork_1.0",
-                        "n": 2
-                      },
+                      "continuation": 2,
                       "appendedBy": "fork_1.0#1"
                     },
                     "name": "sub_flow_1",
@@ -18633,10 +17197,7 @@
                     "metadata": {
                       "lane": "fork_1.1",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:192",
-                      "continuation": {
-                        "lane": "fork_1.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "task_11",
                     "onStateChange": {},
@@ -18686,10 +17247,7 @@
                     "metadata": {
                       "lane": "fork_1.1",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$3:193",
-                      "continuation": {
-                        "lane": "fork_1.1",
-                        "n": 2
-                      },
+                      "continuation": 2,
                       "appendedBy": "fork_1.1#1"
                     },
                     "name": "sub_flow_1",
@@ -18780,10 +17338,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:195",
-                "continuation": {
-                  "lane": "main",
-                  "n": 4
-                }
+                "continuation": 4
               },
               "name": "fork_join",
               "onStateChange": {},
@@ -18886,10 +17441,7 @@
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:208",
           "after": "switch_oddEven",
-          "continuation": {
-            "lane": "main",
-            "n": 5
-          },
+          "continuation": 5,
           "appendedBy": "main#4"
         },
         "name": "get_es_1",
@@ -18939,10 +17491,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:216",
-          "continuation": {
-            "lane": "main",
-            "n": 6
-          },
+          "continuation": 6,
           "appendedBy": "main#5"
         },
         "name": "task_30",
@@ -18992,10 +17541,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:229",
-          "continuation": {
-            "lane": "main",
-            "n": 7
-          },
+          "continuation": 7,
           "appendedBy": "main#6"
         },
         "name": "check_status",
@@ -19048,10 +17594,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 8
-          },
+          "continuation": 8,
           "appendedBy": "main#7"
         },
         "name": "sleep",
@@ -19102,10 +17645,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 9
-          },
+          "continuation": 9,
           "appendedBy": "main#8"
         },
         "name": "check_status",
@@ -19158,10 +17698,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 10
-          },
+          "continuation": 10,
           "appendedBy": "main#9"
         },
         "name": "sleep",
@@ -19212,10 +17749,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_231"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 11
-          },
+          "continuation": 11,
           "appendedBy": "main#10"
         },
         "name": "check_status",
@@ -19266,10 +17800,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:241",
-          "continuation": {
-            "lane": "main",
-            "n": 12
-          },
+          "continuation": 12,
           "appendedBy": "main#11"
         },
         "name": "charge",
@@ -19322,10 +17853,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:244",
-          "continuation": {
-            "lane": "main",
-            "n": 13
-          },
+          "continuation": 13,
           "appendedBy": "main#12"
         },
         "name": "task_30",
@@ -19377,10 +17905,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:256",
-          "continuation": {
-            "lane": "main",
-            "n": 14
-          },
+          "continuation": 14,
           "appendedBy": "main#13"
         },
         "name": "approval",
@@ -19429,10 +17954,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:261",
-          "continuation": {
-            "lane": "main",
-            "n": 15
-          },
+          "continuation": 15,
           "appendedBy": "main#14"
         },
         "name": "callback",
@@ -19536,10 +18058,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:277",
-          "continuation": {
-            "lane": "main",
-            "n": 16
-          },
+          "continuation": 16,
           "appendedBy": "main#15"
         },
         "name": "delivery_note",
@@ -19591,10 +18110,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 17
-          },
+          "continuation": 17,
           "appendedBy": "main#16"
         },
         "name": "label_item",
@@ -19647,10 +18163,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 18
-          },
+          "continuation": 18,
           "appendedBy": "main#17"
         },
         "name": "label_item",
@@ -19703,10 +18216,7 @@
           "loops": [
             "KitchenSinkWorkflow_loop_288"
           ],
-          "continuation": {
-            "lane": "main",
-            "n": 19
-          },
+          "continuation": 19,
           "appendedBy": "main#18"
         },
         "name": "label_item",
@@ -19756,10 +18266,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:292",
-          "continuation": {
-            "lane": "main",
-            "n": 20
-          },
+          "continuation": 20,
           "appendedBy": "main#19"
         },
         "name": "sleep_until",
@@ -19807,10 +18314,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:295",
-          "continuation": {
-            "lane": "main",
-            "n": 21
-          },
+          "continuation": 21,
           "appendedBy": "main#20"
         },
         "name": "mcp_tools",
@@ -19863,10 +18367,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:297",
-          "continuation": {
-            "lane": "main",
-            "n": 22
-          },
+          "continuation": 22,
           "appendedBy": "main#21"
         },
         "name": "mcp_weather",
@@ -19917,10 +18418,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:301",
-          "continuation": {
-            "lane": "main",
-            "n": 23
-          },
+          "continuation": 23,
           "appendedBy": "main#22"
         },
         "name": "support_agent",
@@ -19977,10 +18475,7 @@
                     "metadata": {
                       "lane": "main",
                       "site": "KitchenSinkWorkflow.kitchenSink:314",
-                      "continuation": {
-                        "lane": "main",
-                        "n": 24
-                      }
+                      "continuation": 24
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -20281,10 +18776,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_329"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 25
-                }
+                "continuation": 25
               },
               "name": "step",
               "onStateChange": {},
@@ -20490,10 +18982,7 @@
               "loops": [
                 "KitchenSinkWorkflow_loop_329"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 26
-              }
+              "continuation": 26
             },
             "name": "step",
             "onStateChange": {},
@@ -20606,10 +19095,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_339"
                       ],
-                      "continuation": {
-                        "lane": "fork_2.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -20761,10 +19247,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_339"
                 ],
-                "continuation": {
-                  "lane": "fork_2.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -20856,10 +19339,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:352",
-          "continuation": {
-            "lane": "main",
-            "n": 27
-          },
+          "continuation": 27,
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
@@ -20974,10 +19454,7 @@
                     "loops": [
                       "KitchenSinkWorkflow_loop_339"
                     ],
-                    "continuation": {
-                      "lane": "fork_3.0",
-                      "n": 1
-                    }
+                    "continuation": 1
                   },
                   "name": "step",
                   "onStateChange": {},
@@ -21079,10 +19556,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_339"
                 ],
-                "continuation": {
-                  "lane": "fork_3.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -21173,10 +19647,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:352",
-          "continuation": {
-            "lane": "main",
-            "n": 28
-          },
+          "continuation": 28,
           "loops": [
             "KitchenSinkWorkflow_loop_339"
           ],
@@ -21237,10 +19708,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_361"
                 ],
-                "continuation": {
-                  "lane": "fork_4.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "label_item",
               "onStateChange": {},
@@ -21292,10 +19760,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_361"
                 ],
-                "continuation": {
-                  "lane": "fork_4.0",
-                  "n": 2
-                },
+                "continuation": 2,
                 "appendedBy": "fork_4.0#1"
               },
               "name": "label_item",
@@ -21350,10 +19815,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_367"
                 ],
-                "continuation": {
-                  "lane": "fork_4.1",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -21405,10 +19867,7 @@
                 "loops": [
                   "KitchenSinkWorkflow_loop_367"
                 ],
-                "continuation": {
-                  "lane": "fork_4.1",
-                  "n": 2
-                },
+                "continuation": 2,
                 "appendedBy": "fork_4.1#1"
               },
               "name": "step",
@@ -21498,10 +19957,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:372",
-          "continuation": {
-            "lane": "main",
-            "n": 29
-          },
+          "continuation": 29,
           "appendedBy": "main#28"
         },
         "name": "fork_4_join",
@@ -21557,10 +20013,7 @@
               "metadata": {
                 "lane": "fork_5.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$10:378",
-                "continuation": {
-                  "lane": "fork_5.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "sub_flow_1",
               "onStateChange": {},
@@ -21617,10 +20070,7 @@
                     "metadata": {
                       "lane": "fork_5.1",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:383",
-                      "continuation": {
-                        "lane": "fork_5.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -21766,10 +20216,7 @@
                 "lane": "fork_5.1",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$11:386",
                 "after": "switch_side",
-                "continuation": {
-                  "lane": "fork_5.1",
-                  "n": 2
-                },
+                "continuation": 2,
                 "appendedBy": "fork_5.1#1"
               },
               "name": "step",
@@ -21859,10 +20306,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:388",
-          "continuation": {
-            "lane": "main",
-            "n": 30
-          },
+          "continuation": 30,
           "appendedBy": "main#29"
         },
         "name": "fork_5_join",
@@ -21921,10 +20365,7 @@
                     "metadata": {
                       "lane": "fork_6.0",
                       "site": "KitchenSinkWorkflow.lambda$kitchenSink$12:394",
-                      "continuation": {
-                        "lane": "fork_6.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "step",
                     "onStateChange": {},
@@ -22012,10 +20453,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:398",
-                "continuation": {
-                  "lane": "main",
-                  "n": 31
-                }
+                "continuation": 31
               },
               "name": "fork_6_join",
               "onStateChange": {},
@@ -22271,10 +20709,7 @@
                           "metadata": {
                             "lane": "fork_8.0",
                             "site": "KitchenSinkWorkflow.lambda$kitchenSink$14:405",
-                            "continuation": {
-                              "lane": "fork_8.0",
-                              "n": 1
-                            }
+                            "continuation": 1
                           },
                           "name": "slow_step",
                           "onStateChange": {},
@@ -22458,10 +20893,7 @@
               "metadata": {
                 "lane": "fork_7.0",
                 "site": "KitchenSinkWorkflow.lambda$kitchenSink$15:409",
-                "continuation": {
-                  "lane": "fork_7.0",
-                  "n": 1
-                }
+                "continuation": 1
               },
               "name": "step",
               "onStateChange": {},
@@ -22551,10 +20983,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:411",
-          "continuation": {
-            "lane": "main",
-            "n": 32
-          },
+          "continuation": 32,
           "appendedBy": "main#31"
         },
         "name": "fork_8_join",
@@ -22602,10 +21031,7 @@
         "metadata": {
           "lane": "main",
           "site": "KitchenSinkWorkflow.kitchenSink:412",
-          "continuation": {
-            "lane": "main",
-            "n": 33
-          },
+          "continuation": 33,
           "appendedBy": "main#32"
         },
         "name": "step",
@@ -22670,10 +21096,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_415"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.0",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "sub_flow_1",
                     "onStateChange": {},
@@ -22729,10 +21152,7 @@
                       "loops": [
                         "KitchenSinkWorkflow_loop_415"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 1
-                      }
+                      "continuation": 1
                     },
                     "name": "check_status",
                     "onStateChange": {},
@@ -22785,10 +21205,7 @@
                         "KitchenSinkWorkflow_loop_415",
                         "KitchenSinkWorkflow_loop_421"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 2
-                      },
+                      "continuation": 2,
                       "appendedBy": "fork_9.1#1"
                     },
                     "name": "sleep",
@@ -22840,10 +21257,7 @@
                         "KitchenSinkWorkflow_loop_415",
                         "KitchenSinkWorkflow_loop_421"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 3
-                      },
+                      "continuation": 3,
                       "appendedBy": "fork_9.1#2"
                     },
                     "name": "check_status",
@@ -22897,10 +21311,7 @@
                         "KitchenSinkWorkflow_loop_415",
                         "KitchenSinkWorkflow_loop_421"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 4
-                      },
+                      "continuation": 4,
                       "appendedBy": "fork_9.1#3"
                     },
                     "name": "sleep",
@@ -22952,10 +21363,7 @@
                         "KitchenSinkWorkflow_loop_415",
                         "KitchenSinkWorkflow_loop_421"
                       ],
-                      "continuation": {
-                        "lane": "fork_9.1",
-                        "n": 5
-                      },
+                      "continuation": 5,
                       "appendedBy": "fork_9.1#4"
                     },
                     "name": "check_status",
@@ -23046,10 +21454,7 @@
               "metadata": {
                 "lane": "main",
                 "site": "KitchenSinkWorkflow.kitchenSink:427",
-                "continuation": {
-                  "lane": "main",
-                  "n": 34
-                },
+                "continuation": 34,
                 "loops": [
                   "KitchenSinkWorkflow_loop_415"
                 ]
@@ -23539,10 +21944,7 @@
                 "KitchenSinkWorkflow_loop_415",
                 "KitchenSinkWorkflow_loop_432"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 35
-              }
+              "continuation": 35
             },
             "name": "label_item",
             "onStateChange": {},
@@ -23595,10 +21997,7 @@
                 "KitchenSinkWorkflow_loop_415",
                 "KitchenSinkWorkflow_loop_432"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 36
-              },
+              "continuation": 36,
               "appendedBy": "main#35"
             },
             "name": "label_item",
@@ -23651,10 +22050,7 @@
               "loops": [
                 "KitchenSinkWorkflow_loop_415"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 37
-              },
+              "continuation": 37,
               "appendedBy": "main#36"
             },
             "name": "step",
@@ -23762,10 +22158,7 @@
                   "KitchenSinkWorkflow_loop_440",
                   "KitchenSinkWorkflow_loop_442"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 38
-                }
+                "continuation": 38
               },
               "name": "step",
               "onStateChange": {},
@@ -23973,10 +22366,7 @@
                 "KitchenSinkWorkflow_loop_440",
                 "KitchenSinkWorkflow_loop_442"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 39
-              }
+              "continuation": 39
             },
             "name": "step",
             "onStateChange": {},
@@ -24084,10 +22474,7 @@
                   "KitchenSinkWorkflow_loop_440",
                   "KitchenSinkWorkflow_loop_442"
                 ],
-                "continuation": {
-                  "lane": "main",
-                  "n": 40
-                }
+                "continuation": 40
               },
               "name": "step",
               "onStateChange": {},
@@ -24295,10 +22682,7 @@
                 "KitchenSinkWorkflow_loop_440",
                 "KitchenSinkWorkflow_loop_442"
               ],
-              "continuation": {
-                "lane": "main",
-                "n": 41
-              }
+              "continuation": 41
             },
             "name": "step",
             "onStateChange": {},

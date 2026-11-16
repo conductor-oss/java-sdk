@@ -207,9 +207,12 @@ class CheckerTest {
 
     @Test
     void detectsNondeterminism() throws Exception {
-        assertOnly("nondeterminism", r -> r.wf.put("tasks", List.of(Map.of("ref", "step_3", "type", "durability_step",
-                "status", "COMPLETED", "continuation", Map.of("lane", "main", "n", 3, "state", "RUNNABLE",
-                        "reasonForIncompletion", "diverged: the code no longer matches")))));
+        // one continuation runs at a time: why it did not apply is the run's reason
+        assertOnly("nondeterminism", r -> {
+            r.wf.put("reason", "diverged: the code no longer matches");
+            r.wf.put("tasks", List.of(Map.of("ref", "step_3", "type", "durability_step",
+                    "status", "COMPLETED", "lane", "main", "n", 3, "continuation", Map.of("leased", true))));
+        });
     }
 
     @Test
@@ -226,9 +229,8 @@ class CheckerTest {
     @Test
     public void valuesFromAnAttemptThatWasNeverRecordedAreAllowed() throws Exception {
         Run run = new Run();
-        // the first continuation recorded the token when it was applied, just before its first
-        // task was scheduled at t=10; stored, as the server stores it, without its lane and number
-        run.wf.put("nativeState", Map.of("bootstrap", Map.of("state", "APPLIED",
+        // the first continuation recorded the token when it was applied, at t=10
+        run.wf.put("nativeState", Map.of("bootstrap", Map.of("endTime", 10L,
                 "recorded", Map.of("token", Map.of("value", "recorded-token", "type", "java.lang.String")))));
         run.wf.put("tasks", List.of(Map.of("ref", "durability_step", "type", "durability_step", "status", "COMPLETED",
                 "scheduledTime", 10L)));

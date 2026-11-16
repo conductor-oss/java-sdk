@@ -59,6 +59,14 @@ class WorkerProtocolTest {
         server.shutdown();
     }
 
+    /** The entry a handed-out continuation's task carries: its lane, and its number in it. */
+    private static com.netflix.conductor.common.metadata.workflow.WorkflowTask entry(String ref, String lane, int n) {
+        var entry = new com.netflix.conductor.common.metadata.workflow.WorkflowTask();
+        entry.setTaskReferenceName(ref);
+        entry.setMetadata(new java.util.HashMap<>(Map.of("lane", lane, "continuation", n)));
+        return entry;
+    }
+
     private static MockResponse json(String body) {
         return new MockResponse().setHeader("Content-Type", "application/json").setBody(body);
     }
@@ -67,10 +75,11 @@ class WorkerProtocolTest {
     @SuppressWarnings("unchecked")
     void aContinuationThatFailsIsReportedAsTheCodesResultNotTheTasks() throws Exception {
         server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\"}"));
-        TaskContinuation marker = new TaskContinuation("main", 2);
-        marker.setState(TaskContinuation.LEASED);
+        TaskContinuation marker = new TaskContinuation();
+        marker.setLeased(true);
         marker.setRetryCount(3);
         Task task = new Task();
+        task.setWorkflowTask(entry("t", "main", 2)); // the entry names the continuation
         task.setTaskId("t-1");
         task.setWorkflowInstanceId("wf-1");
         task.setReferenceTaskName("t");
@@ -109,10 +118,11 @@ class WorkerProtocolTest {
         // s-1 was handled by an earlier run; a retried send queued it again
         server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\",\"variables\":{\"notes\":[\"first\"]},"
                 + "\"nativeState\":{\"replies\":{\"s-1\":{\"at\":" + now + "}}}}"));
-        TaskContinuation marker = new TaskContinuation("handlers", 2);
-        marker.setState(TaskContinuation.LEASED);
+        TaskContinuation marker = TaskContinuation.handlerRun(2);
+        marker.setLeased(true);
         marker.setRetryCount(1);
         Task task = new Task();
+        task.setWorkflowTask(entry("handlers", "handlers", 2)); // as the server builds it
         task.setTaskId("wf-1|handlers");
         task.setWorkflowInstanceId("wf-1");
         task.setReferenceTaskName("handlers");

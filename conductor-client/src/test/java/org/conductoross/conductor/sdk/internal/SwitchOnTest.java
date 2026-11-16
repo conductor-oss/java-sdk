@@ -96,12 +96,18 @@ class SwitchOnTest {
         return new Execution(json);
     }
 
+    /**
+     * A marker of continuation {@code n} of {@code lane}, applied {@code step}-th; its lane and
+     * number go on the task's entry ({@link #doneTask}), as the server keeps them.
+     */
     private static Map<String, Object> marker(String lane, int n, String state, long step) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("lane", lane);
         m.put("n", n);
-        m.put("state", state);
-        m.put("step", step);
+        if ("APPLIED".equals(state)) {
+            m.put("endTime", step);
+        }
+        m.put("leased", "LEASED".equals(state));
         m.put("resumedWith", Map.of());
         m.put("recorded", Map.of());
         return m;
@@ -144,7 +150,10 @@ class SwitchOnTest {
         t.put("status", "COMPLETED");
         t.put("seq", seq);
         t.put("outputData", output);
-        t.put("workflowTask", Map.of("type", "SIMPLE".equals(type) ? "SIMPLE" : type));
+        t.put("workflowTask", continuation == null
+                ? Map.of("type", type)
+                : Map.of("type", type, "metadata",
+                        Map.of("lane", continuation.get("lane"), "continuation", continuation.get("n"))));
         if (continuation != null) {
             t.put("continuation", continuation);
         }

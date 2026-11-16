@@ -117,9 +117,9 @@ Errors violate a guarantee. Information is allowed by the guarantees, and is mea
 | `indefinite-signal-applied`, `indefinite-signal-dropped` | info | what happened to signals whose outcome the client did not know |
 | `duplicate-task-execution` | info | a step succeeded more than once (at-least-once task execution) |
 | `concurrent-task-execution` | info | two attempts of one step overlapped in time |
-| `continuation-retried` | info | a continuation was offered more than once (`retryCount > 0` on its marker), or its completion was deferred (`reasonForIncompletion` set): a failover or a re-run. A redelivery to a second worker after the first died runs the same offer and does not raise `retryCount` |
+| `continuation-retried` | info | a continuation was offered more than once (`retryCount > 0` on its marker): a deferral, a failover or a re-run. A redelivery to a second worker after the first died runs the same offer and does not raise `retryCount`. Why a completion was deferred is the run's `reasonForIncompletion`, which `nondeterminism` reads |
 | `query-lag` | info | a query missed deposits acknowledged before it was sent but not yet applied |
-| `continuation-stalled` | info | a continuation took more than 20 s from queued to applied (`endTime - scheduledTime` on its marker); the stats give continuation latency percentiles |
+| `continuation-stalled` | info | a continuation took more than 20 s from when it could run to when it applied: from its task's `endTime` (the run's `createTime` for the first continuation) to its marker's `endTime`; the stats give continuation latency percentiles |
 
 `CheckerTest` plants each error in a synthetic run and asserts that exactly that check fires.
 
@@ -194,7 +194,8 @@ Against the three-server cluster: 1000 updates from 20 threads in 40 s, values e
 The run directory holds `config.json`, `history.jsonl`, `ledger/*.jsonl`, `final.json`,
 `report.json`, worker logs, and the server start logs. `final.json` summarizes every execution
 with its `nativeState` (bootstrap and handler markers, replies, seen ids) and, per task,
-its `continuation` marker next to the usual fields. The report prints a table of every check with
+its `continuation` marker and the `lane` and `n` its entry names (`workflowTask.metadata`) next
+to the usual fields. The report prints a table of every check with
 its count, statistics (operations by outcome, faults injected, execution statuses, duration
 percentiles, step attempts, continuations), and the first 40 errors.
 

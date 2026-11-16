@@ -494,6 +494,9 @@ public class Bench {
     static Map<String, Object> summarize(Map<String, Object> wf) {
         List<Map<String, Object>> tasks = new ArrayList<>();
         for (Map<String, Object> t : (List<Map<String, Object>>) wf.getOrDefault("tasks", List.of())) {
+            // which continuation a marker is: the lane and number the task's entry names
+            Map<String, Object> entry = (Map<String, Object>) t.getOrDefault("workflowTask", Map.of());
+            Map<String, Object> meta = (Map<String, Object>) entry.getOrDefault("metadata", Map.of());
             tasks.add(Processes.mapOf(
                     "seq", t.get("seq"), "ref", t.get("referenceTaskName"), "type", t.get("taskType"),
                     "status", t.get("status"), "retryCount", t.get("retryCount"), "workerId", t.get("workerId"),
@@ -501,6 +504,7 @@ public class Bench {
                     "scheduledTime", t.get("scheduledTime"), "startTime", t.get("startTime"),
                     "endTime", t.get("endTime"),
                     "continuation", t.get("continuation"),
+                    "lane", meta.get("lane"), "n", meta.get("continuation"),
                     "output", "durability_step".equals(t.get("taskType")) ? t.get("outputData") : null));
         }
         Map<String, Object> variables = (Map<String, Object>) wf.getOrDefault("variables", Map.of());

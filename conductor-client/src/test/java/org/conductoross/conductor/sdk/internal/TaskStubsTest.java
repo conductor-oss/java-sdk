@@ -235,10 +235,7 @@ class TaskStubsTest {
         json.put("workflowDefinition", Map.of("name", "stub_direct", "tasks", List.of()));
         json.put("tasks", List.of());
         Map<String, Object> marker = new LinkedHashMap<>();
-        marker.put("lane", "main");
-        marker.put("n", 1);
-        marker.put("state", "LEASED");
-        marker.put("endTime", 1L);
+        marker.put("leased", true); // the first continuation, offered and not yet applied
         marker.put("resumedWith", Map.of());
         marker.put("recorded", Map.of());
         json.put("nativeState", Map.of("bootstrap", marker));

@@ -526,11 +526,8 @@ public final class Checker {
                 }
             }
             for (Map<String, Object> marker : markers(wf)) {
-                Object at = marker.get("endTime");
-                if (at == null && "main".equals(marker.get("lane")) && Integer.valueOf(1).equals(marker.get("n"))) {
-                    at = firstScheduled(wf); // the first continuation has no end time: its tasks follow it
-                }
-                if (!"APPLIED".equals(marker.get("state")) || !(at instanceof Number)
+                Object at = marker.get("endTime"); // when it applied; absent until then
+                if (!(at instanceof Number a) || a.longValue() <= 0
                         || !(marker.get("recorded") instanceof Map<?, ?> recorded)) {
                     continue;
                 }
@@ -633,15 +630,12 @@ public final class Checker {
             if (isDivergence(reason)) {
                 error("nondeterminism", key, reason);
             }
+            // why a continuation did not apply is the run's reason (one runs at a time), checked above
             for (Map<String, Object> marker : markers(wf)) {
                 int attempts = 1 + (marker.get("retryCount") instanceof Number n ? n.intValue() : 0);
-                Object deferred = marker.get("reasonForIncompletion");
-                if (attempts > 1 || deferred != null) {
+                if (attempts > 1) {
                     info("continuation-retried", key, marker.get("lane") + "#" + marker.get("n") + " leased " + attempts
-                            + " time(s)" + (deferred == null ? "" : ", deferred: " + deferred));
-                }
-                if (deferred != null && isDivergence(String.valueOf(deferred))) {
-                    error("nondeterminism", key, marker.get("lane") + "#" + marker.get("n") + ": " + deferred);
+                            + " time(s)");
                 }
             }
         });
@@ -696,13 +690,13 @@ public final class Checker {
         for (Map.Entry<String, Map<String, Object>> e : executions.entrySet()) {
             for (Map<String, Object> marker : markers(e.getValue())) {
                 continuations++;
-                if (marker.get("scheduledTime") instanceof Number s && marker.get("endTime") instanceof Number end
+                if (marker.get("since") instanceof Number s && marker.get("endTime") instanceof Number end
                         && s.longValue() > 0 && end.longValue() >= s.longValue()) {
                     long ms = end.longValue() - s.longValue();
                     latencies.add(ms);
                     if (ms > 20_000) {
                         info("continuation-stalled", e.getKey(), marker.get("lane") + "#" + marker.get("n") + " took "
-                                + ms + " ms (" + marker.get("state") + ")");
+                                + ms + " ms");
                     }
                 }
             }
@@ -717,41 +711,35 @@ public final class Checker {
     }
 
     /**
-     * Every continuation marker of a summarized execution: the bootstrap marker (and the handler
-     * marker, when the class has handlers) from its native state, and the marker of each task the
-     * code paused on.
+     * Every continuation marker of a summarized execution, with which continuation it is
+     * ({@code lane}, {@code n}) and since when it could run ({@code since}): the bootstrap marker
+     * (main #1, from the run's start) and the handler marker from its native state, and the marker
+     * of each task the code paused on (its entry's lane and number, from when the task ended).
      */
-    /** When the first task of an execution was scheduled, or when it was last updated without one. */
-    @SuppressWarnings("unchecked")
-    private static Object firstScheduled(Map<String, Object> wf) {
-        long first = Long.MAX_VALUE;
-        for (Map<String, Object> t : (List<Map<String, Object>>) wf.getOrDefault("tasks", List.of())) {
-            if (t.get("scheduledTime") instanceof Number s && s.longValue() > 0) {
-                first = Math.min(first, s.longValue());
-            }
-        }
-        return first < Long.MAX_VALUE ? first : wf.get("updateTime");
-    }
-
     @SuppressWarnings("unchecked")
     static List<Map<String, Object>> markers(Map<String, Object> wf) {
         List<Map<String, Object>> markers = new ArrayList<>();
         if (wf.get("nativeState") instanceof Map<?, ?> state) {
-            for (String lane : List.of("bootstrap", "handlers")) {
-                if (state.get(lane) instanceof Map<?, ?> m) {
-                    // their lane, and the first continuation's number, are not stored
-                    Map<String, Object> marker = new LinkedHashMap<>((Map<String, Object>) m);
-                    marker.putIfAbsent("lane", lane.equals("bootstrap") ? "main" : "handlers");
-                    if (lane.equals("bootstrap")) {
-                        marker.putIfAbsent("n", 1);
-                    }
-                    markers.add(marker);
-                }
+            if (state.get("bootstrap") instanceof Map<?, ?> m) {
+                Map<String, Object> marker = new LinkedHashMap<>((Map<String, Object>) m);
+                marker.put("lane", "main");
+                marker.put("n", 1);
+                marker.put("since", wf.get("createTime"));
+                markers.add(marker);
+            }
+            if (state.get("handlers") instanceof Map<?, ?> m) {
+                Map<String, Object> marker = new LinkedHashMap<>((Map<String, Object>) m);
+                marker.put("lane", "handlers");
+                markers.add(marker);
             }
         }
         for (Map<String, Object> t : (List<Map<String, Object>>) wf.getOrDefault("tasks", List.of())) {
             if (t.get("continuation") instanceof Map<?, ?> m) {
-                markers.add((Map<String, Object>) m);
+                Map<String, Object> marker = new LinkedHashMap<>((Map<String, Object>) m);
+                marker.put("lane", t.get("lane"));
+                marker.put("n", t.get("n"));
+                marker.put("since", t.get("endTime"));
+                markers.add(marker);
             }
         }
         return markers;
