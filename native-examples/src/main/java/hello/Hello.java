@@ -54,7 +54,7 @@ public class Hello {
     public static void main(String[] args) {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Hello.class).tasks(new Tasks()).start();
+        conductor.workflows(Hello.class).tasks(new Tasks()).start();
 
         WorkflowHandle<String> run = conductor.start(Hello::hello, "World");
         System.out.println("execution: " + run.url());

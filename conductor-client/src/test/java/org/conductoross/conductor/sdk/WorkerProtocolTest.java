@@ -87,7 +87,7 @@ class WorkerProtocolTest {
         task.setContinuation(marker);
 
         // no such workflow: the replay fails, and the completion TaskRunner sends says so
-        TaskResult result = conductor.host().process("not.hosted.code", task);
+        TaskResult result = conductor.workflows().process("not.hosted.code", task);
 
         assertEquals(TaskResult.Status.FAILED, result.getStatus());
         Map<String, Object> output = result.getOutputData();
@@ -132,7 +132,7 @@ class WorkerProtocolTest {
                 Map.of("id", "q-1", "payload", Map.of("kind", "signal", "name", "add", "id", "s-1", "args", "first")),
                 Map.of("id", "q-2", "payload", Map.of("kind", "signal", "name", "add", "id", "s-2", "args", "second")))));
 
-        TaskResult result = conductor.host().workflows(Notes.class).process("notes_test.v1.code", task);
+        TaskResult result = conductor.workflows(Notes.class).process("notes_test.v1.code", task);
 
         assertEquals(TaskResult.Status.COMPLETED, result.getStatus());
         Map<String, Object> output = result.getOutputData();

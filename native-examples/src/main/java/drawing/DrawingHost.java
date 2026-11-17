@@ -33,7 +33,7 @@ public class DrawingHost {
         }
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(classes.toArray(new Class<?>[0])).tasks(new GenTasks()).start();
+        conductor.workflows(classes.toArray(new Class<?>[0])).tasks(new GenTasks()).start();
         System.out.println("READY " + classes.size());
         Thread.currentThread().join();
     }

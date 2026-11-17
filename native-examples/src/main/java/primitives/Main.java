@@ -65,8 +65,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host()
-                .workflows(TaskCalls.class, SwitchCase.class, Loops.class, Parallel.class, SubWorkflows.class,
+        conductor.workflows(TaskCalls.class, SwitchCase.class, Loops.class, Parallel.class, SubWorkflows.class,
                         SubWorkflows.Child.class, Timers.class, Messages.class, Errors.class, SideEffects.class,
                         SystemTasks.class)
                 .tasks(new TaskCalls.Tasks(), new SwitchCase.Tasks(), new Loops.Tasks(), new Parallel.Tasks(),

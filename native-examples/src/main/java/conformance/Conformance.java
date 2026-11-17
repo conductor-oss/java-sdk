@@ -670,7 +670,7 @@ public class Conformance {
         defs();
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor c = Conductor.of(client);
-        c.host().workflows(Conformance.class).tasks(new T()).start();
+        c.workflows(Conformance.class).tasks(new T()).start();
         Path dir = Files.createTempDirectory("conformance");
         String only = args.length > 0 ? args[0] : null;
         ExecutorService pool = Executors.newFixedThreadPool(6);

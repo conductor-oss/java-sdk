@@ -75,7 +75,7 @@ public class ConductorWorkflowHost implements SmartLifecycle {
             log.info("No @Workflow classes under {}", packages());
             return;
         }
-        Workers w = conductor.host();
+        Workers w = conductor.workflows();
         String workerId = environment.getProperty("conductor.workflows.worker-id");
         if (workerId != null) {
             w.workerId(workerId);

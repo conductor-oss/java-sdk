@@ -113,12 +113,6 @@ public final class Workers {
         return this;
     }
 
-    /** @deprecated timers run in real time; this does nothing. */
-    @Deprecated
-    public Workers timeScale(double timeScale) {
-        return this;
-    }
-
     /**
      * How long the server waits for a continuation it handed to a worker before retrying it
      * elsewhere (the continuation lease); default 30 seconds. It bounds how long an
@@ -402,7 +396,7 @@ public final class Workers {
     }
 
     /** Whether the definitions have been registered since {@link #start()}. */
-    public boolean registered() {
+    public boolean isRegistered() {
         return registered;
     }
 

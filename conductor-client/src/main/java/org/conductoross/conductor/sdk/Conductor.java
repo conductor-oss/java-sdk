@@ -68,15 +68,15 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
  * }</pre>
  *
  * <p>Outside workflow code, an instance of this class runs native workflows over a {@link
- * ConductorClient}: create one with {@link #of(ConductorClient)}, host workflows and tasks with
- * {@link #host()}, and start executions with {@link #start}. The client is configured as for any
+ * ConductorClient}: create one with {@link #of(ConductorClient)}, run workflows and tasks with
+ * {@link #workflows} and {@link #tasks}, and start executions with {@link #start}. The client is configured as for any
  * Conductor client (its builder, {@link ConductorClient#fromEnvironment()}, an Orkes {@code
  * ApiClient} with keys, or the Spring bean), and stays its creator's to shut down.
  *
  * <pre>{@code
  * ConductorClient client = ConductorClient.fromEnvironment();
  * try (Conductor conductor = Conductor.of(client)) {
- *     conductor.host().workflows(OrderWorkflow.class).tasks(new PaymentTasks()).start();
+ *     conductor.workflows(OrderWorkflow.class).tasks(new PaymentTasks()).start();
  *     OrderResult result = conductor.execute(OrderWorkflow::process, order, Duration.ofMinutes(1));
  * }
  * client.shutdown();
@@ -94,11 +94,11 @@ public final class Conductor implements AutoCloseable {
     /**
      * A task stub: an instance of a class with {@code @WorkerTask} methods whose calls schedule
      * those tasks. Conductor passes one for each task-class parameter of a workflow's
-     * constructor; this is for a factory given to {@code host().workflow(Type.class, factory)},
+     * constructor; this is for a factory given to {@code conductor.workflow(Type.class, factory)},
      * when the constructor also takes something else:
      *
      * <pre>{@code
-     * host().workflow(OrderWorkflow.class, () -> new OrderWorkflow(Conductor.stub(OrderTasks.class), config))
+     * conductor.workflow(OrderWorkflow.class, () -> new OrderWorkflow(Conductor.stub(OrderTasks.class), config))
      * }</pre>
      */
     public static <T> T stub(Class<T> taskClass) {
@@ -482,7 +482,6 @@ public final class Conductor implements AutoCloseable {
         return client;
     }
 
-    /** Hosts workflow classes and task classes in this process. */
     /**
      * Registers the definitions of these workflow classes (and the task definitions of these
      * task objects, if any) without starting workers: for a deploy step that publishes what a
@@ -509,10 +508,25 @@ public final class Conductor implements AutoCloseable {
     }
 
     /**
-     * A new set of workflows and tasks to host in this process: add them, then {@code start()}.
-     * Each call returns a new set; closing this Conductor stops them all.
+     * Runs these workflow classes in this process: add task objects and options to what this
+     * returns, then {@code start()} registers the definitions and starts polling. Each call starts
+     * a separate set of workers; closing this Conductor stops them all.
      */
-    public Workers host() {
+    public Workers workflows(Class<?>... workflowClasses) {
+        return newWorkers().workflows(workflowClasses);
+    }
+
+    /** As {@link #workflows}, for a workflow class whose instances need constructor arguments. */
+    public <T> Workers workflow(Class<T> workflowClass, Supplier<T> factory) {
+        return newWorkers().workflow(workflowClass, factory);
+    }
+
+    /** As {@link #workflows}, for objects with {@code @WorkerTask} methods. */
+    public Workers tasks(Object... taskObjects) {
+        return newWorkers().tasks(taskObjects);
+    }
+
+    private Workers newWorkers() {
         Workers workers = new Workers(this);
         started.add(workers);
         return workers;

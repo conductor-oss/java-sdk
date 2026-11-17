@@ -84,7 +84,7 @@ public class LoopShapes {
     public static void main(String[] args) throws InterruptedException {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(LoopShapes.class).tasks(new Tasks()).start();
+        conductor.workflows(LoopShapes.class).tasks(new Tasks()).start();
         if (args.length > 0 && args[0].equals("worker")) {
             System.out.println("loop_shapes worker started");
             Thread.currentThread().join();

@@ -65,14 +65,14 @@ class ServerOutageTest {
         Conductor conductor = Conductor.of(ConductorClient.builder().basePath(server.url("/api").toString()).build());
         try {
             long started = System.nanoTime();
-            Workers workers = conductor.host().workflows(Flow.class).start();
+            Workers workers = conductor.workflows(Flow.class).start();
             assertTrue(Duration.ofNanos(System.nanoTime() - started).toMillis() < 1000, "start does not wait for the server");
 
             long deadline = System.currentTimeMillis() + 15_000;
-            while (!workers.registered() && System.currentTimeMillis() < deadline) {
+            while (!workers.isRegistered() && System.currentTimeMillis() < deadline) {
                 Thread.sleep(50);
             }
-            assertTrue(workers.registered(), "registered once the server accepted it");
+            assertTrue(workers.isRegistered(), "registered once the server accepted it");
             assertEquals(2, rejected.get());
             assertEquals(1, registered.get());
         } finally {
@@ -88,9 +88,9 @@ class ServerOutageTest {
             port = socket.getLocalPort(); // closed again: nothing listens there
         }
         Conductor conductor = Conductor.of(ConductorClient.builder().basePath("http://localhost:" + port + "/api").build());
-        Workers workers = conductor.host().workflows(Flow.class).start();
+        Workers workers = conductor.workflows(Flow.class).start();
         Thread.sleep(1500);
-        assertFalse(workers.registered());
+        assertFalse(workers.isRegistered());
         conductor.close(); // stops the retries
     }
 }

@@ -50,8 +50,7 @@ public class OperatorChecks {
     public static void main(String[] args) throws Exception {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host()
-                .workflows(ShipmentWorkflow.class, LaneFailureWorkflow.class, ShipmentFailureWorkflow.class, PingWorkflow.class, RouteWorkflow.class, ForkedWorkflow.class, LoopedWorkflow.class, SwitchLaneWorkflow.class, FleetWorkflow.class)
+        conductor.workflows(ShipmentWorkflow.class, LaneFailureWorkflow.class, ShipmentFailureWorkflow.class, PingWorkflow.class, RouteWorkflow.class, ForkedWorkflow.class, LoopedWorkflow.class, SwitchLaneWorkflow.class, FleetWorkflow.class)
                 .tasks(new ShipmentTasks(), new FleetTasks())
                 .start();
 

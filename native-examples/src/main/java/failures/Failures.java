@@ -96,7 +96,7 @@ public class Failures {
     public static void main(String[] args) {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Failures.class).tasks(new Tasks()).start();
+        conductor.workflows(Failures.class).tasks(new Tasks()).start();
 
         report(conductor, conductor.start(Failures::validate, "ord-0"));
         report(conductor, conductor.start(Failures::validate, "ord-1"));

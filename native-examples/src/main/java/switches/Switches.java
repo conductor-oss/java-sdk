@@ -92,7 +92,7 @@ public class Switches {
     public static void main(String[] args) {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Switches.class).tasks(new Tasks()).start();
+        conductor.workflows(Switches.class).tasks(new Tasks()).start();
         List<Input> inputs = List.of(
                 new Input("fast", "eu", "box-1"),      // case fast -> nested eu
                 new Input("fast", "apac", "box-2"),    // case fast -> nested default

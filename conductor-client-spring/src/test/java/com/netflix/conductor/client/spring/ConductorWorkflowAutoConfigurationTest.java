@@ -54,7 +54,7 @@ class ConductorWorkflowAutoConfigurationTest {
         @Bean
         Conductor conductor() {
             Conductor conductor = mock(Conductor.class);
-            when(conductor.host()).thenReturn(workers);
+            when(conductor.workflows()).thenReturn(workers);
             return conductor;
         }
     }

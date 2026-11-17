@@ -30,7 +30,7 @@ class or task method fails with a clear message. A real task object in the workf
 methods inside the workflow on every replay, so it is rejected: a field holding one fails when the
 workflow is created, and `new` of a task class in workflow code fails when the code is read.
 Outside Spring a workflow constructor may take only task classes; anything else needs
-`host().workflow(Type.class, factory)`, whose factory gets the task stubs from
+`conductor.workflow(Type.class, factory)`, whose factory gets the task stubs from
 `Conductor.stub(OrderTasks.class)`. In Spring other parameters are injected.
 
 **The one sentence:** every static call imported from `Conductor` goes to the server and shows in
@@ -192,7 +192,7 @@ referenced unambiguously, and the compiler says so. Do not overload them.
 | failure workflow | `@Workflow(failureWorkflow = "name", failureWorkflowVersion = n)` | started when the execution fails or times out, with `workflowId`, `reason` and `failureStatus` in its input; the failed execution's output gets `conductor.failure_workflow` |
 | schedule | `@Schedule(cron = "0 0 9 * * MON-FRI", zone = "UTC", input = "{}")` on the `@Workflow` method, repeatable | registered with the Conductor scheduler (`POST /api/scheduler/schedules`) when the workers start; needs `conductor.scheduler.enabled=true`. Registration overwrites the schedule, including `paused`, so a schedule paused in the UI is resumed by the next worker start unless the annotation says `paused = true` |
 | priority | `conductor.workflow(X::run).priority(5).start(input)` | the execution's priority (0 to 99), used to order its tasks in the queues |
-| continuation timeout | `conductor.host().continuationTimeout(Duration.ofSeconds(30))`, or `conductor.workflow.<name>.continuationTimeout` / `conductor.workflow.all.continuationTimeout` (seconds, or ISO-8601 such as `PT2M`) | the continuation lease (`metadata.native.continuationTimeoutSeconds`): how long a continuation handed to a worker may go unanswered before the server hands it to another worker; 30 s by default, an hour in dev mode; must exceed the longest replay |
+| continuation timeout | `conductor.workflows(X.class).continuationTimeout(Duration.ofSeconds(30))`, or `conductor.workflow.<name>.continuationTimeout` / `conductor.workflow.all.continuationTimeout` (seconds, or ISO-8601 such as `PT2M`) | the continuation lease (`metadata.native.continuationTimeoutSeconds`): how long a continuation handed to a worker may go unanswered before the server hands it to another worker; 30 s by default, an hour in dev mode; must exceed the longest replay |
 | hosting | `@Workflow(threadCount = 20, pollingInterval = 100, pollTimeout = 500)`, overridden by `conductor.workflow.<name>.threadCount` (and `pollingInterval`, `pollTimeout`), else `conductor.workflow.all.*`; `conductor.workflow.<name>.paused=true` stops polling | none: each hosted workflow is a `TaskRunner` worker of its code type, as a `@WorkerTask` is of its task type: at most `threadCount` continuations at once (virtual threads), long polls of `pollTimeout` ms, `pollingInterval` ms between empty polls, completed with update-v2, which hands back the next continuation. Properties are system properties, or the Spring environment. A hosted `@WorkerTask` reads `conductor.worker.<task>.*`, else `conductor.worker.all.*`, else its annotation, and gets 8 threads when none sets `threadCount` (`AnnotatedWorkerExecutor` and Spring keep 1) |
 
 ## The developer's day
@@ -208,8 +208,8 @@ cd order-service && ./mvnw -q compile exec:java
 - `Conductor.of(client)` is the single entry point, over any `ConductorClient`: one from its
   builder, `ConductorClient.fromEnvironment()` (reads `CONDUCTOR_SERVER_URL` and
   `CONDUCTOR_AUTH_KEY`/`CONDUCTOR_AUTH_SECRET`, falling back to the local server), an Orkes
-  `ApiClient` with keys, or the Spring bean. `conductor.host()...start()` hosts,
-  `conductor.start(Cls::method, input)` runs. Closing a `Conductor` stops its workers; the client
+  `ApiClient` with keys, or the Spring bean. `conductor.workflows(...).tasks(...).start()` starts the workers,
+  `conductor.start(Cls::method, input)` starts an execution. Closing a `Conductor` stops its workers; the client
   stays its creator's to shut down.
 - A server that is down never fails the application. `start()` returns at once; the definitions
   are registered in the background, retried for as long as it takes with waits of 1, 2, 4...

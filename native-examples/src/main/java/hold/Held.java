@@ -99,7 +99,7 @@ public class Held {
     public static void main(String[] args) throws Exception {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Held.class).tasks(new Tasks()).start();
+        conductor.workflows(Held.class).tasks(new Tasks()).start();
         if ("start".equals(args[0])) {
             WorkflowHandle<String> run = conductor.start(Held::run, "x");
             System.out.println("execution: " + run.workflowId());

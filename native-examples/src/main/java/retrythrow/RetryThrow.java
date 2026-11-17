@@ -86,7 +86,7 @@ public class RetryThrow {
     public static void main(String[] args) throws Exception {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(RetryThrow.class).tasks(new Tasks()).start();
+        conductor.workflows(RetryThrow.class).tasks(new Tasks()).start();
         int bad = 0;
         bad += check(conductor, "switch then throw", conductor.start(RetryThrow::switchThenThrow, "1"));
         bad += check(conductor, "async then throw", conductor.start(RetryThrow::asyncThenThrow, "1"));

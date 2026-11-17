@@ -25,9 +25,8 @@ public class BenchWorker {
 
     public static void main(String[] args) throws InterruptedException {
         Conductor.of(ConductorClient.fromEnvironment())
-                .host()
-                .devMode(System.getenv("CONDUCTOR_DEV") != null)
                 .workflows(LedgerWorkflow.class, LedgerChild.class)
+                .devMode(System.getenv("CONDUCTOR_DEV") != null)
                 .tasks(new LedgerTasks())
                 .start();
         System.out.println("bench worker " + System.getenv("CONDUCTOR_WORKER_ID") + " started, pid "

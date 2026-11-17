@@ -69,7 +69,7 @@ class WorkflowSettingsTest {
     }
 
     private Map<String, Integer> threadCounts() {
-        Workers host = conductor.host().settings(settings::get).workflows(Tuned.class, Plain.class).start();
+        Workers host = conductor.workflows(Tuned.class, Plain.class).settings(settings::get).start();
         try {
             return host.workflowRunner().getTaskThreadCount();
         } finally {
@@ -92,7 +92,7 @@ class WorkflowSettingsTest {
     void theContinuationTimeoutIsSecondsOrAnIsoDurationAndAnHourInDevMode() {
         WorkflowSpec tuned = WorkflowSpec.of(Tuned.class).get(0);
         WorkflowSpec plain = WorkflowSpec.of(Plain.class).get(0);
-        Workers host = conductor.host().settings(settings::get);
+        Workers host = conductor.workflows().settings(settings::get);
         assertEquals(30, host.continuationTimeoutSeconds(tuned));
 
         settings.put("conductor.workflow.all.continuationTimeout", "45");

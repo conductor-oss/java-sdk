@@ -52,7 +52,7 @@ public class Reuse {
     public static void main(String[] args) {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Reuse.class).start();
+        conductor.workflows(Reuse.class).start();
         WorkflowHandle<String> run = conductor.workflow(Reuse::run)
                 .taskToDomain(Map.of("legacy_enrich", "team-a"))
                 .start("sku-1");

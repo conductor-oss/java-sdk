@@ -53,7 +53,7 @@ public final class UpdateFlood {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
         WorkflowClient workflows = new WorkflowClient(conductor.client());
-        conductor.host().workflows(LedgerWorkflow.class, LedgerChild.class).tasks(new LedgerTasks()).start();
+        conductor.workflows(LedgerWorkflow.class, LedgerChild.class).tasks(new LedgerTasks()).start();
 
         String key = "flood-" + Long.toString(System.currentTimeMillis(), 36);
         WorkflowHandle<LedgerResult> run =

@@ -110,7 +110,7 @@ public final class TaskStubs {
         Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
         throw new IllegalStateException("the constructor of " + owner.getName() + " takes a "
                 + parameter.getType().getSimpleName() + ", which is not a class with @WorkerTask methods:"
-                + " register the workflow with host().workflow(" + owner.getSimpleName()
+                + " register the workflow with conductor.workflow(" + owner.getSimpleName()
                 + ".class, factory), using Conductor.stub(...) for its task classes");
     }
 
@@ -152,7 +152,7 @@ public final class TaskStubs {
             return constructors[0];
         }
         throw new IllegalStateException(type.getName() + " has several constructors and none without arguments:"
-                + " keep one, or register it with host().workflow(" + type.getSimpleName() + ".class, factory)");
+                + " keep one, or register it with conductor.workflow(" + type.getSimpleName() + ".class, factory)");
     }
 
     private static Constructor<?> stubType(Class<?> type) {

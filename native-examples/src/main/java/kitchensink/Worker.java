@@ -23,9 +23,8 @@ import com.netflix.conductor.client.http.ConductorClient;
 public class Worker {
 
     static void host(Conductor conductor) {
-        conductor.host()
+        conductor.workflows(KitchenSinkWorkflow.class, SubFlow.class)
                 .devMode(System.getenv("CONDUCTOR_DEV") != null)
-                .workflows(KitchenSinkWorkflow.class, SubFlow.class)
                 // the chaos run injects task failures through ChaosTasks
                 .tasks(ChaosTasks.enabled() ? new ChaosTasks() : new KitchenSinkTasks())
                 .start();

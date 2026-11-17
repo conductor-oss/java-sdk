@@ -29,8 +29,7 @@ public class Main {
         Conductor conductor = Conductor.of(client);
 
         // Host both workflows: the shipment, and the order flow it runs for each line item
-        conductor.host()
-                .workflows(ShipmentWorkflow.class, OrderFlow.class)
+        conductor.workflows(ShipmentWorkflow.class, OrderFlow.class)
                 .tasks(new ShipmentWorkers())
                 .start();
 

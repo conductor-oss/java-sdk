@@ -140,8 +140,8 @@ the server nor `ui-next` reads `metadata.preview`.
 
 ### B6. Per-execution time scale for WAIT (removed)
 
-Dropped: timers run in real time in development too. `Workers.timeScale` is deprecated and does
-nothing; `WaitTaskMapper` is unchanged from `main`.
+Dropped: timers run in real time in development too. `Workers.timeScale` is gone, and
+`WaitTaskMapper` is unchanged from `main`.
 
 ## Standing items from earlier passes
 

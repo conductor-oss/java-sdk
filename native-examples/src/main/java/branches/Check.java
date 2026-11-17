@@ -325,7 +325,7 @@ public class Check {
         Map<Integer, String> marks = markers();
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
-        conductor.host().workflows(Branches.class).tasks(new BranchTasks()).start();
+        conductor.workflows(Branches.class).tasks(new BranchTasks()).start();
         Path dir = Files.createTempDirectory("branches");
         String only = args.length > 0 ? args[0] : null;
         ExecutorService pool = Executors.newFixedThreadPool(6);
