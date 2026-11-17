@@ -22,6 +22,7 @@ import org.conductoross.conductor.ai.model.AgentResult;
 import org.conductoross.conductor.ai.model.ToolDef;
 import org.conductoross.conductor.ai.tools.MediaTools;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -329,6 +330,11 @@ class Suite7MediaTools extends BaseTest {
      */
     @Test
     @Order(7)
+    @DisabledIfEnvironmentVariable(
+            named = "SKIP_IMAGE_GEN",
+            matches = "(?i)true",
+            disabledReason = "dall-e-3 has been removed from OpenAI's API ('model does not exist'), and its "
+                    + "gpt-image-* replacements are not enabled in the Orkes-Developers OpenAI project")
     @SuppressWarnings("unchecked")
     void test_image_generation_openai_runtime_completes() {
         String apiKey = System.getenv("OPENAI_API_KEY");

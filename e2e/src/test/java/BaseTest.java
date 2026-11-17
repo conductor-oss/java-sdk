@@ -47,7 +47,7 @@ public abstract class BaseTest {
     protected static final String BASE_URL = SERVER_URL.replace("/api", "");
 
     /** LLM model to use in e2e tests. */
-    protected static final String MODEL = System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-4o-mini");
+    protected static final String MODEL = System.getenv().getOrDefault("CONDUCTOR_AGENT_LLM_MODEL", "openai/gpt-6-luna");
 
     private static final HttpClient HTTP_CLIENT =
             HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
