@@ -117,7 +117,7 @@ test {
     environment 'CONDUCTOR_SERVER_URL',
         System.getProperty('CONDUCTOR_SERVER_URL', System.getenv('CONDUCTOR_SERVER_URL') ?: 'http://localhost:8080/api')
     environment 'CONDUCTOR_AGENT_LLM_MODEL',
-        System.getProperty('CONDUCTOR_AGENT_LLM_MODEL', System.getenv('CONDUCTOR_AGENT_LLM_MODEL') ?: 'openai/gpt-4o-mini')
+        System.getProperty('CONDUCTOR_AGENT_LLM_MODEL', System.getenv('CONDUCTOR_AGENT_LLM_MODEL') ?: 'openai/gpt-6-luna')
 }
 EOF
 sed -i.bak "s/@VERSION@/$VERSION/g" "$STAGE/build.gradle" && rm "$STAGE/build.gradle.bak"
@@ -147,7 +147,7 @@ set -euo pipefail
 #   - MCP testkit on http://localhost:9999/mcp (Suite4McpTools; URL is fixed
 #     in the suite)
 # Optional:
-#   - CONDUCTOR_AGENT_LLM_MODEL (default openai/gpt-4o-mini); the matching provider
+#   - CONDUCTOR_AGENT_LLM_MODEL (default openai/gpt-6-luna); the matching provider
 #     API key must be configured on the SERVER — the suites never read it
 #     (asserted by Suite2ToolCallingCredentials).
 #
@@ -157,7 +157,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE"
 ./gradlew test \
   -DCONDUCTOR_SERVER_URL="${CONDUCTOR_SERVER_URL:-http://localhost:8080/api}" \
-  -DCONDUCTOR_AGENT_LLM_MODEL="${CONDUCTOR_AGENT_LLM_MODEL:-openai/gpt-4o-mini}" "$@"
+  -DCONDUCTOR_AGENT_LLM_MODEL="${CONDUCTOR_AGENT_LLM_MODEL:-openai/gpt-6-luna}" "$@"
 echo "Report: $HERE/build/reports/tests/test/index.html"
 EOF
 chmod +x "$STAGE/run.sh"
@@ -177,7 +177,7 @@ Maven Central — no SDK source is vendored. Cut from
 |---------------------------------|------------------------|-----------------------------|
 | JDK 21 (Gradle wrapper bundled) | —                      | —                           |
 | Conductor server w/ agent runtime | `CONDUCTOR_SERVER_URL` | `http://localhost:8080/api` |
-| LLM model                       | `CONDUCTOR_AGENT_LLM_MODEL` | `openai/gpt-4o-mini`   |
+| LLM model                       | `CONDUCTOR_AGENT_LLM_MODEL` | `openai/gpt-6-luna`    |
 | MCP testkit (Suite4 only)       | — (fixed in suite)     | `http://localhost:9999/mcp` |
 
 The server needs the agent runtime: conductor-oss `>= 3.32.0-rc.8`, or
