@@ -28,11 +28,13 @@ import static org.conductoross.conductor.sdk.Conductor.fanOut;
 import static org.conductoross.conductor.sdk.Conductor.once;
 import static org.conductoross.conductor.sdk.Conductor.sleep;
 import static org.conductoross.conductor.sdk.Conductor.switchOn;
-import static org.conductoross.conductor.sdk.Conductor.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Steps come from the compiled code: nothing runs, so no value can stop the reading. */
 class CodeReaderTest {
+
+    /** The task stub the workflows below call: its calls schedule the tasks. */
+    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
 
     public record Plan(List<String> items, boolean needsApproval, Map<String, String> owner) {}
 
@@ -67,23 +69,23 @@ class CodeReaderTest {
     public static class Flows {
         @Workflow(name = "needs_real_values")
         public String needsRealValues(String x) {
-            Plan plan = task(Tasks::plan, x);
+            Plan plan = TASKS.plan(x);
             String first = plan.items().get(0);
             int size = Integer.parseInt(plan.owner().get("size").trim()) / plan.items().size();
-            task(Tasks::ship, first + size);
-            return task(Tasks::tell, x);
+            TASKS.ship(first + size);
+            return TASKS.tell(x);
         }
 
         @Workflow(name = "branches_and_loops")
         public String branchesAndLoops(String x) {
-            Plan plan = task(Tasks::plan, x);
+            Plan plan = TASKS.plan(x);
             if (plan.needsApproval()) {
-                task(Tasks::approve, x);
+                TASKS.approve(x);
             } else {
-                task(Tasks::tell, x);
+                TASKS.tell(x);
             }
             for (String item : plan.items()) {
-                task(Tasks::ship, item);
+                TASKS.ship(item);
             }
             return "done";
         }
@@ -92,74 +94,74 @@ class CodeReaderTest {
         public String noPlainJava(String x) {
             PLAIN_JAVA.incrementAndGet();
             String v = once("v", () -> "id-" + PLAIN_JAVA.incrementAndGet());
-            return task(Tasks::ship, v);
+            return TASKS.ship(v);
         }
 
         @Workflow(name = "finally_once")
         public String finallyOnce(String x) {
             try {
                 if (x.isEmpty()) {
-                    return task(Tasks::ship, x);
+                    return TASKS.ship(x);
                 }
-                return task(Tasks::approve, x);
+                return TASKS.approve(x);
             } finally {
-                task(Tasks::tell, x);
+                TASKS.tell(x);
             }
         }
 
         @Workflow(name = "helpers")
         public String helpers(String x) {
-            List.of("a").forEach(i -> task(Tasks::ship, i));
+            List.of("a").forEach(i -> TASKS.ship(i));
             return helper(x);
         }
 
         private String helper(String x) {
-            return task(Tasks::tell, x);
+            return TASKS.tell(x);
         }
 
         @Workflow(name = "recursive")
         public String recursive(String x) {
-            task(Tasks::ship, x);
+            TASKS.ship(x);
             return x.isEmpty() ? "done" : recursive(x.substring(1));
         }
 
         @Workflow(name = "keys")
         public String keys(String x) {
             switchOn("s", x)
-                    .when("text", () -> task(Tasks::ship, x))
-                    .when(5, () -> task(Tasks::approve, x))
-                    .when(true, () -> task(Tasks::tell, x))
+                    .when("text", () -> TASKS.ship(x))
+                    .when(5, () -> TASKS.approve(x))
+                    .when(true, () -> TASKS.tell(x))
                     .when(Tier.GOLD, () -> {
                         sleep(Duration.ofSeconds(1));
                     })
-                    .otherwise(() -> task(Tasks::plan, x))
+                    .otherwise(() -> TASKS.plan(x))
                     .get();
             return "done";
         }
 
         @Workflow(name = "fans")
         public String fans(String x) {
-            fanOut("spread", List.of("a"), i -> task(Tasks::ship, i)).get();
+            fanOut("spread", List.of("a"), i -> TASKS.ship(i)).get();
             return "done";
         }
 
         @Workflow(name = "joined_at_once")
         public String joinedAtOnce(String x) {
-            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> task(Tasks::ship, x));
+            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> TASKS.ship(x));
             Conductor.join(p);
             return p.get();
         }
 
         @Workflow(name = "never_joined")
         public String neverJoined(String x) {
-            Conductor.async(() -> task(Tasks::ship, x));
-            return task(Tasks::tell, x);
+            Conductor.async(() -> TASKS.ship(x));
+            return TASKS.tell(x);
         }
 
         @Workflow(name = "joined_later")
         public String joinedLater(String x) {
-            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> task(Tasks::ship, x));
-            task(Tasks::tell, x);
+            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> TASKS.ship(x));
+            TASKS.tell(x);
             Conductor.join(p);
             return p.get();
         }

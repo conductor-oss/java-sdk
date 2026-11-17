@@ -36,8 +36,7 @@ import kitchensink.KitchenSinkModel.Summary;
  *     Stats stats = tasks.task1(mod, oddEven);
  *
  * What it gets is a stand-in whose calls schedule the tasks; this class itself runs on the
- * workers. task(KitchenSinkTasks::task1, mod, oddEven) does the same by method reference. The
- * call resolves to the @WorkerTask name, the arguments ship as task input keyed by
+ * workers. The call resolves to the @WorkerTask name, the arguments ship as task input keyed by
  * parameter name (compile with -parameters, or use @InputParam as today), and the return value
  * comes back as task output. Argument and return types come from the method itself through
  * reflection, so nothing depends on generics surviving compilation. Any other worker, in any

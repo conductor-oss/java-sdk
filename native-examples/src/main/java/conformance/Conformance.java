@@ -166,6 +166,19 @@ public class Conformance {
     @Workflow(name="c_eachlane") public String eachLane(String x) { Promise<String> p = async(() -> forEach("loop", List.of("p", "q"), t::a).toString()); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
     @Workflow(name="c_eachjavaloop") public String eachJavaLoop(String x) { String r = ""; for (int k = 0; k < 2; k++) r += forEach("loop", List.of("i" + k), t::a); return r; }
 
+    // ---- doWhile: a loop the code names; the steps of its body are tagged with it
+    @Workflow(name="c_dowhile") public String doWhileLoop(String x) { String[] r = {x}; int[] n = {0}; doWhile("dw", () -> { r[0] = a(r[0]); n[0]++; }, () -> n[0] < 3); return b(r[0]); }
+    @Workflow(name="c_dowhileonce") public String doWhileOnce(String x) { String[] r = {x}; doWhile("dw", () -> { r[0] = a(r[0]); }, () -> false); return r[0]; }
+    @Workflow(name="c_dowhilesw") public String doWhileSw(String x) { String[] r = {x}; int[] n = {0};
+        doWhile("dw", () -> { final String v = r[0]; r[0] = switchOn("sw", String.valueOf(n[0])).when("0", () -> a(v)).when("1", () -> b(v)).get(); n[0]++; }, () -> n[0] < 2); return c(r[0]); }
+    @Workflow(name="c_dowhilenest") public String doWhileNest(String x) { String[] r = {x}; int[] i = {0};
+        doWhile("outer", () -> { int[] j = {0}; doWhile("inner", () -> { r[0] = a(r[0]); j[0]++; }, () -> j[0] < 2); r[0] = b(r[0]); i[0]++; }, () -> i[0] < 2); return r[0]; }
+    @Workflow(name="c_dowhilefork") public String doWhileFork(String x) { String[] r = {""}; int[] n = {0};
+        doWhile("dw", () -> { String k = x + n[0]; Promise<String> p = async(() -> a(k)); Promise<String> q = async(() -> b(k)); join(p, q); r[0] += p.get() + q.get(); n[0]++; }, () -> n[0] < 2); return r[0]; }
+    @Workflow(name="c_dowhilecond") public String doWhileCond(String x) { String[] r = {x}; doWhile("dw", () -> { r[0] = a(r[0]); }, () -> b(r[0]).length() < 12); return r[0]; }
+    @Workflow(name="c_dowhilethrow") public String doWhileThrow(String x) { int[] n = {0};
+        doWhile("dw", () -> { a(x + n[0]); n[0] = Integer.parseInt(n[0] < 1 ? "1" : "stop"); }, () -> true); return "no"; }
+
     // ---- repeatUntil
     Status pollIt(String k) { return repeatUntil(() -> t.poll(k), Status::done, Backoff.every(Duration.ofSeconds(1)).attempts(10)); }
     @Workflow(name="c_rep") public String rep(String x) { return a("n=" + pollIt(workflowId()).n()); }
@@ -459,6 +472,13 @@ public class Conformance {
         c("fail-caught", Conformance::failCaught, "1", "b(1)", "tboom;tb");
         c("fail-uncaught", Conformance::failUncaught, "1", "FAILED:boom", "ta;tboom");
         c("fail-java", Conformance::failJava, "1", "FAILED:plain 1", "ta;throw");
+        c("dowhile", Conformance::doWhileLoop, "1", "b(a(a(a(1))))", "ta;ta_2;ta_3;tb");
+        c("dowhile-once", Conformance::doWhileOnce, "1", "a(1)", "ta");
+        c("dowhile-sw", Conformance::doWhileSw, "x", "c(b(a(x)))", "sw[0:ta|1:tb_if_1*];sw_2[0:ta_if_0*|1:tb];tc");
+        c("dowhile-nest", Conformance::doWhileNest, "1", "b(a(a(b(a(a(1))))))", "ta;ta_2;tb;ta_3;ta_4;tb_2");
+        c("dowhile-fork", Conformance::doWhileFork, "x", "a(x0)b(x0)a(x1)b(x1)", "fork{ta|tb};fork_join;fork_2{ta_2|tb_2};fork_2_join");
+        c("dowhile-cond", Conformance::doWhileCond, "1", "a(a(a(1)))", "ta;tb;ta_2;tb_2;ta_3;tb_3");
+        c("dowhile-throw", Conformance::doWhileThrow, "x", "FAILED:For input string", "ta;ta_2;throw");
         c("fail-case", Conformance::failCase, "1", "c(caught)", "sw[1:tboom|default:ta_if_default*];tc");
         c("fail-lane-caught", Conformance::failLaneCaught, "1", "a(1)b(1)", "fork{tboom;ta|tb};fork_join");
         c("fail-lane", Conformance::failLane, "1", "FAILED:boom", "fork{tboom|tb};fork_join");

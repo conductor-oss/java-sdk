@@ -11,8 +11,8 @@ and debugger not yet built).
 
 Workflows written as ordinary Java. Any method on any class becomes a workflow with `@Workflow`.
 Tasks are today's `@WorkerTask` classes, unchanged. A workflow takes its task classes as
-constructor parameters and calls them directly (`tasks.reserve(order)`), or calls them by method
-reference (`task(OrderTasks::reserve, order)`); the two schedule the same task. Real `if`,
+constructor parameters and calls them directly (`tasks.reserve(order)`): what it gets is a stub
+whose calls schedule the task. A task with no Java method is called by name, `task("name")`. Real `if`,
 `switch`, loops, `try`/`catch`, local variables and helper methods. No base class, no interface,
 no compiler, no annotation processor. The SDK uses `SerializedLambda` to resolve method
 references, reflection on the referenced methods for input and output types, `StackWalker` for
@@ -55,7 +55,7 @@ the graph; everything else is just Java.
 | Before | Now | Why |
 |---|---|---|
 | `class X extends DurableWorkflow<I, O>` with an abstract `run` | `@Workflow` on any method of any class | the annotation is the whole contract; nothing to extend or implement |
-| `ActivityInterface` + `ActivityImpl`, stub by proxy | one `@WorkerTask` class, taken as a constructor parameter and called directly, `tasks.task1(mod, oddEven)`, or by method reference, `task(KitchenSinkTasks::task1, mod, oddEven)` | today's worker model, no interface to write; the SDK generates the stub, the compiler checks the arguments, reflection on the method gives the types at runtime |
+| `ActivityInterface` + `ActivityImpl`, stub by proxy | one `@WorkerTask` class, taken as a constructor parameter and called directly, `tasks.task1(mod, oddEven)` | today's worker model, no interface to write; the SDK generates the stub, the compiler checks the arguments, reflection on the method gives the types at runtime |
 | "activities" | "tasks" everywhere: `task(...)`, `TaskFailure`, `.tasks(...)` on the host | Conductor's term |
 | inherited methods | static methods on `Conductor`, normally static-imported so calls read bare | no base class to occupy the inheritance slot |
 | all fields durable, `transient` opts out | `@Variable` fields are workflow variables; other fields are ordinary | a service class has injected clients and caches; those must never be persisted, and `@Variable` maps to `workflow.variables` by name |
@@ -134,11 +134,12 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 
 | Call in workflow code | Server task | Wakes the code |
 |---|---|---|
-| `tasks.method(args...)` on a task stub, or `task(Tasks::method, args...)` | SIMPLE, named by `@WorkerTask`; retried per its definition (3 retries, exponential backoff by default), then marked optional so a final failure reaches the code | when the task completes, or fails after its retries |
+| `tasks.method(args...)` on a task stub | SIMPLE, named by `@WorkerTask`; retried per its definition (3 retries, exponential backoff by default), then marked optional so a final failure reaches the code | when the task completes, or fails after its retries |
 | `task(name).input(...).as(T)` | SIMPLE, name chosen at runtime | when the task completes |
 | `once(name, () -> ...)` | none; the value is recorded (`recorded`) on the continuation marker of the task the code pauses on next | never; runs in place |
 | an `if` or `switch` whose arms call the server | SWITCH named after what it decides on (`if_flagged`, `switch_paymentMethod`; `native-code` on `switchCaseValue`). An `if` has the case `true` and its else as the default case; a `switch` has a case per arm, keyed by its labels (`CARD`, `odd`, `even,zero`), and `default`. The arm taken holds the calls it made; the others show what they would call, as previews. Read from the compiled code; see Plain ifs and switches | never by itself; the arm's calls wake the code as usual |
 | a Java `for`, `while` or `do`-`while` | ordinary code, so it may hold ifs, switches, forks, sub workflows and other loops. There is no `DO_WHILE` task: the compiled method says which lines a loop covers, each step is tagged with the loops around it in `metadata.loops`, and the execution diagram draws those steps as one loop | at each call inside it |
+| `doWhile(name, () -> { ... }, () -> condition)` | the same as a Java `do`-`while`, named by the code instead of read from the compiled method: its body runs, then again while the condition holds, as ordinary code; every step made from the body or the condition is tagged with `name` in `metadata.loops` (inside the loops around the call), so the execution diagram draws them as one loop named `name`, also for code whose loops cannot be read. A Java loop or another `doWhile` inside the body nests | at each call inside it |
 | `async(() -> ...)`, `join(p1, p2)`, `Promise.get()` | FORK_JOIN + JOIN, one branch per async block that calls the server, each with its own continuation points; a block that returns without a server call is plain Java. `async` does not wait: lanes still running at the next durable call get a JOIN that completes at once, and a later `join` or `get` adds a JOIN naming those lanes. It works inside another `async` block, and a join waits for what the lane started | each branch when its own task completes |
 | `fanOut(items, item -> ...)` | FORK_JOIN with one branch per item + JOIN; drawn as FORK_JOIN_DYNAMIC + JOIN in an untaken case or the registered definition, where the items are not known | once |
 | `child(Other::method, input)` / `childAsync(...)` | SUB_WORKFLOW, typed by the referenced `@Workflow` method | when the child completes |
@@ -146,7 +147,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `sleep(duration)` | WAIT with duration | when the timer fires |
 | `repeatUntil(body, condition, backoff)` | DO_WHILE { WAIT, task }; the first check runs after one interval | once, when the loop ends |
 | `sleepUntil(instant)` | WAIT with `until`; the server resolves it to the minute, so the instant is rounded up to the next minute | when the time is reached |
-| `forEach(name, items, tasks::method)` on a task stub, or `forEach(name, items, Tasks::method)` | DO_WHILE over `items`, one task per item, one after another; the method takes the item as its only parameter; the stub is not called | once, when every item is done |
+| `forEach(name, items, tasks::method)` on a task stub | DO_WHILE over `items`, one task per item, one after another; the method takes the item as its only parameter; the stub is not called | once, when every item is done |
 | `mcp(ref).server(url).listTools()` / `.call(tool, args)` | LIST_MCP_TOOLS / CALL_MCP_TOOL, run by the server's MCP client; retried like HTTP (`.retries(count, delay)`) | when the call completes |
 | `agent(ref).remote(cardUrl).ask(text)` / `agent(ref).conductor(name, version).ask(text)` | AGENT: an A2A call to a remote agent (an agent card URL is discovered), or a Conductor agent | when the agent replies |
 | `awaitExternal(ref, T).await(timeout)` | WAIT completed by `POST /api/tasks/{workflowId}/{ref}/COMPLETED` | when completed or timed out |

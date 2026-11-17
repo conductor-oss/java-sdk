@@ -16,11 +16,11 @@ import java.io.Serializable;
 import java.util.function.Predicate;
 
 /**
- * Serializable functional interfaces for method references. A method reference such as {@code
- * KitchenSinkTasks::task1} passed where one of these is expected can be resolved, through {@code
- * SerializedLambda}, to the method it names, so the SDK reads the task name from the annotation
- * and the parameter and return types from the method. Nothing depends on generic type arguments
- * surviving compilation.
+ * Serializable functional interfaces for method references and lambdas. A method reference such
+ * as {@code OrderWorkflow::process} or {@code tasks::labelItem} passed where one of these is
+ * expected can be resolved, through {@code SerializedLambda}, to the method it names, so the SDK
+ * reads names from the annotations and the parameter and return types from the method. Nothing
+ * depends on generic type arguments surviving compilation.
  */
 public final class Functions {
 
@@ -39,36 +39,12 @@ public final class Functions {
         R apply(A a);
     }
 
-    public interface Fn2<T, A, B, R> extends Serializable {
-        R apply(T target, A a, B b);
-    }
-
-    public interface Fn3<T, A, B, C, R> extends Serializable {
-        R apply(T target, A a, B b, C c);
-    }
-
-    public interface Fn4<T, A, B, C, D, R> extends Serializable {
-        R apply(T target, A a, B b, C c, D d);
-    }
-
     public interface Proc0<T> extends Serializable {
         void apply(T target);
     }
 
     public interface Proc1<T, A> extends Serializable {
         void apply(T target, A a);
-    }
-
-    public interface Proc2<T, A, B> extends Serializable {
-        void apply(T target, A a, B b);
-    }
-
-    public interface Proc3<T, A, B, C> extends Serializable {
-        void apply(T target, A a, B b, C c);
-    }
-
-    public interface Proc4<T, A, B, C, D> extends Serializable {
-        void apply(T target, A a, B b, C c, D d);
     }
 
     /** A condition given as a method reference to a boolean property, e.g. {@code JobStatus::done}. */
@@ -79,4 +55,7 @@ public final class Functions {
 
     /** A switch case body with no result. */
     public interface CaseAction extends Runnable, Serializable {}
+
+    /** The condition of a {@code doWhile}. Serializable so that its compiled code can be located. */
+    public interface Condition extends java.util.function.BooleanSupplier, Serializable {}
 }

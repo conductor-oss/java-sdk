@@ -1935,15 +1935,9 @@ public final class CodeReader {
             int argc = Type.getArgumentTypes(m.desc).length;
             switch (m.name) {
                 case "task" -> {
-                    if (m.desc.startsWith("(Ljava/lang/String;")) {
-                        Command c = named(Command.Kind.SIMPLE, text(i, argc, 0, "task"));
-                        chainArg(i, "ref").ifPresent(r -> c.explicitRef = r);
-                        call(c);
-                    } else {
-                        Method target = target(i, argc, 0);
-                        WorkerTask annotation = target == null ? null : target.getAnnotation(WorkerTask.class);
-                        call(named(Command.Kind.SIMPLE, annotation == null ? "task" : annotation.value()));
-                    }
+                    Command c = named(Command.Kind.SIMPLE, text(i, argc, 0, "task"));
+                    chainArg(i, "ref").ifPresent(r -> c.explicitRef = r);
+                    call(c);
                 }
                 case "sleep" -> call(named(Command.Kind.WAIT, "sleep"));
                 case "sleepUntil" -> call(named(Command.Kind.WAIT, "sleep_until"));
@@ -2023,6 +2017,13 @@ public final class CodeReader {
                     add(new Loop(named ? text(i, argc, 0, "for_each") : "for_each", true, List.of(inner), site()));
                 }
                 case "repeatUntil" -> add(new Loop("poll", false, bodyOf(i, argc, 0), site()));
+                case "doWhile" -> {
+                    List<Step> body = new ArrayList<>(bodyOf(i, argc, 1));
+                    body.addAll(bodyOf(i, argc, 2));
+                    if (!body.isEmpty()) {
+                        add(List.of(new InLoops(List.of(text(i, argc, 0, "do_while")), List.copyOf(body), site())));
+                    }
+                }
                 case "switchOn" -> switchOn(i, argc);
                 default -> {
                     // once, now, random, workflowId: recorded values, not steps

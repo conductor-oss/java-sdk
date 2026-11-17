@@ -29,13 +29,15 @@ import static org.conductoross.conductor.sdk.Conductor.async;
 import static org.conductoross.conductor.sdk.Conductor.join;
 import static org.conductoross.conductor.sdk.Conductor.sleep;
 import static org.conductoross.conductor.sdk.Conductor.switchOn;
-import static org.conductoross.conductor.sdk.Conductor.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The definition registered for a workflow class is discovered from its code. */
 class DiscoveryTest {
+
+    /** The task stub the workflows below call: its calls schedule the tasks. */
+    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("pick")
@@ -66,14 +68,14 @@ class DiscoveryTest {
 
         @Workflow(name = "fulfilment", description = "Picks, packs and ships an order")
         public String run(Order order) {
-            String picked = task(Tasks::pick, order.item());
-            Promise<String> a = async(() -> task(Tasks::pack, picked + "-a"));
-            Promise<String> b = async(() -> task(Tasks::pack, picked + "-b"));
+            String picked = TASKS.pick(order.item());
+            Promise<String> a = async(() -> TASKS.pack(picked + "-a"));
+            Promise<String> b = async(() -> TASKS.pack(picked + "-b"));
             join(a, b);
             sleep(Duration.ofSeconds(order.quantity() + 1));
             switchOn("region", order.region())
-                    .when("eu", () -> task(Tasks::ship, "eu"))
-                    .when("us", () -> task(Tasks::ship, "us"))
+                    .when("eu", () -> TASKS.ship("eu"))
+                    .when("us", () -> TASKS.ship("us"))
                     .otherwise(() -> "hold")
                     .run();
             return picked;
@@ -125,7 +127,7 @@ class DiscoveryTest {
     public static class Spins {
         @Workflow(name = "spins")
         public String run(Order order) {
-            task(Tasks::pick, order.item());
+            TASKS.pick(order.item());
             while (!releaseSpin) {
                 Thread.onSpinWait(); // plain code that never calls a task
             }
@@ -137,7 +139,7 @@ class DiscoveryTest {
         @Workflow(name = "once")
         public String run(Order order) {
             String id = Conductor.once("id", () -> "id-" + SIDE_EFFECTS.incrementAndGet());
-            return task(Tasks::pick, String.valueOf(id));
+            return TASKS.pick(String.valueOf(id));
         }
     }
 
@@ -163,9 +165,9 @@ class DiscoveryTest {
     public static class Fragile {
         @Workflow(name = "fragile")
         public String run(Order order) {
-            String picked = task(Tasks::pick, order.item());
+            String picked = TASKS.pick(order.item());
             if (picked.length() > 3) {
-                return task(Tasks::ship, picked);
+                return TASKS.ship(picked);
             }
             throw new IllegalStateException("too short");
         }

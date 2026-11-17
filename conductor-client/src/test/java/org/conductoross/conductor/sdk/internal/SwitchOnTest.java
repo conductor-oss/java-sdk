@@ -25,7 +25,6 @@ import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import static org.conductoross.conductor.sdk.Conductor.switchOn;
-import static org.conductoross.conductor.sdk.Conductor.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,6 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** switchOn lowers to a SWITCH entry with every case; the taken case's calls land inside it. */
 class SwitchOnTest {
+
+    /** The task stub the workflows below call: its calls schedule the tasks. */
+    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("shipA")
@@ -56,18 +58,18 @@ class SwitchOnTest {
         public String run(Map<String, Object> input) {
             String route = String.valueOf(input.get("route"));
             String r = switchOn("route", route)
-                    .when("a", () -> task(Tasks::a, "x"))
+                    .when("a", () -> TASKS.a("x"))
                     .when("none", () -> "nothing")
-                    .otherwise(() -> task(Tasks::b, "y"))
+                    .otherwise(() -> TASKS.b("y"))
                     .get();
-            return task(Tasks::send, r);
+            return TASKS.send(r);
         }
     }
 
     public static class NoOtherwise {
         @Workflow(name = "no_otherwise")
         public String run(Map<String, Object> input) {
-            switchOn("route", input.get("route")).when("a", () -> task(Tasks::a, "x")).run();
+            switchOn("route", input.get("route")).when("a", () -> TASKS.a("x")).run();
             return "done";
         }
     }
@@ -75,7 +77,7 @@ class SwitchOnTest {
     public static class ChangedFirstCall {
         @Workflow(name = "switch_flow")
         public String run(Map<String, Object> input) {
-            return task(Tasks::b, "x");
+            return TASKS.b("x");
         }
     }
 
@@ -245,7 +247,7 @@ class SwitchOnTest {
     public static class DroppedCall {
         @Workflow(name = "dropped_call")
         public String run(Map<String, Object> input) {
-            return task(Tasks::a, "x");
+            return TASKS.a("x");
         }
     }
 
@@ -267,21 +269,21 @@ class SwitchOnTest {
         @Workflow(name = "previewed")
         public String run(Map<String, Object> input) {
             switchOn("route", input.get("route"))
-                    .when("a", () -> task(Tasks::a, "x"))
+                    .when("a", () -> TASKS.a("x"))
                     .when("b", () -> {
                         // a body that keeps going past its first call, forks, and mutates a variable
-                        String first = task(Tasks::b, "y");
+                        String first = TASKS.b("y");
                         notes.add("previewed " + first);
-                        org.conductoross.conductor.sdk.Promise<String> p1 = org.conductoross.conductor.sdk.Conductor.async(() -> task(Tasks::a, "left"));
-                        org.conductoross.conductor.sdk.Promise<String> p2 = org.conductoross.conductor.sdk.Conductor.async(() -> task(Tasks::b, "right"));
+                        org.conductoross.conductor.sdk.Promise<String> p1 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("left"));
+                        org.conductoross.conductor.sdk.Promise<String> p2 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.b("right"));
                         org.conductoross.conductor.sdk.Conductor.join(p1, p2);
-                        return task(Tasks::send, first.toUpperCase());
+                        return TASKS.send(first.toUpperCase());
                     })
                     .when("c", () -> {
-                        switchOn("inner", "?").when("x", () -> task(Tasks::a, "ix")).otherwise(() -> task(Tasks::b, "iy")).run();
+                        switchOn("inner", "?").when("x", () -> TASKS.a("ix")).otherwise(() -> TASKS.b("iy")).run();
                         return "c";
                     })
-                    .otherwise(() -> task(Tasks::send, "fallback"))
+                    .otherwise(() -> TASKS.send("fallback"))
                     .get();
             return "done";
         }
@@ -304,14 +306,14 @@ class SwitchOnTest {
             for (int i = 0; i < 2; i++) {
                 switchOn("route", String.valueOf(i)).when("x", () -> "none").otherwise(() -> "none").get();
             }
-            return task(Tasks::send, "after");
+            return TASKS.send("after");
         }
     }
 
     public static class DollarValue {
         @Workflow(name = "dollar_value")
         public String run(Map<String, Object> input) {
-            return switchOn("route", "${workflow.input}").when("${workflow.input}", () -> task(Tasks::a, "x")).get();
+            return switchOn("route", "${workflow.input}").when("${workflow.input}", () -> TASKS.a("x")).get();
         }
     }
 
@@ -319,9 +321,9 @@ class SwitchOnTest {
         @Workflow(name = "task_in_finally")
         public String run(Map<String, Object> input) {
             try {
-                return task(Tasks::a, "x");
+                return TASKS.a("x");
             } finally {
-                task(Tasks::b, "y");
+                TASKS.b("y");
             }
         }
     }
@@ -329,7 +331,7 @@ class SwitchOnTest {
     public static class Unjoined {
         @Workflow(name = "unjoined")
         public String run(Map<String, Object> input) {
-            org.conductoross.conductor.sdk.Conductor.async(() -> task(Tasks::a, "x"));
+            org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("x"));
             return "done";
         }
     }
@@ -337,8 +339,8 @@ class SwitchOnTest {
     public static class CallBeforeJoin {
         @Workflow(name = "call_before_join")
         public String run(Map<String, Object> input) {
-            org.conductoross.conductor.sdk.Conductor.async(() -> task(Tasks::a, "x"));
-            return task(Tasks::b, "y");
+            org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("x"));
+            return TASKS.b("y");
         }
     }
 
@@ -396,11 +398,11 @@ class SwitchOnTest {
         @Workflow(name = "fanned_out")
         public String run(Map<String, Object> input) {
             switchOn("route", input.get("route"))
-                    .when("a", () -> task(Tasks::a, "x"))
+                    .when("a", () -> TASKS.a("x"))
                     .when("b", () -> {
                         List<String> items = new ArrayList<>(); // what a stand-in result looks like
-                        org.conductoross.conductor.sdk.Conductor.fanOut("spread", items, i -> task(Tasks::b, i)).get();
-                        return task(Tasks::send, "after");
+                        org.conductoross.conductor.sdk.Conductor.fanOut("spread", items, i -> TASKS.b(i)).get();
+                        return TASKS.send("after");
                     })
                     .get();
             return "done";

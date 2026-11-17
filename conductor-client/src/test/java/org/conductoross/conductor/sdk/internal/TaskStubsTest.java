@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
-import static org.conductoross.conductor.sdk.Conductor.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -90,22 +89,6 @@ class TaskStubsTest {
         }
     }
 
-    public static class EachByReference {
-        @Workflow(name = "stub_each")
-        public List<String> run(Order order) {
-            return org.conductoross.conductor.sdk.Conductor.forEach("ship_each", List.of("a", "b"), Tasks::ship2);
-        }
-    }
-
-    public static class ByReference {
-        @Workflow(name = "stub_direct")
-        public String run(Order order) {
-            String id = task(Tasks::reserve, order);
-            task(Tasks::ship, id);
-            return id;
-        }
-    }
-
     public static class CreatesItsTasks {
         private final Tasks tasks = new Tasks(new Inventory());
 
@@ -149,19 +132,15 @@ class TaskStubsTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void aCallOnTheStubSchedulesTheTaskAsAMethodReferenceDoes() {
+    void aCallOnTheStubSchedulesTheTask() {
         List<Map<String, Object>> direct = firstFragment(Direct.class);
-        List<Map<String, Object>> byReference = firstFragment(ByReference.class);
         assertEquals("stub_reserve", direct.get(0).get("name"));
         assertEquals(Map.of("order", Map.of("item", "book", "quantity", 2)), direct.get(0).get("inputParameters"));
-        assertEquals(byReference.get(0).get("name"), direct.get(0).get("name"));
-        assertEquals(byReference.get(0).get("inputParameters"), direct.get(0).get("inputParameters"));
     }
 
     @Test
-    void forEachThroughAStubIsTheSameLoopAsByMethodReference() throws Exception {
+    void forEachThroughAStubIsALoopOfTheTask() throws Exception {
         List<Map<String, Object>> byStub = firstFragment(EachByStub.class);
-        assertEquals(firstFragment(EachByReference.class), byStub);
         assertTrue(byStub.toString().contains("stub_ship2"), byStub.toString());
         CodeReader.Loop loop = (CodeReader.Loop) CodeReader.read(EachByStub.class.getMethod("run", Order.class)).get(0);
         assertEquals("ship_each", loop.name());

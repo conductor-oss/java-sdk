@@ -14,8 +14,12 @@ package org.conductoross.conductor.sdk.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,7 +38,8 @@ import org.objectweb.asm.tree.MethodNode;
  * Which Java loops the calling code is inside. A {@code for} or {@code while} compiles to a backward
  * jump, so the compiled method says which lines each loop covers; the call stack says which line
  * each method is on. A step's loops only name what the execution diagram groups: nothing depends on
- * them when the code is replayed.
+ * them when the code is replayed. A {@code doWhile} names its loop instead: every call made from its
+ * body or condition is in it.
  */
 public final class CodeLoops {
 
@@ -44,7 +49,57 @@ public final class CodeLoops {
     /** Loops of each method, outermost first, by class, method name and descriptor. */
     private static final Map<String, List<Loop>> LOOPS = new ConcurrentHashMap<>();
 
+    /**
+     * The {@code doWhile} loops running on this thread, by the compiled method of each body and
+     * condition (class, method name and descriptor), innermost last.
+     */
+    private static final ThreadLocal<Map<String, Deque<String>>> NAMED = ThreadLocal.withInitial(HashMap::new);
+
     private CodeLoops() {}
+
+    /** A {@code doWhile} that is running; {@link #leave()} when it ends. */
+    public static final class Named {
+        private final List<String> keys;
+
+        private Named(List<String> keys) {
+            this.keys = keys;
+        }
+
+        public void leave() {
+            Map<String, Deque<String>> named = NAMED.get();
+            for (String key : keys) {
+                Deque<String> names = named.get(key);
+                if (names != null) {
+                    names.pollLast();
+                    if (names.isEmpty()) {
+                        named.remove(key);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Every call made from these lambdas, on this thread, is in the loop {@code name} until it leaves. */
+    public static Named enter(String name, Serializable... code) {
+        List<String> keys = new ArrayList<>();
+        for (Serializable c : code) {
+            try {
+                MethodRefs.Implementation impl = MethodRefs.implementation(c);
+                String key = impl.owner().replace('/', '.') + "#" + impl.name() + impl.descriptor();
+                NAMED.get().computeIfAbsent(key, k -> new ArrayDeque<>()).addLast(name);
+                keys.add(key);
+            } catch (RuntimeException e) {
+                // loops only draw the diagram; never fail a workflow over one
+            }
+        }
+        return new Named(keys);
+    }
+
+    /** The named loop a method runs in, if it is the body or condition of a running {@code doWhile}. */
+    private static List<String> named(Class<?> type, String method, String descriptor) {
+        Deque<String> names = NAMED.get().get(type.getName() + "#" + method + descriptor);
+        return names == null || names.isEmpty() ? List.of() : List.of(names.peekLast());
+    }
 
     /** The loops around the calling code, outermost first: through lambdas and helper methods. */
     public static List<String> here() {
@@ -55,7 +110,7 @@ public final class CodeLoops {
                     || TaskStubs.isStubClass(c)) {
                 return;
             }
-            List<String> inFrame = new ArrayList<>();
+            List<String> inFrame = new ArrayList<>(named(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor()));
             for (Loop loop : loopsOf(frame)) {
                 if (loop.first <= frame.getLineNumber() && frame.getLineNumber() <= loop.last) {
                     inFrame.add(loop.id);
@@ -68,7 +123,7 @@ public final class CodeLoops {
 
     /** The loops of a method around a line, outermost first. */
     public static List<String> around(Class<?> type, String method, String descriptor, int line) {
-        List<String> ids = new ArrayList<>();
+        List<String> ids = new ArrayList<>(named(type, method, descriptor));
         for (Loop loop : loopsOf(type, method, descriptor)) {
             if (loop.first <= line && line <= loop.last) {
                 ids.add(loop.id);

@@ -40,8 +40,7 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
 /**
  * Task classes as a workflow sees them. A workflow takes its task classes as constructor
  * parameters and gets a stub for each: a subclass whose {@code @WorkerTask} methods schedule the
- * task, as {@code Conductor.task(Tasks::method, ...)} does, instead of running the method. The
- * real objects run on the workers.
+ * task instead of running the method. The real objects run on the workers.
  */
 public final class TaskStubs {
 

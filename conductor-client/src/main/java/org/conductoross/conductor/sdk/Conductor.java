@@ -25,17 +25,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.conductoross.conductor.sdk.Functions.Fn0;
 import org.conductoross.conductor.sdk.Functions.Fn1;
-import org.conductoross.conductor.sdk.Functions.Fn2;
-import org.conductoross.conductor.sdk.Functions.Fn3;
-import org.conductoross.conductor.sdk.Functions.Fn4;
 import org.conductoross.conductor.sdk.Functions.Pred;
-import org.conductoross.conductor.sdk.Functions.Proc0;
-import org.conductoross.conductor.sdk.Functions.Proc1;
-import org.conductoross.conductor.sdk.Functions.Proc2;
-import org.conductoross.conductor.sdk.Functions.Proc3;
-import org.conductoross.conductor.sdk.Functions.Proc4;
+import org.conductoross.conductor.sdk.internal.CodeLoops;
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Conductors;
 import org.conductoross.conductor.sdk.internal.Engine;
@@ -50,19 +42,28 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 /**
  * Native workflows for Conductor.
  *
- * <p>Inside a {@link Workflow} method, the static methods of this class are the workflow's calls
- * to the server: each one becomes a task in the execution's graph. Everything else in the method
- * is ordinary Java. Import them statically:
+ * <p>Inside a {@link Workflow} method, a call to a {@code @WorkerTask} method of a task class the
+ * workflow takes in its constructor, and the static methods of this class, are the workflow's
+ * calls to the server: each one becomes a task in the execution's graph. Everything else in the
+ * method is ordinary Java. Import the static methods statically:
  *
  * <pre>{@code
  * import static org.conductoross.conductor.sdk.Conductor.*;
  *
- * @Workflow(name = "order", version = 1)
- * public OrderResult process(OrderRequest order) {
- *     Payment payment = task(PaymentTasks::charge, order.id(), order.total());
- *     if (payment.declined()) return OrderResult.declined();
- *     sleep(Duration.ofMinutes(5));
- *     return OrderResult.ok(payment);
+ * public class OrderWorkflow {
+ *     private final PaymentTasks payments; // a stub Conductor passes: its calls schedule the tasks
+ *
+ *     public OrderWorkflow(PaymentTasks payments) {
+ *         this.payments = payments;
+ *     }
+ *
+ *     @Workflow(name = "order", version = 1)
+ *     public OrderResult process(OrderRequest order) {
+ *         Payment payment = payments.charge(order.id(), order.total());
+ *         if (payment.declined()) return OrderResult.declined();
+ *         sleep(Duration.ofMinutes(5));
+ *         return OrderResult.ok(payment);
+ *     }
  * }
  * }</pre>
  *
@@ -90,48 +91,6 @@ public final class Conductor implements AutoCloseable {
 
     // ================================================================== workflow code
 
-    // ------------------------------------------------------------------ tasks by method reference
-
-    public static <T, R> R task(Fn0<T, R> task) {
-        return call(task);
-    }
-
-    public static <T, A, R> R task(Fn1<T, A, R> task, A a) {
-        return call(task, a);
-    }
-
-    public static <T, A, B, R> R task(Fn2<T, A, B, R> task, A a, B b) {
-        return call(task, a, b);
-    }
-
-    public static <T, A, B, C, R> R task(Fn3<T, A, B, C, R> task, A a, B b, C c) {
-        return call(task, a, b, c);
-    }
-
-    public static <T, A, B, C, D, R> R task(Fn4<T, A, B, C, D, R> task, A a, B b, C c, D d) {
-        return call(task, a, b, c, d);
-    }
-
-    public static <T> void task(Proc0<T> task) {
-        call(task);
-    }
-
-    public static <T, A> void task(Proc1<T, A> task, A a) {
-        call(task, a);
-    }
-
-    public static <T, A, B> void task(Proc2<T, A, B> task, A a, B b) {
-        call(task, a, b);
-    }
-
-    public static <T, A, B, C> void task(Proc3<T, A, B, C> task, A a, B b, C c) {
-        call(task, a, b, c);
-    }
-
-    public static <T, A, B, C, D> void task(Proc4<T, A, B, C, D> task, A a, B b, C c, D d) {
-        call(task, a, b, c, d);
-    }
-
     /**
      * A task stub: an instance of a class with {@code @WorkerTask} methods whose calls schedule
      * those tasks. Conductor passes one for each task-class parameter of a workflow's
@@ -149,11 +108,6 @@ public final class Conductor implements AutoCloseable {
     /** A task by name: for names known only at runtime, or tasks owned by another team. */
     public static TaskCall task(String name) {
         return new TaskCall(name);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R> R call(Serializable ref, Object... args) {
-        return (R) Engine.current().call(taskCommand(ref, args));
     }
 
     /** The command for a call to a {@code @WorkerTask} method. */
@@ -248,14 +202,14 @@ public final class Conductor implements AutoCloseable {
      *
      * <pre>{@code
      * switchOn("oddEvenDecision", stats.oddEven())
-     *     .when("0", () -> { task(Tasks::even); })
-     *     .when("1", () -> { task(Tasks::odd); })
+     *     .when("0", () -> { tasks.even(); })
+     *     .when("1", () -> { tasks.odd(); })
      *     .otherwise(() -> notes.add("unexpected"))
      *     .run();
      *
      * String carrier = switchOn("region", region)
-     *     .when("eu", () -> task(Tasks::euCarrier, item))
-     *     .otherwise(() -> task(Tasks::hold, item))
+     *     .when("eu", () -> tasks.euCarrier(item))
+     *     .otherwise(() -> tasks.hold(item))
      *     .get();
      * }</pre>
      *
@@ -363,26 +317,10 @@ public final class Conductor implements AutoCloseable {
 
     /**
      * Runs a task once per item, one after another, on the server (a DO_WHILE over the items),
-     * and returns the results in order. The code is woken once, when all items are done. The
-     * task method takes the item as its only parameter. For items in parallel, use {@link
-     * #fanOut}.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T, I, R> List<R> forEach(String name, List<I> items, Fn1<T, I, R> task) {
-        Command command = taskCommand(task, new Object[] {null});
-        String itemParameter = command.input.keySet().iterator().next();
-        command.input.clear();
-        return (List<R>) (List<?>) Engine.current().forEach(name, new ArrayList<>(items), command, itemParameter);
-    }
-
-    public static <T, I, R> List<R> forEach(List<I> items, Fn1<T, I, R> task) {
-        return forEach("for_each", items, task);
-    }
-
-    /**
-     * The same, naming the task through a stub, as the rest of the workflow calls it:
-     * {@code forEach("labels", items, tasks::labelItem)}. The stub is not called; the server runs
-     * the task once per item.
+     * and returns the results in order. The code is woken once, when all items are done. The task
+     * is named through a stub, as the rest of the workflow calls it: {@code forEach("labels",
+     * items, tasks::labelItem)}; the stub is not called. The task method takes the item as its
+     * only parameter. For items in parallel, use {@link #fanOut}.
      */
     @SuppressWarnings("unchecked")
     public static <I, R> List<R> forEach(String name, List<I> items, Functions.TaskOf<I, R> task) {
@@ -405,6 +343,35 @@ public final class Conductor implements AutoCloseable {
     @SuppressWarnings("unchecked")
     public static <T> T repeatUntil(Supplier<T> body, Pred<T> until, Backoff backoff) {
         return (T) Engine.current().repeatUntil(body, until, backoff);
+    }
+
+    /**
+     * A loop the execution shows as one, named: runs {@code body}, then runs it again while {@code
+     * condition} holds, as a Java {@code do}-{@code while} does. The body is ordinary workflow code:
+     * it may call tasks, branch, fork, start sub workflows and loop again, and each call wakes the
+     * code as usual. The execution diagram draws the calls as one loop named {@code name}, with a run
+     * for each pass, as it draws a plain Java loop, which is read from the compiled code; this one is
+     * named by the code instead.
+     *
+     * <pre>{@code
+     * doWhile("poll_shipment", () -> {
+     *     status = tasks.shipmentStatus(orderId);
+     *     if (!status.delivered()) {
+     *         sleep(Duration.ofHours(1));
+     *     }
+     * }, () -> !status.delivered());
+     * }</pre>
+     *
+     * For one task the server repeats on its own, waking the code once at the end, use {@link
+     * #forEach} or {@link #repeatUntil}.
+     */
+    public static void doWhile(String name, Functions.CaseAction body, Functions.Condition condition) {
+        CodeLoops.Named loop = CodeLoops.enter(name, body, condition);
+        do {
+            body.run();
+        } while (condition.getAsBoolean());
+        // not in a finally: when the body throws, the mark of where it threw is still in the loop
+        loop.leave();
     }
 
     /**
