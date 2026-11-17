@@ -18,6 +18,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.conductoross.conductor.sdk.Conductor;
@@ -85,6 +87,14 @@ public class Main {
         Execution e = Execution.of(conductor, tasksRun);
         check("tasks: a second call of a task is its own step", e.has("p_quote_2"), tasksRun);
         check("tasks: a reference name of your choosing", e.has("tax_check"), tasksRun);
+
+        // results as futures: two runs waited on together
+        WorkflowHandle<String> first = started(TaskCalls.class, conductor.start(TaskCalls::run, "eu"));
+        WorkflowHandle<String> second = started(TaskCalls.class, conductor.start(TaskCalls::run, "eu"));
+        CompletableFuture<String> a = first.resultAsync();
+        CompletableFuture<String> b = second.resultAsync();
+        CompletableFuture.allOf(a, b).orTimeout(WAIT.toSeconds(), TimeUnit.SECONDS).join();
+        check("futures: resultAsync completes with each run's result", "1250+125/10".equals(a.join()) && "1250+125/10".equals(b.join()), second);
 
         // ---------------------------------------------------------------- decisions
         for (SwitchCase.Order order : List.of(
@@ -162,6 +172,9 @@ public class Main {
         String reason = failure(fails);
         check("errors: WorkflowFailedException fails the run with its reason",
                 reason != null && reason.contains("declined: ok after 3"), fails);
+        Throwable failedAsync = fails.resultAsync().handle((result, error) -> error).join();
+        check("futures: resultAsync of a failed run completes with WorkflowFailedException",
+                failedAsync instanceof org.conductoross.conductor.sdk.WorkflowFailedException, fails);
 
         // ---------------------------------------------------------------- side effects
         WorkflowHandle<SideEffects.Seen> seen = started(SideEffects.class, conductor.start(SideEffects::run, "ord"));

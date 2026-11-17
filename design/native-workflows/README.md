@@ -210,8 +210,12 @@ cd order-service && ./mvnw -q compile exec:java
   builder, `ConductorClient.fromEnvironment()` (reads `CONDUCTOR_SERVER_URL` and
   `CONDUCTOR_AUTH_KEY`/`CONDUCTOR_AUTH_SECRET`, falling back to the local server), an Orkes
   `ApiClient` with keys, or the Spring bean. `conductor.workflows(...).tasks(...).start()` starts the workers,
-  `conductor.start(Cls::method, input)` starts an execution. Closing a `Conductor` stops its workers; the client
-  stays its creator's to shut down.
+  `conductor.start(Cls::method, input)` starts an execution and returns its `WorkflowHandle`: the
+  id, the UI link, signals, updates and queries, and the result, either blocking with
+  `result(timeout)` or as a `CompletableFuture` with `resultAsync()`, which completes with the
+  return value or with a `WorkflowFailedException`. One thread per `Conductor` checks every pending
+  future; cancelling one only stops waiting. Closing a `Conductor` stops its workers and cancels
+  the futures still waiting; the client stays its creator's to shut down.
 - A server that is down never fails the application. `start()` returns at once; the definitions
   are registered in the background, retried for as long as it takes with waits of 1, 2, 4...
   seconds up to a minute (randomised, so that many hosts do not retry in step), and each failed

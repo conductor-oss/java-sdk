@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.conductoross.conductor.sdk.Functions.Fn0;
 import org.conductoross.conductor.sdk.Functions.Fn1;
@@ -103,23 +104,58 @@ public final class WorkflowHandle<R> {
     }
 
     /** Waits for the execution to finish and returns its result. */
-    @SuppressWarnings("unchecked")
     public R result(Duration timeout) {
         long deadline = System.currentTimeMillis() + timeout.toMillis();
         while (true) {
             Map<String, Object> wf = execution(false);
-            String status = (String) wf.get("status");
-            if (TERMINAL.contains(status)) {
-                if ("COMPLETED".equals(status)) {
-                    return (R) Json.decodeOutput((Map<String, Object>) wf.get("output"), resultType);
-                }
-                throw new WorkflowFailedException(status + ": " + wf.get("reasonForIncompletion"));
+            if (TERMINAL.contains(wf.get("status"))) {
+                return outcome(wf);
             }
             if (System.currentTimeMillis() > deadline) {
-                throw new IllegalStateException("execution " + workflowId + " still " + status + " after " + timeout);
+                throw new IllegalStateException("execution " + workflowId + " still " + wf.get("status") + " after " + timeout);
             }
             sleep(250);
         }
+    }
+
+    /**
+     * The result as a future, completed when the execution finishes: with the workflow method's
+     * return value, or exceptionally with a {@link WorkflowFailedException}. For waiting on many
+     * executions at once, or composing with other futures:
+     *
+     * <pre>{@code
+     * CompletableFuture<Receipt> a = conductor.start(Order::process, first).resultAsync();
+     * CompletableFuture<Receipt> b = conductor.start(Order::process, second).resultAsync();
+     * CompletableFuture.allOf(a, b).orTimeout(2, TimeUnit.MINUTES).join();
+     * }</pre>
+     *
+     * One thread per {@link Conductor} checks every pending future, and a server that is
+     * restarting is waited out. Cancelling the future only stops waiting: the execution keeps
+     * running. Closing the Conductor cancels the futures still waiting.
+     */
+    public CompletableFuture<R> resultAsync() {
+        return conductor.whenFinished(() -> {
+            Map<String, Object> wf;
+            try {
+                wf = Http.getMap(conductor.client(), "/workflow/" + workflowId, Map.of("includeTasks", "false"));
+            } catch (RuntimeException e) {
+                if (isRefusal(e)) {
+                    throw e; // no such execution, for one: it will not finish
+                }
+                return null; // a restarting server: check again
+            }
+            return TERMINAL.contains(wf.get("status")) ? wf : null;
+        }, this::outcome);
+    }
+
+    /** The result of a finished execution, or the failure it ended with. */
+    @SuppressWarnings("unchecked")
+    private R outcome(Map<String, Object> wf) {
+        Object status = wf.get("status");
+        if ("COMPLETED".equals(status)) {
+            return (R) Json.decodeOutput((Map<String, Object>) wf.get("output"), resultType);
+        }
+        throw new WorkflowFailedException(status + ": " + wf.get("reasonForIncompletion"));
     }
 
     public String status() {

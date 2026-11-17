@@ -20,7 +20,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -464,6 +471,8 @@ public final class Conductor implements AutoCloseable {
 
     private final ConductorClient client;
     private final List<Workers> started = new ArrayList<>();
+    private final java.util.Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
+    private ScheduledExecutorService poller;
 
     private Conductor(ConductorClient client) {
         this.client = client;
@@ -552,10 +561,67 @@ public final class Conductor implements AutoCloseable {
         return new WorkflowHandle<>(this, workflowId, MethodRefs.resolve(workflow).getGenericReturnType());
     }
 
-    /** Stops the workers this instance started. The client is left running: it is its creator's. */
+    /**
+     * Stops the workers this instance started and cancels the result futures still waiting. The
+     * client is left running: it is its creator's.
+     */
     @Override
     public void close() {
         started.forEach(Workers::shutdown);
+        List.copyOf(waiting).forEach(future -> future.cancel(false));
+        synchronized (this) {
+            if (poller != null) {
+                poller.shutdownNow();
+            }
+        }
+    }
+
+    /**
+     * A future of an execution's outcome: {@code check} runs every 250 ms on this instance's one
+     * polling thread and returns the execution once it has finished (null until then), and {@code
+     * outcome} turns it into the result or throws. The future completes on the common pool, so a
+     * dependent stage cannot hold up the polling of other executions; cancelling it stops the
+     * checks.
+     */
+    <R> CompletableFuture<R> whenFinished(Supplier<Map<String, Object>> check, Function<Map<String, Object>, R> outcome) {
+        CompletableFuture<R> future = new CompletableFuture<>();
+        AtomicBoolean settled = new AtomicBoolean();
+        Runnable tick = () -> {
+            if (future.isDone() || settled.get()) {
+                return;
+            }
+            Runnable complete;
+            try {
+                Map<String, Object> execution = check.get();
+                if (execution == null) {
+                    return;
+                }
+                R result = outcome.apply(execution);
+                complete = () -> future.complete(result);
+            } catch (RuntimeException e) {
+                complete = () -> future.completeExceptionally(e);
+            }
+            settled.set(true);
+            ForkJoinPool.commonPool().execute(complete);
+        };
+        ScheduledFuture<?> checks = poller().scheduleWithFixedDelay(tick, 0, 250, TimeUnit.MILLISECONDS);
+        waiting.add(future);
+        future.whenComplete((result, error) -> {
+            checks.cancel(false);
+            waiting.remove(future);
+        });
+        return future;
+    }
+
+    private synchronized ScheduledExecutorService poller() {
+        if (poller == null) {
+            poller = Executors.newSingleThreadScheduledExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "conductor-results");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+        return poller;
     }
 
     /** Options for starting an execution. */
