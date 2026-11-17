@@ -45,7 +45,8 @@ public final class KitchenSinkModel {
             int toolCount,
             String weather,
             String agentReply,
-            List<String> composed) {}
+            List<String> composed,
+            List<String> constructs) {}
 
     // activity inputs / outputs
     public record Stats(int mod, String oddEven) {}

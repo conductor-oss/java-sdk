@@ -181,6 +181,17 @@ public class Main {
         check("composition: an if outside every loop is not tagged", loopsOf(conductor, run.workflowId(), "if_odd").isEmpty());
         check("composition: a join waits for a lane started inside a switch case",
                 startOf(conductor, run.workflowId(), "after_outer_join") >= endOf(conductor, run.workflowId(), "slow_step"));
+        List<String> constructs = List.of(input.mod() > 3 ? "tier-high" : "tier-low",
+                "1".equals(input.oddEven()) ? "size-odd" : "size-even", "LABEL[round-1]", "LABEL[round-2]",
+                "LABEL[s1]", "LABEL[s2]", "repeat-done", "LABEL[f1]", "LABEL[f2]", "rolled", "has id");
+        check("Conductor's constructs returned their results, in order: " + result.constructs(), constructs.equals(result.constructs()));
+        check("constructs: switchOn is a SWITCH with the name given",
+                (input.mod() > 3 ? "high" : "low").equals(caseTaken(conductor, run.workflowId(), "tier")));
+        check("constructs: doWhile tags both passes of its body with the loop's name",
+                taggedWith(conductor, run.workflowId(), "label_rounds") == 2);
+        check("constructs: forEach and repeatUntil are loops the server runs",
+                "DO_WHILE".equals(taskNamed(conductor, run.workflowId(), "server_labels").get("taskType"))
+                        && "DO_WHILE".equals(taskNamed(conductor, run.workflowId(), "poll").get("taskType")));
         long httpAttempts = attempts(conductor, run.workflowId(), "get_es_1");
         check("the HTTP call was retried three times before its failure reached the code (" + httpAttempts + " attempts)", httpAttempts == 4);
 
@@ -215,6 +226,20 @@ public class Main {
         Map<String, Object> entry = (Map<String, Object>) taskNamed(conductor, workflowId, ref).get("workflowTask");
         Object loops = ((Map<String, Object>) entry.get("metadata")).get("loops");
         return loops == null ? List.of() : (List<String>) loops;
+    }
+
+    /** How many tasks are tagged with the given loop. */
+    @SuppressWarnings("unchecked")
+    private static long taggedWith(Conductor conductor, String workflowId, String loop) {
+        Map<String, Object> wf = conductor.client().execute(
+                ConductorClientRequest.builder().method(ConductorClientRequest.Method.GET).path("/workflow/" + workflowId)
+                        .addQueryParam("includeTasks", true).build(),
+                new TypeReference<Map<String, Object>>() {}).getData();
+        return ((List<Map<String, Object>>) wf.get("tasks")).stream()
+                .map(t -> (Map<String, Object>) t.get("workflowTask"))
+                .filter(e -> e != null && e.get("metadata") instanceof Map<?, ?> m && m.get("loops") instanceof List<?> loops
+                        && loops.contains(loop))
+                .count();
     }
 
     private static long startOf(Conductor conductor, String workflowId, String ref) {

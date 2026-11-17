@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.conductoross.conductor.sdk.AgentCall;
+import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.McpCall;
 import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Query;
@@ -52,8 +53,10 @@ import static org.conductoross.conductor.sdk.Conductor.async;
 import static org.conductoross.conductor.sdk.Conductor.awaitCondition;
 import static org.conductoross.conductor.sdk.Conductor.awaitExternal;
 import static org.conductoross.conductor.sdk.Conductor.child;
+import static org.conductoross.conductor.sdk.Conductor.doWhile;
 import static org.conductoross.conductor.sdk.Conductor.event;
 import static org.conductoross.conductor.sdk.Conductor.fanOut;
+import static org.conductoross.conductor.sdk.Conductor.forEach;
 import static org.conductoross.conductor.sdk.Conductor.http;
 import static org.conductoross.conductor.sdk.Conductor.human;
 import static org.conductoross.conductor.sdk.Conductor.join;
@@ -61,10 +64,14 @@ import static org.conductoross.conductor.sdk.Conductor.llm;
 import static org.conductoross.conductor.sdk.Conductor.mcp;
 import static org.conductoross.conductor.sdk.Conductor.now;
 import static org.conductoross.conductor.sdk.Conductor.once;
+import static org.conductoross.conductor.sdk.Conductor.random;
+import static org.conductoross.conductor.sdk.Conductor.repeatUntil;
 import static org.conductoross.conductor.sdk.Conductor.sleep;
 import static org.conductoross.conductor.sdk.Conductor.sleepUntil;
 import static org.conductoross.conductor.sdk.Conductor.startWorkflow;
+import static org.conductoross.conductor.sdk.Conductor.switchOn;
 import static org.conductoross.conductor.sdk.Conductor.task;
+import static org.conductoross.conductor.sdk.Conductor.workflowId;
 
 /**
  * The kitchensink workflow, written as code. A plain class: the @Workflow method is the workflow,
@@ -79,6 +86,9 @@ import static org.conductoross.conductor.sdk.Conductor.task;
  * Section 3 covers iteration, timers until an instant, MCP and A2A agents.
  * Section 4 composes the constructs inside each other: nested ifs and switches, ifs and forks in
  * loops, loops and sub workflows in forks, lanes started inside an if.
+ * Section 5 uses Conductor's own constructs for the same ideas: switchOn, doWhile, the loops the
+ * server runs (forEach, repeatUntil), fanOut named after its call site, a workflow started by name,
+ * random() and workflowId().
  *
  * The one sentence: every static call imported from Conductor goes to the server and shows in the
  * graph; everything else is just Java.
@@ -87,13 +97,17 @@ import static org.conductoross.conductor.sdk.Conductor.task;
  *   task("name")...                  the same, when the name is only known at runtime
  *   if / switch                      a SWITCH when its arms call the server: every arm shows, and the
  *                                    one taken; named after what it decides on (if_odd, switch_lane)
+ *   switchOn(name, value)            the same, named by the code
  *   for / while / do-while           plain loops; the diagram draws a loop around the calls inside
+ *   doWhile(name, body, condition)   the same, named by the code
+ *   forEach, repeatUntil             loops the server runs: a DO_WHILE, the code wakes once
  *   async, fanOut, child, sleep,     server-side tasks: FORK_JOIN, FORK_JOIN_DYNAMIC, SUB_WORKFLOW, WAIT,
  *   http, human, ...                 HTTP, HUMAN, EVENT, START_WORKFLOW, LLM_*
  *   once(name, () -> ...)            Java executed here, once, with the result recorded on the execution
+ *   now(), random(), workflowId()    the same for the time, a random number and this run's id
  *   everything else                  plain Java, invisible to the server
  *
- * Conductor's own switchOn, forEach and repeatUntil are in the switches and operator examples.
+ * One workflow per construct, each with its alternatives, is in the primitives package.
  *
  * Three rules:
  *   1. anything non-deterministic or with a side effect that is not a task goes through once(), now()
@@ -448,6 +462,52 @@ public class KitchenSinkWorkflow {
             }
         }
 
+        // ---------------------------------------------------------------- section 5: Conductor's own constructs
+        // The same ideas as plain Java above, as calls: a name you choose, or a loop the server runs.
+        stage = "constructs";
+        List<String> constructs = new ArrayList<>();
+
+        // switchOn: a switch named by the code, here yielding a value. Its taken case runs as written;
+        // only the previews of the others come from reading the code.
+        String tier = switchOn("tier", input.mod() > 3 ? "high" : "low")
+                .when("high", () -> tasks.step("tier-high"))
+                .when("low", () -> tasks.step("tier-low"))
+                .otherwise(() -> tasks.step("tier-other"))
+                .get();
+        constructs.add(tier);
+
+        // a switch expression: each arm yields what its task returned (switch_lane, or switch_lane_2
+        // on the even path, where section 4 already has a switch_lane)
+        String size = switch (lane) {
+            case "1" -> tasks.step("size-odd");
+            default -> tasks.step("size-even");
+        };
+        constructs.add(size);
+
+        // doWhile: a loop the code runs, named label_rounds in the diagram; the body runs at least once
+        List<String> rounds = new ArrayList<>();
+        doWhile("label_rounds", () -> rounds.add(tasks.labelItem("round-" + (rounds.size() + 1))), () -> rounds.size() < 2);
+        constructs.addAll(rounds);
+
+        // forEach: the server runs label_item once per item (a DO_WHILE); the code wakes once
+        constructs.addAll(forEach("server_labels", List.of("s1", "s2"), tasks::labelItem));
+
+        // repeatUntil: the server polls check_status until it reports done, waiting between checks
+        JobStatus repeated = repeatUntil(() -> tasks.checkStatus(runId + "-repeat"), JobStatus::done,
+                Backoff.every(Duration.ofSeconds(1)).attempts(10));
+        constructs.add(repeated.done() ? "repeat-done" : "repeat-not-done");
+
+        // fanOut named after its call site (fanout), one lane per item
+        constructs.addAll(fanOut(List.of("f1", "f2"), item -> tasks.labelItem(item)).get());
+
+        // a child by name: any registered workflow, written in code or JSON (start_sub_flow_1_2)
+        startWorkflow("sub_flow_1", 1, Map.of("mod", input.mod(), "oddEven", lane));
+
+        // random() and workflowId(): recorded like now(), the same on every re-run
+        double roll = random();
+        constructs.add(roll >= 0 && roll < 1 ? "rolled" : "bad roll");
+        constructs.add(workflowId().isEmpty() ? "no id" : "has id");
+
         stage = "done";
         return new KitchenSinkResult(
                 runId,
@@ -464,6 +524,7 @@ public class KitchenSinkWorkflow {
                 tools.size(),
                 weather.text(),
                 reply.text(),
-                composed);
+                composed,
+                constructs);
     }
 }
