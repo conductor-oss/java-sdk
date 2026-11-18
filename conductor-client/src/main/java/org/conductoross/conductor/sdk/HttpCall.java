@@ -80,12 +80,14 @@ public final class HttpCall {
     }
 
     private Object run(Class<?> type) {
+        Map<String, Object> sent = new LinkedHashMap<>(request);
         if (!headers.isEmpty()) {
-            request.put("headers", headers);
+            sent.put("headers", new LinkedHashMap<>(headers));
         }
-        command.input.put("http_request", request);
-        command.resultType = type;
-        return Engine.current().call(command);
+        Command c = command.copy();
+        c.input.put("http_request", sent);
+        c.resultType = type;
+        return Engine.current().call(c);
     }
 
     public <T> T as(Class<T> type) {

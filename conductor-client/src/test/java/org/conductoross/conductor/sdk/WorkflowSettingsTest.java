@@ -73,7 +73,7 @@ class WorkflowSettingsTest {
         try {
             return host.workflowRunner().getTaskThreadCount();
         } finally {
-            host.shutdown();
+            host.close();
         }
     }
 

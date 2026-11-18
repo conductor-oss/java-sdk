@@ -141,15 +141,15 @@ class CodeReaderTest {
 
         @Workflow(name = "fans")
         public String fans(String x) {
-            fanOut("spread", List.of("a"), i -> TASKS.ship(i)).get();
+            fanOut("spread", List.of("a"), i -> TASKS.ship(i));
             return "done";
         }
 
         @Workflow(name = "joined_at_once")
         public String joinedAtOnce(String x) {
-            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> TASKS.ship(x));
+            java.util.concurrent.Future<String> p = Conductor.async(() -> TASKS.ship(x));
             Conductor.join(p);
-            return p.get();
+            return p.resultNow();
         }
 
         @Workflow(name = "never_joined")
@@ -160,10 +160,10 @@ class CodeReaderTest {
 
         @Workflow(name = "joined_later")
         public String joinedLater(String x) {
-            org.conductoross.conductor.sdk.Promise<String> p = Conductor.async(() -> TASKS.ship(x));
+            java.util.concurrent.Future<String> p = Conductor.async(() -> TASKS.ship(x));
             TASKS.tell(x);
             Conductor.join(p);
-            return p.get();
+            return p.resultNow();
         }
 
         @Workflow(name = "registers")

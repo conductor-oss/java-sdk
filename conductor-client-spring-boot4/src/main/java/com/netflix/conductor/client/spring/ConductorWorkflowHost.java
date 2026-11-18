@@ -92,7 +92,7 @@ public class ConductorWorkflowHost implements SmartLifecycle {
         Workers w = workers;
         workers = null;
         if (w != null) {
-            w.shutdown();
+            w.close();
         }
     }
 
@@ -102,7 +102,7 @@ public class ConductorWorkflowHost implements SmartLifecycle {
     }
 
     private <T> void host(Workers w, Class<T> type) {
-        w.workflow(type, () -> {
+        w.workflows(type, () -> {
             // task classes come as stubs, so their calls schedule tasks; anything else from the context
             T workflow = TaskStubs.newWorkflow(type,
                     p -> beanFactory.resolveDependency(new DependencyDescriptor(MethodParameter.forParameter(p), true), null));

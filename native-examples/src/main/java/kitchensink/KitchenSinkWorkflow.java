@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 import org.conductoross.conductor.sdk.AgentCall;
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.McpCall;
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Query;
 import org.conductoross.conductor.sdk.Signal;
 import org.conductoross.conductor.sdk.TaskFailure;
@@ -51,10 +51,10 @@ import kitchensink.KitchenSinkModel.Summary;
 import static org.conductoross.conductor.sdk.Conductor.agent;
 import static org.conductoross.conductor.sdk.Conductor.async;
 import static org.conductoross.conductor.sdk.Conductor.awaitCondition;
-import static org.conductoross.conductor.sdk.Conductor.awaitExternal;
 import static org.conductoross.conductor.sdk.Conductor.child;
 import static org.conductoross.conductor.sdk.Conductor.doWhile;
 import static org.conductoross.conductor.sdk.Conductor.event;
+import static org.conductoross.conductor.sdk.Conductor.external;
 import static org.conductoross.conductor.sdk.Conductor.fanOut;
 import static org.conductoross.conductor.sdk.Conductor.forEach;
 import static org.conductoross.conductor.sdk.Conductor.http;
@@ -191,23 +191,23 @@ public class KitchenSinkWorkflow {
                 // A case may make several calls; fanOut runs in stages, one dynamic fork per stage.
                 FanoutPlan plan = tasks.task4(oddEven);
                 List<Map<String, Object>> results = fanOut("fanout1", plan.tasks(),
-                        t -> task(t.name()).input(t.input()).asMap()).get();
+                        t -> task(t.name()).input(t.input()).asMap());
                 notes.add("fanned out " + results.size() + " tasks");
             }
             case "1" -> {
                 // forkx + join2 (FORK_JOIN + JOIN). Each async block is a branch that runs on its own:
                 // the first child starts the moment task_10 finishes, whatever task_11 is doing.
                 // (Child refs derive as sub_flow_1 and sub_flow_1_2; the JSON calls them wf3 and wf4.)
-                Promise<SubFlowResult> wf3 = async(() -> {
+                Future<SubFlowResult> wf3 = async(() -> {
                     tasks.task10();
                     return child(SubFlow::run, new SubFlowInput(stats.mod(), stats.oddEven()));
                 });
-                Promise<SubFlowResult> wf4 = async(() -> {
+                Future<SubFlowResult> wf4 = async(() -> {
                     tasks.task11();
                     return child(SubFlow::run, new SubFlowInput(stats.mod(), stats.oddEven()));
                 });
                 join(wf3, wf4);
-                notes.add("sub flows: " + wf3.get().task6() + " / " + wf4.get().task6());
+                notes.add("sub flows: " + wf3.resultNow().task6() + " / " + wf4.resultNow().task6());
             }
             default -> throw new WorkflowFailedException("unexpected oddEven: " + oddEven.oddEven());
         }
@@ -271,8 +271,8 @@ public class KitchenSinkWorkflow {
 
         // External callback: a WAIT that any system completes with
         //   POST /api/tasks/{workflowId}/callback/COMPLETED   {"payload": "..."}
-        Optional<Callback> callback = awaitExternal("callback", Callback.class)
-                .await(Duration.ofHours(1));
+        Optional<Callback> callback = external("callback")
+                .await(Callback.class, Duration.ofHours(1));
 
         // Wait for something a handler changes. Handlers mutate variables, this re-checks them.
         boolean enoughNotes = awaitCondition(() -> cancelled || notes.size() >= 5, Duration.ofMinutes(10));
@@ -353,7 +353,7 @@ public class KitchenSinkWorkflow {
         for (int round = 1; round <= 2; round++) {
             String name = "r" + round;
             boolean first = round == 1;
-            Promise<String> left = async(() -> {
+            Future<String> left = async(() -> {
                 String picked;
                 if (first) {
                     picked = tasks.step(name + "-first");
@@ -362,21 +362,21 @@ public class KitchenSinkWorkflow {
                 }
                 return picked;
             });
-            Promise<String> right = async(() -> tasks.step(name + "-right"));
+            Future<String> right = async(() -> tasks.step(name + "-right"));
             join(left, right);
-            composed.add(left.get());
-            composed.add(right.get());
+            composed.add(left.resultNow());
+            composed.add(right.resultNow());
         }
 
         // fork -> loop: a loop in each branch, each lane running its own.
-        Promise<List<String>> labelLoop = async(() -> {
+        Future<List<String>> labelLoop = async(() -> {
             List<String> labelled = new ArrayList<>();
             for (String item : List.of("x", "y")) {
                 labelled.add(tasks.labelItem(item));
             }
             return labelled;
         });
-        Promise<String> codeLoop = async(() -> {
+        Future<String> codeLoop = async(() -> {
             String last = "";
             for (int i = 1; i <= 2; i++) {
                 last = tasks.step("code-loop-" + i);
@@ -384,13 +384,13 @@ public class KitchenSinkWorkflow {
             return last;
         });
         join(labelLoop, codeLoop);
-        composed.addAll(labelLoop.get());
-        composed.add(codeLoop.get());
+        composed.addAll(labelLoop.resultNow());
+        composed.add(codeLoop.resultNow());
 
         // fork -> sub workflow -> join: a child next to a branch with a switch and a task after it.
         SubFlowInput childInput = new SubFlowInput(input.mod(), lane);
-        Promise<SubFlowResult> childLane = async(() -> child(SubFlow::run, childInput));
-        Promise<String> beside = async(() -> {
+        Future<SubFlowResult> childLane = async(() -> child(SubFlow::run, childInput));
+        Future<String> beside = async(() -> {
             String picked;
             String side = childInput.oddEven();
             switch (side) {
@@ -400,20 +400,20 @@ public class KitchenSinkWorkflow {
             return tasks.step(picked + "-then");
         });
         join(childLane, beside);
-        composed.add(beside.get());
+        composed.add(beside.resultNow());
 
         // if -> fork: a lane started inside an arm, and joined after the if.
-        Promise<String> fromArm;
+        Future<String> fromArm;
         if (lane.equals("1")) {
             fromArm = async(() -> tasks.step("case-lane-odd"));
         } else {
             fromArm = async(() -> tasks.step("case-lane-even"));
         }
-        composed.add(fromArm.get());
+        join(fromArm); composed.add(fromArm.resultNow()); // waits here, as get() would
 
         // fork -> if -> fork: a lane starts another inside an if and does not join it.
         // Joining the outer lane still waits for the inner one, and its slow task.
-        Promise<String> outerLane = async(() -> {
+        Future<String> outerLane = async(() -> {
             boolean startInner = input.mod() >= 0;
             if (startInner) {
                 async(() -> tasks.slowStep("inner-lane"));
@@ -423,14 +423,14 @@ public class KitchenSinkWorkflow {
             return tasks.step("after-case");
         });
         join(outerLane);
-        composed.add(task("step").ref("after_outer_join").input("label", outerLane.get()).as(String.class));
+        composed.add(task("step").ref("after_outer_join").input("label", outerLane.resultNow()).as(String.class));
 
         // loop -> if -> fork -> (sub workflow, polling loop) -> join: everything at once.
         for (int depth = 1; depth <= 2; depth++) {
             String result;
             if (depth == 1) {
-                Promise<SubFlowResult> deepChild = async(() -> child(SubFlow::run, childInput));
-                Promise<JobStatus> polled = async(() -> {
+                Future<SubFlowResult> deepChild = async(() -> child(SubFlow::run, childInput));
+                Future<JobStatus> polled = async(() -> {
                     JobStatus deep = tasks.checkStatus(runId + "-deep");
                     while (!deep.done()) {
                         sleep(Duration.ofSeconds(1));
@@ -439,7 +439,7 @@ public class KitchenSinkWorkflow {
                     return deep;
                 });
                 join(deepChild, polled);
-                result = polled.get().done() ? "deep-done" : "deep-not-done";
+                result = polled.resultNow().done() ? "deep-done" : "deep-not-done";
             } else {
                 List<String> items = new ArrayList<>();
                 for (String item : List.of("p", "q")) {
@@ -498,7 +498,7 @@ public class KitchenSinkWorkflow {
         constructs.add(repeated.done() ? "repeat-done" : "repeat-not-done");
 
         // fanOut named after its call site (fanout), one lane per item
-        constructs.addAll(fanOut(List.of("f1", "f2"), item -> tasks.labelItem(item)).get());
+        constructs.addAll(fanOut(List.of("f1", "f2"), item -> tasks.labelItem(item)));
 
         // a child by name: any registered workflow, written in code or JSON (start_sub_flow_1_2)
         startWorkflow("sub_flow_1", 1, Map.of("mod", input.mod(), "oddEven", lane));

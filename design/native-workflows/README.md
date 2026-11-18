@@ -30,7 +30,7 @@ class or task method fails with a clear message. A real task object in the workf
 methods inside the workflow on every replay, so it is rejected: a field holding one fails when the
 workflow is created, and `new` of a task class in workflow code fails when the code is read.
 Outside Spring a workflow constructor may take only task classes; anything else needs
-`conductor.workflow(Type.class, factory)`, whose factory gets the task stubs from
+`conductor.workflows(Type.class, factory)`, whose factory gets the task stubs from
 `Conductor.stub(OrderTasks.class)`. In Spring other parameters are injected.
 
 **The one sentence:** every static call imported from `Conductor` goes to the server and shows in
@@ -48,6 +48,9 @@ the graph; everything else is just Java.
 | `native-examples/src/main/java/primitives/` | one workflow per construct, each file showing its alternatives side by side: `TaskCalls` (stub, by name), `SwitchCase` (`if`, `switch` over strings, ints and enums, switch expressions, `switchOn`), `Loops` (`for`, for-each, `while`, `do`-`while`, `doWhile`, `forEach`, `repeatUntil`), `Parallel` (`async`, `join`, `fanOut`), `SubWorkflows` (`child`, `startWorkflow`), `Timers` (`sleep`, `sleepUntil`, `awaitCondition`, `@Schedule`), `Messages` (`@Variable`, `@Signal`, `@Update`, `@Query`), `Errors` (retries, `TaskFailure`, compensation, failing the run), `SideEffects` (`once`, `now`, `random`, `workflowId`), `SystemTasks` (HTTP, event, human, external wait, LLM, MCP, agent); `primitives.Main` runs them all against a server, checks each result and the execution, and replays each execution against its code |
 | `native-examples/src/main/java/conformance/Conformance.java` | 160 scenarios against a server, each with an expected result and graph; exits non-zero on any failure |
 | `native-examples/src/main/java/loops/LoopShapes.java` | each loop shape written twice, in plain Java and with its construct: `do`-`while` and `doWhile`, `for (;;)` with a break and `doWhile`, for-each and `forEach`, a polling `while` and `repeatUntil`; checks the result against a server |
+| `native-examples/src/main/java/agents/SupportTicket.java` | an agentic customer-service ticket: a model (LLM_CHAT_COMPLETE) reads the ticket and answers, as a typed `Routing` record, which team should take it; a `switchOn` on that team hands the ticket to the team's agent (AGENT over A2A), or to a person (HUMAN) when no team fits; a second model call drafts the customer's reply. Runs against the stub's chat model through the server's LiteLLM provider (`--conductor.ai.litellm.baseURL=http://localhost:8765`); `SupportTicketTest` runs it in process with stubbed answers |
+| `native-examples/src/main/java/agents/SupportDesk.java` | the same for an inbox of tickets, all at once: `fanOut` over the tickets, each handled by `SupportTicket`'s code |
+| `native-examples/src/main/java/agents/Agents.java` | AI agents through AGENT tasks against the stub A2A agent (`native-examples/stubs/ai_stub.py`): two long-running agents started in `async` lanes while the workflow goes on, one polled (`pollInterval`) and one calling back (`pushNotifications`, which needs `conductor.a2a.callback.url`), joined at the end; a conversation (`agent(ref)` is the conversation; each `ask` continues it), a header, structured output in an artifact, an agent that asks for input answered by a person, and a failing agent caught as `TaskFailure`; checks the result and the execution against a server |
 | `native-examples/src/main/java/switches/Switches.java` | `switchOn` edge cases against a server: a case with tasks, a nested switch, an empty case, the default case, and a value no case handles (the workflow fails) |
 | `native-examples/src/main/java/failures/Failures.java` | an unchecked exception from workflow code: thrown by the workflow method it fails the workflow with the exception as the reason; thrown in an `async` lane nothing joins, the workflow completes and the exception is in the log of the task the lane ran last |
 | `native-examples/src/test/java/kitchensink/KitchenSinkTest.java` | unit tests with a mocked task class and the in-memory environment, plus a replay test |
@@ -62,7 +65,7 @@ the graph; everything else is just Java.
 | inherited methods | static methods on `Conductor`, normally static-imported so calls read bare | no base class to occupy the inheritance slot |
 | all fields durable, `transient` opts out | `@Variable` fields are workflow variables; other fields are ordinary | a service class has injected clients and caches; those must never be persisted, and `@Variable` maps to `workflow.variables` by name |
 | `run(name, () -> ...)` | `once(name, () -> ...)` | `run` collided with the natural name for a workflow method |
-| generics on the workflow class | generics only where Java infers them: `Promise<T>`, `WorkflowHandle<R>`, `Optional<T>` | erasure never matters because the runtime takes every type from the referenced method, not from a type parameter |
+| generics on the workflow class | generics only where Java infers them: `Future<T>`, `WorkflowHandle<R>`, `Optional<T>` | erasure never matters because the runtime takes every type from the referenced method, not from a type parameter |
 | `switchOn(...)` for a decision the graph should show; a plain `if` or `switch` left no trace | a plain `if` or `switch` whose arms call the server is a SWITCH with every arm, read from the compiled code; `switchOn` stays for a name and keys of your choosing | workflow code reads as ordinary Java, and the graph still shows every branch and which one was taken |
 
 ## How it reads
@@ -85,10 +88,10 @@ public class OrderService {
 
     @Workflow(name = "order", version = 1)
     public OrderResult processOrder(OrderRequest order) {
-        Promise<FraudResult> fraud = async(() -> http("fraud").post(FRAUD_URL).body(order).as(FraudResult.class));
-        Promise<List<Reservation>> reserved = fanOut(order.items(), item -> inventory.reserve(item));
-        join(fraud, reserved);
-        if (fraud.get().flagged()) return OrderResult.rejected();
+        Future<FraudResult> fraud = async(() -> http("fraud").post(FRAUD_URL).body(order).as(FraudResult.class));
+        List<Reservation> reserved = fanOut(order.items(), item -> inventory.reserve(item));
+        join(fraud);
+        if (fraud.resultNow().flagged()) return OrderResult.rejected();
 
         Payment payment = switch (order.paymentMethod()) {
             case CARD    -> payments.chargeCard(order);
@@ -142,8 +145,8 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | an `if` or `switch` whose arms call the server | SWITCH named after what it decides on (`if_flagged`, `switch_paymentMethod`; `native-code` on `switchCaseValue`). An `if` has the case `true` and its else as the default case; a `switch` has a case per arm, keyed by its labels (`CARD`, `odd`, `even,zero`), and `default`. The arm taken holds the calls it made; the others show what they would call, as previews. Read from the compiled code; see Plain ifs and switches | never by itself; the arm's calls wake the code as usual |
 | a Java `for`, `while` or `do`-`while` | ordinary code, so it may hold ifs, switches, forks, sub workflows and other loops. There is no `DO_WHILE` task: the compiled method says which lines a loop covers, each step is tagged with the loops around it in `metadata.loops`, and the execution diagram draws those steps as one loop | at each call inside it |
 | `doWhile(name, () -> { ... }, () -> condition)` | the same as a Java `do`-`while`, named by the code instead of read from the compiled method: its body runs, then again while the condition holds, as ordinary code; every step made from the body or the condition is tagged with `name` in `metadata.loops` (inside the loops around the call), so the execution diagram draws them as one loop named `name`, also for code whose loops cannot be read. A Java loop or another `doWhile` inside the body nests | at each call inside it |
-| `async(() -> ...)`, `join(p1, p2)`, `Promise.get()` | FORK_JOIN + JOIN, one branch per async block that calls the server, each with its own continuation points; a block that returns without a server call is plain Java. `async` does not wait: lanes still running at the next durable call get a JOIN that completes at once, and a later `join` or `get` adds a JOIN naming those lanes. It works inside another `async` block, and a join waits for what the lane started | each branch when its own task completes |
-| `fanOut(items, item -> ...)` | FORK_JOIN with one branch per item + JOIN; drawn as FORK_JOIN_DYNAMIC + JOIN in an untaken case or the registered definition, where the items are not known | once |
+| `async(() -> ...)` returning a `java.util.concurrent.Future`, `join(f1, f2)` then `resultNow()`, or `Future.get()` | FORK_JOIN + JOIN, one branch per async block that calls the server, each with its own continuation points; a block that returns without a server call is plain Java. `async` does not wait: lanes still running at the next durable call get a JOIN that completes at once, and a later `join` or `get` adds a JOIN naming those lanes. It works inside another `async` block, and a join waits for what the lane started | each branch when its own task completes |
+| `fanOut(items, item -> ...)`, returning the `List` of results once every item is done | FORK_JOIN with one branch per item + JOIN; drawn as FORK_JOIN_DYNAMIC + JOIN in an untaken case or the registered definition, where the items are not known | once |
 | `child(Other::method, input)` / `childAsync(...)` | SUB_WORKFLOW, typed by the referenced `@Workflow` method | when the child completes |
 | `startWorkflow(name, version, input)` / `startWorkflow(Other::method, input)` | START_WORKFLOW | never (fire and forget); a failure shows in the UI only |
 | `sleep(duration)` | WAIT with duration | when the timer fires |
@@ -152,7 +155,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `forEach(name, items, tasks::method)` on a task stub | DO_WHILE over `items`, one task per item, one after another; the method takes the item as its only parameter; the stub is not called | once, when every item is done |
 | `mcp(ref).server(url).listTools()` / `.call(tool, args)` | LIST_MCP_TOOLS / CALL_MCP_TOOL, run by the server's MCP client; retried like HTTP (`.retries(count, delay)`) | when the call completes |
 | `agent(ref).remote(cardUrl).ask(text)` / `agent(ref).conductor(name, version).ask(text)` | AGENT: an A2A call to a remote agent (an agent card URL is discovered), or a Conductor agent | when the agent replies |
-| `awaitExternal(ref, T).await(timeout)` | WAIT completed by `POST /api/tasks/{workflowId}/{ref}/COMPLETED` | when completed or timed out |
+| `external(ref).await(T.class, timeout)` | WAIT completed by `POST /api/tasks/{workflowId}/{ref}/COMPLETED` | when completed or timed out |
 | `awaitCondition(() -> ..., timeout)` | WAIT completed by the handler lane | when the condition holds or times out |
 | `human(ref)...await(T, timeout)` | HUMAN with a retry-style timeout policy, so a timeout is an empty result, not a failed workflow | when answered or timed out |
 | `http(ref).get/post(...).as(T)` / `.asJson()` | HTTP | when the call completes |
@@ -350,7 +353,7 @@ holds the continuation's progress while the entry keeps saying which one it is. 
 scheduled since its last pause is sent as the completion of its previous continuation, and the
 server appends it right after the task that lane last paused on: at the top level, inside a fork
 branch, or inside a switch case. An execution holds exactly the tasks the code called. Lanes never
-wait for each other except at `join` and `Promise.get()`.
+wait for each other except at `join` and `Future.get()`.
 
 **Switches.** `switchOn` emits the SWITCH entry with every declared case (`Replayer.Lane.switchOn`)
 and then runs the taken case's body inline, with the lane's output redirected into that case's

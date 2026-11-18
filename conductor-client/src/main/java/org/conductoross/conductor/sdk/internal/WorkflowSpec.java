@@ -98,6 +98,13 @@ public final class WorkflowSpec {
     }
 
     /** All @Workflow methods of a class. */
+    private static final java.util.Map<Method, WorkflowSpec> BY_METHOD = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The spec of a {@code @Workflow} method, made once per method. */
+    public static WorkflowSpec forMethod(Method method) {
+        return BY_METHOD.computeIfAbsent(method, WorkflowSpec::of);
+    }
+
     public static List<WorkflowSpec> of(Class<?> type) {
         List<WorkflowSpec> specs = new ArrayList<>();
         for (Method m : type.getMethods()) {

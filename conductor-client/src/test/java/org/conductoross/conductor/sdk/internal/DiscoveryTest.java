@@ -15,9 +15,9 @@ package org.conductoross.conductor.sdk.internal;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import org.conductoross.conductor.sdk.Conductor;
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Signal;
 import org.conductoross.conductor.sdk.Workflow;
 import org.junit.jupiter.api.Test;
@@ -69,8 +69,8 @@ class DiscoveryTest {
         @Workflow(name = "fulfilment", description = "Picks, packs and ships an order")
         public String run(Order order) {
             String picked = TASKS.pick(order.item());
-            Promise<String> a = async(() -> TASKS.pack(picked + "-a"));
-            Promise<String> b = async(() -> TASKS.pack(picked + "-b"));
+            Future<String> a = async(() -> TASKS.pack(picked + "-a"));
+            Future<String> b = async(() -> TASKS.pack(picked + "-b"));
             join(a, b);
             sleep(Duration.ofSeconds(order.quantity() + 1));
             switchOn("region", order.region())

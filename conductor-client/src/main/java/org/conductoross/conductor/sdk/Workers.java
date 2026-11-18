@@ -60,7 +60,7 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
  * and {@code continuationTimeout} (seconds, or an ISO-8601 duration). Workflows have no task
  * domains: every host of a workflow polls its shared queue.
  */
-public final class Workers {
+public final class Workers implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Workers.class);
 
@@ -78,6 +78,7 @@ public final class Workers {
     private AnnotatedWorkerExecutor taskExecutor;
     private Thread registrar;
     private volatile boolean running;
+    private boolean started;
     private volatile boolean registered;
 
     /**
@@ -155,7 +156,7 @@ public final class Workers {
 
     /** A workflow class whose instances need constructor arguments. */
     @SuppressWarnings("unchecked")
-    public <T> Workers workflow(Class<T> type, Supplier<T> factory) {
+    public <T> Workers workflows(Class<T> type, Supplier<T> factory) {
         for (WorkflowSpec spec : WorkflowSpec.of(type)) {
             spec.factory((Supplier<Object>) factory);
             specsByCodeType.put(spec.codeTaskName(), spec);
@@ -191,6 +192,10 @@ public final class Workers {
      * that is a fault in the code that no retry fixes.
      */
     public Workers start() {
+        if (started) {
+            throw new IllegalStateException("these workers were already started: make new ones with Conductor.workflows(..)");
+        }
+        started = true;
         // fail now, not on the first continuation, when a workflow class cannot be created
         specsByCodeType.values().forEach(WorkflowSpec::newInstance);
         for (WorkflowSpec spec : specsByCodeType.values()) {
@@ -239,7 +244,9 @@ public final class Workers {
         return this;
     }
 
-    public void shutdown() {
+    /** Stops polling and the background registration. */
+    @Override
+    public void close() {
         running = false;
         if (registrar != null) {
             registrar.interrupt();
@@ -375,11 +382,6 @@ public final class Workers {
     }
 
     /**
-     * Registers the definitions, retrying for up to two minutes: registration is an idempotent
-     * upsert, and a worker starting while the server restarts, or while other workers register
-     * the same definitions, should wait rather than exit.
-     */
-    /**
      * Waits, up to {@code max}, for this host to register its definitions when it hosts
      * {@code spec} and has not registered yet; returns at once otherwise. A start in the same
      * process right after {@link #start()} would otherwise find no definition.
@@ -395,11 +397,21 @@ public final class Workers {
         }
     }
 
+    /** The spec of a workflow class these workers host, with the factory it was given. */
+    java.util.Optional<WorkflowSpec> hostedSpec(Class<?> type) {
+        return specsByCodeType.values().stream().filter(s -> s.type == type).findFirst();
+    }
+
     /** Whether the definitions have been registered since {@link #start()}. */
     public boolean isRegistered() {
         return registered;
     }
 
+    /**
+     * Registers the definitions, retrying with backoff for as long as it takes: registration is an
+     * idempotent upsert, and a worker starting while the server is down, or while other workers
+     * register the same definitions, waits rather than exits.
+     */
     private void registerUntilDone() {
         for (int attempt = 1; running; attempt++) {
             try {

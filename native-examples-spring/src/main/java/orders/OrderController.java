@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
+
 import orders.Orders.OrderRequest;
 import orders.Orders.OrderResult;
 
@@ -54,9 +56,9 @@ public class OrderController {
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("workflowId", run.workflowId());
         view.put("url", run.url());
-        String status = run.status();
+        WorkflowStatus status = run.status();
         view.put("status", status);
-        if ("COMPLETED".equals(status)) {
+        if (status == WorkflowStatus.COMPLETED) {
             view.put("result", run.result(Duration.ofSeconds(5)));
         }
         return view;

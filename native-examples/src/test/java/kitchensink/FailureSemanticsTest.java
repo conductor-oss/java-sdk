@@ -12,9 +12,9 @@
  */
 package kitchensink;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.Workflow;
 import org.conductoross.conductor.sdk.WorkflowFailedException;
@@ -85,8 +85,8 @@ class FailureSemanticsTest {
 
         @Workflow(name = "lane_fails_joined_without_get")
         public String laneFails(String why) {
-            Promise<String> a = async(() -> tasks.flaky(0));
-            Promise<String> b = async(() -> tasks.terminal(why));
+            Future<String> a = async(() -> tasks.flaky(0));
+            Future<String> b = async(() -> tasks.terminal(why));
             join(a, b);
             return "should not get here";
         }

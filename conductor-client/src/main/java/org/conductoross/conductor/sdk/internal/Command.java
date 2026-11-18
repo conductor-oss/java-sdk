@@ -77,6 +77,40 @@ public final class Command {
         this.refBase = refBase;
     }
 
+    /**
+     * A copy to send: a builder keeps its command as a template and sends a copy per call, so a
+     * builder used twice sends what it was given each time, not what an earlier call left behind.
+     * Maps one level down (an HTTP request, headers) are copied too.
+     */
+    public Command copy() {
+        Command c = new Command(kind, name, refBase);
+        c.explicitRef = explicitRef;
+        input.forEach((k, v) -> c.input.put(k, copied(v)));
+        fields.forEach((k, v) -> c.fields.put(k, copied(v)));
+        rawInput.forEach((k, v) -> c.rawInput.put(k, copied(v)));
+        c.resultType = resultType;
+        c.timeoutIsEmpty = timeoutIsEmpty;
+        c.emptyIsEmpty = emptyIsEmpty;
+        c.optional = optional;
+        c.httpBody = httpBody;
+        c.outputKey = outputKey;
+        c.method = method;
+        c.args = args;
+        c.childMethod = childMethod;
+        c.childInput = childInput;
+        c.seconds = seconds;
+        return c;
+    }
+
+    private static Object copied(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            Map<Object, Object> copy = new LinkedHashMap<>();
+            map.forEach((k, v) -> copy.put(k, copied(v)));
+            return copy;
+        }
+        return value;
+    }
+
     public boolean blocking() {
         return kind != Kind.EVENT && kind != Kind.START_WORKFLOW;
     }

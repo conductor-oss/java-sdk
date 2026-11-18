@@ -74,7 +74,8 @@ public final class CodeReader {
 
     private static final String SDK = "org/conductoross/conductor/sdk/";
     private static final String CONDUCTOR = SDK + "Conductor";
-    private static final String PROMISE = SDK + "Promise";
+    private static final String FUTURE = "java/util/concurrent/Future";
+    private static final String AGENT_CALL = SDK + "AgentCall";
     private static final String LAMBDA_FACTORY = "java/lang/invoke/LambdaMetafactory";
 
     /** What the code would do at one point. */
@@ -878,8 +879,11 @@ public final class CodeReader {
                 } else if (insn instanceof MethodInsnNode m) {
                     if (CONDUCTOR.equals(m.owner) && m.getOpcode() == Opcodes.INVOKESTATIC) {
                         sdkCall(i, m);
-                    } else if (PROMISE.equals(m.owner) && m.name.equals("get")) {
+                    } else if (FUTURE.equals(m.owner) && m.name.equals("get")) {
                         joinPoint();
+                    } else if (AGENT_CALL.equals(m.owner) && m.name.equals("ask")) {
+                        // each ask is an AGENT task, named by the agent(..) that made the conversation
+                        call(withDefinition(step(Command.Kind.AGENT, agentRef(i)), 3));
                     } else if (m.name.equals("<init>") && taskType(m.owner) != null) {
                         throw new IllegalStateException(site() + " creates a " + taskType(m.owner).getSimpleName()
                                 + ", so its task methods would run in the workflow on every replay: take it as a"
@@ -1942,10 +1946,10 @@ public final class CodeReader {
                 case "sleep" -> call(named(Command.Kind.WAIT, "sleep"));
                 case "sleepUntil" -> call(named(Command.Kind.WAIT, "sleep_until"));
                 case "awaitCondition" -> call(named(Command.Kind.WAIT, "condition"));
-                case "awaitExternal" -> call(step(Command.Kind.WAIT, text(i, argc, 0, "external")));
+                case "external" -> call(step(Command.Kind.WAIT, text(i, argc, 0, "external")));
                 case "human" -> call(withDefinition(step(Command.Kind.HUMAN, text(i, argc, 0, "human")), 0));
                 case "llm" -> call(withDefinition(step(Command.Kind.LLM, text(i, argc, 0, "llm")), 3));
-                case "agent" -> call(withDefinition(step(Command.Kind.AGENT, text(i, argc, 0, "agent")), 3));
+                case "agent" -> {} // a conversation: its asks are the steps
                 case "mcp" -> {
                     boolean lists = chain(i).stream().anyMatch(c -> c.name.equals("listTools"));
                     call(withDefinition(step(lists ? Command.Kind.MCP_LIST : Command.Kind.MCP_CALL, text(i, argc, 0, "mcp")), 3));
@@ -2163,6 +2167,48 @@ public final class CodeReader {
                 return boxed;
             }
             return null;
+        }
+
+        /**
+         * The name given to {@code agent(..)} for the conversation an {@code ask} at {@code i} is
+         * on: back through the builder calls on it and the local variable holding it. A conversation
+         * that reached the code from elsewhere, such as captured by a lambda, is named "agent".
+         */
+        private String agentRef(int i) {
+            AbstractInsnNode at = receiver(i);
+            for (int hops = 0; at != null && hops < 64; hops++) {
+                if (at instanceof MethodInsnNode m && m.getOpcode() == Opcodes.INVOKESTATIC) {
+                    return CONDUCTOR.equals(m.owner) && m.name.equals("agent") ? text(indexOf(m), 1, 0, "agent") : "agent";
+                }
+                if (at instanceof MethodInsnNode m) {
+                    at = receiver(indexOf(m)); // a builder call such as remote(..): its receiver
+                } else if (at instanceof VarInsnNode load && load.getOpcode() == Opcodes.ALOAD && frames[indexOf(load)] != null) {
+                    Set<AbstractInsnNode> stores = frames[indexOf(load)].getLocal(load.var).insns;
+                    if (stores.size() != 1 || !(stores.iterator().next() instanceof VarInsnNode store)
+                            || store.getOpcode() != Opcodes.ASTORE || frames[indexOf(store)] == null) {
+                        return "agent";
+                    }
+                    Frame<SourceValue> f = frames[indexOf(store)];
+                    Set<AbstractInsnNode> value = f.getStack(f.getStackSize() - 1).insns;
+                    at = value.size() == 1 ? value.iterator().next() : null;
+                } else {
+                    return "agent";
+                }
+            }
+            return "agent";
+        }
+
+        /** The instruction that produced the receiver of the instance call at {@code i}, when one did. */
+        private AbstractInsnNode receiver(int i) {
+            if (!(insns[i] instanceof MethodInsnNode m) || frames[i] == null) {
+                return null;
+            }
+            int at = frames[i].getStackSize() - Type.getArgumentTypes(m.desc).length - 1;
+            if (at < 0) {
+                return null;
+            }
+            Set<AbstractInsnNode> sources = frames[i].getStack(at).insns;
+            return sources.size() == 1 ? sources.iterator().next() : null;
         }
 
         /** The builder calls made on the result of the call at {@code i}, in order. */

@@ -274,8 +274,8 @@ class SwitchOnTest {
                         // a body that keeps going past its first call, forks, and mutates a variable
                         String first = TASKS.b("y");
                         notes.add("previewed " + first);
-                        org.conductoross.conductor.sdk.Promise<String> p1 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("left"));
-                        org.conductoross.conductor.sdk.Promise<String> p2 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.b("right"));
+                        java.util.concurrent.Future<String> p1 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("left"));
+                        java.util.concurrent.Future<String> p2 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.b("right"));
                         org.conductoross.conductor.sdk.Conductor.join(p1, p2);
                         return TASKS.send(first.toUpperCase());
                     })
@@ -401,7 +401,7 @@ class SwitchOnTest {
                     .when("a", () -> TASKS.a("x"))
                     .when("b", () -> {
                         List<String> items = new ArrayList<>(); // what a stand-in result looks like
-                        org.conductoross.conductor.sdk.Conductor.fanOut("spread", items, i -> TASKS.b(i)).get();
+                        org.conductoross.conductor.sdk.Conductor.fanOut("spread", items, i -> TASKS.b(i));
                         return TASKS.send("after");
                     })
                     .get();

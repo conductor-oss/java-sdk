@@ -26,8 +26,8 @@ import org.conductoross.conductor.sdk.Workflow;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import static org.conductoross.conductor.sdk.Conductor.agent;
-import static org.conductoross.conductor.sdk.Conductor.awaitExternal;
 import static org.conductoross.conductor.sdk.Conductor.event;
+import static org.conductoross.conductor.sdk.Conductor.external;
 import static org.conductoross.conductor.sdk.Conductor.http;
 import static org.conductoross.conductor.sdk.Conductor.human;
 import static org.conductoross.conductor.sdk.Conductor.llm;
@@ -43,7 +43,7 @@ import static org.conductoross.conductor.sdk.Conductor.mcp;
  *   event(ref).to(sink).send(payload)           EVENT: publish to conductor, sqs:..., kafka:...
  *   human(ref).assignee(..).await(type, t)      HUMAN: a person answers through the UI or the API;
  *                                               empty when nobody does in time
- *   awaitExternal(ref, type).await(t)           WAIT for any system to complete it:
+ *   external(ref).await(type, t)                WAIT for any system to complete it:
  *                                               POST /api/tasks/{workflowId}/{ref}/COMPLETED
  *   llm(ref).model(..).prompt(..).as(type)      LLM_CHAT_COMPLETE, through the server's providers
  *   mcp(ref).server(url).listTools() / call()   LIST_MCP_TOOLS / CALL_MCP_TOOL
@@ -73,11 +73,11 @@ public class SystemTasks {
                 .await(Answer.class, Duration.ofHours(1));
         out.add("human: " + answer.map(Answer::by).orElse("nobody"));
 
-        Optional<Delivery> delivery = awaitExternal("delivered", Delivery.class).await(Duration.ofHours(1));
+        Optional<Delivery> delivery = external("delivered").await(Delivery.class, Duration.ofHours(1));
         out.add("external: " + delivery.map(Delivery::status).orElse("none"));
 
         try {
-            out.add("llm: " + llm("summary").model("openai/gpt-4o-mini").prompt("Say hi").retries(0, Duration.ofSeconds(1))
+            out.add("llm: " + llm("summary").model("openai/gpt-4o-mini").prompt("Say hi").retries(1, Duration.ofSeconds(1))
                     .as(String.class));
         } catch (TaskFailure e) {
             out.add("llm: unavailable");          // no model provider configured on this server

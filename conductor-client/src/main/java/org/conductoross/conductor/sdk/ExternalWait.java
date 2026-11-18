@@ -21,25 +21,28 @@ import org.conductoross.conductor.sdk.internal.Engine;
 
 /**
  * Waits for an external system to call {@code POST /api/tasks/{workflowId}/{ref}/COMPLETED} with
- * a JSON body, which becomes the result.
+ * a JSON body, which becomes the result: {@code external("delivered").await(Delivery.class,
+ * Duration.ofDays(1))}. Like {@link HumanCall#await}, the result type and the timeout are given
+ * when waiting.
  */
-public final class ExternalWait<T> {
+public final class ExternalWait {
 
     private final Command command;
 
-    ExternalWait(String ref, Class<T> type) {
+    ExternalWait(String ref) {
         command = new Command(Command.Kind.WAIT, ref, ref);
         command.explicitRef = ref;
-        command.resultType = type;
         command.optional = true;
         command.emptyIsEmpty = true;
     }
 
-    /** The posted body, or empty when nothing arrives within the timeout. */
+    /** The posted body as {@code type}, or empty when nothing arrives within the timeout. */
     @SuppressWarnings("unchecked")
-    public Optional<T> await(Duration timeout) {
-        command.input.put("duration", Conductors.duration(timeout));
-        command.seconds = timeout.toSeconds();
-        return (Optional<T>) Engine.current().call(command);
+    public <T> Optional<T> await(Class<T> type, Duration timeout) {
+        Command c = command.copy();
+        c.resultType = type;
+        c.input.put("duration", Conductors.duration(timeout));
+        c.seconds = timeout.toSeconds();
+        return (Optional<T>) Engine.current().call(c);
     }
 }

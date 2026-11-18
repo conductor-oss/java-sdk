@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import org.conductoross.conductor.sdk.Conductor;
-
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import net.bytebuddy.ByteBuddy;
@@ -110,7 +108,7 @@ public final class TaskStubs {
         Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
         throw new IllegalStateException("the constructor of " + owner.getName() + " takes a "
                 + parameter.getType().getSimpleName() + ", which is not a class with @WorkerTask methods:"
-                + " register the workflow with conductor.workflow(" + owner.getSimpleName()
+                + " register the workflow with conductor.workflows(" + owner.getSimpleName()
                 + ".class, factory), using Conductor.stub(...) for its task classes");
     }
 
@@ -152,7 +150,7 @@ public final class TaskStubs {
             return constructors[0];
         }
         throw new IllegalStateException(type.getName() + " has several constructors and none without arguments:"
-                + " keep one, or register it with conductor.workflow(" + type.getSimpleName() + ".class, factory)");
+                + " keep one, or register it with conductor.workflows(" + type.getSimpleName() + ".class, factory)");
     }
 
     private static Constructor<?> stubType(Class<?> type) {
@@ -197,7 +195,7 @@ public final class TaskStubs {
                 throw new UnsupportedOperationException(type.getSimpleName() + "." + method.getName()
                         + " is not a @WorkerTask method: a workflow calls only the tasks of " + type.getSimpleName());
             }
-            return Engine.current().call(Conductor.taskCommand(target, args == null ? new Object[0] : args));
+            return Engine.current().call(taskCommand(target, args == null ? new Object[0] : args));
         };
     }
 
@@ -211,5 +209,28 @@ public final class TaskStubs {
             }
         }
         throw new IllegalStateException("no " + method + " in " + type.getName() + Arrays.toString(method.getParameterTypes()));
+    }
+
+    /** The command for a call to a {@code @WorkerTask} method. */
+    public static Command taskCommand(java.io.Serializable ref, Object... args) {
+        return taskCommand(MethodRefs.resolve(ref), args);
+    }
+
+    /** The command for a call to a {@code @WorkerTask} method, by a reference or on a task stub. */
+    public static Command taskCommand(Method method, Object[] args) {
+        WorkerTask annotation = method.getAnnotation(WorkerTask.class);
+        if (annotation == null) {
+            throw new IllegalArgumentException(
+                    method.getDeclaringClass().getSimpleName() + "." + method.getName() + " is not a @WorkerTask method");
+        }
+        Command command = new Command(Command.Kind.SIMPLE, annotation.value(), annotation.value());
+        String[] names = MethodRefs.parameterNames(method);
+        for (int i = 0; i < names.length; i++) {
+            command.input.put(names[i], Json.plain(args[i]));
+        }
+        command.resultType = method.getGenericReturnType();
+        command.method = method;
+        command.args = args;
+        return command;
     }
 }

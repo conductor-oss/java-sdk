@@ -93,6 +93,33 @@ class WorkflowHandleQueryTest {
         assertEquals(2, server.getRequestCount());
     }
 
+    /** A workflow whose constructor takes something only its factory can give. */
+    public static class Configured {
+        @Variable private List<String> deposits = new ArrayList<>();
+        private final String currency;
+
+        public Configured(String currency) {
+            this.currency = currency;
+        }
+
+        @Query("total")
+        public String total() {
+            return deposits.size() + " " + currency;
+        }
+
+        @Workflow(name = "configured_query_test", version = 1)
+        public String run(String input) {
+            return input;
+        }
+    }
+
+    @Test
+    void aQueryOnAClassHostedWithAFactoryUsesTheFactory() {
+        execution("RUNNING", "[\"dep-1\",\"dep-2\"]");
+        conductor.workflows(Configured.class, () -> new Configured("EUR")); // hosted, not started
+        assertEquals("2 EUR", conductor.attach(Configured::run, "wf-1").query(Configured::total));
+    }
+
     @Test
     void repliesExpireAndAreCapped() {
         long now = 1_000_000_000L;

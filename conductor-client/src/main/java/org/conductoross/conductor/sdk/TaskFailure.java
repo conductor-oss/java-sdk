@@ -12,16 +12,20 @@
  */
 package org.conductoross.conductor.sdk;
 
+import com.netflix.conductor.common.metadata.tasks.Task;
+
 /**
  * Thrown at the call site in workflow code when a task the code waited on failed and its retries
  * are exhausted. Catch it to compensate or continue; let it propagate and the workflow fails with
- * its reason. The task shows FAILED in the UI either way.
+ * its reason. The task shows its failed status in the UI either way.
  */
 public class TaskFailure extends RuntimeException {
 
     private final String taskReferenceName;
-    private final String status;
+    private final Task.Status status;
+    private final String reason;
 
+    /** {@code status} is the task's status as the server reports it, such as {@code FAILED}. */
     public TaskFailure(String taskReferenceName, String status, String reason) {
         super(
                 "task "
@@ -30,7 +34,16 @@ public class TaskFailure extends RuntimeException {
                         + status
                         + (reason == null || reason.isBlank() ? "" : ": " + reason));
         this.taskReferenceName = taskReferenceName;
-        this.status = status;
+        this.status = statusOf(status);
+        this.reason = reason;
+    }
+
+    private static Task.Status statusOf(String status) {
+        try {
+            return Task.Status.valueOf(status);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return Task.Status.FAILED;
+        }
     }
 
     public String getTaskReferenceName() {
@@ -38,7 +51,12 @@ public class TaskFailure extends RuntimeException {
     }
 
     /** The task's terminal status: FAILED, FAILED_WITH_TERMINAL_ERROR, TIMED_OUT or CANCELED. */
-    public String getStatus() {
+    public Task.Status getStatus() {
         return status;
+    }
+
+    /** Why the task failed, as the task reported it; may be null. */
+    public String getReason() {
+        return reason;
     }
 }

@@ -13,8 +13,8 @@
 package com.netflix.conductor.sdk.examples.shipment;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Variable;
 import org.conductoross.conductor.sdk.Workflow;
 
@@ -47,17 +47,13 @@ public class ShipmentWorkflow {
             timeout = "PT60S",
             description = "Workflow to track shipment")
     public List<String> ship(@InputParam("shipment") Shipment shipment) {
-        Promise<List<Order>> orders = async(() -> tasks.getOrderDetails(shipment.getOrderNo()));
-        Promise<User> user = async(() -> tasks.getUserDetails(shipment.getUserId()));
+        Future<List<Order>> orders = async(() -> tasks.getOrderDetails(shipment.getOrderNo()));
+        Future<User> user = async(() -> tasks.getUserDetails(shipment.getUserId()));
         join(orders, user);
 
         // one order flow per line item, all at once
-        List<String> labels =
-                fanOut(
-                                "process_order",
-                                orders.get(),
-                                order -> child(OrderFlow::ship, new OrderFlow.Request(order, user.get())))
-                        .get();
+        List<String> labels = fanOut("process_order", orders.resultNow(),
+                order -> child(OrderFlow::ship, new OrderFlow.Request(order, user.resultNow())));
 
         shipped = true;
         return labels;

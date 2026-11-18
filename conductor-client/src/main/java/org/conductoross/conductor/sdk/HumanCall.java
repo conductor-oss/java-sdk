@@ -56,11 +56,12 @@ public final class HumanCall {
         def.put("timeoutPolicy", "RETRY");
         def.put("retryCount", 0);
         def.put("ownerEmail", "native@conductor.local");
-        command.fields.put("taskDefinition", def);
-        command.resultType = type;
-        command.optional = true;
-        command.timeoutIsEmpty = true;
-        command.seconds = timeout.toSeconds();
-        return (Optional<T>) Engine.current().call(command);
+        Command c = command.copy();
+        c.fields.put("taskDefinition", def);
+        c.resultType = type;
+        c.optional = true;
+        c.timeoutIsEmpty = true;
+        c.seconds = timeout.toSeconds();
+        return (Optional<T>) Engine.current().call(c);
     }
 }

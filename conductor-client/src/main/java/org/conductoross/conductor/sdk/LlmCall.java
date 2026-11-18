@@ -23,10 +23,15 @@ public final class LlmCall {
     LlmCall(String ref) {
         command = new Command(Command.Kind.LLM, ref, ref);
         command.explicitRef = ref;
+        command.outputKey = "result"; // the model's answer; the rest of the output is token counts
         retries(3, java.time.Duration.ofSeconds(1));
     }
 
-    /** Retries after a failure, with exponential backoff from the given delay; default 3 and 1s. */
+    /**
+     * Retries after a failure, with exponential backoff from the given delay; default 3 and 1s.
+     * The server retries an AI task at least once: a count below 1 becomes 3, with linear backoff
+     * from 2 seconds ({@code AIModelTaskMapper}).
+     */
     public LlmCall retries(int count, java.time.Duration delay) {
         command.fields.put(
                 "taskDefinition",
@@ -56,8 +61,17 @@ public final class LlmCall {
         return this;
     }
 
+    /**
+     * Asks the model and returns its answer as {@code type}: a {@code String} for text, or a record
+     * or class for a JSON answer, which the server then requires (an answer that is not JSON fails
+     * the call, and is retried). Say in the prompt which fields to answer with.
+     */
     public <T> T as(Class<T> type) {
-        command.resultType = type;
-        return type.cast(Engine.current().call(command));
+        Command c = command.copy();
+        c.resultType = type;
+        if (type != String.class) {
+            c.input.put("jsonOutput", true);
+        }
+        return type.cast(Engine.current().call(c));
     }
 }

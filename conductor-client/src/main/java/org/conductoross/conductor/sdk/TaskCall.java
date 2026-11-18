@@ -42,19 +42,25 @@ public final class TaskCall {
         return this;
     }
 
+    /** Calls the task and returns its output as {@code type}. */
     public <T> T as(Class<T> type) {
-        command.resultType = type;
-        return type.cast(Engine.current().call(command));
+        return type.cast(call(type));
     }
 
+    /** Calls the task and returns its output as a map. */
     @SuppressWarnings("unchecked")
     public Map<String, Object> asMap() {
-        command.resultType = Map.class;
-        return (Map<String, Object>) Engine.current().call(command);
+        return (Map<String, Object>) call(Map.class);
     }
 
+    /** Calls the task, for its effect. */
     public void run() {
-        command.resultType = Void.class;
-        Engine.current().call(command);
+        call(Void.class);
+    }
+
+    private Object call(Class<?> type) {
+        Command c = command.copy();
+        c.resultType = type;
+        return Engine.current().call(c);
     }
 }

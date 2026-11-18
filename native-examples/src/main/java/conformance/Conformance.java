@@ -47,6 +47,20 @@ import static org.conductoross.conductor.sdk.Conductor.*;
  */
 public class Conformance {
 
+    /** Future.get(), with what the branch threw rethrown as it was: a TaskFailure, say. */
+    static <T> T got(Future<T> branch) {
+        try {
+            return branch.get();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof RuntimeException failure) {
+                throw failure;
+            }
+            throw new IllegalStateException(e.getCause());
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     // Conductor passes a stand-in whose calls schedule the tasks; the real T runs on the workers.
     private final T t;
 
@@ -134,36 +148,36 @@ public class Conformance {
     @Workflow(name="c_swvar") public String swVar(String x) { switchOn("sw", x).when("1", () -> { count = 5; a(x); count++; }).otherwise(() -> { count = 100; }).get(); b(x); return "count=" + count; }
 
     // ---- forks
-    @Workflow(name="c_fork") public String fork(String x) { Promise<String> p = async(() -> a(x)); Promise<String> q = async(() -> b(x)); join(p, q); return c(p.get() + q.get()); }
-    @Workflow(name="c_forkone") public String forkOne(String x) { Promise<String> p = async(() -> a(x)); join(p); return b(p.get()); }
-    @Workflow(name="c_forklong") public String forkLong(String x) { Promise<String> p = async(() -> c(b(a(x)))); Promise<String> q = async(() -> d(x)); join(p, q); return p.get() + q.get(); }
-    @Workflow(name="c_forkvalue") public String forkValue(String x) { Promise<String> p = async(() -> "v"); Promise<String> q = async(() -> a(x)); join(p, q); return p.get() + q.get(); }
-    @Workflow(name="c_forknojoin") public String forkNoJoin(String x) { Promise<String> p = async(() -> a(x)); Promise<String> q = async(() -> b(x)); return p.get() + q.get(); }
-    @Workflow(name="c_forkmain") public String forkMain(String x) { Promise<String> p = async(() -> a(x)); String r = b(x); return p.get() + r; }
-    @Workflow(name="c_fork2") public String fork2(String x) { Promise<String> p = async(() -> a(x)); join(p); Promise<String> q = async(() -> b(p.get())); join(q); return q.get(); }
-    @Workflow(name="c_forkjavaloop") public String forkJavaLoop(String x) { String r = ""; for (int i = 0; i < 2; i++) { String k = x + i; Promise<String> p = async(() -> a(k)); Promise<String> q = async(() -> b(k)); join(p, q); r += p.get() + q.get(); } return r; }
-    @Workflow(name="c_forksw") public String forkSw(String x) { Promise<String> p = async(() -> { String r = switchOn("sw", x).when("1", () -> a(x)).otherwise(() -> b(x)).get(); return c(r); }); Promise<String> q = async(() -> d(x)); join(p, q); return e(p.get() + q.get()); }
-    @Workflow(name="c_forksw2") public String forkSw2(String x) { Promise<String> p = async(() -> switchOn("s1", x).when("1", () -> a(x)).otherwise(() -> b(x)).get()); Promise<String> q = async(() -> switchOn("s2", x).when("1", () -> c(x)).otherwise(() -> d(x)).get()); join(p, q); return p.get() + q.get(); }
-    @Workflow(name="c_forkincase") public String forkInCase(String x) { String r = switchOn("sw", x).when("1", () -> { Promise<String> p = async(() -> a(x)); Promise<String> q = async(() -> b(x)); join(p, q); return c(p.get() + q.get()); }).when("2", () -> e(x)).get(); return d(r); }
-    @Workflow(name="c_forklastincase") public String forkLastInCase(String x) { switchOn("sw", x).when("1", () -> { Promise<String> p = async(() -> a(x)); join(p); }).get(); return d(x); }
-    @Workflow(name="c_forkasync") public String forkAsync(String x) { Promise<String> p = async(() -> { Promise<String> q = async(() -> a(x)); return q.get(); }); return p.get(); }
-    @Workflow(name="c_forksleep") public String forkSleep(String x) { Promise<String> p = async(() -> { sleep(Duration.ofSeconds(1)); return a(x); }); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
+    @Workflow(name="c_fork") public String fork(String x) { Future<String> p = async(() -> a(x)); Future<String> q = async(() -> b(x)); join(p, q); return c(got(p) + got(q)); }
+    @Workflow(name="c_forkone") public String forkOne(String x) { Future<String> p = async(() -> a(x)); join(p); return b(got(p)); }
+    @Workflow(name="c_forklong") public String forkLong(String x) { Future<String> p = async(() -> c(b(a(x)))); Future<String> q = async(() -> d(x)); join(p, q); return got(p) + got(q); }
+    @Workflow(name="c_forkvalue") public String forkValue(String x) { Future<String> p = async(() -> "v"); Future<String> q = async(() -> a(x)); join(p, q); return got(p) + got(q); }
+    @Workflow(name="c_forknojoin") public String forkNoJoin(String x) { Future<String> p = async(() -> a(x)); Future<String> q = async(() -> b(x)); return got(p) + got(q); }
+    @Workflow(name="c_forkmain") public String forkMain(String x) { Future<String> p = async(() -> a(x)); String r = b(x); return got(p) + r; }
+    @Workflow(name="c_fork2") public String fork2(String x) { Future<String> p = async(() -> a(x)); join(p); Future<String> q = async(() -> b(got(p))); join(q); return got(q); }
+    @Workflow(name="c_forkjavaloop") public String forkJavaLoop(String x) { String r = ""; for (int i = 0; i < 2; i++) { String k = x + i; Future<String> p = async(() -> a(k)); Future<String> q = async(() -> b(k)); join(p, q); r += got(p) + got(q); } return r; }
+    @Workflow(name="c_forksw") public String forkSw(String x) { Future<String> p = async(() -> { String r = switchOn("sw", x).when("1", () -> a(x)).otherwise(() -> b(x)).get(); return c(r); }); Future<String> q = async(() -> d(x)); join(p, q); return e(got(p) + got(q)); }
+    @Workflow(name="c_forksw2") public String forkSw2(String x) { Future<String> p = async(() -> switchOn("s1", x).when("1", () -> a(x)).otherwise(() -> b(x)).get()); Future<String> q = async(() -> switchOn("s2", x).when("1", () -> c(x)).otherwise(() -> d(x)).get()); join(p, q); return got(p) + got(q); }
+    @Workflow(name="c_forkincase") public String forkInCase(String x) { String r = switchOn("sw", x).when("1", () -> { Future<String> p = async(() -> a(x)); Future<String> q = async(() -> b(x)); join(p, q); return c(got(p) + got(q)); }).when("2", () -> e(x)).get(); return d(r); }
+    @Workflow(name="c_forklastincase") public String forkLastInCase(String x) { switchOn("sw", x).when("1", () -> { Future<String> p = async(() -> a(x)); join(p); }).get(); return d(x); }
+    @Workflow(name="c_forkasync") public String forkAsync(String x) { Future<String> p = async(() -> { Future<String> q = async(() -> a(x)); return got(q); }); return got(p); }
+    @Workflow(name="c_forksleep") public String forkSleep(String x) { Future<String> p = async(() -> { sleep(Duration.ofSeconds(1)); return a(x); }); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q); }
 
     // ---- fan out
     List<String> items(int n) { return t.list(n); }
-    @Workflow(name="c_fan") public String fan(String x) { List<String> r = fanOut("fan", items(Integer.parseInt(x)), i -> a(i)).get(); return b(r.toString()); }
-    @Workflow(name="c_fanmulti") public String fanMulti(String x) { List<String> r = fanOut("fan", items(2), i -> b(a(i))).get(); return r.toString(); }
-    @Workflow(name="c_fanincase") public String fanInCase(String x) { String r = switchOn("sw", x).when("1", () -> fanOut("fan", items(2), i -> a(i)).get().toString()).when("2", () -> e(x)).get(); return b(r); }
-    @Workflow(name="c_fanlane") public String fanLane(String x) { Promise<String> p = async(() -> fanOut("fan", List.of("q"), i -> a(i)).get().toString()); return p.get(); }
-    @Workflow(name="c_fantwice") public String fanTwice(String x) { List<String> r = fanOut(List.of("p"), i -> a(i)).get(); List<String> s = fanOut(List.of("q"), i -> b(i)).get(); return r + "" + s; }
-    @Workflow(name="c_fanjavaloop") public String fanJavaLoop(String x) { String r = ""; for (int k = 0; k < 2; k++) r += fanOut("fan", List.of("i" + k), i -> a(i)).get(); return r; }
-    @Workflow(name="c_fansw") public String fanSw(String x) { List<String> r = fanOut("fan", List.of("1", "2"), i -> switchOn("sw", i).when("1", () -> a(i)).otherwise(() -> b(i)).get()).get(); return r.toString(); }
+    @Workflow(name="c_fan") public String fan(String x) { List<String> r = fanOut("fan", items(Integer.parseInt(x)), i -> a(i)); return b(r.toString()); }
+    @Workflow(name="c_fanmulti") public String fanMulti(String x) { List<String> r = fanOut("fan", items(2), i -> b(a(i))); return r.toString(); }
+    @Workflow(name="c_fanincase") public String fanInCase(String x) { String r = switchOn("sw", x).when("1", () -> fanOut("fan", items(2), i -> a(i)).toString()).when("2", () -> e(x)).get(); return b(r); }
+    @Workflow(name="c_fanlane") public String fanLane(String x) { Future<String> p = async(() -> fanOut("fan", List.of("q"), i -> a(i)).toString()); return got(p); }
+    @Workflow(name="c_fantwice") public String fanTwice(String x) { List<String> r = fanOut(List.of("p"), i -> a(i)); List<String> s = fanOut(List.of("q"), i -> b(i)); return r + "" + s; }
+    @Workflow(name="c_fanjavaloop") public String fanJavaLoop(String x) { String r = ""; for (int k = 0; k < 2; k++) r += fanOut("fan", List.of("i" + k), i -> a(i)); return r; }
+    @Workflow(name="c_fansw") public String fanSw(String x) { List<String> r = fanOut("fan", List.of("1", "2"), i -> switchOn("sw", i).when("1", () -> a(i)).otherwise(() -> b(i)).get()); return r.toString(); }
 
     // ---- forEach
     @Workflow(name="c_each") public String each(String x) { List<String> r = forEach("loop", List.of("p", "q", "r"), t::a); return b(r.toString()); }
     @Workflow(name="c_eachempty") public String eachEmpty(String x) { List<String> r = forEach("loop", List.of(), t::a); return b(r.toString()); }
     @Workflow(name="c_eachcase") public String eachCase(String x) { String r = switchOn("sw", x).when("1", () -> forEach("loop", List.of("p"), t::a).toString()).when("2", () -> e(x)).get(); return b(r); }
-    @Workflow(name="c_eachlane") public String eachLane(String x) { Promise<String> p = async(() -> forEach("loop", List.of("p", "q"), t::a).toString()); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
+    @Workflow(name="c_eachlane") public String eachLane(String x) { Future<String> p = async(() -> forEach("loop", List.of("p", "q"), t::a).toString()); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q); }
     @Workflow(name="c_eachjavaloop") public String eachJavaLoop(String x) { String r = ""; for (int k = 0; k < 2; k++) r += forEach("loop", List.of("i" + k), t::a); return r; }
 
     // ---- doWhile: a loop the code names; the steps of its body are tagged with it
@@ -174,7 +188,7 @@ public class Conformance {
     @Workflow(name="c_dowhilenest") public String doWhileNest(String x) { String[] r = {x}; int[] i = {0};
         doWhile("outer", () -> { int[] j = {0}; doWhile("inner", () -> { r[0] = a(r[0]); j[0]++; }, () -> j[0] < 2); r[0] = b(r[0]); i[0]++; }, () -> i[0] < 2); return r[0]; }
     @Workflow(name="c_dowhilefork") public String doWhileFork(String x) { String[] r = {""}; int[] n = {0};
-        doWhile("dw", () -> { String k = x + n[0]; Promise<String> p = async(() -> a(k)); Promise<String> q = async(() -> b(k)); join(p, q); r[0] += p.get() + q.get(); n[0]++; }, () -> n[0] < 2); return r[0]; }
+        doWhile("dw", () -> { String k = x + n[0]; Future<String> p = async(() -> a(k)); Future<String> q = async(() -> b(k)); join(p, q); r[0] += got(p) + got(q); n[0]++; }, () -> n[0] < 2); return r[0]; }
     @Workflow(name="c_dowhilecond") public String doWhileCond(String x) { String[] r = {x}; doWhile("dw", () -> { r[0] = a(r[0]); }, () -> b(r[0]).length() < 12); return r[0]; }
     @Workflow(name="c_dowhilethrow") public String doWhileThrow(String x) { int[] n = {0};
         doWhile("dw", () -> { a(x + n[0]); n[0] = Integer.parseInt(n[0] < 1 ? "1" : "stop"); }, () -> true); return "no"; }
@@ -183,7 +197,7 @@ public class Conformance {
     Status pollIt(String k) { return repeatUntil(() -> t.poll(k), Status::done, Backoff.every(Duration.ofSeconds(1)).attempts(10)); }
     @Workflow(name="c_rep") public String rep(String x) { return a("n=" + pollIt(workflowId()).n()); }
     @Workflow(name="c_repcase") public String repCase(String x) { String r = switchOn("sw", x).when("1", () -> "n=" + pollIt(workflowId()).n()).when("2", () -> e(x)).get(); return a(r); }
-    @Workflow(name="c_replane") public String repLane(String x) { Promise<String> p = async(() -> "n=" + pollIt(workflowId()).n()); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
+    @Workflow(name="c_replane") public String repLane(String x) { Future<String> p = async(() -> "n=" + pollIt(workflowId()).n()); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q); }
     @Workflow(name="c_repafter") public String repAfter(String x) { Status s = pollIt(workflowId()); Status t = pollIt(workflowId() + "2"); return a(s.n() + "," + t.n()); }
 
     // ---- failures
@@ -191,9 +205,9 @@ public class Conformance {
     @Workflow(name="c_failuncaught") public String failUncaught(String x) { a(x); boom(x); return b(x); }
     @Workflow(name="c_failjava") public String failJava(String x) { a(x); throw new IllegalStateException("plain " + x); }
     @Workflow(name="c_failcase") public String failCase(String x) { String r; try { r = switchOn("sw", x).when("1", () -> boom(x)).otherwise(() -> a(x)).get(); } catch (TaskFailure e) { r = "caught"; } return c(r); }
-    @Workflow(name="c_faillanecaught") public String failLaneCaught(String x) { Promise<String> p = async(() -> { try { return boom(x); } catch (TaskFailure e) { return a(x); } }); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
-    @Workflow(name="c_faillane") public String failLane(String x) { Promise<String> p = async(() -> boom(x)); Promise<String> q = async(() -> b(x)); join(p, q); return c(p.get() + q.get()); }
-    @Workflow(name="c_failjoincaught") public String failJoinCaught(String x) { Promise<String> p = async(() -> boom(x)); Promise<String> q = async(() -> b(x)); String r; try { join(p, q); r = p.get(); } catch (RuntimeException e) { r = "caught:" + q.get(); } return c(r); }
+    @Workflow(name="c_faillanecaught") public String failLaneCaught(String x) { Future<String> p = async(() -> { try { return boom(x); } catch (TaskFailure e) { return a(x); } }); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q); }
+    @Workflow(name="c_faillane") public String failLane(String x) { Future<String> p = async(() -> boom(x)); Future<String> q = async(() -> b(x)); join(p, q); return c(got(p) + got(q)); }
+    @Workflow(name="c_failjoincaught") public String failJoinCaught(String x) { Future<String> p = async(() -> boom(x)); Future<String> q = async(() -> b(x)); String r; try { join(p, q); r = got(p); } catch (RuntimeException e) { r = "caught:" + got(q); } return c(r); }
     @Workflow(name="c_failcompensate") public String failCompensate(String x) { String z = a(x); try { boom(z); } catch (TaskFailure e) { try { boom(z + "2"); } catch (TaskFailure e2) { return c(z); } } return "no"; }
 
     // ---- children
@@ -201,7 +215,7 @@ public class Conformance {
     @Workflow(name="c_kidfail") public String kidFail(String x) { return boom(x); }
     @Workflow(name="c_child") public String childCall(String x) { return b(child(Conformance::kid, x)); }
     @Workflow(name="c_childcase") public String childCase(String x) { String r = switchOn("sw", x).when("1", () -> child(Conformance::kid, x)).when("2", () -> e(x)).get(); return b(r); }
-    @Workflow(name="c_childlane") public String childLane(String x) { Promise<String> p = async(() -> child(Conformance::kid, "l")); Promise<String> q = async(() -> child(Conformance::kid, "r")); join(p, q); return p.get() + q.get(); }
+    @Workflow(name="c_childlane") public String childLane(String x) { Future<String> p = async(() -> child(Conformance::kid, "l")); Future<String> q = async(() -> child(Conformance::kid, "r")); join(p, q); return got(p) + got(q); }
     @Workflow(name="c_childfail") public String childFail(String x) { try { return child(Conformance::kidFail, x); } catch (TaskFailure e) { return b(x); } }
 
     // ---- recorded values, sleeps, variables
@@ -209,7 +223,7 @@ public class Conformance {
     @Workflow(name="c_nowrandom") public String nowRandom(String x) { var t = now(); double d = random(); String r = a(t + "|" + d); return r.equals("a(" + t + "|" + d + ")") ? "stable" : "changed"; }
     @Workflow(name="c_sleep") public String sleepIt(String x) { sleep(Duration.ofSeconds(1)); return a(x); }
     @Workflow(name="c_var") public String var(String x) { count = 1; a(x); count += 10; log.add("one"); b(x); count += 100; log.add("two"); return "count=" + count + " log=" + log; }
-    @Workflow(name="c_varlane") public String varLane(String x) { Promise<String> p = async(() -> { a(x); log.add("L"); return "p"; }); Promise<String> q = async(() -> { b(x); log.add("R"); return "q"; }); join(p, q); List<String> s = new ArrayList<>(log); Collections.sort(s); return s.toString(); }
+    @Workflow(name="c_varlane") public String varLane(String x) { Future<String> p = async(() -> { a(x); log.add("L"); return "p"; }); Future<String> q = async(() -> { b(x); log.add("R"); return "q"; }); join(p, q); List<String> s = new ArrayList<>(log); Collections.sort(s); return s.toString(); }
     @Workflow(name="c_signal") public String signal(String x) { a(x); boolean ok = awaitCondition(() -> flag, Duration.ofSeconds(30)); return b(ok + log.toString()); }
     @Workflow(name="c_cond0") public String condTimeout(String x) { boolean ok = awaitCondition(() -> flag, Duration.ofSeconds(1)); return a("" + ok); }
     @Workflow(name="c_wfid") public String wfId(String x) { String a1 = workflowId(); a(x); return a1.equals(workflowId()) && !a1.isEmpty() ? "same" : "diff"; }
@@ -241,7 +255,7 @@ public class Conformance {
     @Workflow(name="c_d4") public String d4(String x) { return switchOn("sw", "${workflow.input}").when("${workflow.input}", () -> a(x)).otherwise(() -> b(x)).get(); }
     @Workflow(name="c_d5") public String d5(String x) { return child(Conformance::kid, "${workflow.input}"); }
     @Workflow(name="c_d6") public String d6(String x) { return forEach("loop", List.of("${a}", "$${b}"), t::a).toString(); }
-    @Workflow(name="c_d7") public String d7(String x) { return fanOut("fan", List.of("${a}"), i -> a(i)).get().toString(); }
+    @Workflow(name="c_d7") public String d7(String x) { return fanOut("fan", List.of("${a}"), i -> a(i)).toString(); }
     @Workflow(name="c_d8") public String d8(String x) { String v = once("v", () -> "${workflow.input}"); a(v); return b(v); }
     @Workflow(name="c_d9") public String d9(String x) { log.add("${workflow.input}"); a(x); return b(log.get(0)); }
     @Workflow(name="c_d10") public String d10(String x) { return task("ta").input("x", "${workflow.input}").as(String.class); }
@@ -251,17 +265,17 @@ public class Conformance {
     @Workflow(name="c_nullin") public String nullIn(String x) { return a(null); }
     @Workflow(name="c_key") public String key(String x) { return switchOn("sw", "a-b c.d").when("a-b c.d", () -> a(x)).when("x y", () -> b(x)).when("", () -> c(x)).get(); }
     @Workflow(name="c_keyempty") public String keyEmpty(String x) { return switchOn("sw", "").when("", () -> a(x)).otherwise(() -> b(x)).get(); }
-    @Workflow(name="c_fanorder") public String fanOrder(String x) { return fanOut("fan", List.of("800", "1", "300"), i -> t.slow(i)).get().toString(); }
-    @Workflow(name="c_fanlarge") public String fanLarge(String x) { List<String> l = new ArrayList<>(); for (int i = 0; i < 40; i++) l.add("" + i); List<String> r = fanOut("fan", l, i -> a(i)).get(); boolean ok = true; for (int i = 0; i < 40; i++) ok &= r.get(i).equals("a(" + i + ")"); return ok + ":" + r.size(); }
+    @Workflow(name="c_fanorder") public String fanOrder(String x) { return fanOut("fan", List.of("800", "1", "300"), i -> t.slow(i)).toString(); }
+    @Workflow(name="c_fanlarge") public String fanLarge(String x) { List<String> l = new ArrayList<>(); for (int i = 0; i < 40; i++) l.add("" + i); List<String> r = fanOut("fan", l, i -> a(i)); boolean ok = true; for (int i = 0; i < 40; i++) ok &= r.get(i).equals("a(" + i + ")"); return ok + ":" + r.size(); }
     @Workflow(name="c_flaky") public String flakyWf(String x) { return a(t.flaky(workflowId())); }
     @Workflow(name="c_varuntaken") public String varUntaken(String x) { switchOn("sw", x).when("1", () -> { count = 5; a(x); count++; }).otherwise(() -> { count = 100; }).get(); b(x); return "count=" + count; }
     @Workflow(name="c_local") public String localList(String x) { List<String> l = new ArrayList<>(); switchOn("sw", x).when("a", () -> { l.add(a(x)); }).when("b", () -> { l.add(b(x)); l.add(c(x)); }).get(); return l.toString(); }
     @Workflow(name="c_preview") public String previewAll(String x) { switchOn("sw", x).when("z", () -> { a(x); }).when("q", () -> { sleep(Duration.ofSeconds(1)); b(x); child(Conformance::kid, x); forEach("loop", List.of("p"), t::a); pollIt("k"); once("o", () -> "v"); awaitCondition(() -> flag, Duration.ofSeconds(1)); c(x); }).get(); return d(x); }
-    @Workflow(name="c_awaitlane") public String awaitLane(String x) { Promise<String> p = async(() -> { boolean ok = awaitCondition(() -> flag, Duration.ofSeconds(30)); return a("" + ok); }); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get() + log; }
+    @Workflow(name="c_awaitlane") public String awaitLane(String x) { Future<String> p = async(() -> { boolean ok = awaitCondition(() -> flag, Duration.ofSeconds(30)); return a("" + ok); }); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q) + log; }
     @Workflow(name="c_awaitcase") public String awaitCase(String x) { String r = switchOn("sw", x).when("1", () -> { boolean ok = awaitCondition(() -> flag, Duration.ofSeconds(30)); return a("" + ok); }).when("2", () -> e(x)).get(); return b(r); }
     @Workflow(name="c_twosig") public String twoSig(String x) { a(x); awaitCondition(() -> log.size() >= 2, Duration.ofSeconds(30)); return log.toString(); }
-    @Workflow(name="c_extcase") public String extCase(String x) { String r = switchOn("sw", x).when("1", () -> awaitExternal("cb", String.class).await(Duration.ofSeconds(30)).orElse("timeout")).when("2", () -> e(x)).get(); return a(r); }
-    @Workflow(name="c_extlane") public String extLane(String x) { Promise<String> p = async(() -> awaitExternal("cb", String.class).await(Duration.ofSeconds(30)).orElse("timeout")); Promise<String> q = async(() -> b(x)); join(p, q); return p.get() + q.get(); }
+    @Workflow(name="c_extcase") public String extCase(String x) { String r = switchOn("sw", x).when("1", () -> external("cb").await(String.class, Duration.ofSeconds(30)).orElse("timeout")).when("2", () -> e(x)).get(); return a(r); }
+    @Workflow(name="c_extlane") public String extLane(String x) { Future<String> p = async(() -> external("cb").await(String.class, Duration.ofSeconds(30)).orElse("timeout")); Future<String> q = async(() -> b(x)); join(p, q); return got(p) + got(q); }
     @Workflow(name="c_empty") public String emptyWf(String x) { return "v" + x; }
     @Workflow(name="c_emptyfail") public String emptyFail(String x) { throw new IllegalArgumentException("nope"); }
     @Workflow(name="c_emptynull") public String emptyNull(String x) { return null; }
@@ -282,11 +296,11 @@ public class Conformance {
     public record Pair(String l, int r) {}
     @Workflow(name="c_pojowf") public Pair pojoWf(Item i) { return new Pair(a(i.id()), i.tags().size()); }
     @Workflow(name="c_intwf") public int intWf(int n) { return t.num(n) * 2; }
-    @Workflow(name="c_listwf") public List<String> listWf(List<String> l) { return fanOut("fan", l, i -> a(i)).get(); }
+    @Workflow(name="c_listwf") public List<String> listWf(List<String> l) { return fanOut("fan", l, i -> a(i)); }
 
     @Workflow(name="c_catchthrow") public String catchThrow(String x) { try { return a(x); } catch (Throwable t) { return b(x); } }
     @Workflow(name="c_finallyvar") public String finallyVar(String x) { try { a(x); } finally { count++; } b(x); return "count=" + count; }
-    @Workflow(name="c_finallyret") public String finallyLane(String x) { Promise<String> p = async(() -> { try { return a(x); } finally { b(x); } }); join(p); return p.get(); }
+    @Workflow(name="c_finallyret") public String finallyLane(String x) { Future<String> p = async(() -> { try { return a(x); } finally { b(x); } }); join(p); return got(p); }
 
     // ---- lanes that run on their own
     @Workflow(name = "c_forgetslow")
@@ -309,7 +323,7 @@ public class Conformance {
 
     @Workflow(name = "c_waitlater")
     public String waitLater(String x) {
-        Promise<String> p = async(() -> t.slow("1500"));
+        Future<String> p = async(() -> t.slow("1500"));
         String r = b(x);
         join(p);
         return c(r);
@@ -317,36 +331,36 @@ public class Conformance {
 
     @Workflow(name = "c_outoforder")
     public String outOfOrder(String x) {
-        Promise<String> p = async(() -> t.slow("2500"));
-        Promise<String> q = async(() -> t.slow("800"));
+        Future<String> p = async(() -> t.slow("2500"));
+        Future<String> q = async(() -> t.slow("800"));
         t.d(x);
         join(q);
         join(p);
-        return p.get() + q.get();
+        return got(p) + got(q);
     }
 
     @Workflow(name = "c_joinoneoftwo")
     public String joinOneOfTwo(String x) {
-        Promise<String> p = async(() -> a(x));
+        Future<String> p = async(() -> a(x));
         async(() -> t.slow("1500"));
         join(p);
-        return p.get() + b(x);
+        return got(p) + b(x);
     }
 
     @Workflow(name = "c_nested")
     public String nested(String x) {
-        Promise<String> p = async(() -> {
-            Promise<String> r = async(() -> a(x));
+        Future<String> p = async(() -> {
+            Future<String> r = async(() -> a(x));
             join(r);
-            return b(r.get());
+            return b(got(r));
         });
         join(p);
-        return c(p.get());
+        return c(got(p));
     }
 
     @Workflow(name = "c_nestedbubbles")
     public String nestedBubbles(String x) {
-        Promise<String> p = async(() -> {
+        Future<String> p = async(() -> {
             async(() -> t.slow("1500"));
             return "p";
         });
@@ -369,25 +383,25 @@ public class Conformance {
 
     @Workflow(name = "c_oncebeforejoin")
     public String onceBeforeJoin(String x) {
-        Promise<String> p = async(() -> a(x));
+        Future<String> p = async(() -> a(x));
         String v = once("v", () -> "v");
         join(p);
-        return v + p.get();
+        return v + got(p);
     }
 
     @Workflow(name = "c_faninlanetwo")
     public String fanInLaneTwo(String x) {
-        Promise<String> p = async(() -> fanOut("fan", List.of("p", "q"), i -> a(i)).get().toString());
-        Promise<String> q = async(() -> b(x));
+        Future<String> p = async(() -> fanOut("fan", List.of("p", "q"), i -> a(i)).toString());
+        Future<String> q = async(() -> b(x));
         join(p, q);
-        return p.get() + q.get();
+        return got(p) + got(q);
     }
 
     @Workflow(name = "c_previewlanes")
     public String previewLanes(String x) {
         switchOn("sw", x)
                 .when("later", () -> {
-                    Promise<String> p = async(() -> a(x));
+                    Future<String> p = async(() -> a(x));
                     b(x);
                     join(p);
                     c(x);

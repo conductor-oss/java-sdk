@@ -12,10 +12,12 @@
  */
 package operator;
 
-import org.conductoross.conductor.sdk.Promise;
+import java.util.concurrent.Future;
+
 import org.conductoross.conductor.sdk.Workflow;
 
 import static org.conductoross.conductor.sdk.Conductor.async;
+import static org.conductoross.conductor.sdk.Conductor.join;
 
 /** Two branches joined, then a task: for reruns inside a fork. */
 public class ForkedWorkflow {
@@ -29,9 +31,10 @@ public class ForkedWorkflow {
 
     @Workflow(name = "native_forked", version = 1)
     public String run(String id) {
-        Promise<String> left = async(() -> tasks.forkLeft(id));
-        Promise<String> right = async(() -> tasks.forkRight(id));
-        String both = left.get() + "+" + right.get();
+        Future<String> left = async(() -> tasks.forkLeft(id));
+        Future<String> right = async(() -> tasks.forkRight(id));
+        join(left, right);
+        String both = left.resultNow() + "+" + right.resultNow();
         return tasks.forkAfter(id, both);
     }
 }

@@ -16,8 +16,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Future;
 
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Query;
 import org.conductoross.conductor.sdk.Signal;
 import org.conductoross.conductor.sdk.Update;
@@ -108,19 +108,19 @@ public class LedgerWorkflow {
         Ledger.observe(wf, "startedAt", startedAt);
 
         int first = tasks.step(id, 1);
-        Promise<Integer> left = async(() -> tasks.step(id, 2) + tasks.step(id, 3));
-        Promise<Integer> right = async(() -> {
+        Future<Integer> left = async(() -> tasks.step(id, 2) + tasks.step(id, 3));
+        Future<Integer> right = async(() -> {
             sleep(Duration.ofSeconds(input.sleepSeconds()));
             return tasks.step(id, 4);
         });
         join(left, right);
         int fromChild = child(LedgerChild::run, id);
-        Ledger.observe(wf, "beforeClose", first + left.get() + right.get() + fromChild);
+        Ledger.observe(wf, "beforeClose", first + left.resultNow() + right.resultNow() + fromChild);
 
         // long enough that only the close signal releases it, even with the server's time scale
         awaitCondition(() -> closed, Duration.ofDays(2));
         int last = tasks.step(id, 6);
-        int total = first + left.get() + right.get() + fromChild + last;
+        int total = first + left.resultNow() + right.resultNow() + fromChild + last;
         return new LedgerResult(id, token, r, startedAt, total, List.copyOf(deposits), bumps);
     }
 }

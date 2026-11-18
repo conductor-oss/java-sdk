@@ -522,7 +522,7 @@ class PlainBranchesTest {
         Tasks tasks = org.mockito.Mockito.mock(Tasks.class);
         org.mockito.Mockito.when(tasks.done("z")).thenReturn("finished");
         try (DurableTestEnvironment env = DurableTestEnvironment.inMemory()) {
-            env.workflow(IfElse.class, () -> new IfElse(Conductor.stub(Tasks.class))).tasks(tasks);
+            env.workflows(IfElse.class, () -> new IfElse(Conductor.stub(Tasks.class))).tasks(tasks);
             assertEquals("finished", env.start(IfElse::run, "a").result());
             org.mockito.Mockito.verify(tasks).a("x");
         }

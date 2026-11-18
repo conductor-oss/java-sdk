@@ -81,7 +81,7 @@ public class LoopShapes {
         private final java.util.Map<String, Integer> polls = new java.util.concurrent.ConcurrentHashMap<>();
 
         /** Done on the third poll of a key. */
-        @WorkerTask("loop_poll")
+        @WorkerTask("shape_poll")
         public Status poll(@InputParam("key") String key) {
             int n = polls.merge(key, 1, Integer::sum);
             return new Status(n, n >= 3);

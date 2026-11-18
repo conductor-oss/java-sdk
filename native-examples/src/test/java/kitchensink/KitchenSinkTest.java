@@ -114,7 +114,7 @@ class KitchenSinkTest {
                 new McpCall.McpTool("get_weather", "weather", Map.of()),
                 new McpCall.McpTool("add", "add", Map.of())));
         env.mcp("mcp_weather").respond(new McpCall.McpResult(List.of(Map.of("type", "text", "text", "Sunny in Seattle")), false));
-        env.agent("support_agent").respond(new AgentCall.AgentResult("reviewed", "message", Map.of(), null, null));
+        env.agent("support_agent").respond(new AgentCall.AgentResult("reviewed", "message", List.of(), null, null));
     }
 
     @Test

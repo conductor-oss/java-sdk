@@ -74,6 +74,11 @@ public final class McpCall {
         return this;
     }
 
+    /**
+     * Retries after a failure, with exponential backoff from {@code delay}; default 3 and 1s. The
+     * server retries an AI task at least once: a count below 1 becomes 3, with linear backoff from
+     * 2 seconds ({@code AIModelTaskMapper}).
+     */
     public McpCall retries(int count, Duration delay) {
         this.retries = count;
         this.retryDelay = delay;

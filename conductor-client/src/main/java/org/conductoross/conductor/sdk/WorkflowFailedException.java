@@ -12,13 +12,36 @@
  */
 package org.conductoross.conductor.sdk;
 
+import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
+
 /**
  * Thrown from workflow code to fail the execution with a reason. Thrown to a client waiting for the
- * result of an execution that failed.
+ * result of an execution that failed, with the execution's id and final status.
  */
 public class WorkflowFailedException extends RuntimeException {
 
+    private final String workflowId;
+    private final WorkflowStatus status;
+
+    /** Fails the execution this code is running for, with this reason. */
     public WorkflowFailedException(String reason) {
-        super(reason);
+        this(null, null, reason);
+    }
+
+    /** An execution that ended without completing: its id, final status and reason. */
+    public WorkflowFailedException(String workflowId, WorkflowStatus status, String reason) {
+        super(status == null ? reason : status + ": " + reason);
+        this.workflowId = workflowId;
+        this.status = status;
+    }
+
+    /** The failed execution, when this was thrown to a client; null in workflow code. */
+    public String getWorkflowId() {
+        return workflowId;
+    }
+
+    /** FAILED, TERMINATED or TIMED_OUT when thrown to a client; null in workflow code. */
+    public WorkflowStatus getStatus() {
+        return status;
     }
 }

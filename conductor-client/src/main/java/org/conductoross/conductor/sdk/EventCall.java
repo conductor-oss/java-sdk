@@ -33,8 +33,9 @@ public final class EventCall {
 
     /** Fire and forget: a failure to publish shows in the UI but is not raised here. */
     public void send(Object payload) {
-        command.input.putAll(Json.encodeOutput(payload));
-        command.fields.putIfAbsent("sink", "conductor");
-        Engine.current().fire(command);
+        Command c = command.copy();
+        c.input.putAll(Json.encodeOutput(payload));
+        c.fields.putIfAbsent("sink", "conductor");
+        Engine.current().fire(c);
     }
 }

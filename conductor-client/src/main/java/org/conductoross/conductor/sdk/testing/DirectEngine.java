@@ -23,15 +23,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.Backoff;
-import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Functions;
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Engine;
@@ -62,7 +63,7 @@ final class DirectEngine implements Engine {
 
     private static final class Group {
         final String forkName;
-        final List<DirectPromise<?>> members = new ArrayList<>();
+        final List<DirectFuture<?>> members = new ArrayList<>();
         boolean blocked;
 
         Group(String forkName) {
@@ -164,7 +165,11 @@ final class DirectEngine implements Engine {
                 if (a == null || a.failure != null) {
                     throw new TaskFailure(ref, "FAILED", a == null ? "no llm stub for " + ref : a.failure);
                 }
-                yield decode(cmd, Map.of("result", a.value));
+                Object answer = a.value;
+                if (cmd.resultType != String.class && answer instanceof String text) {
+                    answer = parse(text); // a JSON answer, as the server parses it
+                }
+                yield Json.convert(answer, cmd.resultType);
             }
         };
     }
@@ -272,18 +277,18 @@ final class DirectEngine implements Engine {
     }
 
     @Override
-    public <T> Promise<T> async(Supplier<T> body) {
+    public <T> Future<T> async(Supplier<T> body) {
         if (pendingGroup == null) {
             pendingGroup = new Group(null);
         }
         return run(pendingGroup, body);
     }
 
-    private <T> DirectPromise<T> run(Group g, Supplier<T> body) {
+    private <T> DirectFuture<T> run(Group g, Supplier<T> body) {
         int before = blockingCalls;
         Group saved = pendingGroup;
         pendingGroup = null;
-        DirectPromise<T> p = new DirectPromise<>();
+        DirectFuture<T> p = new DirectFuture<>();
         try {
             p.value = body.get();
         } catch (RuntimeException e) {
@@ -298,10 +303,12 @@ final class DirectEngine implements Engine {
     }
 
     @Override
-    public void join(List<? extends Promise<?>> promises) {
+    public void join(List<? extends Future<?>> branches) {
         settleGroup();
-        for (Promise<?> p : promises) {
-            p.get();
+        for (Future<?> f : branches) {
+            if (f instanceof DirectFuture<?> p && p.error != null) {
+                throw p.error;
+            }
         }
     }
 
@@ -315,8 +322,11 @@ final class DirectEngine implements Engine {
         }
         closeGroup(g);
         List<R> results = new ArrayList<>();
-        for (DirectPromise<?> p : g.members) {
-            results.add((R) p.get());
+        for (DirectFuture<?> p : g.members) {
+            if (p.error != null) {
+                throw p.error;
+            }
+            results.add((R) p.value);
         }
         return results;
     }
@@ -388,16 +398,33 @@ final class DirectEngine implements Engine {
         return results;
     }
 
-    private static final class DirectPromise<T> implements Promise<T> {
+    /** A branch run inline: done by the time async returns. */
+    private static final class DirectFuture<T> implements Future<T> {
         T value;
         RuntimeException error;
 
         @Override
-        public T get() {
+        public T get() throws ExecutionException {
             if (error != null) {
-                throw error;
+                throw new ExecutionException(error);
             }
             return value;
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) {
+            throw new UnsupportedOperationException(
+                    "workflow code waits for a branch with join(...) or get(); a deadline on the wait is not supported");
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
         }
 
         @Override
@@ -429,6 +456,6 @@ final class DirectEngine implements Engine {
     }
 
     static WorkflowSpec spec(Method method) {
-        return Conductor.spec(method);
+        return WorkflowSpec.forMethod(method);
     }
 }

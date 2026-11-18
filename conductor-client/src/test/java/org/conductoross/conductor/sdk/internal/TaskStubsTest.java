@@ -195,7 +195,7 @@ class TaskStubsTest {
         IllegalStateException e = assertThrows(IllegalStateException.class,
                 () -> WorkflowSpec.of(NeedsSomethingElse.class).get(0).newInstance());
         assertTrue(e.getMessage().contains("takes a Inventory"), e.getMessage());
-        assertTrue(e.getMessage().contains("conductor.workflow(NeedsSomethingElse.class, factory)"), e.getMessage());
+        assertTrue(e.getMessage().contains("conductor.workflows(NeedsSomethingElse.class, factory)"), e.getMessage());
     }
 
     @Test

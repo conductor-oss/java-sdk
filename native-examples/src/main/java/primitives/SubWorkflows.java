@@ -13,14 +13,15 @@
 package primitives;
 
 import java.util.Map;
+import java.util.concurrent.Future;
 
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.Workflow;
 
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import static org.conductoross.conductor.sdk.Conductor.async;
 import static org.conductoross.conductor.sdk.Conductor.child;
+import static org.conductoross.conductor.sdk.Conductor.join;
 import static org.conductoross.conductor.sdk.Conductor.startWorkflow;
 
 /**
@@ -67,13 +68,14 @@ public class SubWorkflows {
         int doubled = child(Child::run, new Doubling(n));
 
         // two children at once
-        Promise<Integer> a = async(() -> child(Child::run, new Doubling(doubled)));
-        Promise<Integer> b = async(() -> child(Child::run, new Doubling(doubled + 1)));
+        Future<Integer> a = async(() -> child(Child::run, new Doubling(doubled)));
+        Future<Integer> b = async(() -> child(Child::run, new Doubling(doubled + 1)));
 
         // fire and forget, typed and by name
         startWorkflow(Child::run, new Doubling(100));
         startWorkflow("p_child", 1, Map.of("n", 200));
 
-        return doubled + "/" + a.get() + "/" + b.get();
+        join(a, b);
+        return doubled + "/" + a.resultNow() + "/" + b.resultNow();
     }
 }

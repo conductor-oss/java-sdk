@@ -12,7 +12,6 @@
  */
 package org.conductoross.conductor.sdk;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +44,6 @@ import org.conductoross.conductor.sdk.internal.TaskStubs;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 
 import com.netflix.conductor.client.http.ConductorClient;
-import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 /**
  * Native workflows for Conductor.
@@ -94,18 +93,17 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
  */
 public final class Conductor implements AutoCloseable {
 
-    private static final Map<Method, WorkflowSpec> SPECS = new ConcurrentHashMap<>();
 
     // ================================================================== workflow code
 
     /**
      * A task stub: an instance of a class with {@code @WorkerTask} methods whose calls schedule
      * those tasks. Conductor passes one for each task-class parameter of a workflow's
-     * constructor; this is for a factory given to {@code conductor.workflow(Type.class, factory)},
+     * constructor; this is for a factory given to {@code conductor.workflows(Type.class, factory)},
      * when the constructor also takes something else:
      *
      * <pre>{@code
-     * conductor.workflow(OrderWorkflow.class, () -> new OrderWorkflow(Conductor.stub(OrderTasks.class), config))
+     * conductor.workflows(OrderWorkflow.class, () -> new OrderWorkflow(Conductor.stub(OrderTasks.class), config))
      * }</pre>
      */
     public static <T> T stub(Class<T> taskClass) {
@@ -115,29 +113,6 @@ public final class Conductor implements AutoCloseable {
     /** A task by name: for names known only at runtime, or tasks owned by another team. */
     public static TaskCall task(String name) {
         return new TaskCall(name);
-    }
-
-    /** The command for a call to a {@code @WorkerTask} method. */
-    public static Command taskCommand(Serializable ref, Object... args) {
-        return taskCommand(MethodRefs.resolve(ref), args);
-    }
-
-    /** The command for a call to a {@code @WorkerTask} method, by a reference or on a task stub. */
-    public static Command taskCommand(Method method, Object[] args) {
-        WorkerTask annotation = method.getAnnotation(WorkerTask.class);
-        if (annotation == null) {
-            throw new IllegalArgumentException(
-                    method.getDeclaringClass().getSimpleName() + "." + method.getName() + " is not a @WorkerTask method");
-        }
-        Command command = new Command(Command.Kind.SIMPLE, annotation.value(), annotation.value());
-        String[] names = MethodRefs.parameterNames(method);
-        for (int i = 0; i < names.length; i++) {
-            command.input.put(names[i], Json.plain(args[i]));
-        }
-        command.resultType = method.getGenericReturnType();
-        command.method = method;
-        command.args = args;
-        return command;
     }
 
     // ------------------------------------------------------------------ values recorded once
@@ -167,35 +142,45 @@ public final class Conductor implements AutoCloseable {
 
     /**
      * Runs the block as a parallel branch (a lane of its own in a FORK_JOIN) and carries on without
-     * waiting for it. {@link #join} or {@link Promise#get} waits. A lane that is never joined still
-     * runs, the workflow stays running until it finishes, and its failure does not fail the workflow.
+     * waiting for it. The branch's result is a {@link Future}: wait with {@link #join} and read it
+     * with {@link Future#resultNow()}, or wait and read at once with {@link Future#get()}, which
+     * wraps what the branch threw in an {@link java.util.concurrent.ExecutionException}. For one
+     * branch per item of a list, waited for together, use {@link #fanOut}.
+     *
+     * <pre>{@code
+     * Future<Quote> a = async(() -> tasks.quote("a"));
+     * Future<Quote> b = async(() -> tasks.quote("b"));
+     * join(a, b);                                   // the branches' failures are thrown here
+     * Quote best = cheaper(a.resultNow(), b.resultNow());
+     * }</pre>
+     *
+     * The wait is durable: the workflow pauses on a JOIN and no thread waits. A branch cannot be
+     * cancelled ({@code cancel} returns false), and {@code get(timeout, unit)} is not supported. A
+     * branch that is never joined still runs, the workflow stays running until it finishes, and its
+     * failure does not fail the workflow.
      */
-    public static <T> Promise<T> async(Supplier<T> body) {
+    public static <T> Future<T> async(Supplier<T> body) {
         return Engine.current().async(body);
     }
 
-    /** Waits for the given lanes and everything they started, and raises the first failure. */
-    public static void join(Promise<?>... promises) {
-        Engine.current().join(List.of(promises));
+    /**
+     * Waits for the given branches and everything they started, then throws the first failure
+     * among them, in the order given, as the branch threw it (a {@link TaskFailure}, say).
+     */
+    public static void join(Future<?>... branches) {
+        Engine.current().join(List.of(branches));
     }
 
-    /** Runs the body once per item, in parallel; each item is a branch of a FORK_JOIN. */
-    public static <I, R> Promise<List<R>> fanOut(String name, List<I> items, Function<I, R> body) {
-        List<R> results = Engine.current().fanOut(name, new ArrayList<>(items), body);
-        return new Promise<>() {
-            @Override
-            public List<R> get() {
-                return results;
-            }
-
-            @Override
-            public boolean isDone() {
-                return true;
-            }
-        };
+    /**
+     * Runs the body once per item, in parallel, each item a branch of a FORK_JOIN, and waits for
+     * them all: returns the results in item order, as {@link #forEach} does for items one after
+     * another. A failed item throws here, as the item threw it.
+     */
+    public static <I, R> List<R> fanOut(String name, List<I> items, Function<I, R> body) {
+        return Engine.current().fanOut(name, new ArrayList<>(items), body);
     }
 
-    public static <I, R> Promise<List<R>> fanOut(List<I> items, Function<I, R> body) {
+    public static <I, R> List<R> fanOut(List<I> items, Function<I, R> body) {
         return fanOut("fanout", items, body);
     }
 
@@ -331,7 +316,7 @@ public final class Conductor implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     public static <I, R> List<R> forEach(String name, List<I> items, Functions.TaskOf<I, R> task) {
-        Command command = taskCommand(task, new Object[] {null});
+        Command command = TaskStubs.taskCommand(task, new Object[] {null});
         String itemParameter = command.input.keySet().iterator().next();
         command.input.clear();
         return (List<R>) (List<?>) Engine.current().forEach(name, new ArrayList<>(items), command, itemParameter);
@@ -441,8 +426,12 @@ public final class Conductor implements AutoCloseable {
         return new HumanCall(ref);
     }
 
-    public static <T> ExternalWait<T> awaitExternal(String ref, Class<T> type) {
-        return new ExternalWait<>(ref, type);
+    /**
+     * A wait any system ends by completing the task {@code ref}: {@code
+     * external(ref).await(Type.class, timeout)}.
+     */
+    public static ExternalWait external(String ref) {
+        return new ExternalWait(ref);
     }
 
     public static EventCall event(String ref) {
@@ -463,8 +452,8 @@ public final class Conductor implements AutoCloseable {
         return new AgentCall(ref);
     }
 
-    public static WorkflowSpec spec(Method method) {
-        return SPECS.computeIfAbsent(method, WorkflowSpec::of);
+    private static WorkflowSpec spec(Method method) {
+        return WorkflowSpec.forMethod(method);
     }
 
     // ================================================================== client
@@ -492,9 +481,9 @@ public final class Conductor implements AutoCloseable {
     }
 
     /**
-     * Registers the definitions of these workflow classes (and the task definitions of these
-     * task objects, if any) without starting workers: for a deploy step that publishes what a
-     * build contains. {@link Workers#start()} does the same on start-up.
+     * Registers the definitions of these workflow classes, and their schedules, without starting
+     * workers: for a deploy step that publishes what a build contains. {@link Workers#start()}
+     * does the same on start-up.
      */
     public void register(Class<?>... workflows) {
         List<org.conductoross.conductor.sdk.internal.WorkflowSpec> specs = new java.util.ArrayList<>();
@@ -526,13 +515,24 @@ public final class Conductor implements AutoCloseable {
     }
 
     /** As {@link #workflows}, for a workflow class whose instances need constructor arguments. */
-    public <T> Workers workflow(Class<T> workflowClass, Supplier<T> factory) {
-        return newWorkers().workflow(workflowClass, factory);
+    public <T> Workers workflows(Class<T> workflowClass, Supplier<T> factory) {
+        return newWorkers().workflows(workflowClass, factory);
     }
 
     /** As {@link #workflows}, for objects with {@code @WorkerTask} methods. */
     public Workers tasks(Object... taskObjects) {
         return newWorkers().tasks(taskObjects);
+    }
+
+    /** The spec of a workflow class these workers host, with its factory, if any of them does. */
+    java.util.Optional<WorkflowSpec> hostedSpec(Class<?> type) {
+        for (Workers workers : List.copyOf(started)) {
+            java.util.Optional<WorkflowSpec> spec = workers.hostedSpec(type);
+            if (spec.isPresent()) {
+                return spec;
+            }
+        }
+        return java.util.Optional.empty();
     }
 
     private Workers newWorkers() {
@@ -567,7 +567,7 @@ public final class Conductor implements AutoCloseable {
      */
     @Override
     public void close() {
-        started.forEach(Workers::shutdown);
+        started.forEach(Workers::close);
         List.copyOf(waiting).forEach(future -> future.cancel(false));
         synchronized (this) {
             if (poller != null) {
@@ -638,6 +638,7 @@ public final class Conductor implements AutoCloseable {
             this.method = method;
         }
 
+        /** An id of your own to find the execution by, such as an order id; not unique. */
         public StartBuilder<A, R> correlationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
@@ -649,7 +650,6 @@ public final class Conductor implements AutoCloseable {
             return this;
         }
 
-        /** Queue priority of the execution's tasks, 0 (lowest, the default) to 99. */
         /**
          * Sends a task to workers polling in a domain, for reusing workers that already run
          * in one: {@code taskToDomain(Map.of("legacy_lookup", "team-a"))}.
@@ -659,6 +659,7 @@ public final class Conductor implements AutoCloseable {
             return this;
         }
 
+        /** Queue priority of the execution's tasks, 0 (lowest, the default) to 99. */
         public StartBuilder<A, R> priority(int priority) {
             if (priority < 0 || priority > 99) {
                 throw new IllegalArgumentException("priority must be between 0 and 99");
@@ -667,6 +668,7 @@ public final class Conductor implements AutoCloseable {
             return this;
         }
 
+        /** Starts the execution with these options. */
         public WorkflowHandle<R> start(A input) {
             WorkflowSpec spec = spec(method);
             // a host of this process registers in the background: a start right after it waits

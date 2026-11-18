@@ -67,7 +67,7 @@ public final class DurableTestEnvironment implements AutoCloseable {
     }
 
     /** A workflow class created by {@code factory}; {@code Conductor.stub(Tasks.class)} gives it task stubs. */
-    public <T> DurableTestEnvironment workflow(Class<T> type, Supplier<T> factory) {
+    public <T> DurableTestEnvironment workflows(Class<T> type, Supplier<T> factory) {
         factories.put(type, factory);
         return this;
     }

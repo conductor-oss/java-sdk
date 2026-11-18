@@ -12,7 +12,8 @@
  */
 package operator;
 
-import org.conductoross.conductor.sdk.Promise;
+import java.util.concurrent.Future;
+
 import org.conductoross.conductor.sdk.Workflow;
 
 import static org.conductoross.conductor.sdk.Conductor.async;
@@ -30,8 +31,8 @@ public class LaneFailureWorkflow {
 
     @Workflow(name = "native_lane_failure", version = 1)
     public String run(String trackingId) {
-        Promise<Integer> boxes = async(() -> tasks.pack(trackingId, 20));
-        Promise<String> label = async(() -> tasks.label(trackingId, 1));
+        Future<Integer> boxes = async(() -> tasks.pack(trackingId, 20));
+        Future<String> label = async(() -> tasks.label(trackingId, 1));
         join(boxes, label);
         return "unreachable while the carrier is down";
     }

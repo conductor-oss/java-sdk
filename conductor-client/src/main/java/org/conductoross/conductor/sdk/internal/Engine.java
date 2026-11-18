@@ -15,13 +15,13 @@ package org.conductoross.conductor.sdk.internal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.Functions;
-import org.conductoross.conductor.sdk.Promise;
 
 /**
  * What workflow code can ask of whatever is running it. The static API in {@code Conductor}
@@ -42,9 +42,9 @@ public interface Engine {
 
     double random();
 
-    <T> Promise<T> async(Supplier<T> body);
+    <T> Future<T> async(Supplier<T> body);
 
-    void join(List<? extends Promise<?>> promises);
+    void join(List<? extends Future<?>> branches);
 
     <I, R> List<R> fanOut(String name, List<I> items, Function<I, R> body);
 

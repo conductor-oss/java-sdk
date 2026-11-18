@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *   Messages      @Variable, @Signal, @Update, @Query
  *   Errors        retries, TaskFailure, compensation, failing the run
  *   SideEffects   once, now, random, workflowId
- *   SystemTasks   http, event, human, awaitExternal, llm, mcp, agent
+ *   SystemTasks   http, event, human, external, llm, mcp, agent
  * </pre>
  *
  * <pre>

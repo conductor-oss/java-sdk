@@ -12,10 +12,12 @@
  */
 package operator;
 
-import org.conductoross.conductor.sdk.Promise;
+import java.util.concurrent.Future;
+
 import org.conductoross.conductor.sdk.Workflow;
 
 import static org.conductoross.conductor.sdk.Conductor.async;
+import static org.conductoross.conductor.sdk.Conductor.join;
 import static org.conductoross.conductor.sdk.Conductor.switchOn;
 
 /** A lane that ends in a decision, joined: the join waits for the task of the chosen case. */
@@ -30,11 +32,12 @@ public class SwitchLaneWorkflow {
 
     @Workflow(name = "native_switch_lane", version = 1)
     public String run(String id) {
-        Promise<String> routed = async(() -> switchOn("lane_route", "slow")
+        Future<String> routed = async(() -> switchOn("lane_route", "slow")
                 .when("slow", () -> tasks.laneSlow(id))
                 .when("fast", () -> tasks.routeY(id))
                 .get());
-        Promise<String> other = async(() -> tasks.forkRight(id));
-        return routed.get() + "+" + other.get();
+        Future<String> other = async(() -> tasks.forkRight(id));
+        join(routed, other);
+        return routed.resultNow() + "+" + other.resultNow();
     }
 }

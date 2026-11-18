@@ -30,6 +30,8 @@ import org.conductoross.conductor.sdk.internal.MethodRefs;
 import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 
+import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
+
 /**
  * A running or finished execution, seen from the client. Handlers are addressed by method
  * reference, so renaming a handler is a compile error at every call site.
@@ -80,13 +82,16 @@ public final class WorkflowHandle<R> {
      * {@code @Variable} values, which is the state a worker would restore to run it. So a query
      * writes nothing, cannot change the execution, works on a completed execution, and does not
      * wait for the workflow's handler lane. It sees every signal and update the execution has
-     * applied; one that was sent but not yet applied is not visible yet.
+     * applied; one that was sent but not yet applied is not visible yet. A class this {@code
+     * Conductor} hosts with a factory ({@code workflows(Type.class, factory)}) is made by that
+     * factory.
      */
     @SuppressWarnings("unchecked")
     public <T, V> V query(Fn0<T, V> handler) {
         Method m = MethodRefs.resolve(handler);
         name(handler, Query.class); // checks the annotation
-        WorkflowSpec spec = WorkflowSpec.of(workflowMethodOf(m.getDeclaringClass()));
+        WorkflowSpec spec = conductor.hostedSpec(m.getDeclaringClass())
+                .orElseGet(() -> WorkflowSpec.of(workflowMethodOf(m.getDeclaringClass())));
         Object variables = execution(false).get("variables");
         Object instance = spec.newInstance();
         spec.restoreVariables(instance, variables instanceof Map<?, ?> v ? (Map<String, Object>) v : Map.of());
@@ -103,7 +108,12 @@ public final class WorkflowHandle<R> {
         throw new IllegalArgumentException(type.getName() + " has no @Workflow method");
     }
 
-    /** Waits for the execution to finish and returns its result. */
+    /**
+     * Waits for the execution to finish and returns its result. Throws {@link
+     * WorkflowFailedException} when it ended without completing, and {@link
+     * WorkflowTimeoutException} when it is still going after {@code timeout}; the execution keeps
+     * running.
+     */
     public R result(Duration timeout) {
         long deadline = System.currentTimeMillis() + timeout.toMillis();
         while (true) {
@@ -112,7 +122,7 @@ public final class WorkflowHandle<R> {
                 return outcome(wf);
             }
             if (System.currentTimeMillis() > deadline) {
-                throw new IllegalStateException("execution " + workflowId + " still " + wf.get("status") + " after " + timeout);
+                throw new WorkflowTimeoutException(workflowId, WorkflowStatus.valueOf(String.valueOf(wf.get("status"))), timeout);
             }
             sleep(250);
         }
@@ -155,11 +165,13 @@ public final class WorkflowHandle<R> {
         if ("COMPLETED".equals(status)) {
             return (R) Json.decodeOutput((Map<String, Object>) wf.get("output"), resultType);
         }
-        throw new WorkflowFailedException(status + ": " + wf.get("reasonForIncompletion"));
+        throw new WorkflowFailedException(workflowId, WorkflowStatus.valueOf(String.valueOf(status)),
+                String.valueOf(wf.get("reasonForIncompletion")));
     }
 
-    public String status() {
-        return (String) execution(false).get("status");
+    /** The execution's status now. */
+    public WorkflowStatus status() {
+        return WorkflowStatus.valueOf(String.valueOf(execution(false).get("status")));
     }
 
     @SuppressWarnings("unchecked")

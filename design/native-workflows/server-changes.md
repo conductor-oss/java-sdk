@@ -153,7 +153,7 @@ when `idempotencyKey` is set; `RETURN_EXISTING` or `FAIL`.
 ### S2. Signals and early signals (done)
 
 - Targeted completion of a specific WAIT: `POST /api/tasks/{workflowId}/{taskRefName}/{status}`,
-  used for `awaitExternal` and human tasks.
+  used for `external(..)` waits and human tasks.
 - Signals, updates and queries: `POST /api/workflow/{workflowId}/messages` pushes to the durable
   per-workflow message queue (`JdbcWorkflowMessageQueueDAO`, SQLite, Postgres and MySQL) inside a
   decide, which wakes and offers the handler marker. The handler lane's poll claims the messages under

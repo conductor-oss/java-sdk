@@ -73,7 +73,7 @@ class ConductorWorkflowAutoConfigurationTest {
             assertThat(context).hasSingleBean(ConductorWorkflowHost.class);
             assertThat(context).doesNotHaveBean(SampleWorkflow.class);
             ArgumentCaptor<Supplier> factory = ArgumentCaptor.forClass(Supplier.class);
-            verify(workers).workflow(eq(SampleWorkflow.class), factory.capture());
+            verify(workers).workflows(eq(SampleWorkflow.class), factory.capture());
             SampleWorkflow first = (SampleWorkflow) factory.getValue().get();
             assertThat(first).isNotSameAs(factory.getValue().get());
             assertThat(first.tasks()).isInstanceOf(TaskStubs.Stub.class).isNotSameAs(context.getBean(SampleTasks.class));
@@ -87,7 +87,7 @@ class ConductorWorkflowAutoConfigurationTest {
     void rejectsAWorkflowThatGetsTheRealTaskBeanInjected() {
         runner().run(context -> {
             ArgumentCaptor<Supplier> factory = ArgumentCaptor.forClass(Supplier.class);
-            verify(workers).workflow(eq(AutowiredTasksWorkflow.class), factory.capture());
+            verify(workers).workflows(eq(AutowiredTasksWorkflow.class), factory.capture());
             assertThatThrownBy(() -> TaskStubs.check(factory.getValue().get()))
                     .hasMessageContaining("field tasks of");
         });
@@ -103,8 +103,8 @@ class ConductorWorkflowAutoConfigurationTest {
 
     @Test
     void stopsTheWorkersWhenTheContextCloses() {
-        runner().run(context -> verify(workers, never()).shutdown());
-        verify(workers).shutdown();
+        runner().run(context -> verify(workers, never()).close());
+        verify(workers).close();
     }
 
     @Test

@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,7 +35,6 @@ import java.util.function.Supplier;
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.Functions;
 import org.conductoross.conductor.sdk.NonDeterminismException;
-import org.conductoross.conductor.sdk.Promise;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.WorkflowFailedException;
 
@@ -689,7 +691,7 @@ public final class Replayer {
         /** The group this lane belongs to. */
         Group group;
         boolean capture;
-        final LanePromise<Object> promise = new LanePromise<>(this);
+        final LaneFuture<Object> future = new LaneFuture<>(this);
 
         Lane(String id, boolean main, Supplier<?> body) {
             this.id = id;
@@ -1003,13 +1005,13 @@ public final class Replayer {
 
         @Override
         @SuppressWarnings("unchecked")
-        public <T> Promise<T> async(Supplier<T> asyncBody) {
+        public <T> Future<T> async(Supplier<T> asyncBody) {
             follow();
             if (pendingGroup == null) {
                 pendingGroup = new Group(++groupCounter, null);
                 pendingGroup.loops = loopsHere();
             }
-            return (Promise<T>) spawn(pendingGroup, asyncBody).promise;
+            return (Future<T>) spawn(pendingGroup, asyncBody).future;
         }
 
         private Lane spawn(Group g, Supplier<?> laneBody) {
@@ -1031,36 +1033,38 @@ public final class Replayer {
         }
 
         /**
-         * Waits for the lanes, then raises the first failure among the joined promises, in the
+         * Waits for the lanes, then raises the first failure among the joined branches, in the
          * order given, so a lane's uncaught failure fails the caller even without a get().
          */
         @Override
-        public void join(List<? extends Promise<?>> promises) {
+        public void join(List<? extends Future<?>> branches) {
             follow();
-            joinGroup(promises);
-            for (Promise<?> p : promises) {
-                p.get();
+            joinGroup(branches);
+            for (Future<?> p : branches) {
+                if (p instanceof LaneFuture<?> lane) {
+                    lane.raise();
+                }
             }
         }
 
         /**
-         * Waits for the promised lanes, or for the whole pending group when none are named. Lanes
+         * Waits for the given lanes, or for the whole pending group when none are named. Lanes
          * not forked yet are forked here with a JOIN on the ones wanted; lanes already running get
          * a JOIN of their own, which names them. A lane that finished waits for nothing.
          */
         @SuppressWarnings("unchecked")
-        private void joinGroup(List<? extends Promise<?>> promises) {
+        private void joinGroup(List<? extends Future<?>> branches) {
             Group g = pendingGroup;
             if (g != null && allDone(g)) {
                 flushSyncGroup(this);
                 g = null;
             }
             List<Lane> wanted = new ArrayList<>();
-            if (promises.isEmpty() && g != null) {
+            if (branches.isEmpty() && g != null) {
                 g.members.forEach(l -> unfinished(l, wanted));
             }
-            for (Promise<?> p : promises) {
-                if (p instanceof LanePromise<?> lp) {
+            for (Future<?> p : branches) {
+                if (p instanceof LaneFuture<?> lp) {
                     unfinished(lp.lane, wanted);
                 }
             }
@@ -1156,7 +1160,8 @@ public final class Replayer {
             joinGroup(List.of());
             List<R> results = new ArrayList<>();
             for (Lane l : g.members) {
-                results.add((R) l.promise.get());
+                l.future.raise(); // a failed item fails the fan-out, as the item threw it
+                results.add((R) l.result);
             }
             return results;
         }
@@ -1825,18 +1830,33 @@ public final class Replayer {
         throw new TaskFailure(ref, t.status, t.reason);
     }
 
-    /** The promise of an async lane. */
-    private final class LanePromise<T> implements Promise<T> {
+    /** The result of an async lane, as a {@link Future}. */
+    private final class LaneFuture<T> implements Future<T> {
         private final Lane lane;
 
-        LanePromise(Lane lane) {
+        LaneFuture(Lane lane) {
             this.lane = lane;
         }
 
+        /** Waits for the lane (a JOIN); what the lane threw comes wrapped, as Future requires. */
         @Override
         @SuppressWarnings("unchecked")
-        public T get() {
+        public T get() throws ExecutionException {
             ((Lane) Engine.current()).joinGroup(List.of(this));
+            if (lane.error != null) {
+                throw new ExecutionException(lane.error);
+            }
+            return (T) lane.result;
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) {
+            throw new UnsupportedOperationException(
+                    "workflow code waits for a branch with join(...) or get(); a deadline on the wait is not supported");
+        }
+
+        /** Throws what the lane threw, as {@code Conductor.join} does. */
+        void raise() {
             if (lane.error instanceof RuntimeException re) {
                 throw re;
             }
@@ -1846,12 +1866,22 @@ public final class Replayer {
             if (lane.error != null) {
                 throw new WorkflowFailedException(lane.error.toString());
             }
-            return (T) lane.result;
+        }
+
+        /** A branch cannot be cancelled: it runs to its end. */
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
         }
 
         @Override
         public boolean isDone() {
-            return lane.state == State.DONE;
+            return lane.state == Replayer.State.DONE;
         }
     }
 
