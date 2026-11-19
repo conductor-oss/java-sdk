@@ -14,9 +14,7 @@ package io.orkes.conductor.sdk;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,11 +36,15 @@ import io.orkes.conductor.client.util.ClientTestUtil;
 public class WorkflowSDKTests {
 
     @Test
-    public void testCreateWorkflow() {
+    public void testCreateWorkflow() throws Exception {
         ConductorClient client = ClientTestUtil.getClient();
 
         AnnotatedWorkerExecutor workerExecutor = new AnnotatedWorkerExecutor(new TaskClient(client), new WorkerConfiguration());
         workerExecutor.initWorkers("io.orkes.conductor.sdk");
+        // Redundant -- initWorkers() already reaches startPolling() -- but kept deliberately: this is
+        // the shape the docs and examples use, and startPolling() is now idempotent, so it must not
+        // restart the runner out from under an in-flight poll. See
+        // AnnotatedWorkerTests#initWorkersStartsASingleTaskRunner.
         workerExecutor.startPolling();
 
         WorkflowExecutor executor = new WorkflowExecutor(client, workerExecutor);
@@ -57,11 +59,14 @@ public class WorkflowSDKTests {
         CompletableFuture<Workflow> result = workflow.execute(Map.of("name", "orkes"));
         Assertions.assertNotNull(result);
         try {
-            Workflow executedWorkflow = result.get(3, TimeUnit.SECONDS);
+            // WorkflowExecutor's monitor thread polls every 100ms (see initMonitor()), so 10s is a generous margin.
+            Workflow executedWorkflow = result.get(10, TimeUnit.SECONDS);
             Assertions.assertNotNull(executedWorkflow);
             Assertions.assertEquals(Workflow.WorkflowStatus.COMPLETED, executedWorkflow.getStatus());
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            Assertions.fail(e.getMessage());
+        } catch (Exception e) {
+            // fail(e), not fail(e.getMessage()): a TimeoutException carries a null message, which
+            // previously surfaced in CI as a bare AssertionFailedError with nothing to diagnose.
+            Assertions.fail(e);
         }
     }
 

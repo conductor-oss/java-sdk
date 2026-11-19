@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
@@ -49,6 +50,8 @@ import io.orkes.conductor.client.model.UpsertUserRequest;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
 
+@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+        disabledReason = "the Authorization APIs (applications/users/groups/roles/permissions) are not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/applications|users|groups|...')")
 public class AuthorizationClientTests {
     private static AuthorizationClient authorizationClient;
     private static String applicationId;
