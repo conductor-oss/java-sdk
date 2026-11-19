@@ -271,6 +271,11 @@ public final class Replayer {
             for (CodeReader.Step step : l.body()) {
                 if (step instanceof CodeReader.Call c && l.perItem()) {
                     body.add(finish(Entries.of(c.command(), ref + "_task", lane), c.site()));
+                } else if (step instanceof CodeReader.Call c) {
+                    // repeatUntil, as the server runs it: wait out the backoff, then make the call
+                    body.add(structural(ref + "_backoff", ref + "_backoff", "INLINE", l.site()));
+                    body.add(structural(ref + "_wait", ref + "_wait", "WAIT", l.site()));
+                    body.add(finish(Entries.of(c.command(), ref + "_check", lane), c.site()));
                 } else {
                     body.addAll(draw(List.of(step)));
                 }

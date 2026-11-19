@@ -1394,9 +1394,12 @@ public final class CodeReader {
                     continue; // the loop's condition (any other jump out of it is a break)
                 }
                 int[] cond = g.nodes.stream().mapToInt(Integer::intValue).sorted().toArray();
+                // the arm that runs when what the if is named after is true is "true": for
+                // if (!approved), the arm the code falls into is "false"
+                boolean negated = negatesBoolean(g);
                 Map<Integer, String> keyOf = new LinkedHashMap<>();
-                keyOf.put(g.then, "true");
-                keyOf.put(g.otherwise, "false");
+                keyOf.put(g.then, negated ? "false" : "true");
+                keyOf.put(g.otherwise, negated ? "true" : "false");
                 Candidate c = decision(g.last, lineAt[g.first], name("if", g.last), cond, keyOf, g.otherwise, Set.of());
                 if (c != null) {
                     all.add(c);
@@ -1433,6 +1436,32 @@ public final class CodeReader {
         }
 
         /** The jumps of one if's condition, its last, and its two outcomes. */
+        /**
+         * Whether an if of one jump tests a boolean (a method, field or local of type boolean) and
+         * falls into its body when that boolean is false: {@code if (!approved)}, which javac
+         * compiles to a jump past the body when the value is true.
+         */
+        private boolean negatesBoolean(IfGroup g) {
+            if (g.first != g.last || insns[g.last].getOpcode() != Opcodes.IFNE) {
+                return false;
+            }
+            AbstractInsnNode value = prevRealIn(insns, g.last);
+            if (value instanceof MethodInsnNode m) {
+                return m.desc.endsWith(")Z");
+            }
+            if (value instanceof FieldInsnNode f) {
+                return f.desc.equals("Z");
+            }
+            if (value instanceof VarInsnNode v && v.getOpcode() == Opcodes.ILOAD && method.localVariables != null) {
+                for (LocalVariableNode local : method.localVariables) {
+                    if (local.index == v.var && index(local.start) <= g.last && g.last < index(local.end)) {
+                        return local.desc.equals("Z");
+                    }
+                }
+            }
+            return false;
+        }
+
         private static final class IfGroup {
             final int last;
             final int then;

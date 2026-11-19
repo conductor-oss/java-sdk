@@ -85,8 +85,9 @@ public class Check {
         c("and-or-and", k -> k.start(Branches::andOr, "1"), "e(a(1))", "#i12:true{a};e");
         c("and-or-or", k -> k.start(Branches::andOr, "9"), "e(a(9))", "#i12:true{a};e");
         c("and-or-false", k -> k.start(Branches::andOr, "5"), "e(b(5))", "#i12:false{b};e");
-        c("negated-true", k -> k.start(Branches::negated, "1"), "e(a(1))", "#i13:true{a};e");
-        c("negated-false", k -> k.start(Branches::negated, "5"), "e(b(5))", "#i13:false{b};e");
+        // if (!big): the if is named after big, and keyed by big's value
+        c("negated-true", k -> k.start(Branches::negated, "1"), "e(a(1))", "#i13:false{a};e");
+        c("negated-false", k -> k.start(Branches::negated, "5"), "e(b(5))", "#i13:true{b};e");
         c("empty-then", k -> k.start(Branches::emptyThen, "1"), "e(1)", "#i14:true{};e");
         c("empty-then-else", k -> k.start(Branches::emptyThen, "2"), "e(b(2))", "#i14:false{b};e");
         c("guard-return-taken", k -> k.start(Branches::guardReturn, "1"), "a(1)", "#i15:true{a}");

@@ -76,6 +76,15 @@ class CodeReaderTest {
             return TASKS.tell(x);
         }
 
+        @Workflow(name = "negated_if")
+        public String negatedIf(String x) {
+            Plan plan = TASKS.plan(x);
+            if (!plan.needsApproval()) {
+                return TASKS.ship(x);
+            }
+            return TASKS.approve(x);
+        }
+
         @Workflow(name = "branches_and_loops")
         public String branchesAndLoops(String x) {
             Plan plan = TASKS.plan(x);
@@ -197,6 +206,17 @@ class CodeReaderTest {
         assertEquals("SWITCH", sw.get("type"), "an if whose arms call the server is drawn with both arms");
         assertEquals(List.of("approve"), refs(((Map<String, List<Map<String, Object>>>) sw.get("decisionCases")).get("true")));
         assertEquals(List.of("notify"), refs((List<Map<String, Object>>) sw.get("defaultCase")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void aNegatedIfKeysItsArmsByTheValueItIsNamedAfter() {
+        Map<String, Object> sw = discover("negated_if").get(1);
+        assertEquals("if_needsApproval", sw.get("taskReferenceName"));
+        Map<String, List<Map<String, Object>>> cases = (Map<String, List<Map<String, Object>>>) sw.get("decisionCases");
+        assertEquals(List.of("false"), List.copyOf(cases.keySet()), "if (!needsApproval) runs its body when needsApproval is false");
+        assertEquals(List.of("ship"), refs(cases.get("false")));
+        assertEquals(List.of("approve"), refs((List<Map<String, Object>>) sw.get("defaultCase")));
     }
 
     @Test
