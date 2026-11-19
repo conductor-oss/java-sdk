@@ -119,7 +119,7 @@ public class FleetWorkflow {
         Conductor conductor = Conductor.of(client);
         conductor.workflows(FleetWorkflow.class).tasks(new FleetTasks()).start();
         WorkflowHandle<String> run = conductor.start(FleetWorkflow::run, java.util.UUID.randomUUID().toString());
-        System.out.println("execution: " + run.url());
+        System.out.println("execution: " + run.workflowId());
         System.out.println("result:    " + run.result(Duration.ofMinutes(2)));
         conductor.close();
         client.shutdown();

@@ -56,7 +56,7 @@ public class Reuse {
         WorkflowHandle<String> run = conductor.workflow(Reuse::run)
                 .taskToDomain(Map.of("legacy_enrich", "team-a"))
                 .start("sku-1");
-        System.out.println("execution: " + run.url());
+        System.out.println("execution: " + run.workflowId());
         System.out.println("result:    " + run.result(Duration.ofSeconds(60)));
         conductor.close();
         client.shutdown();

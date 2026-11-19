@@ -28,6 +28,7 @@ import org.conductoross.conductor.sdk.testing.DurableReplay;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.WorkflowClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,7 +157,7 @@ public class Main {
         check("messages: a query reads the state", cart.query(Messages::count) == 2, cart);
         cart.signal(Messages::checkout);
         check("messages: the signal woke the code", "ana: order of 2".equals(cart.result(WAIT)), cart);
-        check("messages: variables are on the execution", Boolean.TRUE.equals(cart.variables().get("checkedOut")), cart);
+        check("messages: variables are on the execution", Boolean.TRUE.equals(new WorkflowClient(client).getWorkflow(cart.workflowId(), false).getVariables().get("checkedOut")), cart);
 
         // ---------------------------------------------------------------- errors
         WorkflowHandle<List<String>> paid = started(Errors.class, conductor.start(Errors::run, new Errors.Purchase("ok-" + stamp, 50, false)));

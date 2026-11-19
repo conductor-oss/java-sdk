@@ -24,6 +24,7 @@ import org.conductoross.conductor.sdk.WorkflowHandle;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.WorkflowClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import operator.ShipmentWorkflow.Order;
@@ -112,7 +113,7 @@ public class OperatorChecks {
         System.out.println("after restart: " + restarted);
         check("restart completes", restarted.label() != null);
         check("restart recorded a new tracking id", !tracking.equals(restarted.trackingId()));
-        check("stage variable is shipped", "shipped".equals(run.variables().get("stage")));
+        check("stage variable is shipped", "shipped".equals(new WorkflowClient(conductor.client()).getWorkflow(run.workflowId(), false).getVariables().get("stage")));
 
         checkReruns(conductor);
         checkForkReruns(conductor);

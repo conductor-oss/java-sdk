@@ -12,14 +12,18 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.conductoross.conductor.sdk.Functions.Fn0;
 import org.conductoross.conductor.sdk.Functions.Fn1;
@@ -30,22 +34,30 @@ import org.conductoross.conductor.sdk.internal.MethodRefs;
 import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 
+import com.netflix.conductor.client.http.TaskClient;
+import com.netflix.conductor.client.http.WorkflowClient;
+import com.netflix.conductor.common.metadata.tasks.Task;
+import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
 
 /**
- * A running or finished execution, seen from the client. Handlers are addressed by method
- * reference, so renaming a handler is a compile error at every call site.
+ * An execution, seen from the client: wait for its result, send it signals and updates, query its
+ * state. Handlers are addressed by method reference, so renaming a handler is a compile error at
+ * every call site.
  */
 public final class WorkflowHandle<R> {
 
-    private static final Set<String> TERMINAL = Set.of("COMPLETED", "FAILED", "TERMINATED", "TIMED_OUT");
-
+    // the Conductor this handle came from: its client, the factories of the workflow classes it
+    // hosts (for query), and the one thread that waits for results, which close() stops
     private final Conductor conductor;
+    private final WorkflowClient workflows;
     private final String workflowId;
     private final Type resultType;
 
     WorkflowHandle(Conductor conductor, String workflowId, Type resultType) {
         this.conductor = conductor;
+        this.workflows = new WorkflowClient(conductor.client());
         this.workflowId = workflowId;
         this.resultType = resultType;
     }
@@ -54,10 +66,70 @@ public final class WorkflowHandle<R> {
         return workflowId;
     }
 
-    /** The execution in the Conductor UI. */
-    public String url() {
-        String base = conductor.client().getBasePath().replaceAll("/api/?$", "");
-        return base + "/execution/" + workflowId;
+    /** The execution's status now. */
+    public WorkflowStatus status() {
+        return execution(false).getStatus();
+    }
+
+    /**
+     * Waits for the execution to finish and returns its result. Throws {@link
+     * WorkflowFailedException} when it ended without completing, and {@link
+     * WorkflowTimeoutException} when it is still going after {@code timeout}; the execution keeps
+     * running.
+     */
+    public R result(Duration timeout) {
+        CompletableFuture<R> result = resultAsync();
+        try {
+            return result.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            result.cancel(false);
+            throw new WorkflowTimeoutException(workflowId, status(), timeout);
+        } catch (ExecutionException e) {
+            throw e.getCause() instanceof RuntimeException cause ? cause : new IllegalStateException(e.getCause());
+        } catch (InterruptedException e) {
+            result.cancel(false);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * The result as a future, completed when the execution finishes: with the workflow method's
+     * return value, or exceptionally with a {@link WorkflowFailedException}. For waiting on many
+     * executions at once, or composing with other futures:
+     *
+     * <pre>{@code
+     * CompletableFuture<Receipt> a = conductor.start(Order::process, first).resultAsync();
+     * CompletableFuture<Receipt> b = conductor.start(Order::process, second).resultAsync();
+     * CompletableFuture.allOf(a, b).orTimeout(2, TimeUnit.MINUTES).join();
+     * }</pre>
+     *
+     * One thread per {@link Conductor} checks every pending future, and a server that is
+     * restarting is waited out. Cancelling the future only stops waiting: the execution keeps
+     * running. Closing the Conductor cancels the futures still waiting.
+     */
+    public CompletableFuture<R> resultAsync() {
+        return conductor.whenFinished(() -> {
+            Workflow execution;
+            try {
+                execution = workflows.getWorkflow(workflowId, false);
+            } catch (RuntimeException e) {
+                if (Http.isRefusal(e)) {
+                    throw e; // no such execution, for one: it will not finish
+                }
+                return null; // a restarting server: check again
+            }
+            return execution.getStatus().isTerminal() ? execution : null;
+        }, this::outcome);
+    }
+
+    /** The result of a finished execution, or the failure it ended with. */
+    @SuppressWarnings("unchecked")
+    private R outcome(Workflow execution) {
+        if (execution.getStatus() == WorkflowStatus.COMPLETED) {
+            return (R) Json.decodeOutput(execution.getOutput(), resultType);
+        }
+        throw new WorkflowFailedException(workflowId, execution.getStatus(), execution.getReasonForIncompletion());
     }
 
     public <T, A> void signal(Proc1<T, A> handler, A argument) {
@@ -91,117 +163,33 @@ public final class WorkflowHandle<R> {
         Method m = MethodRefs.resolve(handler);
         name(handler, Query.class); // checks the annotation
         WorkflowSpec spec = conductor.hostedSpec(m.getDeclaringClass())
-                .orElseGet(() -> WorkflowSpec.of(workflowMethodOf(m.getDeclaringClass())));
-        Object variables = execution(false).get("variables");
+                .orElseGet(() -> WorkflowSpec.of(m.getDeclaringClass()).get(0));
+        Map<String, Object> variables = execution(false).getVariables();
         Object instance = spec.newInstance();
-        spec.restoreVariables(instance, variables instanceof Map<?, ?> v ? (Map<String, Object>) v : Map.of());
+        spec.restoreVariables(instance, variables == null ? Map.of() : variables);
         Object value = Replayer.invokeHandler(instance, m, null);
         return (V) Json.convert(Json.plain(value), m.getGenericReturnType());
-    }
-
-    private static Method workflowMethodOf(Class<?> type) {
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(Workflow.class)) {
-                return method;
-            }
-        }
-        throw new IllegalArgumentException(type.getName() + " has no @Workflow method");
-    }
-
-    /**
-     * Waits for the execution to finish and returns its result. Throws {@link
-     * WorkflowFailedException} when it ended without completing, and {@link
-     * WorkflowTimeoutException} when it is still going after {@code timeout}; the execution keeps
-     * running.
-     */
-    public R result(Duration timeout) {
-        long deadline = System.currentTimeMillis() + timeout.toMillis();
-        while (true) {
-            Map<String, Object> wf = execution(false);
-            if (TERMINAL.contains(wf.get("status"))) {
-                return outcome(wf);
-            }
-            if (System.currentTimeMillis() > deadline) {
-                throw new WorkflowTimeoutException(workflowId, WorkflowStatus.valueOf(String.valueOf(wf.get("status"))), timeout);
-            }
-            sleep(250);
-        }
-    }
-
-    /**
-     * The result as a future, completed when the execution finishes: with the workflow method's
-     * return value, or exceptionally with a {@link WorkflowFailedException}. For waiting on many
-     * executions at once, or composing with other futures:
-     *
-     * <pre>{@code
-     * CompletableFuture<Receipt> a = conductor.start(Order::process, first).resultAsync();
-     * CompletableFuture<Receipt> b = conductor.start(Order::process, second).resultAsync();
-     * CompletableFuture.allOf(a, b).orTimeout(2, TimeUnit.MINUTES).join();
-     * }</pre>
-     *
-     * One thread per {@link Conductor} checks every pending future, and a server that is
-     * restarting is waited out. Cancelling the future only stops waiting: the execution keeps
-     * running. Closing the Conductor cancels the futures still waiting.
-     */
-    public CompletableFuture<R> resultAsync() {
-        return conductor.whenFinished(() -> {
-            Map<String, Object> wf;
-            try {
-                wf = Http.getMap(conductor.client(), "/workflow/" + workflowId, Map.of("includeTasks", "false"));
-            } catch (RuntimeException e) {
-                if (isRefusal(e)) {
-                    throw e; // no such execution, for one: it will not finish
-                }
-                return null; // a restarting server: check again
-            }
-            return TERMINAL.contains(wf.get("status")) ? wf : null;
-        }, this::outcome);
-    }
-
-    /** The result of a finished execution, or the failure it ended with. */
-    @SuppressWarnings("unchecked")
-    private R outcome(Map<String, Object> wf) {
-        Object status = wf.get("status");
-        if ("COMPLETED".equals(status)) {
-            return (R) Json.decodeOutput((Map<String, Object>) wf.get("output"), resultType);
-        }
-        throw new WorkflowFailedException(workflowId, WorkflowStatus.valueOf(String.valueOf(status)),
-                String.valueOf(wf.get("reasonForIncompletion")));
-    }
-
-    /** The execution's status now. */
-    public WorkflowStatus status() {
-        return WorkflowStatus.valueOf(String.valueOf(execution(false).get("status")));
-    }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> variables() {
-        Object v = execution(false).get("variables");
-        return v == null ? Map.of() : (Map<String, Object>) v;
     }
 
     /**
      * Waits until a task with this reference name is pending, then completes it with the given
      * output, the way a person answering a human task or an external callback would.
      */
-    @SuppressWarnings("unchecked")
     public void completeTask(String taskReferenceName, Object output, Duration timeout) {
         long deadline = System.currentTimeMillis() + timeout.toMillis();
         while (true) {
-            Map<String, Object> wf = execution(true);
-            List<Map<String, Object>> tasks = (List<Map<String, Object>>) wf.get("tasks");
-            boolean pending = tasks != null && tasks.stream().anyMatch(t -> taskReferenceName.equals(t.get("referenceTaskName"))
-                    && ("IN_PROGRESS".equals(t.get("status")) || "SCHEDULED".equals(t.get("status"))));
+            Workflow execution = execution(true);
+            boolean pending = execution.getTasks().stream().anyMatch(t -> taskReferenceName.equals(t.getReferenceTaskName())
+                    && (t.getStatus() == Task.Status.IN_PROGRESS || t.getStatus() == Task.Status.SCHEDULED));
             if (pending) {
-                try {
-                    Http.post(conductor.client(), "/tasks/" + workflowId + "/" + taskReferenceName + "/COMPLETED",
-                            Json.encodeOutput(output), String.class);
-                    return;
-                } catch (RuntimeException e) {
-                    // the server may be restarting; the loop re-reads and tries again
-                }
+                TaskClient tasks = new TaskClient(conductor.client());
+                Http.retrying(() -> {
+                    tasks.updateTask(workflowId, taskReferenceName, TaskResult.Status.COMPLETED, Json.encodeOutput(output));
+                    return null;
+                });
+                return;
             }
-            if (TERMINAL.contains(wf.get("status"))) {
+            if (execution.getStatus().isTerminal()) {
                 throw new IllegalStateException("execution ended before task " + taskReferenceName + " was pending");
             }
             if (System.currentTimeMillis() > deadline) {
@@ -217,7 +205,7 @@ public final class WorkflowHandle<R> {
      * id once, and replies are keyed by it.
      */
     private String send(String kind, String name, Object argument) {
-        String id = java.util.UUID.randomUUID().toString();
+        String id = UUID.randomUUID().toString();
         Map<String, Object> message = new LinkedHashMap<>();
         message.put("kind", kind);
         message.put("name", name);
@@ -225,46 +213,24 @@ public final class WorkflowHandle<R> {
         if (argument != null) {
             message.put("args", Json.plain(argument));
         }
-        long deadline = System.currentTimeMillis() + Duration.ofMinutes(2).toMillis();
-        while (true) {
-            try {
-                Http.post(conductor.client(), "/workflow/" + workflowId + "/messages", message, String.class);
-                return id;
-            } catch (RuntimeException e) {
-                // a restarting server: retry. A message accepted just before a failure may be
-                // queued twice; the handler lane applies its id once. A refusal (4xx, such as an
-                // execution that is no longer running) is definite and is not retried.
-                if (isRefusal(e) || System.currentTimeMillis() > deadline) {
-                    throw e;
-                }
-                sleep(1000);
-            }
-        }
+        Http.retrying(() -> Http.post(conductor.client(), "/workflow/" + workflowId + "/messages", message, String.class));
+        return id;
     }
 
-    private static boolean isRefusal(RuntimeException e) {
-        return e instanceof io.orkes.conductor.client.http.ApiException api
-                && api.getStatusCode() >= 400 && api.getStatusCode() < 500;
-    }
-
-    @SuppressWarnings("unchecked")
     private Object awaitReply(String messageId) {
         long deadline = System.currentTimeMillis() + Duration.ofMinutes(3).toMillis();
         while (System.currentTimeMillis() < deadline) {
-            Map<String, Object> execution = execution(false);
-            Object state = execution.get("nativeState");
-            Object replies = state instanceof Map<?, ?> v ? v.get("replies") : null;
-            if (replies instanceof Map<?, ?> m && m.containsKey(messageId)) {
-                Map<String, Object> reply = (Map<String, Object>) m.get(messageId);
+            Workflow execution = execution(false);
+            Map<String, Object> replies = execution.getNativeState() == null ? Map.of() : execution.getNativeState().getReplies();
+            if (replies.get(messageId) instanceof Map<?, ?> reply) {
                 if (reply.containsKey("error")) {
                     throw new IllegalStateException("handler failed: " + reply.get("error"));
                 }
                 return reply.get("value");
             }
-            Object status = execution.get("status");
-            if (status != null && !"RUNNING".equals(status) && !"PAUSED".equals(status)) {
+            if (execution.getStatus().isTerminal()) {
                 // the handler lane is gone: no reply will ever come
-                throw new IllegalStateException("workflow " + workflowId + " ended with status " + status
+                throw new IllegalStateException("workflow " + workflowId + " ended with status " + execution.getStatus()
                         + " before replying to message " + messageId);
             }
             sleep(200);
@@ -272,27 +238,13 @@ public final class WorkflowHandle<R> {
         throw new IllegalStateException("no reply to message " + messageId + " within 3 minutes; is the workflow's host running?");
     }
 
-    /**
-     * Reads the execution, riding out a server that is restarting: connection failures and
-     * server errors are retried for up to two minutes.
-     */
-    private Map<String, Object> execution(boolean includeTasks) {
-        long deadline = System.currentTimeMillis() + Duration.ofMinutes(2).toMillis();
-        while (true) {
-            try {
-                return Http.getMap(conductor.client(), "/workflow/" + workflowId, Map.of("includeTasks", String.valueOf(includeTasks)));
-            } catch (RuntimeException e) {
-                if (System.currentTimeMillis() > deadline) {
-                    throw e;
-                }
-                sleep(1000);
-            }
-        }
+    private Workflow execution(boolean includeTasks) {
+        return Http.retrying(() -> workflows.getWorkflow(workflowId, includeTasks));
     }
 
-    private static String name(java.io.Serializable handler, Class<? extends java.lang.annotation.Annotation> kind) {
+    private static String name(Serializable handler, Class<? extends Annotation> kind) {
         Method m = MethodRefs.resolve(handler);
-        java.lang.annotation.Annotation a = m.getAnnotation(kind);
+        Annotation a = m.getAnnotation(kind);
         if (a == null) {
             throw new IllegalArgumentException(m.getName() + " is not annotated with @" + kind.getSimpleName());
         }

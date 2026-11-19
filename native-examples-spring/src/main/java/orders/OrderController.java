@@ -55,7 +55,6 @@ public class OrderController {
     private static Map<String, Object> view(WorkflowHandle<OrderResult> run) {
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("workflowId", run.workflowId());
-        view.put("url", run.url());
         WorkflowStatus status = run.status();
         view.put("status", status);
         if (status == WorkflowStatus.COMPLETED) {

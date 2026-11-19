@@ -117,7 +117,7 @@ public class SupportTicket {
         String message = args.length > 0 ? args[0] : "I was charged twice for order 1042, please refund one.";
         Ticket ticket = new Ticket("T-1", "ana", message, System.getenv().getOrDefault("AGENT_URL", "http://localhost:8765"));
         WorkflowHandle<Resolution> run = conductor.start(SupportTicket::handle, ticket);
-        System.out.println("execution: " + run.url());
+        System.out.println("execution: " + run.workflowId());
         System.out.println("result:    " + run.result(Duration.ofMinutes(2)));
         conductor.close();
         client.shutdown();

@@ -184,7 +184,7 @@ public class Agents {
         String agentUrl = System.getenv().getOrDefault("AGENT_URL", "http://localhost:8765");
         String id = "T-" + System.currentTimeMillis() % 100000;
         WorkflowHandle<List<String>> run = conductor.start(Agents::run, new Ticket(id, agentUrl));
-        System.out.println("execution: " + run.url());
+        System.out.println("execution: " + run.workflowId());
         List<String> result;
         try {
             run.completeTask("refund_choice", new Choice("card"), Duration.ofMinutes(2));

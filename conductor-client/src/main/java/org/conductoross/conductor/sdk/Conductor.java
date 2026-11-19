@@ -15,12 +15,19 @@ package org.conductoross.conductor.sdk;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
@@ -34,6 +41,7 @@ import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.Functions.Fn1;
 import org.conductoross.conductor.sdk.Functions.Pred;
+import org.conductoross.conductor.sdk.internal.ActionCase;
 import org.conductoross.conductor.sdk.internal.CodeLoops;
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Conductors;
@@ -54,7 +62,7 @@ import com.netflix.conductor.client.http.ConductorClient;
  * method is ordinary Java. Import the static methods statically:
  *
  * <pre>{@code
- * import static org.conductoross.conductor.sdk.Conductor.*;
+ * import static Conductor.*;
  *
  * public class OrderWorkflow {
  *     private final PaymentTasks payments; // a stub Conductor passes: its calls schedule the tasks
@@ -144,7 +152,7 @@ public final class Conductor implements AutoCloseable {
      * Runs the block as a parallel branch (a lane of its own in a FORK_JOIN) and carries on without
      * waiting for it. The branch's result is a {@link Future}: wait with {@link #join} and read it
      * with {@link Future#resultNow()}, or wait and read at once with {@link Future#get()}, which
-     * wraps what the branch threw in an {@link java.util.concurrent.ExecutionException}. For one
+     * wraps what the branch threw in an {@link ExecutionException}. For one
      * branch per item of a list, waited for together, use {@link #fanOut}.
      *
      * <pre>{@code
@@ -237,7 +245,7 @@ public final class Conductor implements AutoCloseable {
     public static final class Switch<T> {
         private final String name;
         private final Object value;
-        private final java.util.LinkedHashMap<String, Supplier<?>> cases = new java.util.LinkedHashMap<>();
+        private final LinkedHashMap<String, Supplier<?>> cases = new LinkedHashMap<>();
         private Supplier<?> otherwise;
 
         Switch(String name, Object value) {
@@ -254,7 +262,7 @@ public final class Conductor implements AutoCloseable {
         }
 
         public Switch<T> when(Object key, Functions.CaseAction body) {
-            return when(key, new org.conductoross.conductor.sdk.internal.ActionCase<T>(body));
+            return when(key, new ActionCase<T>(body));
         }
 
         /** The body when no case matches; without it an unmatched value fails the workflow. */
@@ -264,7 +272,7 @@ public final class Conductor implements AutoCloseable {
         }
 
         public Switch<T> otherwise(Functions.CaseAction body) {
-            return otherwise(new org.conductoross.conductor.sdk.internal.ActionCase<T>(body));
+            return otherwise(new ActionCase<T>(body));
         }
 
         /** Runs the taken case and returns its value. */
@@ -294,12 +302,12 @@ public final class Conductor implements AutoCloseable {
      * {@code when} at the latest.
      */
     public static void sleepUntil(Instant when) {
-        Instant minute = when.truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
+        Instant minute = when.truncatedTo(ChronoUnit.MINUTES);
         if (minute.isBefore(when)) {
-            minute = minute.plus(java.time.Duration.ofMinutes(1));
+            minute = minute.plus(Duration.ofMinutes(1));
         }
-        String until = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'")
-                .withZone(java.time.ZoneOffset.UTC)
+        String until = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'")
+                .withZone(ZoneOffset.UTC)
                 .format(minute);
         Command wait = new Command(Command.Kind.WAIT, "sleep_until", "sleep_until");
         wait.input.put("until", until);
@@ -460,7 +468,7 @@ public final class Conductor implements AutoCloseable {
 
     private final ConductorClient client;
     private final List<Workers> started = new ArrayList<>();
-    private final java.util.Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
+    private final Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
     private ScheduledExecutorService poller;
 
     private Conductor(ConductorClient client) {
@@ -473,7 +481,7 @@ public final class Conductor implements AutoCloseable {
      * keeps working.
      */
     public static Conductor of(ConductorClient client) {
-        return new Conductor(java.util.Objects.requireNonNull(client, "client"));
+        return new Conductor(Objects.requireNonNull(client, "client"));
     }
 
     public ConductorClient client() {
@@ -486,9 +494,9 @@ public final class Conductor implements AutoCloseable {
      * does the same on start-up.
      */
     public void register(Class<?>... workflows) {
-        List<org.conductoross.conductor.sdk.internal.WorkflowSpec> specs = new java.util.ArrayList<>();
+        List<WorkflowSpec> specs = new ArrayList<>();
         for (Class<?> type : workflows) {
-            specs.addAll(org.conductoross.conductor.sdk.internal.WorkflowSpec.of(type));
+            specs.addAll(WorkflowSpec.of(type));
         }
         Registration.register(client, specs, List.of(), 30);
     }
@@ -498,8 +506,8 @@ public final class Conductor implements AutoCloseable {
      * parameters and native metadata, as JSON. For review, or to diff in a change.
      */
     public static List<Map<String, Object>> definitions(Class<?> workflow) {
-        List<Map<String, Object>> defs = new java.util.ArrayList<>();
-        for (org.conductoross.conductor.sdk.internal.WorkflowSpec spec : org.conductoross.conductor.sdk.internal.WorkflowSpec.of(workflow)) {
+        List<Map<String, Object>> defs = new ArrayList<>();
+        for (WorkflowSpec spec : WorkflowSpec.of(workflow)) {
             defs.add(Registration.skeleton(spec, 30));
         }
         return defs;
@@ -525,14 +533,14 @@ public final class Conductor implements AutoCloseable {
     }
 
     /** The spec of a workflow class these workers host, with its factory, if any of them does. */
-    java.util.Optional<WorkflowSpec> hostedSpec(Class<?> type) {
+    Optional<WorkflowSpec> hostedSpec(Class<?> type) {
         for (Workers workers : List.copyOf(started)) {
-            java.util.Optional<WorkflowSpec> spec = workers.hostedSpec(type);
+            Optional<WorkflowSpec> spec = workers.hostedSpec(type);
             if (spec.isPresent()) {
                 return spec;
             }
         }
-        return java.util.Optional.empty();
+        return Optional.empty();
     }
 
     private Workers newWorkers() {
@@ -583,7 +591,7 @@ public final class Conductor implements AutoCloseable {
      * dependent stage cannot hold up the polling of other executions; cancelling it stops the
      * checks.
      */
-    <R> CompletableFuture<R> whenFinished(Supplier<Map<String, Object>> check, Function<Map<String, Object>, R> outcome) {
+    <E, R> CompletableFuture<R> whenFinished(Supplier<E> check, Function<E, R> outcome) {
         CompletableFuture<R> future = new CompletableFuture<>();
         AtomicBoolean settled = new AtomicBoolean();
         Runnable tick = () -> {
@@ -592,7 +600,7 @@ public final class Conductor implements AutoCloseable {
             }
             Runnable complete;
             try {
-                Map<String, Object> execution = check.get();
+                E execution = check.get();
                 if (execution == null) {
                     return;
                 }
@@ -673,7 +681,7 @@ public final class Conductor implements AutoCloseable {
             WorkflowSpec spec = spec(method);
             // a host of this process registers in the background: a start right after it waits
             for (Workers host : conductor.started) {
-                host.awaitRegistered(spec, java.time.Duration.ofSeconds(30));
+                host.awaitRegistered(spec, Duration.ofSeconds(30));
             }
             Map<String, Object> request = new LinkedHashMap<>();
             request.put("name", spec.name);
@@ -692,37 +700,14 @@ public final class Conductor implements AutoCloseable {
                 request.put("idempotencyKey", idempotencyKey);
                 request.put("idempotencyStrategy", "RETURN_EXISTING");
             }
+            // a start with an idempotency key can be repeated safely, so a server error or a lost
+            // connection is retried: the server returns the execution the first attempt created if
+            // it got that far. A start without a key is never retried, since a repeat could create
+            // a second execution.
             String id = idempotencyKey == null
                     ? Http.post(conductor.client, "/workflow", request, String.class)
-                    : postIdempotent(request);
+                    : Http.retrying(() -> Http.post(conductor.client, "/workflow", request, String.class));
             return new WorkflowHandle<>(conductor, id, method.getGenericReturnType());
-        }
-
-        /**
-         * A start with an idempotency key can be repeated safely, so a server error or a lost
-         * connection is retried for up to two minutes; the server returns the execution the first
-         * attempt created if it got that far. A refusal (4xx) is not retried. A start without a key
-         * is never retried, since a repeat could create a second execution.
-         */
-        private String postIdempotent(Map<String, Object> request) {
-            long deadline = System.currentTimeMillis() + java.time.Duration.ofMinutes(2).toMillis();
-            while (true) {
-                try {
-                    return Http.post(conductor.client, "/workflow", request, String.class);
-                } catch (RuntimeException e) {
-                    boolean refused = e instanceof io.orkes.conductor.client.http.ApiException api
-                            && api.getStatusCode() >= 400 && api.getStatusCode() < 500;
-                    if (refused || System.currentTimeMillis() > deadline) {
-                        throw e;
-                    }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw e;
-                    }
-                }
-            }
         }
     }
 }

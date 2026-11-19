@@ -24,6 +24,7 @@ import org.conductoross.conductor.sdk.WorkflowHandle;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.WorkflowClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,7 +122,7 @@ public class Main {
                 conductor.workflow(KitchenSinkWorkflow::kitchenSink).idempotencyKey("kitchensink-" + key).correlationId(key).priority(5).start(input);
         WorkflowHandle<KitchenSinkResult> again =
                 conductor.workflow(KitchenSinkWorkflow::kitchenSink).idempotencyKey("kitchensink-" + key).start(input);
-        System.out.println("started " + run.workflowId() + "  " + run.url());
+        System.out.println("started " + run.workflowId());
         check("idempotent start returns the same execution", run.workflowId().equals(again.workflowId()));
 
         // Handlers by method reference: an update with a reply, a query, a signal.
@@ -140,14 +141,15 @@ public class Main {
 
         KitchenSinkResult result = run.result(Duration.ofMinutes(10));
         System.out.println("result: " + result);
-        System.out.println("variables: " + run.variables());
+        Map<String, Object> variables = new WorkflowClient(conductor.client()).getWorkflow(run.workflowId(), false).getVariables();
+        System.out.println("variables: " + variables);
 
         check("run id recorded once", result.runId() != null && result.runId().startsWith("ks-"));
         check("cancel signal observed by the code", result.cancelled());
         check("approval answered", "finance-bot".equals(result.approvedBy()));
         check("callback received", "delivered".equals(result.callbackPayload()));
         check("the polling loop finished", result.note() != null && !result.note().endsWith("(job did not finish)"));
-        check("stage variable is done", "done".equals(run.variables().get("stage")));
+        check("stage variable is done", "done".equals(variables.get("stage")));
         check("a loop over items labelled each, in order", List.of("LABEL[box-1]", "LABEL[box-2]", "LABEL[box-3]").equals(result.labels()));
         check("MCP server listed its tools", result.toolCount() == 2);
         check("MCP tool call returned its text", result.weather() != null && result.weather().contains("Seattle"));

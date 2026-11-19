@@ -12,12 +12,17 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.client.http.ConductorClientResponse;
+
+import io.orkes.conductor.client.http.ApiException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -56,10 +61,38 @@ final class Http {
         return resp == null ? null : resp.getData();
     }
 
+    /**
+     * Calls the server, riding out a restart: a failure other than a refusal (4xx) is retried every
+     * second for up to two minutes. Only for calls that are safe to repeat.
+     */
+    static <T> T retrying(Supplier<T> call) {
+        long deadline = System.currentTimeMillis() + Duration.ofMinutes(2).toMillis();
+        while (true) {
+            try {
+                return call.get();
+            } catch (RuntimeException e) {
+                if (isRefusal(e) || System.currentTimeMillis() > deadline) {
+                    throw e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
+            }
+        }
+    }
+
+    /** The server refused the request (4xx): repeating it will not help. */
+    static boolean isRefusal(RuntimeException e) {
+        return e instanceof ApiException api && api.getStatusCode() >= 400 && api.getStatusCode() < 500;
+    }
+
     private static <T> TypeReference<T> ref(Class<T> type) {
         return new TypeReference<>() {
             @Override
-            public java.lang.reflect.Type getType() {
+            public Type getType() {
                 return type;
             }
         };

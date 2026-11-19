@@ -62,7 +62,7 @@ public class SupportDesk {
                 new Ticket("H-4", "kim", "Do you have a store in Lisbon?", agents));
 
         WorkflowHandle<List<Resolution>> run = conductor.start(SupportDesk::handle, inbox);
-        System.out.println("execution: " + run.url());
+        System.out.println("execution: " + run.workflowId());
         // the ticket no team fits waits for a person: answered here, as a support lead would in the UI
         run.completeTask("support_lead", new Answer("Mia", "Yes, on Rua Augusta since May."), Duration.ofMinutes(2));
         List<Resolution> resolutions = run.result(Duration.ofMinutes(3));
