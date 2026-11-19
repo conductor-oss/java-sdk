@@ -59,11 +59,14 @@ cd "${REPO_ROOT}"
 
 compose() { docker compose -f "${COMPOSE_FILE}" "$@"; }
 
+LOG_FILE="${REPO_ROOT}/tests/build/oss-conductor-server.log"
+
 cleanup() {
   local status=$?
   if [[ "${status}" -ne 0 ]]; then
-    echo "Dumping conductor-server logs (exit ${status})..." >&2
-    compose logs conductor-server || true
+    mkdir -p "$(dirname "${LOG_FILE}")"
+    compose logs --no-color conductor-server > "${LOG_FILE}" 2>&1 || true
+    echo "Tests run exited with code ${status}, container logs saved to ${LOG_FILE}" >&2
   fi
   if [[ "${KEEP_UP}" == "1" ]]; then
     echo "--keep-up set: leaving the OSS stack running. Tear down with:"
