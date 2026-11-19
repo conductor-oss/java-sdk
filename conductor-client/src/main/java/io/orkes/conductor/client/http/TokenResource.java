@@ -21,7 +21,7 @@ import io.orkes.conductor.client.model.ConductorUser;
 import io.orkes.conductor.client.model.GenerateTokenRequest;
 import io.orkes.conductor.client.model.TokenResponse;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 public class TokenResource {

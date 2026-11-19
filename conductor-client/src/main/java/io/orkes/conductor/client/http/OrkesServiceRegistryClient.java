@@ -29,8 +29,8 @@ import com.netflix.conductor.common.model.ServiceRegistry;
 
 import io.orkes.conductor.client.ServiceRegistryClient;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Client for the Service Registry API

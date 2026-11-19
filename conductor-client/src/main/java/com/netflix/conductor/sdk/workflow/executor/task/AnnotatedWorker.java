@@ -32,11 +32,11 @@ import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class AnnotatedWorker implements Worker {
@@ -58,7 +58,8 @@ public class AnnotatedWorker implements Worker {
         this.name = name;
         this.workerMethod = workerMethod;
         this.obj = obj;
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // The shared ObjectMapperProvider mapper is immutable in Jackson 3 and already
+        // disables FAIL_ON_UNKNOWN_PROPERTIES, so no per-worker reconfiguration is needed.
     }
 
     @Override
@@ -191,9 +192,9 @@ public class AnnotatedWorker implements Worker {
 
     private Object convertValue(Object source, Class<?> targetType) {
         JsonNode tree = om.valueToTree(source);
-        try (JsonParser parser = tree.traverse(om)) {
+        try (JsonParser parser = om.treeAsTokens(tree)) {
             return om.readerFor(targetType).readValue(parser);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Failed to bind task input to " + targetType.getName(), e);
         }
     }

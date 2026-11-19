@@ -26,7 +26,7 @@ import io.orkes.conductor.client.model.SearchResultWorkflowScheduleExecution;
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.WorkflowSchedule;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 
 
 public class SchedulerResource {
