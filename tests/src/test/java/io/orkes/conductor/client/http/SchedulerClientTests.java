@@ -12,10 +12,12 @@
  */
 package io.orkes.conductor.client.http;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.model.BulkResponse;
 
@@ -23,9 +25,11 @@ import io.orkes.conductor.client.SchedulerClient;
 import io.orkes.conductor.client.model.SaveScheduleRequest;
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.WorkflowSchedule;
+import io.orkes.conductor.client.model.WorkflowScheduleExecutionModel;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SchedulerClientTests {
@@ -37,6 +41,7 @@ public class SchedulerClientTests {
     private static final String CRON_EXPRESSION_1 = "0 * * * * *";
     private static final String CRON_EXPRESSION_2 = "0 0 */2 * * *"; // Every 2 hours
     private static final String CRON_EXPRESSION_3 = "0 0 0 * * *";   // Daily at midnight
+    private static final String CRON_EVERY_SECOND = "* * * * * *";
 
     private final SchedulerClient schedulerClient = ClientTestUtil.getOrkesClients().getSchedulerClient();
 
@@ -59,11 +64,6 @@ public class SchedulerClientTests {
         WorkflowSchedule workflowSchedule = schedulerClient.getSchedule(SCHEDULE_1);
         assertEquals(SCHEDULE_1, workflowSchedule.getName());
         assertEquals(CRON_EXPRESSION_1, workflowSchedule.getCronExpression());
-        Assertions.assertFalse(schedulerClient.search(0, 10, "ASC", "*", "").getResults().isEmpty());
-        schedulerClient.setSchedulerTags(getTagObject(), SCHEDULE_1);
-        assertEquals(getTagObject(), schedulerClient.getSchedulerTags(SCHEDULE_1));
-        schedulerClient.deleteSchedulerTags(getTagObject(), SCHEDULE_1);
-        assertEquals(0, schedulerClient.getSchedulerTags(SCHEDULE_1).size());
         schedulerClient.pauseSchedule(SCHEDULE_1);
         workflowSchedule = schedulerClient.getSchedule(SCHEDULE_1);
         Assertions.assertTrue(workflowSchedule.isPaused());
@@ -71,6 +71,37 @@ public class SchedulerClientTests {
         workflowSchedule = schedulerClient.getSchedule(SCHEDULE_1);
         Assertions.assertFalse(workflowSchedule.isPaused());
         schedulerClient.deleteSchedule(SCHEDULE_1);
+    }
+
+    @Test
+    @DisplayName("search should find the executions of a schedule once it has fired")
+    void testSearchExecutions() {
+        // search() covers executions, not schedules, so fire our own schedule every second rather
+        // than relying on whatever execution history the server already has.
+        schedulerClient.saveSchedule(new SaveScheduleRequest()
+                .name(SCHEDULE_1)
+                .cronExpression(CRON_EVERY_SECOND)
+                .startWorkflowRequest(Commons.getStartWorkflowRequest()));
+
+        List<WorkflowScheduleExecutionModel> executions = await()
+                .atMost(Duration.ofSeconds(60))
+                .pollInterval(Duration.ofSeconds(2))
+                .until(() -> schedulerClient.search(0, 10, "ASC", "*", "scheduleName IN (" + SCHEDULE_1 + ")")
+                        .getResults(), results -> results != null && !results.isEmpty());
+        schedulerClient.pauseSchedule(SCHEDULE_1);
+
+        executions.forEach(execution -> assertEquals(SCHEDULE_1, execution.getScheduleName()));
+    }
+
+    @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "schedule tagging (/scheduler/schedules/{name}/tags) is not implemented by OSS Conductor")
+    void testSchedulerTags() {
+        schedulerClient.saveSchedule(getSaveScheduleRequest());
+        schedulerClient.setSchedulerTags(getTagObject(), SCHEDULE_1);
+        assertEquals(getTagObject(), schedulerClient.getSchedulerTags(SCHEDULE_1));
+        schedulerClient.deleteSchedulerTags(getTagObject(), SCHEDULE_1);
+        assertEquals(0, schedulerClient.getSchedulerTags(SCHEDULE_1).size());
     }
 
     @Test

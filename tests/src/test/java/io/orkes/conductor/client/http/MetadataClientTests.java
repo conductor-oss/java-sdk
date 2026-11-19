@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
@@ -73,6 +74,8 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "task tagging (/metadata/task/{name}/tags) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/metadata/task/{name}/tags')")
     void tagTask() throws Exception {
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         try {
@@ -98,6 +101,8 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "workflow tagging (/metadata/workflow/{name}/tags) is not implemented by OSS Conductor; the path falls through to DELETE /metadata/workflow/{name}/{version} with version=\"tags\", so other methods 405")
     void tagWorkflow() {
         TagObject tagObject = Commons.getTagObject();
         try {

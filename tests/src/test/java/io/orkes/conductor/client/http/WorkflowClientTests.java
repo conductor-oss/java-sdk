@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
@@ -102,6 +103,8 @@ public class WorkflowClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "batch correlation-id search (POST /workflow/correlated/batch) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/correlated/batch')")
     public void testSearchByCorrelationIds() {
         List<String> correlationIds = new ArrayList<>();
         Set<String> workflowNames = new HashSet<>();
@@ -188,6 +191,8 @@ public class WorkflowClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "POST /workflow/{workflowId}/variables is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/{id}/variables')")
     public void testUpdateVariables() {
         ConductorWorkflow<Object> workflow = new ConductorWorkflow<>(workflowExecutor);
         workflow.add(new SimpleTask("simple_task", "simple_task_ref"));

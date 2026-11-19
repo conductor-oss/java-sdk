@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Uninterruptibles;
 
@@ -161,7 +162,9 @@ public class TaskClientTests {
         while (!workflow.getStatus().isTerminal() && count < maxLoop) {
             workflow = workflowClient.getWorkflow(workflowId, true);
             List<String> runningTasks = workflow.getTasks().stream()
-                    .filter(task -> !task.getStatus().isTerminal() && task.getTaskType().equals("there_is_no_worker"))
+                    // Every SIMPLE task, not just the there_is_no_worker ones: nothing else completes the
+                    // workflow's first task (x_test_worker_0), so the fork tasks would never be scheduled.
+                    .filter(task -> !task.getStatus().isTerminal() && task.getWorkflowTask().getType().equals("SIMPLE"))
                     .map(Task::getReferenceTaskName)
                     .collect(Collectors.toList());
             System.out.println("Running tasks: " + runningTasks);
@@ -332,6 +335,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testSyncTargetWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -346,6 +351,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testSyncBlockingWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_WORKFLOW);
 
@@ -360,6 +367,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testSyncBlockingTask() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK);
 
@@ -374,6 +383,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "BLOCKING_TASK_LIST is not a value of the server-side WorkflowSignalReturnStrategy enum in any OSS Conductor release, so OSS rejects the returnStrategy parameter outright, on top of not implementing the signal/sync API the other BLOCKING_* tests are skipped for")
     void testSyncBlockingTaskList() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_LIST);
 
@@ -391,6 +402,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testSyncBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.BLOCKING_TASK_INPUT);
 
@@ -408,7 +421,10 @@ public class TaskClientTests {
     private static final String REGION_DURABLE_ENABLED = "CONDUCTOR_REGION_DURABLE_ENABLED";
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testDurableTargetWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -423,7 +439,10 @@ public class TaskClientTests {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testDurableBlockingWorkflow() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_WORKFLOW);
 
@@ -438,6 +457,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testDurableBlockingTask() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.DURABLE, ReturnStrategy.BLOCKING_TASK);
 
@@ -452,7 +473,10 @@ public class TaskClientTests {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true")
+    @EnabledIfEnvironmentVariable(named = REGION_DURABLE_ENABLED, matches = "true",
+            disabledReason = "target server has no region replication configured")
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testDurableBlockingTaskInput() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.REGION_DURABLE, ReturnStrategy.BLOCKING_TASK_INPUT);
 
@@ -467,6 +491,8 @@ public class TaskClientTests {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
+            disabledReason = "the SYNCHRONOUS/REGION_DURABLE consistency + BLOCKING_* return-strategy signal API (POST /tasks/{workflowId}/{status}/signal/sync) is not implemented by plain OSS Conductor, confirmed empirically")
     void testDefaultReturnStrategy() throws Exception {
         String workflowId = startComplexWorkflow(Consistency.SYNCHRONOUS, ReturnStrategy.TARGET_WORKFLOW);
 
@@ -744,6 +770,8 @@ public class TaskClientTests {
 
     // ==================== Search Tests ====================
 
+    // These search on workflowType rather than workflowId: OSS Conductor's Postgres task_index has no
+    // workflow_id column, so a workflowId query fails there.
     @Test
     void testSearchTasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
@@ -754,7 +782,7 @@ public class TaskClientTests {
 
         try {
             var result = TestUtil.retryUntil(
-                    () -> taskClient.search("workflowId='" + workflowId + "'"), 30_000, 2_000);
+                    () -> taskClient.search("workflowType='" + workflowName + "'"), 30_000, 2_000);
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
@@ -792,7 +820,7 @@ public class TaskClientTests {
             Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
 
             var result = taskClient.search(
-                    0, 10, "startTime:DESC", "*", "workflowId='" + workflowId + "'");
+                    0, 10, "startTime:DESC", "*", "workflowType='" + workflowName + "'");
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
