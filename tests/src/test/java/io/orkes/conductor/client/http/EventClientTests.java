@@ -24,7 +24,6 @@ import com.netflix.conductor.common.metadata.events.EventHandler.StartWorkflow;
 
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
-import io.orkes.conductor.client.util.TestUtil;
 
 public class EventClientTests {
     private static final String EVENT_NAME = "test_sdk_java_event_name";
@@ -36,9 +35,9 @@ public class EventClientTests {
         try {
             eventClient.unregisterEventHandler(EVENT_NAME);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
-            // we're running against actually reports it.
-            TestUtil.tolerateNotFound(e, "EventHandler with name");
+            if (e.getStatus() != 404) {
+                throw e;
+            }
         }
         EventHandler eventHandler = getEventHandler();
         eventClient.registerEventHandler(eventHandler);

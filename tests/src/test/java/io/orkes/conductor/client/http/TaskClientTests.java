@@ -147,8 +147,6 @@ public class TaskClientTests {
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "the sync task-update endpoint (POST /tasks/{workflowId}/{taskRefName}/{status}/sync) never returns the updated workflow on plain OSS Conductor, confirmed empirically (caller times out waiting for terminal status)")
     public void testUpdateByRefNameSync() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
@@ -164,7 +162,9 @@ public class TaskClientTests {
         while (!workflow.getStatus().isTerminal() && count < maxLoop) {
             workflow = workflowClient.getWorkflow(workflowId, true);
             List<String> runningTasks = workflow.getTasks().stream()
-                    .filter(task -> !task.getStatus().isTerminal() && task.getTaskType().equals("there_is_no_worker"))
+                    // Every SIMPLE task, not just the there_is_no_worker ones: nothing else completes the
+                    // workflow's first task (x_test_worker_0), so the fork tasks would never be scheduled.
+                    .filter(task -> !task.getStatus().isTerminal() && task.getWorkflowTask().getType().equals("SIMPLE"))
                     .map(Task::getReferenceTaskName)
                     .collect(Collectors.toList());
             System.out.println("Running tasks: " + runningTasks);
@@ -770,9 +770,9 @@ public class TaskClientTests {
 
     // ==================== Search Tests ====================
 
+    // These search on workflowType rather than workflowId: OSS Conductor's Postgres task_index has no
+    // workflow_id column, so a workflowId query fails there.
     @Test
-    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "GET /tasks/search fails on plain OSS Conductor with a Postgres persistence layer, confirmed empirically (ERROR: column \"workflow_id\" does not exist)")
     void testSearchTasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
@@ -782,7 +782,7 @@ public class TaskClientTests {
 
         try {
             var result = TestUtil.retryUntil(
-                    () -> taskClient.search("workflowId='" + workflowId + "'"), 30_000, 2_000);
+                    () -> taskClient.search("workflowType='" + workflowName + "'"), 30_000, 2_000);
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
@@ -809,8 +809,6 @@ public class TaskClientTests {
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "GET /tasks/search fails on plain OSS Conductor with a Postgres persistence layer, confirmed empirically (ERROR: column \"workflow_id\" does not exist)")
     void testPaginatedSearchTasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
         request.setName(workflowName);
@@ -822,7 +820,7 @@ public class TaskClientTests {
             Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
 
             var result = taskClient.search(
-                    0, 10, "startTime:DESC", "*", "workflowId='" + workflowId + "'");
+                    0, 10, "startTime:DESC", "*", "workflowType='" + workflowName + "'");
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");

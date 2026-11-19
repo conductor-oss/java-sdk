@@ -57,12 +57,16 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home ./scripts/
 Tests annotated `@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches =
 "oss")` skip themselves against plain OSS because they exercise Orkes-managed-only features
 (e.g. the Service Registry, Authorization, Prompts/Integrations, Environment Variables, and
-Secrets APIs, plus a handful of task/workflow endpoints OSS doesn't implement or that hit
-known Postgres-persistence bugs). Each annotation's `disabledReason` documents the specific,
-empirically-confirmed gap — treat those as the source of truth rather than a list here, since
-they can drift as OSS gains features. If you add or remove that annotation, re-verify against
-a freshly-pulled image first: a test that fails against a stale local image may pass against
-current OSS, and vice versa.
+Secrets APIs, plus a handful of task/workflow endpoints OSS doesn't implement, and OSS gaps
+with an open issue, such as start-workflow idempotency keys). Each annotation's
+`disabledReason` documents the specific, empirically-confirmed gap — treat those as the source
+of truth rather than a list here, since they can drift as OSS gains features. If you add or
+remove that annotation, re-verify against a freshly-pulled image first: a test that fails
+against a stale local image may pass against current OSS, and vice versa.
+
+Before gating a test, check that it doesn't depend on something only the shared Orkes cluster
+provides, such as workers already polling a task type or prior execution history. Those tests
+can usually be fixed to pass on both servers instead.
 
 Compile the maintained agent examples when changing their APIs or documentation:
 

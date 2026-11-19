@@ -139,7 +139,7 @@ public class WorkflowStateUpdateTests {
 
     @Test
     @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "workflow start idempotency keys are not honored by plain OSS Conductor, confirmed empirically (RETURN_EXISTING starts a brand-new run instead of returning the original workflowId)")
+            disabledReason = "OSS Conductor ignores start-workflow idempotency keys (RETURN_EXISTING starts a new run instead of returning the original workflowId); see conductor-oss/conductor#1527")
     public void testIdempotency() {
         StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest();
         startWorkflowRequest.setName("sync_task_variable_updates");

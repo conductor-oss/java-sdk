@@ -39,9 +39,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterTaskDef(Commons.TASK_NAME);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
-            // we're running against actually reports it.
-            TestUtil.tolerateNotFound(e, "No such task definition");
+            if (e.getStatus() != 404) {
+                throw e;
+            }
         }
         TaskDef taskDef = Commons.getTaskDef();
         metadataClient.registerTaskDefs(List.of(taskDef));
@@ -55,9 +55,9 @@ public class MetadataClientTests {
         try {
             metadataClient.unregisterWorkflowDef(Commons.WORKFLOW_NAME, Commons.WORKFLOW_VERSION);
         } catch (ConductorClientException e) {
-            // Best-effort cleanup: tolerate "doesn't exist" in whichever shape the server
-            // we're running against actually reports it.
-            TestUtil.tolerateNotFound(e, "No such workflow definition");
+            if (e.getStatus() != 404) {
+                throw e;
+            }
         }
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         WorkflowDef workflowDef = WorkflowUtil.getWorkflowDef();
@@ -102,7 +102,7 @@ public class MetadataClientTests {
 
     @Test
     @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "workflow tagging (/metadata/workflow/{name}/tags) is not implemented by plain OSS Conductor, confirmed empirically (the {version} path segment ends up matching the literal string \"tags\" instead, a server-side routing collision)")
+            disabledReason = "workflow tagging (/metadata/workflow/{name}/tags) is not implemented by OSS Conductor; the path falls through to DELETE /metadata/workflow/{name}/{version} with version=\"tags\", so other methods 405")
     void tagWorkflow() {
         TagObject tagObject = Commons.getTagObject();
         try {
