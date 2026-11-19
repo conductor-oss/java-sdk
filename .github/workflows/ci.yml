@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "21"
+          cache: gradle
 
       - name: Validate documentation links
         uses: lycheeverse/lychee-action@v2
@@ -133,6 +134,7 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "21"
+          cache: gradle
           
       - name: Build
         id: build
