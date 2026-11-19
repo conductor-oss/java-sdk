@@ -12,6 +12,8 @@
  */
 package io.orkes.conductor.client.spring;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.conductoross.conductor.client.FileClient;
 import org.conductoross.conductor.client.FileClientProperties;
@@ -24,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
+import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.spring.ClientProperties;
 
 import io.orkes.conductor.client.ApiClient;
@@ -48,7 +51,8 @@ public class OrkesConductorClientAutoConfiguration {
     @Primary
     @ConditionalOnMissingBean
     public ApiClient orkesConductorClient(ClientProperties clientProperties,
-                                          OrkesClientProperties orkesClientProperties) {
+                                          OrkesClientProperties orkesClientProperties,
+                                          Optional<MetricsCollector> metricsCollector) {
         var basePath = StringUtils.isBlank(clientProperties.getRootUri()) ? clientProperties.getBasePath() : clientProperties.getRootUri();
         if (basePath == null) {
             basePath = orkesClientProperties.getConductorServerUrl();
@@ -71,6 +75,8 @@ public class OrkesConductorClientAutoConfiguration {
         } else if (orkesClientProperties.getSecurityKeyId() != null) {
             builder.credentials(orkesClientProperties.getSecurityKeyId(), orkesClientProperties.getSecuritySecret());
         }
+
+        metricsCollector.ifPresent(builder::withMetricsCollector);
 
         return builder.build();
     }

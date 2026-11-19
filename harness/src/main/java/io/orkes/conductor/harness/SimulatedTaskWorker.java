@@ -65,6 +65,16 @@ public class SimulatedTaskWorker implements Worker {
         return taskName;
     }
 
+    /** Human-friendly alias, also used as the workflow task reference name. */
+    public String getCodename() {
+        return codename;
+    }
+
+    /** Default simulated delay in seconds (drives the task-def description). */
+    public int getDelaySeconds() {
+        return defaultDelayMs / 1000;
+    }
+
     @Override
     public String getIdentity() {
         return workerId;

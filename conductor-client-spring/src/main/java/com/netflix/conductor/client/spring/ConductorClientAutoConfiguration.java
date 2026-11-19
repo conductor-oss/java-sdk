@@ -49,7 +49,8 @@ public class ConductorClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ConductorClient conductorClient(ClientProperties properties) {
+    public ConductorClient conductorClient(ClientProperties properties,
+                                           Optional<MetricsCollector> metricsCollector) {
         var basePath = StringUtils.isBlank(properties.getRootUri()) ? properties.getBasePath() : properties.getRootUri();
         if (basePath == null) {
             return null;
@@ -61,6 +62,7 @@ public class ConductorClientAutoConfiguration {
                 .readTimeout(properties.getTimeout().getRead())
                 .writeTimeout(properties.getTimeout().getWrite())
                 .verifyingSsl(properties.isVerifyingSsl());
+        metricsCollector.ifPresent(builder::withMetricsCollector);
         return builder.build();
     }
 

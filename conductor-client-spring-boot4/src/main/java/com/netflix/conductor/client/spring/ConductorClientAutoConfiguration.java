@@ -49,7 +49,8 @@ public class ConductorClientAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnExpression(
             "'${conductor.client.root-uri:}' != '' or '${conductor.client.base-path:}' != ''")
-    public ConductorClient conductorClient(ClientProperties properties) {
+    public ConductorClient conductorClient(ClientProperties properties,
+                                           Optional<MetricsCollector> metricsCollector) {
         var basePath = StringUtils.isBlank(properties.getRootUri()) ? properties.getBasePath() : properties.getRootUri();
 
         var builder = ConductorClient.builder()
@@ -58,6 +59,7 @@ public class ConductorClientAutoConfiguration {
                 .readTimeout(properties.getTimeout().getRead())
                 .writeTimeout(properties.getTimeout().getWrite())
                 .verifyingSsl(properties.isVerifyingSsl());
+        metricsCollector.ifPresent(builder::withMetricsCollector);
         return builder.build();
     }
 

@@ -14,6 +14,7 @@ package com.netflix.conductor.client.spring;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -136,7 +137,7 @@ class ConductorClientAutoConfigurationTest {
     void conductorClient_beanMethod_hasConditionalOnExpressionGuard() throws Exception {
         Method method =
                 ConductorClientAutoConfiguration.class.getDeclaredMethod(
-                        "conductorClient", ClientProperties.class);
+                        "conductorClient", ClientProperties.class, Optional.class);
         assertThat(method.isAnnotationPresent(ConditionalOnExpression.class)).isTrue();
     }
 

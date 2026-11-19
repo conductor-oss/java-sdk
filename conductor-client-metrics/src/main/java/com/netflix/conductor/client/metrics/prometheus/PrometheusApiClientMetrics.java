@@ -17,8 +17,8 @@ import java.time.Duration;
 import com.netflix.conductor.client.metrics.ApiClientMetrics;
 
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 /**
  * Prometheus-backed implementation of {@link ApiClientMetrics} that emits the
@@ -47,9 +47,9 @@ public final class PrometheusApiClientMetrics implements ApiClientMetrics {
             100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000
     };
 
-    private final PrometheusMeterRegistry registry;
+    private final MeterRegistry registry;
 
-    public PrometheusApiClientMetrics(PrometheusMeterRegistry registry) {
+    public PrometheusApiClientMetrics(MeterRegistry registry) {
         this.registry = registry;
     }
 
