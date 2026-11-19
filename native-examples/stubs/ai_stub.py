@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""A local stand-in for an MCP server and an A2A agent, for the kitchensink's AI section.
+"""A local stand-in for an MCP server, A2A agents, a chat model and a small HTTP API, for the
+examples and the kitchensink.
 
     python3 stubs/ai_stub.py 8765
 
@@ -10,7 +11,12 @@
   POST /v1/chat/completions          OpenAI-compatible chat, for the server's LiteLLM provider
                                      (conductor.ai.litellm.baseURL=http://localhost:8765):
                                      model support-router answers a ticket with a routing decision
-                                     as JSON, by keywords; support-writer drafts a customer reply
+                                     as JSON, by keywords; support-writer drafts a customer reply;
+                                     planner answers the agent harness's next step as JSON;
+                                     any other model summarizes what it was sent
+  GET  /orders/<id>                  an order, as JSON (the HTTP example)
+  POST /shipments                    creates a shipment for the order in the body; echoes the
+                                     X-Request-Id header
 
 A message is answered at once with an agent message, unless its text holds a marker:
 
@@ -118,6 +124,27 @@ def text_of(content):
     return content or ""
 
 
+def plan(prompt):
+    """The agent harness's planner: one step at a time, decided by what has been observed so far.
+    A real model decides freely; this one follows a script so that a run is repeatable."""
+    found = re.search(r"\bin ([A-Z][a-z]+)", prompt)
+    city = found.group(1) if found else "Paris"
+    if "tool get_weather:" not in prompt:
+        return {"action": "tool", "tool": "get_weather", "args": {"city": city}}
+    if "delegated:" not in prompt:
+        return {"action": "delegate", "task": f"[slow 4] Find three museums in {city} open tomorrow"}
+    if "tool add:" not in prompt:
+        return {"action": "tool", "tool": "add", "args": {"a": 12, "b": 18}}
+    if "person answered:" not in prompt:
+        return {"action": "ask_human", "question": f"Book two museum tickets in {city} for 30 EUR?"}
+    seen = prompt.split("Observations:", 1)[-1].strip().splitlines()
+    seen = [line.strip() for line in seen if line.strip() and not line.strip().startswith("Formatting instruction")]
+    return {"action": "finish", "answer": f"Plan for {city}: " + "; ".join(seen)}
+
+
+SHIPMENTS = []
+
+
 def chat(req):
     """An OpenAI chat completion: a stand-in model that routes support tickets or drafts replies."""
     messages = req.get("messages") or []
@@ -128,8 +155,12 @@ def chat(req):
         word = next((w for t, words in ROUTES if t == team for w in words if w in lowered), None)
         reason = f"the ticket mentions '{word}'" if word else "the ticket fits no team"
         content = json.dumps({"team": team, "reason": reason, "urgent": "urgent" in lowered or "asap" in lowered})
-    else:
+    elif "planner" in (req.get("model") or ""):
+        content = json.dumps(plan(user))
+    elif "support-writer" in (req.get("model") or ""):
         content = f"Dear customer, thank you for reaching out. {user.strip()} Kind regards, Support"
+    else:
+        content = f"In short: {user.strip()[:120]}"
     return {"id": "chatcmpl-" + uuid.uuid4().hex[:12], "object": "chat.completion", "model": req.get("model"),
             "choices": [{"index": 0, "message": {"role": "assistant", "content": content}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": len(user.split()), "completion_tokens": len(content.split()),
@@ -203,6 +234,10 @@ class Handler(BaseHTTPRequestHandler):
                              "url": f"http://localhost:{PORT}/a2a", "version": "1.0.0",
                              "protocolVersion": "0.3.0", "capabilities": {"streaming": False},
                              "defaultInputModes": ["text"], "defaultOutputModes": ["text"], "skills": []})
+        elif self.path.startswith("/orders/"):
+            order = self.path[len("/orders/"):].strip("/")
+            self._send(200, {"id": order, "customer": "ana", "status": "paid", "total": 42.5,
+                             "items": [{"sku": "mug", "qty": 2}, {"sku": "tea", "qty": 1}]})
         else:
             self._send(404, {"error": "not found"})
 
@@ -210,6 +245,13 @@ class Handler(BaseHTTPRequestHandler):
         req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
         if self.path.startswith("/v1/chat/completions"):
             self._send(200, chat(req))
+            return
+        if self.path.startswith("/shipments"):
+            with LOCK:
+                SHIPMENTS.append(req)
+                number = len(SHIPMENTS)
+            self._send(201, {"shipmentId": f"S-{number}", "orderId": req.get("orderId"), "carrier": "dhl",
+                             "requestId": self.headers.get("X-Request-Id")})
             return
         agent = None
         if self.path.startswith("/a2a/"):

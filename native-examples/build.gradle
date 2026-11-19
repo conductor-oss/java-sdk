@@ -31,3 +31,30 @@ run {
     standardInput = System.in
     environment 'CONDUCTOR_DEV', 'true'
 }
+
+// The examples, in the order to read them (src/main/java/examples, README.md):
+//   CONDUCTOR_SERVER_URL=http://localhost:8080/api ./gradlew :native-examples:ex01_hello_world
+[
+    ex01_hello_world      : 'HelloWorld',
+    ex02_conditionals     : 'Conditionals',
+    ex03_loops            : 'Loops',
+    ex04_parallel         : 'Parallel',
+    ex05_sub_workflows    : 'SubWorkflows',
+    ex06_signals          : 'Signals',
+    ex07_timers           : 'Timers',
+    ex08_error_handling   : 'ErrorHandling',
+    ex09_http             : 'HttpCalls',
+    ex10_human_in_the_loop: 'HumanInTheLoop',
+    ex11_llm              : 'LlmCalls',
+    ex12_mcp              : 'McpTools',
+    ex13_agent            : 'AgentCalls',
+    ex14_agent_harness    : 'AgentHarness',
+].each { example, mainClassName ->
+    tasks.register(example, JavaExec) {
+        group = 'examples'
+        description = "Runs examples.${example}.${mainClassName}"
+        classpath = sourceSets.main.runtimeClasspath
+        mainClass = "examples.${example}.${mainClassName}"
+        environment 'CONDUCTOR_DEV', 'true'
+    }
+}
