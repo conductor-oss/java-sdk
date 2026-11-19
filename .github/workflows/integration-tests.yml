@@ -54,7 +54,6 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "21"
-          cache: gradle
       - name: Run Integration tests
         run: |          
           ./gradlew test -PIntegrationTests
@@ -147,7 +146,6 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "21"
-          cache: gradle
 
       # `docker compose up` only pulls an image when it is missing locally. On a
       # GitHub-hosted runner the VM is ephemeral and starts with no cached copy
