@@ -59,12 +59,16 @@ subprojects {
         implementation "com.google.guava:guava:${versions.guava}"
         // #################################
 
-        implementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-        implementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
-        implementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
-        implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
-        implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${versions.jackson}"
-        implementation "com.fasterxml.jackson.module:jackson-module-afterburner:${versions.jackson}"
+        // Jackson 3 (tools.jackson) -- versions managed by the Jackson 3 BOM, mirroring
+        // the server's Spring Boot BOM resolution (conductor-oss/conductor#1573). The jdk8
+        // and java.time datatypes and the afterburner property-access optimisation are all
+        // built into core now, so those modules are gone. Annotations stay on the 2.x line
+        // (com.fasterxml.jackson.annotation) per JSTEP-1 -- the BOM pins the right 2.x build.
+        implementation platform("tools.jackson:jackson-bom:${versions.jacksonBom}")
+        implementation "tools.jackson.core:jackson-databind"
+        implementation "tools.jackson.core:jackson-core"
+        implementation "com.fasterxml.jackson.core:jackson-annotations"
+        implementation "tools.jackson.module:jackson-module-kotlin"
         implementation "org.openjdk.nashorn:nashorn-core:15.6"
 
         implementation "org.slf4j:slf4j-api:${versions.slf4j}"

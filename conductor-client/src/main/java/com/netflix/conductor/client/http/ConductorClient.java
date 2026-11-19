@@ -50,10 +50,6 @@ import org.slf4j.LoggerFactory;
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
@@ -65,6 +61,10 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.http.HttpMethod;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 
 public class ConductorClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConductorClient.class);
@@ -380,7 +380,7 @@ public class ConductorClient {
                 ConductorClientException exception = objectMapper.readValue(respBody, ConductorClientException.class);
                 exception.setStatus(response.code());
                 throw exception;
-            } catch (JsonProcessingException jpe) {
+            } catch (JacksonException jpe) {
                 // Ignore
             }
             throw new ConductorClientException(response.message(),

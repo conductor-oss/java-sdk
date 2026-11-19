@@ -12,7 +12,7 @@
  */
 package com.netflix.conductor.client.http
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.netflix.conductor.client.exception.ConductorClientException
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef
 import spock.lang.Subject

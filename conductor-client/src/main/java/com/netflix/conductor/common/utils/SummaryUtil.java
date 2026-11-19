@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class SummaryUtil {
 
@@ -49,7 +49,7 @@ public class SummaryUtil {
         }
         try {
             return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.error("The provided value ({}) could not be serialized as Json", object.toString(), e);
             throw new RuntimeException(e);
         }

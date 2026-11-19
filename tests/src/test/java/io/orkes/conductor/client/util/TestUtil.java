@@ -23,7 +23,7 @@ import com.netflix.conductor.common.run.Workflow;
 
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class TestUtil {
     private static int RETRY_ATTEMPT_LIMIT = 4;
