@@ -15,6 +15,7 @@ package com.netflix.conductor.sdk.workflow.executor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -79,6 +80,19 @@ public class WorkflowExecutor {
 
     private final Map<String, CompletableFuture<Workflow>> runningWorkflowFutures =
             new ConcurrentHashMap<>();
+
+    /**
+     * How long a workflow's polls must keep failing before the monitor stops tracking it and fails
+     * its future. Long enough for a server restart or failover to pass without failing workflows
+     * that are still running.
+     */
+    static final long DEFAULT_POLL_FAILURE_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(1);
+
+    private volatile long pollFailureTimeoutMillis = DEFAULT_POLL_FAILURE_TIMEOUT_MILLIS;
+
+    // When each workflow's current run of failed polls started, in System.nanoTime() units.
+    // Only accessed from the single monitor thread.
+    private final Map<String, Long> pollFailingSinceNanos = new HashMap<>();
 
     private final ObjectMapper objectMapper = new ObjectMapperProvider().getObjectMapper();
 
@@ -176,6 +190,7 @@ public class WorkflowExecutor {
                         CompletableFuture<Workflow> future = entry.getValue();
                         try {
                             Workflow workflow = workflowClient.getWorkflow(workflowId, true);
+                            pollFailingSinceNanos.remove(workflowId);
                             if (workflow.getStatus().isTerminal()) {
                                 future.complete(workflow);
                                 runningWorkflowFutures.remove(workflowId);
@@ -183,10 +198,25 @@ public class WorkflowExecutor {
                         } catch (Exception e) {
                             // scheduleAtFixedRate silently kills all future ticks on any uncaught
                             // exception, so this must not escape: one failed poll would otherwise
-                            // stop completion tracking for every workflow, forever. Stop tracking
-                            // this one and let its caller see the failure.
-                            LOGGER.error("Error polling workflow {} for completion; completing its "
-                                    + "future exceptionally", workflowId, e);
+                            // stop completion tracking for every workflow, forever.
+                            long now = System.nanoTime();
+                            Long failingSince = pollFailingSinceNanos.putIfAbsent(workflowId, now);
+                            if (failingSince == null) {
+                                LOGGER.warn("Error polling workflow {} for completion; will retry for up "
+                                        + "to {} ms: {}", workflowId, pollFailureTimeoutMillis, e.getMessage());
+                                continue;
+                            }
+                            long failingForMillis = TimeUnit.NANOSECONDS.toMillis(now - failingSince);
+                            if (failingForMillis < pollFailureTimeoutMillis) {
+                                // Already warned for this run of failures; at the polling interval a
+                                // WARN per tick would flood the log during an outage.
+                                LOGGER.debug("Still failing to poll workflow {} for completion ({} ms so "
+                                        + "far): {}", workflowId, failingForMillis, e.getMessage());
+                                continue;
+                            }
+                            LOGGER.error("Polling workflow {} for completion has failed for {} ms; "
+                                    + "completing its future exceptionally", workflowId, failingForMillis, e);
+                            pollFailingSinceNanos.remove(workflowId);
                             runningWorkflowFutures.remove(workflowId);
                             future.completeExceptionally(e);
                         }
@@ -195,6 +225,11 @@ public class WorkflowExecutor {
                 100,
                 100,
                 TimeUnit.MILLISECONDS);
+    }
+
+    // Lets tests shorten the timeout instead of waiting out the default.
+    void setPollFailureTimeoutMillis(long pollFailureTimeoutMillis) {
+        this.pollFailureTimeoutMillis = pollFailureTimeoutMillis;
     }
 
     public void initWorkers(String... packagesToScan) {

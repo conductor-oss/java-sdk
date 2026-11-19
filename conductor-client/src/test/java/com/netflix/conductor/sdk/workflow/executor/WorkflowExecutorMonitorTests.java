@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,31 +50,79 @@ public class WorkflowExecutorMonitorTests {
 
     private static final String OTHER_WORKFLOW_ID = "other-test-workflow-id";
 
+    // Stands in for the one-minute default so the tests need not wait it out.
+    private static final long TEST_POLL_FAILURE_TIMEOUT_MILLIS = 1000;
+
     private WorkflowExecutor executorFor(WorkflowClient workflowClient) {
-        return new WorkflowExecutor(
+        WorkflowExecutor executor = new WorkflowExecutor(
                 mock(TaskClient.class),
                 workflowClient,
                 mock(MetadataClient.class),
                 mock(AnnotatedWorkerExecutor.class));
+        executor.setPollFailureTimeoutMillis(TEST_POLL_FAILURE_TIMEOUT_MILLIS);
+        return executor;
     }
 
     @Test
-    @DisplayName("a failed poll should complete that workflow's future exceptionally")
-    void monitorFailsTheFutureOnPollFailure() {
+    @DisplayName("polls failing for the whole timeout should complete that workflow's future exceptionally")
+    void monitorFailsTheFutureOnPersistentPollFailure() throws Exception {
+        AtomicInteger polls = new AtomicInteger();
         WorkflowClient workflowClient = mock(WorkflowClient.class);
         when(workflowClient.startWorkflow(any(StartWorkflowRequest.class))).thenReturn(WORKFLOW_ID);
-        when(workflowClient.getWorkflow(anyString(), anyBoolean()))
-                .thenThrow(new RuntimeException("poll failure"));
+        when(workflowClient.getWorkflow(anyString(), anyBoolean())).thenAnswer(invocation -> {
+            polls.incrementAndGet();
+            throw new RuntimeException("poll failure");
+        });
 
         WorkflowExecutor executor = executorFor(workflowClient);
         try {
+            long start = System.nanoTime();
             CompletableFuture<Workflow> future = executor.executeWorkflow("wf", 1, Map.of());
 
             ExecutionException thrown = assertThrows(
                     ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+            long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 
             assertInstanceOf(RuntimeException.class, thrown.getCause());
             assertEquals("poll failure", thrown.getCause().getMessage());
+            assertTrue(elapsedMillis >= TEST_POLL_FAILURE_TIMEOUT_MILLIS,
+                    "future failed after " + elapsedMillis + " ms, before the timeout");
+            // The workflow is untracked before its future fails, so no further polls can follow.
+            int pollsAtFailure = polls.get();
+            Thread.sleep(300);
+            assertEquals(pollsAtFailure, polls.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("poll failures shorter than the timeout should not fail the future, and a success resets it")
+    void monitorToleratesTransientPollFailures() throws Exception {
+        Workflow running = new Workflow();
+        running.setStatus(Workflow.WorkflowStatus.RUNNING);
+        Workflow completed = new Workflow();
+        completed.setStatus(Workflow.WorkflowStatus.COMPLETED);
+
+        // Two runs of failures, each spanning ~600 ms of 100 ms ticks (short of the 1 s timeout),
+        // separated by a single successful poll. Together they span ~1.4 s, past the timeout, so
+        // the future completes only if that success reset the clock.
+        int burst = 7;
+        AtomicInteger calls = new AtomicInteger();
+        WorkflowClient workflowClient = mock(WorkflowClient.class);
+        when(workflowClient.startWorkflow(any(StartWorkflowRequest.class))).thenReturn(WORKFLOW_ID);
+        when(workflowClient.getWorkflow(anyString(), anyBoolean())).thenAnswer(invocation -> {
+            int call = calls.incrementAndGet();
+            if (call <= burst || (call > burst + 1 && call <= 2 * burst + 1)) {
+                throw new RuntimeException("transient poll failure");
+            }
+            return call == burst + 1 ? running : completed;
+        });
+
+        WorkflowExecutor executor = executorFor(workflowClient);
+        try {
+            CompletableFuture<Workflow> future = executor.executeWorkflow("wf", 1, Map.of());
+            assertEquals(Workflow.WorkflowStatus.COMPLETED, future.get(10, TimeUnit.SECONDS).getStatus());
         } finally {
             executor.shutdown();
         }

@@ -32,16 +32,16 @@ Postgres stack (defined in `scripts/docker-compose-oss.yaml`), waits for `/healt
 integration suite, and tears the stack down on exit.
 
 ```shell
-scripts/run-integration-oss.sh                        # against `latest`
+scripts/run-integration-oss.sh                        # against the default tag in scripts/docker-compose-oss.yaml
 scripts/run-integration-oss.sh --version 3.32.0-rc18
 scripts/run-integration-oss.sh --keep-up               # leave the stack running afterwards
 scripts/run-integration-oss.sh --include-gated         # also run tests normally skipped as Orkes-only
 ```
 
 The script always prints the resolved `conductoross/conductor` tag and pulls it before
-starting the stack, since `latest` (the local default) is a mutable tag — without an
-explicit pull, `docker compose up` would silently reuse a stale cached image instead of
-fetching the current one. It also always runs Gradle with `--rerun-tasks`, since the `test`
+starting the stack, since a tag can be re-pushed (an rc, or `latest` via `--version latest`) —
+without an explicit pull, `docker compose up` would silently reuse a stale cached image
+instead of fetching the current one. It also always runs Gradle with `--rerun-tasks`, since the `test`
 task's up-to-date check doesn't account for env vars like `CONDUCTOR_SERVER_TYPE` or the
 state of the live server underneath — without it, a rerun after changing gating or switching
 server versions could silently report a stale cached result instead of executing anything.

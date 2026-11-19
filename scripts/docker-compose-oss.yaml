@@ -9,9 +9,8 @@
 # E2E_TEST_OSS_CONDUCTOR_VERSION org variable or a workflow_dispatch input. Bump the tag here
 # and both follow.
 #
-# Note that the org variable is currently set to `latest`, so a normal CI run still tracks
-# whatever `latest` resolves to at run time. Set it to a real tag if the job needs to be
-# deterministic; until then this default is what actually pins fork PRs and local runs.
+# The org variable is set independently of this default, so a normal CI run can be on a
+# different tag than a local run. The "Pull Conductor OSS image" CI step prints the tag in use.
 
 services:
   conductor-server:
