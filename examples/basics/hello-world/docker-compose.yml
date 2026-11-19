@@ -1,11 +1,16 @@
 services:
   conductor:
     image: conductoross/conductor:latest
+    # Always re-pull so a stale local `latest` can't outlive the healthcheck
+    # below: images before 3.34.0 ship curl but not wget.
+    pull_policy: always
     ports:
       - "${CONDUCTOR_PORT:-8080}:8080"
       - "${CONDUCTOR_UI_PORT:-1234}:5000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      # 127.0.0.1, not localhost: busybox wget tries ::1 first and does not
+      # fall back to the IPv4-bound server.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
       interval: 5s
       timeout: 5s
       retries: 12
