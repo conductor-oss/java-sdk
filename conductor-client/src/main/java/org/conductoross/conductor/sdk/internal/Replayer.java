@@ -139,7 +139,9 @@ public final class Replayer {
                     // the workflow's output
                     out.put("result", Json.encodeOutput(lane.result));
                 } else {
-                    out.put("result", Map.of("value", Json.plain(lane.result)));
+                    Map<String, Object> returned = new LinkedHashMap<>();
+                    returned.put("value", Json.plain(lane.result)); // null when the lane returned nothing
+                    out.put("result", returned);
                 }
             } else {
                 out.put("done", false);
@@ -963,34 +965,29 @@ public final class Replayer {
 
         /**
          * A value computed once: the live run computes it and the continuation's marker records
-         * it ({@code recorded}); every replay reads it back.
+         * it ({@code recorded}); every replay reads it back. The live run returns what it
+         * recorded, read back, and not the supplier's own object, so the code gets the same value
+         * the first time as on every replay, and a value that cannot be read back fails here, where
+         * it is computed, rather than at the next continuation.
          */
-        @SuppressWarnings("unchecked")
         private Object recordValue(String ref, Supplier<?> supplier) {
             Object known = exec.recorded.containsKey(ref) ? exec.recorded.get(ref) : recorded.get(ref);
             if (known instanceof Map<?, ?> record) {
-                Object v = record.get("value");
-                Object type = record.get("type");
-                if (v == null || type == null) {
-                    return v;
-                }
-                try {
-                    return Json.convert(v, Class.forName(type.toString(), false, spec.type.getClassLoader()));
-                } catch (ClassNotFoundException e) {
-                    return v;
-                }
+                return Json.recorded(record, spec.type.getClassLoader());
             }
             if (mode != Mode.ACTIVE) {
                 throw diverged("the code records " + ref + " (" + Entries.site() + ") but the recorded execution has no such value");
             }
-            Object v = supplier.get();
-            Map<String, Object> record = new LinkedHashMap<>();
-            record.put("value", Json.plain(v));
-            if (v != null) {
-                record.put("type", v.getClass().getName());
+            Map<String, Object> record = Json.record(supplier.get());
+            Object readBack;
+            try {
+                readBack = Json.recorded(record, spec.type.getClassLoader());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("the value recorded as " + ref + " (" + record.get("type")
+                        + ") cannot be read back from its JSON, as a re-run must: " + e.getMessage(), e);
             }
             recorded.put(ref, record);
-            return v;
+            return readBack;
         }
 
         @Override

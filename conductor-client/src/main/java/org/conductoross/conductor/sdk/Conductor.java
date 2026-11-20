@@ -467,7 +467,8 @@ public final class Conductor implements AutoCloseable {
     // ================================================================== client
 
     private final ConductorClient client;
-    private final List<Workers> started = new ArrayList<>();
+    /** Read by starts and queries while other threads add workers: iterated as a snapshot. */
+    private final List<Workers> started = new java.util.concurrent.CopyOnWriteArrayList<>();
     private final Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
     private ScheduledExecutorService poller;
 
@@ -534,7 +535,7 @@ public final class Conductor implements AutoCloseable {
 
     /** The spec of a workflow class these workers host, with its factory, if any of them does. */
     Optional<WorkflowSpec> hostedSpec(Class<?> type) {
-        for (Workers workers : List.copyOf(started)) {
+        for (Workers workers : started) {
             Optional<WorkflowSpec> spec = workers.hostedSpec(type);
             if (spec.isPresent()) {
                 return spec;

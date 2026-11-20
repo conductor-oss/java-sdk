@@ -259,7 +259,9 @@ final class DirectEngine implements Engine {
     public Object once(String name, Supplier<?> supplier) {
         settleGroup();
         ran.add(alloc(name));
-        return supplier.get();
+        // as against a server: the code gets the value read back from its JSON, so a value that
+        // would come back different, or not at all, on a re-run shows in the test
+        return Json.recorded(Json.record(supplier.get()), supplier.getClass().getClassLoader());
     }
 
     @Override
@@ -364,16 +366,23 @@ final class DirectEngine implements Engine {
         used.add(checkRef);
         ran.add(loopRef);
         Object result = null;
+        TaskFailure failed = null;
         for (int i = 0; i < backoff.attempts(); i++) {
             try {
                 result = execute(check, checkRef);
+                failed = null;
             } catch (TaskFailure e) {
+                // the loop goes on to its next attempt, as the server's does
                 result = null;
+                failed = e;
                 continue;
             }
             if (result != null && ((Functions.Pred) condition).test(result)) {
                 break;
             }
+        }
+        if (failed != null) {
+            throw failed; // the last check failed: the code gets its failure, as against a server
         }
         return result;
     }

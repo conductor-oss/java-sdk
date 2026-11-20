@@ -474,6 +474,8 @@ public final class Workers implements AutoCloseable {
                 fresh.add(e);
             }
         }
+        // oldest first, by when each was handled: the map itself comes back in no particular order
+        fresh.sort(java.util.Comparator.comparingLong(e -> ((Number) ((Map<?, ?>) e.getValue()).get("at")).longValue()));
         int from = Math.max(0, fresh.size() - REPLY_LIMIT);
         Map<String, Object> kept = new LinkedHashMap<>();
         for (Map.Entry<String, Object> e : fresh.subList(from, fresh.size())) {
@@ -572,10 +574,10 @@ public final class Workers implements AutoCloseable {
             try {
                 Method handler = spec.handler(kind, name);
                 Object value = Replayer.invokeHandler(instance, handler, payload.get("args"));
-                // a signal's sender waits for no reply: its entry only says it was handled
-                replies.put(id, "signal".equals(kind)
-                        ? reply(null, null)
-                        : reply("value", Json.plain(value) == null ? "" : Json.plain(value)));
+                // a signal's sender waits for no reply: its entry only says it was handled. So
+                // does the entry of a handler that returned null: the caller reads no value, null
+                Object returned = Json.plain(value);
+                replies.put(id, "signal".equals(kind) || returned == null ? reply(null, null) : reply("value", returned));
             } catch (RuntimeException e) {
                 LOGGER.warn("handler {} {} of execution {} failed: {}", kind, name, exec.workflowId, e.toString());
                 replies.put(id, "signal".equals(kind) ? reply(null, null) : reply("error", e.toString()));

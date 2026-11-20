@@ -134,4 +134,19 @@ class WorkflowHandleQueryTest {
         assertTrue(!kept.containsKey("legacy") && !kept.containsKey("old") && !kept.containsKey("r0"));
         assertTrue(kept.containsKey("r" + (Workers.REPLY_LIMIT + 4))); // the newest is kept
     }
+
+    @Test
+    void theCapDropsTheOldestRepliesWhateverOrderTheServerReturnsThemIn() {
+        long now = 1_000_000_000L;
+        Map<String, Object> replies = new java.util.LinkedHashMap<>();
+        // the reply written last comes first: the server's map of replies keeps no order
+        replies.put("newest", Map.of("value", "n", "at", now));
+        for (int i = 0; i < Workers.REPLY_LIMIT; i++) {
+            replies.put("r" + i, Map.of("value", i, "at", now - 5000 + i));
+        }
+        Map<String, Object> kept = Workers.pruneReplies(replies, now);
+        assertEquals(Workers.REPLY_LIMIT, kept.size());
+        assertTrue(kept.containsKey("newest"), "the newest reply was dropped: its caller would never read it");
+        assertTrue(!kept.containsKey("r0"), "the oldest reply is the one to drop");
+    }
 }

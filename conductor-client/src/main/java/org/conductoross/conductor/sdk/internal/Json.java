@@ -79,7 +79,11 @@ public final class Json {
                 || raw.isEnum()
                 || Collection.class.isAssignableFrom(raw)
                 || raw.isArray()
-                || java.time.temporal.Temporal.class.isAssignableFrom(raw);
+                // values JSON writes as a string or a number, not as an object
+                || java.time.temporal.Temporal.class.isAssignableFrom(raw)
+                || java.time.temporal.TemporalAmount.class.isAssignableFrom(raw)
+                || java.util.Date.class.isAssignableFrom(raw)
+                || java.util.UUID.class == raw;
     }
 
     /** Encodes a task result or workflow result as an output map. */
@@ -92,11 +96,15 @@ public final class Json {
             m.forEach((k, v) -> out.put(String.valueOf(k), plain(v)));
             return out;
         }
-        if (isWrapped(value.getClass())) {
-            out.put("result", plain(value));
+        // an object spreads into the output; any other value (a scalar, a list, or a type JSON
+        // writes as one value, such as a UUID) is the result
+        Object plain = plain(value);
+        if (!isWrapped(value.getClass()) && plain instanceof Map<?, ?> m) {
+            m.forEach((k, v) -> out.put(String.valueOf(k), v));
             return out;
         }
-        return map(value);
+        out.put("result", plain);
+        return out;
     }
 
     /** Decodes an output map produced by {@link #encodeOutput} into the given type. */
@@ -123,6 +131,69 @@ public final class Json {
             }
             throw e;
         }
+    }
+
+    /**
+     * A value as it is recorded for a re-run to read back: its JSON, and the type to read that
+     * JSON as. The type is the value's class, with the element types of a list, set or map taken
+     * from its elements, since a re-run has only the JSON: a {@code List<Order>} is recorded as a
+     * list of {@code Order}, not as the list class that happened to hold it.
+     */
+    public static Map<String, Object> record(Object value) {
+        Map<String, Object> record = new LinkedHashMap<>();
+        record.put("value", plain(value));
+        if (value != null) {
+            record.put("type", typeOf(value).toCanonical());
+        }
+        return record;
+    }
+
+    /** Reads back a value recorded with {@link #record}; classes are found through {@code loader}. */
+    public static Object recorded(Map<?, ?> record, ClassLoader loader) {
+        Object value = record.get("value");
+        Object type = record.get("type");
+        if (value == null || type == null) {
+            return value;
+        }
+        JavaType javaType;
+        try {
+            javaType = MAPPER.getTypeFactory().withClassLoader(loader).constructFromCanonical(type.toString());
+        } catch (IllegalArgumentException e) {
+            return value; // a class this build no longer has: the plain JSON value
+        }
+        return MAPPER.convertValue(value, javaType);
+    }
+
+    /** The type to read a value's JSON back as. */
+    private static JavaType typeOf(Object value) {
+        com.fasterxml.jackson.databind.type.TypeFactory types = MAPPER.getTypeFactory();
+        if (value instanceof Map<?, ?> m) {
+            return types.constructMapType(LinkedHashMap.class, common(m.keySet()), common(m.values()));
+        }
+        if (value instanceof Collection<?> c) {
+            Class<? extends Collection> holder = value instanceof java.util.SortedSet ? java.util.TreeSet.class
+                    : value instanceof java.util.Set ? java.util.LinkedHashSet.class
+                    : java.util.ArrayList.class;
+            return types.constructCollectionType(holder, common(c));
+        }
+        // an enum constant with a body is its own class: the enum is what reads it back
+        return types.constructType(value instanceof Enum<?> e ? e.getDeclaringClass() : value.getClass());
+    }
+
+    /** The one type all of these values are read back as; any JSON value when they differ. */
+    private static JavaType common(Collection<?> values) {
+        JavaType common = null;
+        for (Object v : values) {
+            if (v == null) {
+                continue;
+            }
+            JavaType type = typeOf(v);
+            if (common != null && !common.equals(type)) {
+                return MAPPER.getTypeFactory().constructType(Object.class);
+            }
+            common = type;
+        }
+        return common == null ? MAPPER.getTypeFactory().constructType(Object.class) : common;
     }
 
     public static Class<?> raw(Type type) {
