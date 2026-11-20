@@ -135,9 +135,14 @@ public class AnnotatedWorker implements Worker {
                 Class<?> parameterType = parameterTypes[i];
                 values[i] = getInputValue(task, parameterType, type, paramAnnotation);
             } else if (parameters[i].isNamePresent()
-                    && task.getInputData().containsKey(parameters[i].getName())) {
-                // Compiled with -parameters and the input has a key with the parameter's name, as
-                // native workflows send it: bind that value.
+                    && task.getInputData().containsKey(parameters[i].getName())
+                    && (calledByNativeWorkflow(task) || !bindsWholeInput(parameters[i]))) {
+                // Compiled with -parameters and the input has a key with the parameter's name:
+                // bind that value. A native workflow sends every argument under its parameter's
+                // name. From any other workflow only a parameter that could not hold the whole
+                // input (a string, a number, a list) binds this way: an object parameter keeps
+                // binding the whole input, as it always has, also when one of the object's fields
+                // has the parameter's name.
                 values[i] = convertNamed(task.getInputData().get(parameters[i].getName()), parameters[i]);
             } else {
                 values[i] = convertValue(task.getInputData(), parameterTypes[i]);
@@ -192,6 +197,17 @@ public class AnnotatedWorker implements Worker {
         } else {
             return convertValue(value, parameterType);
         }
+    }
+
+    /** Whether a native workflow scheduled the task: its entry names the lane of the code that called it. */
+    private static boolean calledByNativeWorkflow(Task task) {
+        WorkflowTask entry = task.getWorkflowTask();
+        return entry != null && entry.getMetadata() != null && entry.getMetadata().get("lane") != null;
+    }
+
+    /** Whether the whole input, a JSON object, could be bound to this parameter. */
+    private static boolean bindsWholeInput(Parameter parameter) {
+        return !org.conductoross.conductor.sdk.internal.Json.isWrapped(parameter.getParameterizedType());
     }
 
     private Object convertNamed(Object value, Parameter parameter) {

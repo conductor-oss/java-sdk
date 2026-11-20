@@ -507,7 +507,7 @@ class TaskRunner {
             result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
-            if(enableUpdateV2) {
+            if (enableUpdateV2 && takesMoreWork()) {
                 Task nextTask = retryOperation(
                         (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
                         count,
@@ -554,6 +554,25 @@ class TaskRunner {
                     e);
         }
         return next;
+    }
+
+    /**
+     * Whether this runner would poll for a task now: it is running, its worker is not paused and
+     * no filter holds it back. Only then is a result sent with update-v2, which hands back the
+     * next task: a task handed to a paused worker would run despite the pause, and one handed
+     * over during shutdown could not run, and would wait out its response timeout before the
+     * server gives it to another worker.
+     */
+    private boolean takesMoreWork() {
+        if (!pollingAndExecuting || worker.paused()) {
+            return false;
+        }
+        for (PollFilter filter : pollFilters) {
+            if (!filter.filter(taskType, domain)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Optional<String> upload(TaskResult result, String taskType) {

@@ -139,4 +139,69 @@ class TaskRunnerOptionsTest {
 
         verify(client, after(2500).times(1)).updateTaskV2(any(), any());
     }
+
+    @Test
+    void aWorkerPausedWhileATaskRunsTakesNoNextTaskFromItsUpdate() {
+        Task first = task("t1");
+        Task next = task("t2");
+        java.util.concurrent.atomic.AtomicBoolean paused = new java.util.concurrent.atomic.AtomicBoolean();
+        TaskClient client = mock(TaskClient.class);
+        when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
+        when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
+                .thenReturn(List.of(first), List.of());
+        // the queue has a backlog: update-v2 hands back the next task
+        when(client.updateTaskV2(any(), any())).thenReturn(next, (Task) null);
+        Worker worker = worker();
+        when(worker.paused()).thenAnswer(i -> paused.get());
+        when(worker.execute(first)).thenAnswer(i -> {
+            paused.set(true); // paused while the first task runs
+            TaskResult result = new TaskResult(first);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        });
+
+        run(worker, client);
+
+        // paused, it runs nothing more: the first task's result goes with the update that hands
+        // nothing back
+        verify(worker, after(1500).never()).execute(next);
+        verify(client).updateTask(any(), any());
+        verify(client, never()).updateTaskV2(any(), any());
+    }
+
+    @Test
+    void aTaskFinishingDuringShutdownTakesNoNextTaskFromItsUpdate() throws Exception {
+        Task first = task("t1");
+        Task next = task("t2");
+        java.util.concurrent.CountDownLatch running = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch finish = new java.util.concurrent.CountDownLatch(1);
+        TaskClient client = mock(TaskClient.class);
+        when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
+        when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
+                .thenReturn(List.of(first), List.of());
+        // the server leases the next task to whoever completes with update-v2
+        when(client.updateTaskV2(any(), any())).thenReturn(next, (Task) null);
+        Worker worker = worker();
+        when(worker.execute(first)).thenAnswer(i -> {
+            running.countDown();
+            finish.await();
+            TaskResult result = new TaskResult(first);
+            result.setStatus(TaskResult.Status.COMPLETED);
+            return result;
+        });
+
+        run(worker, client);
+        running.await();
+        Thread stopping = new Thread(() -> runner.shutdown(5)); // waits for the task in flight
+        stopping.start();
+        Thread.sleep(500);
+        finish.countDown();
+        stopping.join();
+
+        // a task handed back now could not run (the executor refuses it) and would wait out its
+        // lease: the result goes with the update that hands nothing back
+        verify(client, never()).updateTaskV2(any(), any());
+        verify(client).updateTask(any(), any());
+        verify(worker, never()).execute(next);
+    }
 }
