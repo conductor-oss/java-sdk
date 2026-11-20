@@ -134,6 +134,16 @@ public class AnnotatedWorker implements Worker {
                 Type type = parameters[i].getParameterizedType();
                 Class<?> parameterType = parameterTypes[i];
                 values[i] = getInputValue(task, parameterType, type, paramAnnotation);
+            } else if (parameters[i].isNamePresent()
+                    && task.getInputData().containsKey(parameters[i].getName())
+                    && (calledByNativeWorkflow(task) || !bindsWholeInput(parameters[i]))) {
+                // Compiled with -parameters and the input has a key with the parameter's name:
+                // bind that value. A native workflow sends every argument under its parameter's
+                // name. From any other workflow only a parameter that could not hold the whole
+                // input (a string, a number, a list) binds this way: an object parameter keeps
+                // binding the whole input, as it always has, also when one of the object's fields
+                // has the parameter's name.
+                values[i] = convertNamed(task.getInputData().get(parameters[i].getName()), parameters[i]);
             } else {
                 values[i] = convertValue(task.getInputData(), parameterTypes[i]);
             }
@@ -187,6 +197,24 @@ public class AnnotatedWorker implements Worker {
         } else {
             return convertValue(value, parameterType);
         }
+    }
+
+    /** Whether a native workflow scheduled the task: its entry names the lane of the code that called it. */
+    private static boolean calledByNativeWorkflow(Task task) {
+        WorkflowTask entry = task.getWorkflowTask();
+        return entry != null && entry.getMetadata() != null && entry.getMetadata().get("lane") != null;
+    }
+
+    /** Whether the whole input, a JSON object, could be bound to this parameter. */
+    private static boolean bindsWholeInput(Parameter parameter) {
+        return !org.conductoross.conductor.sdk.internal.Json.isWrapped(parameter.getParameterizedType());
+    }
+
+    private Object convertNamed(Object value, Parameter parameter) {
+        if (value == null) {
+            return parameter.getType().isPrimitive() ? convertValue(0, parameter.getType()) : null;
+        }
+        return om.convertValue(value, om.getTypeFactory().constructType(parameter.getParameterizedType()));
     }
 
     private Object convertValue(Object source, Class<?> targetType) {
@@ -257,8 +285,13 @@ public class AnnotatedWorker implements Worker {
             return result;
 
         } else {
-            Map resultAsMap = om.convertValue(invocationResult, Map.class);
-            result.getOutputData().putAll(resultAsMap);
+            // an object spreads into the output; anything else (an enum, a date, an array) is one value
+            Object plain = om.convertValue(invocationResult, Object.class);
+            if (plain instanceof Map) {
+                result.getOutputData().putAll((Map) plain);
+            } else {
+                result.getOutputData().put("result", plain);
+            }
             result.setStatus(TaskResult.Status.COMPLETED);
             return result;
         }

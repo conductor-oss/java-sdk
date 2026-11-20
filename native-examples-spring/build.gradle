@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// A Spring Boot service hosting native workflows through auto-configuration. Against a server
+// (CONDUCTOR_SERVER_URL, default http://localhost:8080/api):
+//   ./gradlew :native-examples-spring:run
+//   curl -s -X POST localhost:8095/orders -H 'Content-Type: application/json' -d '{"item":"book","quantity":2}'
+application {
+    mainClass = 'orders.OrdersApplication'
+}
+
+dependencies {
+    implementation project(':conductor-client-spring')
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.5.13'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.5.13'
+}
+
+// Task inputs are keyed by parameter name, read reflectively
+compileJava.options.compilerArgs << '-parameters'
+compileTestJava.options.compilerArgs << '-parameters'
+
+test {
+    useJUnitPlatform()
+}

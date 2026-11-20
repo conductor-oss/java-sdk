@@ -55,6 +55,8 @@ public class TaskRunnerConfigurer {
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
+    private final boolean taskUpdateV2;
+    private final boolean useDomains;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -77,6 +79,8 @@ public class TaskRunnerConfigurer {
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
+        this.taskUpdateV2 = builder.taskUpdateV2;
+        this.useDomains = builder.useDomains;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -179,7 +183,9 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                useVirtualThreads);
+                useVirtualThreads,
+                taskUpdateV2,
+                useDomains);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -212,6 +218,8 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
+        private boolean taskUpdateV2;
+        private boolean useDomains = true;
 
         /**
          * Returns the event dispatcher used by this builder, allowing direct
@@ -380,6 +388,26 @@ public class TaskRunnerConfigurer {
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {
             this.useVirtualThreads = useVirtualThreads;
+            return this;
+        }
+
+        /**
+         * Completes tasks with update-v2, which hands back the worker's next task to run without
+         * another poll. Also on for every configurer when the {@code taskUpdateV2} system property
+         * or environment variable is set.
+         */
+        public Builder withTaskUpdateV2(boolean taskUpdateV2) {
+            this.taskUpdateV2 = taskUpdateV2;
+            return this;
+        }
+
+        /**
+         * Whether workers poll a task domain: from {@code conductor.worker.<task>.domain}, then
+         * {@code conductor.worker.all.domain}, then {@link #withTaskToDomain}. On by default; off,
+         * every worker polls the shared queue of its task type.
+         */
+        public Builder withDomains(boolean useDomains) {
+            this.useDomains = useDomains;
             return this;
         }
 

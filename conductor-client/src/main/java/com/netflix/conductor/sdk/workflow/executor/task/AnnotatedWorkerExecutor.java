@@ -179,12 +179,20 @@ public class AnnotatedWorkerExecutor {
         }
     }
 
-    private void addMethod(WorkerTask annotation, Method method, Object bean) {
+    /**
+     * Adds one {@code @WorkerTask} method, configured as {@link #addBean} configures each public
+     * one: thread count, polling interval, poll timeout, domain and poller count from the {@link
+     * WorkerConfiguration}, else from the annotation. A non-public method must be accessible.
+     */
+    public void addMethod(WorkerTask annotation, Method method, Object bean) {
         String name = annotation.value();
 
         int threadCount = workerConfiguration.getThreadCount(name);
         if (threadCount == 0) {
             threadCount = annotation.threadCount();
+        }
+        if (threadCount < 1) {
+            threadCount = workerConfiguration.getDefaultThreadCount();
         }
         workerToThreadCount.put(name, threadCount);
 

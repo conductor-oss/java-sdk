@@ -1,0 +1,21 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -1358,7 +1358,7 @@
+         if (changed == null) {
+             return Map.of();
+         }
+-        Map<String, Object> base = mapOrNull(output.get(OUTPUT_RESUMED_WITH));
++        Map<String, Object> base = null; // mutant no-variable-fencing
+         if (base != null) {
+             changed.entrySet().removeIf(e -> sameJson(e.getValue(), base.get(e.getKey())));
+         }
+@@ -1392,7 +1392,7 @@
+      */
+     private String variableConflict(
+             WorkflowModel workflow, Map<String, Object> output, Map<String, Object> changed) {
+-        Map<String, Object> base = mapOrNull(output.get(OUTPUT_RESUMED_WITH));
++        Map<String, Object> base = null; // mutant no-variable-fencing
+         if (base == null) {
+             return null;
+         }

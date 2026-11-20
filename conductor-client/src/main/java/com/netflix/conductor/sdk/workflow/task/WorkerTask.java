@@ -23,8 +23,12 @@ import java.lang.annotation.Target;
 public @interface WorkerTask {
     String value();
 
-    // No. of threads to use for executing the task
-    int threadCount() default 1;
+    /**
+     * Threads that execute the task at once. 0, the default, leaves it to the executor's {@code
+     * WorkerConfiguration.getDefaultThreadCount()}: 1 for {@code AnnotatedWorkerExecutor} and
+     * Spring, 8 for a native workflow host.
+     */
+    int threadCount() default 0;
 
     int pollingInterval() default 100;
 
@@ -37,4 +41,13 @@ public @interface WorkerTask {
     // default is 1 which is good enough for most use cases
     // a number higher than 1 will have concurrent pollers doing poll and execute
     int pollerCount() default 1;
+
+    /** Retries after a failure, registered with the task definition; -1 keeps the default. */
+    int retryCount() default -1;
+
+    /** Seconds between retries, registered with the task definition; -1 keeps the default. */
+    int retryDelaySeconds() default -1;
+
+    /** Seconds a worker may hold the task before it is rescheduled; 0 keeps the default. */
+    int responseTimeoutSeconds() default 0;
 }

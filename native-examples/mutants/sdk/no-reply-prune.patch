@@ -1,0 +1,13 @@
+diff --git a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+--- a/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
++++ b/conductor-client/src/main/java/org/conductoross/conductor/sdk/Workers.java
+@@ -283,6 +283,9 @@
+      * Replies without a timestamp, from older workers, count as expired.
+      */
+     static Map<String, Object> pruneReplies(Map<String, Object> replies, long now) {
++        if (true) { // mutant no-reply-prune
++            return replies;
++        }
+         List<Map.Entry<String, Object>> fresh = new ArrayList<>();
+         for (Map.Entry<String, Object> e : replies.entrySet()) {
+             if (e.getValue() instanceof Map<?, ?> r && r.get("at") instanceof Number at

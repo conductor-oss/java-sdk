@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conductoross.conductor.sdk.Conductor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -59,6 +60,17 @@ public class ConductorClientAutoConfiguration {
                 .writeTimeout(properties.getTimeout().getWrite())
                 .verifyingSsl(properties.isVerifyingSsl());
         return builder.build();
+    }
+
+    /**
+     * Native workflows over the configured client (an Orkes {@code ApiClient} with keys when one is
+     * configured). Closing it stops the workers it started; the client bean is left to Spring.
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnBean(ConductorClient.class)
+    @ConditionalOnMissingBean
+    public Conductor conductor(ConductorClient client) {
+        return Conductor.of(client);
     }
 
     @Bean

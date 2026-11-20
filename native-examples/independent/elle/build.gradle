@@ -1,0 +1,29 @@
+// Independent check of a durability bench run with Jepsen's Elle (list-append): each execution's
+// deposits are appends to a list keyed by the execution, each query is a read of that list.
+//   ../../../gradlew -p native-examples/independent/elle run --args=<run-dir>
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.clojars.org' }
+}
+
+dependencies {
+    implementation 'elle:elle:0.2.8'
+    // elle's logging setup, declared only for its tests
+    implementation 'spootnik:unilog:0.7.32'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = 'durability.independent.ElleCheck'
+}

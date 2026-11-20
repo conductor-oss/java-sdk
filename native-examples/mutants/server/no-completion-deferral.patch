@@ -1,0 +1,13 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -873,6 +873,9 @@
+      * acknowledged: messages still queued, or claimed by a handler run that has not finished.
+      */
+     private String pendingMessages(WorkflowModel workflow) {
++        if (true) { // mutant no-completion-deferral
++            return null;
++        }
+         TaskContinuation handlers = workflow.getNativeState().getHandlers();
+         if (handlers == null) {
+             return null;

@@ -1,0 +1,13 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java b/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/WorkflowExecutorOps.java
+@@ -2616,6 +2616,9 @@
+      */
+     @VisibleForTesting
+     static boolean isTransientStorageFailure(Throwable error) {
++        if (true) { // mutant terminate-on-storage-errors
++            return false;
++        }
+         for (Throwable t = error; t != null; t = t.getCause() == t ? null : t.getCause()) {
+             if (t instanceof TransientException
+                     || t instanceof java.sql.SQLTransientException

@@ -356,6 +356,34 @@ public class AnnotatedWorkerTests {
         assertEquals(2, taskThreadCount.get("test_2"));
     }
 
+    static class SingleThreaded {
+        @WorkerTask(value = "single", threadCount = 1)
+        public void single() {}
+    }
+
+    @Test
+    @DisplayName("a task that sets no thread count gets the configuration's default; one that sets 1 keeps 1")
+    void defaultThreadCount() {
+        WorkerConfiguration eight = new WorkerConfiguration() {
+            @Override
+            public int getDefaultThreadCount() {
+                return 8;
+            }
+        };
+        AnnotatedWorkerExecutor executor = new AnnotatedWorkerExecutor(mock(TaskClient.class), eight);
+        executor.addBean(new MultipleInputParams());
+        executor.addBean(new AnotherAnnotationInput());
+        executor.addBean(new SingleThreaded());
+
+        executor.startPolling();
+        Map<String, Integer> taskThreadCount = executor.getTaskRunner().getTaskThreadCount();
+        executor.shutdown();
+
+        assertEquals(3, taskThreadCount.get("test_1"));
+        assertEquals(8, taskThreadCount.get("test_2"));
+        assertEquals(1, taskThreadCount.get("single"));
+    }
+
     static class WorkflowInstanceIdInputParamAsStringWorker {
         @WorkerTask(value = "test_1", threadCount = 3, pollingInterval = 333)
         public Map<String, Object> doWork(
@@ -413,5 +441,30 @@ public class AnnotatedWorkerTests {
 
         final RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> annotatedWorker.execute(task));
         assertInstanceOf(IllegalArgumentException.class, runtimeException.getCause());
+    }
+
+    public enum Shade {
+        DARK
+    }
+
+    public static class EnumWorker {
+        @com.netflix.conductor.sdk.workflow.task.WorkerTask("enum_result")
+        public Shade doWork() {
+            return Shade.DARK;
+        }
+    }
+
+    @Test
+    @DisplayName("a result that is not a JSON object is carried under result")
+    void enumResult() throws NoSuchMethodException {
+        var worker = new EnumWorker();
+        var annotatedWorker =
+                new AnnotatedWorker("enum_result", worker.getClass().getMethod("doWork"), worker);
+        var task = new Task();
+        task.setStatus(Task.Status.IN_PROGRESS);
+
+        var result = annotatedWorker.execute(task);
+
+        assertEquals("DARK", result.getOutputData().get("result"));
     }
 }

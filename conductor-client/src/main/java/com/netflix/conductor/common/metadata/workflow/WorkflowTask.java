@@ -137,6 +137,14 @@ public class WorkflowTask {
 
     private boolean permissive;
 
+    /**
+     * Editor and integration metadata associated with this task, as on the server. Native
+     * workflows name here the lane of the code an entry belongs to and, on an entry the code paused
+     * on, the continuation that runs when its task finishes.
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> metadata = new HashMap<>();
+
     // Adding to support Backward compatibility
     @Deprecated
     public void setWorkflowTaskType(TaskType type) {
