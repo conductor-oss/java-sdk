@@ -19,6 +19,9 @@ import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.DisplayName;
@@ -47,10 +50,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AnnotatedWorkerTests {
@@ -177,8 +178,13 @@ public class AnnotatedWorkerTests {
     @Test
     @DisplayName("TaskClient metrics should keep flowing after a restart and after adding a worker")
     @SuppressWarnings("unchecked")
-    void taskClientMetricsSurviveRunnerReplacement() {
+    void taskClientMetricsSurviveRunnerReplacement() throws InterruptedException {
         var collector = mock(MetricsCollector.class);
+        // Delivery is asynchronous, so record ack failures and wait on them. Only this overload is
+        // stubbed: the collector also receives poll events through its other consume() overloads.
+        BlockingQueue<String> ackFailures = new LinkedBlockingQueue<>();
+        doAnswer(invocation -> ackFailures.add(invocation.<TaskAckFailure>getArgument(0).getTaskId()))
+                .when(collector).consume(any(TaskAckFailure.class));
         var conductorClient = mock(ConductorClient.class);
         when(conductorClient.getMetricsCollector()).thenReturn(collector);
         // Polls get no tasks; acks are declined, so TaskClient publishes a TaskAckFailure to its
@@ -198,14 +204,14 @@ public class AnnotatedWorkerTests {
         executor.shutdown();
         executor.startPolling();
         taskClient.ack("multiple_input_params", "after-restart", "worker");
-        verify(collector, timeout(5000)).consume(argThat((TaskAckFailure e) -> "after-restart".equals(e.getTaskId())));
+        assertEquals("after-restart", ackFailures.poll(5, TimeUnit.SECONDS));
 
         // Builds the new runner before shutting the old one down, which is the order that
         // detached the listeners out from under the live runner.
         executor.addBean(new AnotherAnnotationInput());
         executor.startPolling();
         taskClient.ack("multiple_input_params", "after-add", "worker");
-        verify(collector, timeout(5000)).consume(argThat((TaskAckFailure e) -> "after-add".equals(e.getTaskId())));
+        assertEquals("after-add", ackFailures.poll(5, TimeUnit.SECONDS));
 
         executor.shutdown();
     }
