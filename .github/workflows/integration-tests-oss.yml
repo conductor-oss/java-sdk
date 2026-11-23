@@ -1,0 +1,127 @@
+name: Java Client Integration Tests (OSS)
+
+# Runs the integration suite against a local, disposable Conductor OSS stack
+# (scripts/docker-compose-oss.yaml) instead of the Orkes deployment that
+# integration-tests.yml targets. Orkes-Enterprise-only tests skip themselves via
+# @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss").
+# scripts/run-integration-oss.sh runs the same suite locally.
+#
+# This is a plain pull_request workflow, like the OSS jobs in the other SDK repos,
+# rather than a job in integration-tests.yml: that file is triggered by workflow_run,
+# which runs PR code with the base repo's write-scoped token. Here a fork PR gets a
+# read-only token, and GITHUB_SHA is the PR's commit, so the test report lands on
+# the PR.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      oss_conductor_version:
+        description: 'OSS Conductor image tag (falls back to the E2E_TEST_OSS_CONDUCTOR_VERSION org var, then to the default in scripts/docker-compose-oss.yaml on fork PRs)'
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests-oss:
+    runs-on: ubuntu-latest
+    name: Integration Tests (OSS)
+    timeout-minutes: 30
+
+    permissions:
+      contents: read       # minimal read access
+      checks: write        # needed for the test report check run
+
+    env:
+      CONDUCTOR_SERVER_URL: http://localhost:8080/api
+      CONDUCTOR_SERVER_TYPE: oss
+      IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+
+    steps:
+      # OSS_CONDUCTOR_VERSION is resolved here rather than in the job `env` so
+      # that the two ways it can come back empty get different treatment:
+      #
+      #   - Fork PR: GitHub withholds org/repo variables from pull_request runs
+      #     on forks exactly as it withholds secrets, so vars.* is always "" for
+      #     an outside contributor (observed in csharp-sdk#178). This job needs
+      #     no secrets, only a tag, so leave the var unset and let the default
+      #     baked into the `image:` line of scripts/docker-compose-oss.yaml
+      #     apply. That is the same tag a plain local run of
+      #     scripts/run-integration-oss.sh gets, and the one place it is
+      #     written -- no second copy to drift out of sync here.
+      #   - Anything else: the org variable is genuinely missing or its
+      #     repository access policy no longer covers this repo. Fail loudly
+      #     rather than silently drifting onto the default.
+      - name: Resolve OSS Conductor version
+        env:
+          REQUESTED_VERSION: ${{ inputs.oss_conductor_version || vars.E2E_TEST_OSS_CONDUCTOR_VERSION }}
+        run: |
+          if [ -n "$REQUESTED_VERSION" ]; then
+            echo "OSS_CONDUCTOR_VERSION=${REQUESTED_VERSION}" >> "$GITHUB_ENV"
+          elif [ "$IS_FORK_PR" = "true" ]; then
+            echo "::notice::Fork PR: org variables are withheld, falling back to the default tag in scripts/docker-compose-oss.yaml"
+          else
+            echo "::error::No Conductor OSS image tag resolved. Set the E2E_TEST_OSS_CONDUCTOR_VERSION organization variable (and ensure its repository access policy includes this repo), or pass the oss_conductor_version input via workflow_dispatch."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # The build below runs PR code; don't leave the token in .git/config for it.
+          persist-credentials: false
+
+      - name: Set up Zulu JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      # `docker compose up` only pulls an image when it is missing locally. On a
+      # GitHub-hosted runner the VM is ephemeral and starts with no cached copy
+      # of this image, so `up` would pull anyway and this step is redundant
+      # today. It is here deliberately: it costs no extra network pull (`up`
+      # then finds the image locally), it separates "couldn't pull the image"
+      # from "the stack didn't come up" into two distinct red steps, and it is
+      # what keeps a mutable tag from going stale if this job ever moves to a
+      # self-hosted runner with a warm Docker daemon -- the same reason
+      # scripts/run-integration-oss.sh pulls. It also prints the tag actually in
+      # use, which for a fork PR comes from the compose file's default.
+      - name: Pull Conductor OSS image
+        run: |
+          echo "Using $(docker compose -f scripts/docker-compose-oss.yaml config --images | grep -m1 '^conductoross/conductor:')"
+          docker compose -f scripts/docker-compose-oss.yaml pull conductor-server
+
+      - name: Start Conductor OSS stack
+        run: docker compose -f scripts/docker-compose-oss.yaml up -d
+
+      - name: Wait for Conductor to be healthy
+        # Matches HEALTH_TIMEOUT in scripts/run-integration-oss.sh, and stays under the compose
+        # healthcheck's own ~200s budget.
+        run: timeout 180 bash -c 'until curl -sf http://localhost:8080/health; do sleep 5; done'
+
+      - name: Run integration tests (OSS)
+        run: ./gradlew :tests:test -PIntegrationTests
+
+      - name: Dump Conductor logs
+        if: failure()
+        run: docker compose -f scripts/docker-compose-oss.yaml logs conductor-server
+
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: 'tests/build/test-results/test/TEST-*.xml'
+          # Distinct from integration-tests.yml's report and ci.yml's unit report. The action
+          # defaults every caller to 'JUnit Test Report', so they would overwrite each other.
+          check_name: OSS Integration Test Report
+          # A fork PR's token is read-only and cannot create a check run; report through
+          # annotations and the job summary instead.
+          annotate_only: ${{ env.IS_FORK_PR == 'true' }}
