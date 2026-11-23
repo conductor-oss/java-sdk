@@ -14,7 +14,7 @@
 
 services:
   conductor-server:
-    image: conductoross/conductor:${OSS_CONDUCTOR_VERSION:-3.32.3}
+    image: conductoross/conductor:${OSS_CONDUCTOR_VERSION:-3.34.0}
     environment:
       - CONFIG_PROP=config-postgres.properties
     ports:
