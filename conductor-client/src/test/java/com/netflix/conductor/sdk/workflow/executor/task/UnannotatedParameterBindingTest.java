@@ -57,6 +57,16 @@ class UnannotatedParameterBindingTest {
                     return message.level + ": " + message.message;
                 }
 
+                @WorkerTask("count")
+                public String count(java.util.Map<String, Object> data) {
+                    return "keys " + new java.util.TreeSet<>(data.keySet());
+                }
+
+                @WorkerTask("tally")
+                public String tally(@com.netflix.conductor.sdk.workflow.task.InputParam("values") java.util.Map<String, Object> counts) {
+                    return "keys " + new java.util.TreeSet<>(counts.keySet());
+                }
+
                 @WorkerTask("greet")
                 public String greet(String name, int times) {
                     return name + " x" + times;
@@ -136,5 +146,28 @@ class UnannotatedParameterBindingTest {
             assertEquals(TaskResult.Status.COMPLETED, result.getStatus(), result.getReasonForIncompletion());
             assertEquals("ann x2", result.getOutputData().get("result"));
         }
+    }
+
+    @Test
+    void aSingleMapParameterIsTheWholeInputOfAnyOtherWorkflow() {
+        for (String name : List.of("count", "tally")) {
+            AnnotatedWorker worker = new AnnotatedWorker(name, method(name), notifier);
+
+            TaskResult result = worker.execute(task(Map.of("a", 1, "b", 2)));
+
+            assertEquals("keys [a, b]", result.getOutputData().get("result"));
+        }
+    }
+
+    @Test
+    void aSingleMapParameterOfANativeWorkflowsCallIsTheMapItPassed() {
+        AnnotatedWorker count = new AnnotatedWorker("count", method("count"), notifier);
+        // a native workflow sends the map under its parameter's name, as it sends every argument
+        assertEquals("keys [a, b]",
+                count.execute(nativeTask(Map.of("data", Map.of("a", 1, "b", 2)))).getOutputData().get("result"));
+
+        AnnotatedWorker tally = new AnnotatedWorker("tally", method("tally"), notifier);
+        assertEquals("keys [a, b]",
+                tally.execute(nativeTask(Map.of("values", Map.of("a", 1, "b", 2)))).getOutputData().get("result"));
     }
 }

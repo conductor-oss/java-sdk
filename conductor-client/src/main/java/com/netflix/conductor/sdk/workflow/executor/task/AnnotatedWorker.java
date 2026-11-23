@@ -115,7 +115,9 @@ public class AnnotatedWorker implements Worker {
 
         if (parameterTypes.length == 1 && parameterTypes[0].equals(Task.class)) {
             return new Object[]{task};
-        } else if (parameterTypes.length == 1 && parameterTypes[0].equals(Map.class)) {
+        } else if (parameterTypes.length == 1 && parameterTypes[0].equals(Map.class) && !calledByNativeWorkflow(task)) {
+            // the whole input; a native workflow sends the map under its parameter's name, as it
+            // sends every argument, and it is bound from there like any other parameter
             return new Object[]{task.getInputData()};
         }
 
