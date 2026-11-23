@@ -16,17 +16,16 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 
 import io.orkes.conductor.client.SecretClient;
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 
-@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-        disabledReason = "secret writes are not supported by plain OSS Conductor, confirmed empirically: its env-var-backed secrets DAO is read-only, so putSecret() 501s ('env-backed secrets are read-only')")
+@DisabledOnOss("secret writes are not supported by plain OSS Conductor, confirmed empirically: its env-var-backed secrets DAO is read-only, so putSecret() 501s ('env-backed secrets are read-only')")
 public class SecretClientTests {
     private final String SECRET_NAME = "test-sdk-java-secret_name";
     private final String SECRET_KEY = "test-sdk-java-secret_key";

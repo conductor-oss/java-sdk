@@ -17,16 +17,15 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.metadata.SchemaDef;
 
 import io.orkes.conductor.client.SchemaClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
-@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-        disabledReason = "the Schema API (/schema) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/schema')")
+@DisabledOnOss("the Schema API (/schema) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/schema')")
 public class SchemaClientTests {
 
     private static final String SCHEMA_NAME = "test-sdk-java-schema";

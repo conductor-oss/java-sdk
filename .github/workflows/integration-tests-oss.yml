@@ -3,7 +3,7 @@ name: Java Client Integration Tests (OSS)
 # Runs the integration suite against a local, disposable Conductor OSS stack
 # (scripts/docker-compose-oss.yaml) instead of the Orkes deployment that
 # integration-tests.yml targets. Orkes-Enterprise-only tests skip themselves via
-# @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss").
+# @DisabledOnOss, which checks CONDUCTOR_SERVER_TYPE=oss.
 # scripts/run-integration-oss.sh runs the same suite locally.
 #
 # This is a plain pull_request workflow, like the OSS jobs in the other SDK repos,

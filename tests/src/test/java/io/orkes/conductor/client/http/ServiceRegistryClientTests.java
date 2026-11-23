@@ -18,7 +18,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.client.exception.ConductorClientException;
 import com.netflix.conductor.common.model.CircuitBreakerTransitionResponse;
@@ -28,13 +27,13 @@ import com.netflix.conductor.common.model.ServiceRegistry;
 
 import io.orkes.conductor.client.ServiceRegistryClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 import lombok.SneakyThrows;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-        disabledReason = "the Service Registry API (/registry/service) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/registry/service')")
+@DisabledOnOss("the Service Registry API (/registry/service) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/registry/service')")
 public class ServiceRegistryClientTests {
     private static final String SERVICE_NAME = "test-sdk-java-service";
     private static final String SERVICE_URI = "localhost:50051";

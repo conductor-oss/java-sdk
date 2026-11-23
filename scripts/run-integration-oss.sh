@@ -3,9 +3,8 @@
 # Spin up a local Conductor OSS stack and run the `tests` module's
 # integration suite against it, mirroring the `integration-tests-oss` job in
 # .github/workflows/integration-tests-oss.yml. Orkes-Enterprise-only test
-# classes are annotated with
-# @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss")
-# so they skip themselves when it's set (see the individual test files for
+# classes are annotated with @DisabledOnOss, so they skip themselves when
+# CONDUCTOR_SERVER_TYPE=oss is set (see the individual test files for
 # the empirically-confirmed gaps).
 #
 # The stack (Conductor OSS + Postgres) is defined in

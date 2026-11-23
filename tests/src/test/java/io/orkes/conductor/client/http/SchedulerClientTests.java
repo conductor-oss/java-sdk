@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.model.BulkResponse;
 
@@ -28,6 +27,7 @@ import io.orkes.conductor.client.model.WorkflowSchedule;
 import io.orkes.conductor.client.model.WorkflowScheduleExecutionModel;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,8 +94,7 @@ public class SchedulerClientTests {
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-            disabledReason = "schedule tagging (/scheduler/schedules/{name}/tags) is not implemented by OSS Conductor")
+    @DisabledOnOss("schedule tagging (/scheduler/schedules/{name}/tags) is not implemented by OSS Conductor")
     void testSchedulerTags() {
         schedulerClient.saveSchedule(getSaveScheduleRequest());
         schedulerClient.setSchedulerTags(getTagObject(), SCHEDULE_1);

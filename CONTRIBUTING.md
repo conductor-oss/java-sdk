@@ -54,12 +54,11 @@ set `JAVA_HOME` explicitly to match CI:
 JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home ./scripts/run-integration-oss.sh
 ```
 
-Tests annotated `@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches =
-"oss")` skip themselves against plain OSS because they exercise Orkes-managed-only features
-(e.g. the Service Registry, Authorization, Prompts/Integrations, Environment Variables, and
+Tests annotated `@DisabledOnOss("<reason>")` skip themselves when `CONDUCTOR_SERVER_TYPE=oss`,
+because they exercise Orkes-managed-only features that plain OSS lacks (e.g. the Service Registry, Authorization, Prompts/Integrations, Environment Variables, and
 Secrets APIs, plus a handful of task/workflow endpoints OSS doesn't implement, and OSS gaps
 with an open issue, such as start-workflow idempotency keys). Each annotation's
-`disabledReason` documents the specific, empirically-confirmed gap — treat those as the source
+reason documents the specific, empirically-confirmed gap — treat those as the source
 of truth rather than a list here, since they can drift as OSS gains features. If you add or
 remove that annotation, re-verify against a freshly-pulled image first: a test that fails
 against a stale local image may pass against current OSS, and vice versa.

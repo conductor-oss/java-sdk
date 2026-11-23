@@ -18,7 +18,6 @@ import java.util.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
@@ -32,13 +31,13 @@ import io.orkes.conductor.client.http.OrkesTaskClient;
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@DisabledIfEnvironmentVariable(named = "CONDUCTOR_SERVER_TYPE", matches = "oss",
-        disabledReason = "workflowClient.uploadCompletedWorkflows() (/workflow/document-store/upload) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/document-store/upload')")
+@DisabledOnOss("workflowClient.uploadCompletedWorkflows() (/workflow/document-store/upload) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/document-store/upload')")
 public class WorkflowRetryTest {
     private final OrkesMetadataClient metadataClient;
     private final OrkesWorkflowClient workflowClient;
