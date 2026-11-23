@@ -78,6 +78,10 @@ class TaskRunner {
     private int pollingErrorCount;
     private String domain;
     private volatile boolean pollingAndExecuting = true;
+    /** How many threads are in {@link #pollAndExecute()}; its own lock. */
+    private final int[] pollLoops = new int[1];
+    /** Set when the poll loop is terminating the JVM: it never ends, and shutdown does not wait for it. */
+    private volatile boolean exiting;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final boolean enableUpdateV2;
@@ -121,6 +125,27 @@ class TaskRunner {
                boolean useVirtualThreads,
                boolean updateV2,
                boolean useDomains) {
+        this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
+                pollFilters, eventDispatcher, useVirtualThreads, updateV2, useDomains, null);
+    }
+
+    /**
+     * @param fixedDomain the one task domain to poll, whatever the properties and {@code
+     *     taskToDomain} say; null to resolve the domain as {@code useDomains} says
+     */
+    TaskRunner(Worker worker,
+               TaskClient taskClient,
+               int updateRetryCount,
+               Map<String, String> taskToDomain,
+               String workerNamePrefix,
+               int threadCount,
+               int taskPollTimeout,
+               List<PollFilter> pollFilters,
+               EventDispatcher<TaskRunnerEvent> eventDispatcher,
+               boolean useVirtualThreads,
+               boolean updateV2,
+               boolean useDomains,
+               String fixedDomain) {
         this.worker = worker;
         this.taskClient = taskClient;
         this.updateRetryCount = updateRetryCount;
@@ -142,6 +167,9 @@ class TaskRunner {
         if (this.domain == null && useDomains) {
             //3. was it supplied as part of the config?
             this.domain = taskToDomain.get(taskType);
+        }
+        if (fixedDomain != null) {
+            this.domain = fixedDomain;
         }
 
         int defaultLoggingInterval = 100;
@@ -188,6 +216,20 @@ class TaskRunner {
     }
 
     public void pollAndExecute() {
+        synchronized (pollLoops) {
+            pollLoops[0]++;
+        }
+        try {
+            pollUntilStopped();
+        } finally {
+            synchronized (pollLoops) {
+                pollLoops[0]--;
+                pollLoops.notifyAll();
+            }
+        }
+    }
+
+    private void pollUntilStopped() {
         Stopwatch stopwatch = null;
         while (pollingAndExecuting) {
             if (Thread.currentThread().isInterrupted()) {
@@ -210,6 +252,8 @@ class TaskRunner {
                 }
                 tasks.forEach(task -> {
                     if (!submit(task)) {
+                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                                task.getTaskId(), taskType);
                         permits.release();
                     }
                 });
@@ -229,9 +273,7 @@ class TaskRunner {
         try {
             taskFuture = this.executorService.submit(() -> this.processTask(task));
         } catch (java.util.concurrent.RejectedExecutionException e) {
-            LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
-                    task.getTaskId(), taskType, e);
-            return false;
+            return false; // shutting down: the caller says what becomes of the task
         }
         if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
             ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
@@ -240,21 +282,55 @@ class TaskRunner {
             }
 
             long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-            ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                    extendLease(task, taskFuture),
-                    delay,
-                    delay,
-                    TimeUnit.SECONDS
-            );
-            leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+            try {
+                ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                        extendLease(task, taskFuture),
+                        delay,
+                        delay,
+                        TimeUnit.SECONDS
+                );
+                leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+            } catch (java.util.concurrent.RejectedExecutionException e) {
+                // shutting down: the task runs, within the grace period, without lease extension
+                LOGGER.debug("No lease extension for task {}: shutting down", task.getTaskId());
+            }
         }
         return true;
+    }
+
+    /**
+     * Stops polling without waiting: the poll in flight, if any, still returns. For stopping
+     * several runners together, so that their last polls end at the same time rather than one
+     * after another; {@link #shutdown(int)} then waits for this runner's.
+     */
+    public void stopPolling() {
+        pollingAndExecuting = false;
+    }
+
+    /**
+     * Waits, at most {@code timeout} seconds, for the poll loop to end: its poll in flight returns
+     * and the tasks it brought are handed to the executor, which must still take them. The server
+     * has leased those tasks to this worker; refused, they would wait out their response timeout.
+     */
+    private void awaitPollLoop(int timeout) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
+        synchronized (pollLoops) {
+            while (pollLoops[0] > 0 && !exiting) {
+                long millis = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
+                if (millis <= 0) {
+                    LOGGER.warn("The poll loop of {} did not end within {} seconds", taskType, timeout);
+                    return;
+                }
+                pollLoops.wait(millis);
+            }
+        }
     }
 
     public void shutdown(int timeout) {
         try {
             pollingAndExecuting = false;
-            
+            awaitPollLoop(timeout);
+
             leaseExtendMap.values().forEach(future -> future.cancel(false));
             leaseExtendMap.clear();
             
@@ -327,6 +403,7 @@ class TaskRunner {
 
             if (hasFatalAuthCause(e)) {
                 LOGGER.error("Fatal authentication failure — terminating JVM");
+                exiting = true; // a shutdown hook must not wait for this thread, which waits for the hooks
                 exitAction.run();
             }
 
@@ -388,6 +465,34 @@ class TaskRunner {
     }
 
     private Task processTask(Task task) {
+        boolean handedOn = false;
+        try {
+            // the next task update-v2 handed back runs now, on this task's permit, rather than
+            // waiting for the poll loop, which may be in a long poll or its polling interval
+            Task next = runTask(task);
+            while (next != null && !(handedOn = submit(next))) {
+                // The executor takes nothing new: shutdown began while the update was on its way.
+                // The server has leased the task to this worker, so it runs here, on this thread,
+                // which shutdown lets finish; its own result is sent with the update that hands
+                // nothing back. Left alone, it would wait out its response timeout.
+                if (Thread.currentThread().isInterrupted()) {
+                    LOGGER.error("Shutdown is forced; dropping task {} of type {}", next.getTaskId(), taskType);
+                    break;
+                }
+                LOGGER.info("Shutting down: task {} of type {}, handed back by the last update, runs before this thread ends",
+                        next.getTaskId(), taskType);
+                next = runTask(next);
+            }
+        } finally {
+            if (!handedOn) {
+                permits.release();
+            }
+        }
+        return task;
+    }
+
+    /** Runs one task and sends its result; returns the next task update-v2 handed back, or null. */
+    private Task runTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
         eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.incrementAndGet()));
 
@@ -413,13 +518,8 @@ class TaskRunner {
         } finally {
             cancelLeaseExtension(task.getTaskId());
             eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
-            // the next task update-v2 handed back runs now, on this task's permit, rather than
-            // waiting for the poll loop, which may be in a long poll or its polling interval
-            if (next == null || !submit(next)) {
-                permits.release();
-            }
         }
-        return task;
+        return next;
     }
 
     /** Runs the task and sends its result; returns the next task update-v2 handed back, or null. */

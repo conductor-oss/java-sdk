@@ -38,6 +38,15 @@ public class NativeState {
     private TaskContinuation handlers;
     private Map<String, Object> replies = new HashMap<>();
 
+    /**
+     * The task domain of the worker that keeps this execution's code parked in memory between
+     * continuations; null when no worker does.
+     */
+    private String pinnedTo;
+
+    /** Names the completion that applied last, as its worker chose. */
+    private String stamp;
+
     public TaskContinuation getBootstrap() {
         return bootstrap;
     }
@@ -60,5 +69,21 @@ public class NativeState {
 
     public void setReplies(Map<String, Object> replies) {
         this.replies = replies;
+    }
+
+    public String getPinnedTo() {
+        return pinnedTo;
+    }
+
+    public void setPinnedTo(String pinnedTo) {
+        this.pinnedTo = pinnedTo;
+    }
+
+    public String getStamp() {
+        return stamp;
+    }
+
+    public void setStamp(String stamp) {
+        this.stamp = stamp;
     }
 }

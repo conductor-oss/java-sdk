@@ -103,6 +103,26 @@ public final class Execution {
         return latest.get(ref);
     }
 
+    /**
+     * A task as a poll handed it out, which a lane kept parked in memory waited for: its result is
+     * what the lane reads when it continues.
+     */
+    public void arrived(TaskView task) {
+        tasks.add(task);
+        latest.put(task.ref, task);
+    }
+
+    /**
+     * Drops the tasks and the recorded values, for an execution whose code stays parked in memory:
+     * what its lanes read next arrives with their continuations ({@link #arrived}), and what they
+     * already read is in their own state. The definition entries stay, for the names they took.
+     */
+    public void forgetHistory() {
+        tasks.clear();
+        latest.clear();
+        recorded.clear();
+    }
+
     /** The latest task whose reference name is {@code base} or {@code base__<iteration>}. */
     public TaskView latestByBase(String base) {
         TaskView best = null;
@@ -231,6 +251,19 @@ public final class Execution {
                             String.valueOf(meta.get("lane")),
                             meta.get("continuation") instanceof Number x ? x.intValue() : 0)
                     : null;
+        }
+
+        /** A task from the fields a poll hands out. */
+        public static TaskView of(String taskId, String ref, String taskType, String status,
+                                  Map<String, Object> output, String reason) {
+            Map<String, Object> t = new LinkedHashMap<>();
+            t.put("taskId", taskId);
+            t.put("referenceTaskName", ref);
+            t.put("taskType", taskType);
+            t.put("status", status);
+            t.put("outputData", output);
+            t.put("reasonForIncompletion", reason);
+            return new TaskView(t);
         }
 
         public boolean terminal() {

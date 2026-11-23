@@ -367,9 +367,11 @@ public final class Conductor implements AutoCloseable {
      */
     public static void doWhile(String name, Functions.CaseAction body, Functions.Condition condition) {
         CodeLoops.Named loop = CodeLoops.enter(name, body, condition);
+        // no engine outside workflow code (a handler, say): a plain loop there, as nothing replays it
+        Engine engine = Engine.CURRENT.get();
         do {
             body.run();
-        } while (condition.getAsBoolean());
+        } while (engine == null ? condition.getAsBoolean() : engine.loopAgain(name, condition));
         // not in a finally: when the body throws, the mark of where it threw is still in the loop
         loop.leave();
     }

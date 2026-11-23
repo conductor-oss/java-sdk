@@ -57,6 +57,7 @@ public class TaskRunnerConfigurer {
     private final boolean useVirtualThreads;
     private final boolean taskUpdateV2;
     private final boolean useDomains;
+    private final String fixedDomain;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -81,6 +82,7 @@ public class TaskRunnerConfigurer {
         this.useVirtualThreads = builder.useVirtualThreads;
         this.taskUpdateV2 = builder.taskUpdateV2;
         this.useDomains = builder.useDomains;
+        this.fixedDomain = builder.fixedDomain;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -159,6 +161,8 @@ public class TaskRunnerConfigurer {
     public void shutdown() {
         if (taskRunners != null) {
             synchronized (taskRunners) {
+                // all of them stop polling first, so their last polls end together, not in turn
+                taskRunners.forEach(TaskRunner::stopPolling);
                 taskRunners.forEach(taskRunner -> taskRunner.shutdown(shutdownGracePeriodSeconds));
             }
         }
@@ -185,7 +189,8 @@ public class TaskRunnerConfigurer {
                 eventDispatcher,
                 useVirtualThreads,
                 taskUpdateV2,
-                useDomains);
+                useDomains,
+                fixedDomain);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -220,6 +225,7 @@ public class TaskRunnerConfigurer {
         private boolean useVirtualThreads;
         private boolean taskUpdateV2;
         private boolean useDomains = true;
+        private String fixedDomain;
 
         /**
          * Returns the event dispatcher used by this builder, allowing direct
@@ -408,6 +414,16 @@ public class TaskRunnerConfigurer {
          */
         public Builder withDomains(boolean useDomains) {
             this.useDomains = useDomains;
+            return this;
+        }
+
+        /**
+         * The one task domain every worker polls, whatever {@code conductor.worker.<task>.domain},
+         * {@code conductor.worker.all.domain} and {@link #withTaskToDomain} say. For a queue that
+         * belongs to this process alone.
+         */
+        public Builder withFixedDomain(String domain) {
+            this.fixedDomain = domain;
             return this;
         }
 

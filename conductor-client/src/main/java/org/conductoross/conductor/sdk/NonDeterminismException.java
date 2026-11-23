@@ -16,6 +16,11 @@ package org.conductoross.conductor.sdk;
  * Raised when re-running workflow code against an execution's recorded tasks does not reach the
  * same calls the original run made: the code changed in a way that conflicts with an execution in
  * flight. The continuation being processed fails terminally with this message.
+ *
+ * <p>Also raised by {@code Workers.start()} for a workflow hosted with {@code
+ * conductor.workflow.<name>.strictDeterminism=true} whose code asks the JVM itself for a random
+ * value or the time: the message lists each place and what to use instead, and none of the
+ * workers is started.
  */
 public class NonDeterminismException extends RuntimeException {
 

@@ -204,4 +204,68 @@ class TaskRunnerOptionsTest {
         verify(client).updateTask(any(), any());
         verify(worker, never()).execute(next);
     }
+
+    @Test
+    void aTaskHandedBackAfterShutdownBeganStillRuns() throws Exception {
+        Task first = task("t1");
+        Task next = task("t2");
+        java.util.concurrent.CountDownLatch updating = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch answer = new java.util.concurrent.CountDownLatch(1);
+        TaskClient client = mock(TaskClient.class);
+        when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
+        when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
+                .thenReturn(List.of(first), List.of());
+        // the first task's update is on its way when shutdown begins; the server answers it
+        // with the next task, leased to this worker
+        when(client.updateTaskV2(any(), any())).thenAnswer(i -> {
+            updating.countDown();
+            answer.await();
+            return next;
+        });
+        Worker worker = worker();
+
+        run(worker, client);
+        updating.await();
+        Thread stopping = new Thread(() -> runner.shutdown(5));
+        stopping.start();
+        Thread.sleep(500);
+        answer.countDown();
+        stopping.join();
+
+        // the executor takes nothing new, so the task runs on the thread that received it; its
+        // own result goes with the update that hands nothing back
+        verify(worker).execute(next);
+        verify(client).updateTask(any(), any());
+        verify(client, org.mockito.Mockito.times(1)).updateTaskV2(any(), any());
+    }
+
+    @Test
+    void theTasksOfAPollInFlightWhenShutdownBeginsStillRun() throws Exception {
+        Task first = task("t1");
+        java.util.concurrent.CountDownLatch polling = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch answer = new java.util.concurrent.CountDownLatch(1);
+        TaskClient client = mock(TaskClient.class);
+        when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
+        // the poll is on its way when shutdown begins; the server answers it with a task
+        when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
+                .thenAnswer(i -> {
+                    polling.countDown();
+                    answer.await();
+                    return List.of(first);
+                })
+                .thenReturn(List.of());
+        Worker worker = worker();
+
+        run(worker, client);
+        polling.await();
+        Thread stopping = new Thread(() -> runner.shutdown(5));
+        stopping.start();
+        Thread.sleep(500);
+        answer.countDown();
+        stopping.join();
+
+        verify(worker).execute(first);
+        verify(client).updateTask(any(), any());
+        verify(client, never()).updateTaskV2(any(), any());
+    }
 }

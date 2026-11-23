@@ -528,6 +528,14 @@ public final class CodeReader {
     private static final Map<String, Shape> SHAPES = new ConcurrentHashMap<>();
     /** Where each method, or code it calls, calls Thread.sleep. */
     private static final Map<String, List<String>> SLEEPS = new ConcurrentHashMap<>();
+    /** Where each method, or code it calls, reads a random source or the clock directly. */
+    private static final Map<String, List<RawSource>> RAW_SOURCES = new ConcurrentHashMap<>();
+
+    /**
+     * A place where workflow code asks the JVM itself for a random value or the time: the call,
+     * where it is ({@code Class.method:line}) and what records the value instead.
+     */
+    public record RawSource(String site, String call, String replacement) {}
 
     /**
      * Where a workflow method, or a lambda or helper it calls, calls {@code Thread.sleep}, as
@@ -544,6 +552,85 @@ public final class CodeReader {
             return List.of();
         }
         return SLEEPS.getOrDefault(key, List.of());
+    }
+
+    /**
+     * Where a workflow method, or a lambda or helper it calls, reads a random source or the clock
+     * directly ({@code Math.random()}, {@code Instant.now()}, {@code UUID.randomUUID()} and the
+     * like). Plain Java runs again on every replay, so such a call can give another value there
+     * and take the code down another path than the execution recorded. The lambda given to
+     * {@code once(..)} is not read (its value is recorded), nor are task methods and handlers,
+     * which are not replayed; helpers outside the workflow class's package are not followed.
+     *
+     * @throws IllegalStateException when the compiled code cannot be read
+     */
+    public static List<RawSource> rawSources(Method method) {
+        String owner = Type.getInternalName(method.getDeclaringClass());
+        CodeReader reader = new CodeReader(method.getDeclaringClass().getClassLoader(), owner);
+        String key = reader.key(owner, method.getName(), Type.getMethodDescriptor(method));
+        try {
+            reader.walk(owner, method.getName(), Type.getMethodDescriptor(method), new HashSet<>());
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("cannot read " + method.getDeclaringClass().getName() + "." + method.getName(), e);
+        }
+        return RAW_SOURCES.getOrDefault(key, List.of());
+    }
+
+    private static final String RANDOM = "Conductor.random()";
+    private static final String CLOCK = "Conductor.now()";
+    private static final Set<String> NOW_TYPES = Set.of("Instant", "LocalDate", "LocalTime", "LocalDateTime",
+            "ZonedDateTime", "OffsetDateTime", "OffsetTime", "Year", "YearMonth", "MonthDay");
+
+    /** The call and its replacement when a method is a random source or a clock read; else null. */
+    private static String[] rawSource(String owner, String name, String desc) {
+        boolean noArgs = desc.startsWith("()");
+        switch (owner) {
+            case "java/lang/Math", "java/lang/StrictMath" -> {
+                return name.equals("random") ? new String[] {"Math.random()", RANDOM} : null;
+            }
+            case "java/util/Random", "java/util/SplittableRandom" -> {
+                // with a seed it gives the same numbers on every replay
+                return name.equals("<init>") && noArgs
+                        ? new String[] {"new " + owner.substring(owner.lastIndexOf('/') + 1) + "()", RANDOM} : null;
+            }
+            case "java/security/SecureRandom" -> {
+                return name.equals("<init>") || name.startsWith("getInstance") ? new String[] {"SecureRandom", RANDOM} : null;
+            }
+            case "java/util/concurrent/ThreadLocalRandom" -> {
+                return name.equals("current") ? new String[] {"ThreadLocalRandom.current()", RANDOM} : null;
+            }
+            case "java/util/random/RandomGenerator" -> {
+                return name.equals("getDefault") || name.equals("of") ? new String[] {"RandomGenerator." + name + "(..)", RANDOM} : null;
+            }
+            case "java/util/UUID" -> {
+                return name.equals("randomUUID")
+                        ? new String[] {"UUID.randomUUID()", "Conductor.once(name, () -> UUID.randomUUID())"} : null;
+            }
+            case "java/lang/System" -> {
+                return name.equals("currentTimeMillis") || name.equals("nanoTime") ? new String[] {"System." + name + "()", CLOCK} : null;
+            }
+            case "java/time/Clock" -> {
+                return name.startsWith("system") || name.equals("tickSeconds") || name.equals("tickMinutes") || name.equals("tickMillis")
+                        ? new String[] {"Clock." + name + "(..)", CLOCK} : null;
+            }
+            case "java/util/Date", "java/util/GregorianCalendar" -> {
+                return name.equals("<init>") && noArgs
+                        ? new String[] {"new " + owner.substring(owner.lastIndexOf('/') + 1) + "()", CLOCK} : null;
+            }
+            case "java/util/Calendar" -> {
+                return name.equals("getInstance") ? new String[] {"Calendar.getInstance(..)", CLOCK} : null;
+            }
+            default -> {
+                // Instant.now() and now(zone) read the system clock; now(clock) reads the one it is given
+                if (owner.startsWith("java/time/") && name.equals("now") && !desc.startsWith("(Ljava/time/Clock;")
+                        && NOW_TYPES.contains(owner.substring("java/time/".length()))) {
+                    return new String[] {owner.substring("java/time/".length()) + ".now()", CLOCK};
+                }
+                return null;
+            }
+        }
     }
 
     private final ClassLoader loader;
@@ -646,6 +733,7 @@ public final class CodeReader {
             List<Step> steps = Collections.unmodifiableList(reading.steps());
             SHAPES.put(key, reading.shape());
             SLEEPS.put(key, List.copyOf(new java.util.LinkedHashSet<>(reading.sleeps)));
+            RAW_SOURCES.put(key, List.copyOf(new java.util.LinkedHashSet<>(reading.rawSources)));
             CACHE.put(key, steps);
             return steps;
         } finally {
@@ -731,6 +819,8 @@ public final class CodeReader {
         private final Map<Integer, int[]> conditions = new HashMap<>();
         /** Thread.sleep calls in this method and in the code it calls. */
         private final List<String> sleeps = new ArrayList<>();
+        /** Random sources and clock reads in this method and in the code it calls. */
+        private final List<RawSource> rawSources = new ArrayList<>();
         private int current;
 
         Reading(String owner, MethodNode method, Set<String> active) {
@@ -760,6 +850,7 @@ public final class CodeReader {
             unjoined = 0;
             seenInFinally.clear();
             sleeps.clear();
+            rawSources.clear();
             findCandidates();
         }
 
@@ -876,6 +967,7 @@ public final class CodeReader {
                     Handle h = implementation(indy);
                     add(walk(h.getOwner(), h.getName(), h.getDesc(), active));
                     sleeps.addAll(SLEEPS.getOrDefault(key(h.getOwner(), h.getName(), h.getDesc()), List.of()));
+                    rawSourcesOf(h.getOwner(), h.getName(), h.getDesc());
                 } else if (insn instanceof MethodInsnNode m) {
                     if (CONDUCTOR.equals(m.owner) && m.getOpcode() == Opcodes.INVOKESTATIC) {
                         sdkCall(i, m);
@@ -894,12 +986,15 @@ public final class CodeReader {
                         call(named(Command.Kind.SIMPLE, taskMethod(m).getAnnotation(WorkerTask.class).value()));
                     } else if ("java/lang/Thread".equals(m.owner) && m.name.equals("sleep")) {
                         sleeps.add(site());
+                    } else if (rawSource(m.owner, m.name, m.desc) != null) {
+                        rawSourcesOf(m.owner, m.name, m.desc);
                     } else if (!m.name.equals("<init>") && inScope(m.owner)) {
                         if (active.contains(key(m.owner, m.name, m.desc))) {
                             stepAt.add(i); // a recursive call: into code that calls the server (when any does)
                         }
                         add(walk(m.owner, m.name, m.desc, active));
                         sleeps.addAll(SLEEPS.getOrDefault(key(m.owner, m.name, m.desc), List.of()));
+                        rawSourcesOf(m.owner, m.name, m.desc);
                     }
                 }
             }
@@ -2106,9 +2201,24 @@ public final class CodeReader {
                 Handle h = implementation(indy);
                 List<Step> body = walk(h.getOwner(), h.getName(), h.getDesc(), active);
                 sleeps.addAll(SLEEPS.getOrDefault(key(h.getOwner(), h.getName(), h.getDesc()), List.of()));
+                rawSourcesOf(h.getOwner(), h.getName(), h.getDesc());
                 return body;
             }
             return List.of();
+        }
+
+        /**
+         * Notes the random sources and clock reads a call brings: the call itself when it is one
+         * (also as a method reference, such as {@code Math::random}), else those of the code it
+         * runs, already read.
+         */
+        private void rawSourcesOf(String owner, String name, String desc) {
+            String[] raw = rawSource(owner, name, desc);
+            if (raw != null) {
+                rawSources.add(new RawSource(site(), raw[0], raw[1]));
+            } else {
+                rawSources.addAll(RAW_SOURCES.getOrDefault(key(owner, name, desc), List.of()));
+            }
         }
 
         /** The {@code @WorkerTask} method an instance call names, or null. */

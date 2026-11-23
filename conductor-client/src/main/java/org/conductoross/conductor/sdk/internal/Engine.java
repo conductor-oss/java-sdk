@@ -62,6 +62,14 @@ public interface Engine {
      */
     Object switchOn(String name, Object value, java.util.Map<String, Supplier<?>> cases, Supplier<?> otherwise);
 
+    /**
+     * Whether the {@code doWhile} named {@code name} runs another pass. The condition is always
+     * evaluated; an engine that replays answers with what the execution recorded for this pass.
+     */
+    default boolean loopAgain(String name, BooleanSupplier condition) {
+        return condition.getAsBoolean();
+    }
+
     String workflowId();
 
     // ------------------------------------------------------------------ binding

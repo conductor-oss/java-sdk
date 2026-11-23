@@ -49,6 +49,7 @@ run {
     ex12_mcp              : 'McpTools',
     ex13_agent            : 'AgentCalls',
     ex14_agent_harness    : 'AgentHarness',
+    ex15_strict_determinism: 'StrictDeterminism',
 ].each { example, mainClassName ->
     tasks.register(example, JavaExec) {
         group = 'examples'

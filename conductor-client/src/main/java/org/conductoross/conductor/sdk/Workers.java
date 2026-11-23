@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.conductoross.conductor.sdk.internal.CodeReader;
 import org.conductoross.conductor.sdk.internal.Execution;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.Replayer;
@@ -53,12 +54,28 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
  * of the same code can process any continuation. Continuations of one execution are processed one
  * at a time, and completed with update-v2, which hands back the next one.
  *
+ * <p>An execution's code stays in memory between its continuations ({@link ParkedExecutions}):
+ * its lanes are left parked where they paused, and the next continuation wakes its lane with the
+ * result of the task it waited for, without re-running the method or fetching the execution. For
+ * that the execution is pinned to this process. The workers name a task domain of their own,
+ * {@code pin-<workerId>-<random>}, new on every start; each completion tells the server that the
+ * execution is held there, and the server offers the execution's next continuation to that
+ * domain's queue first. If this process does not take it within the server's pin timeout (it
+ * died, or is stalled), any host takes it from the shared queue and replays, as before. So the
+ * recording stays what an execution is and the copy in memory only saves work: it is dropped
+ * after {@code parkTimeout} without a continuation (an hour by default), when more than {@code
+ * maxParked} executions of a workflow are held (1000), and whenever the server says the
+ * execution moved on without it (another host continued it; it was retried, rerun or restarted).
+ * A retry or rerun therefore always replays. {@code parkTimeout=0} turns this off for a workflow;
+ * a server that does not pin executions turns it off for all.
+ *
  * <p>Per workflow, {@code conductor.workflow.<name>.<setting>}, else {@code
  * conductor.workflow.all.<setting>}, read from the system properties (see {@link
  * #settings(Function)}): {@code threadCount}, {@code pollingInterval} and {@code pollTimeout}
  * (defaults from {@link Workflow}: 20, 100 ms and 500 ms), {@code paused} (read before each poll),
- * and {@code continuationTimeout} (seconds, or an ISO-8601 duration). Workflows have no task
- * domains: every host of a workflow polls its shared queue.
+ * {@code continuationTimeout} and {@code parkTimeout} (seconds, or an ISO-8601 duration) and
+ * {@code maxParked}. The task domains a run is started with do not apply to workflow code: every
+ * host of a workflow polls its shared queue, and its own queue while it holds executions.
  */
 public final class Workers implements AutoCloseable {
 
@@ -73,12 +90,20 @@ public final class Workers implements AutoCloseable {
     private boolean devMode;
     private boolean discovery = true;
     private java.time.Duration continuationTimeout = java.time.Duration.ofSeconds(30);
+    private java.time.Duration parkTimeout = java.time.Duration.ofHours(1);
+    private final ParkedExecutions parked = new ParkedExecutions();
+    private final java.util.concurrent.atomic.AtomicLong stamps = new java.util.concurrent.atomic.AtomicLong();
+    /** The task domain of this process alone, where the server offers the executions held here. */
+    private String pinDomain;
+    private TaskRunnerConfigurer pinnedRunner;
+    private Thread parkSweeper;
     private Function<String, String> settings = System::getProperty;
     private TaskRunnerConfigurer workflowRunner;
     private AnnotatedWorkerExecutor taskExecutor;
     private Thread registrar;
     private volatile boolean running;
     private boolean started;
+    private boolean closed;
     private volatile boolean registered;
 
     /**
@@ -108,7 +133,10 @@ public final class Workers implements AutoCloseable {
         return this;
     }
 
-    /** Development mode: generous continuation timeouts, for breakpoints. */
+    /**
+     * Development mode: generous continuation timeouts, for breakpoints, and no code kept in
+     * memory between continuations, so that every continuation replays.
+     */
     public Workers devMode(boolean devMode) {
         this.devMode = devMode;
         return this;
@@ -124,6 +152,17 @@ public final class Workers implements AutoCloseable {
      */
     public Workers continuationTimeout(java.time.Duration timeout) {
         this.continuationTimeout = timeout;
+        return this;
+    }
+
+    /**
+     * How long an execution's code stays in memory without a continuation before it is dropped
+     * (its next continuation then replays); default an hour. Zero keeps nothing in memory: every
+     * continuation replays. {@code conductor.workflow.<name>.parkTimeout} overrides it for one
+     * workflow.
+     */
+    public Workers parkTimeout(java.time.Duration timeout) {
+        this.parkTimeout = timeout;
         return this;
     }
 
@@ -198,12 +237,23 @@ public final class Workers implements AutoCloseable {
         started = true;
         // fail now, not on the first continuation, when a workflow class cannot be created
         specsByCodeType.values().forEach(WorkflowSpec::newInstance);
+        List<String> refused = new ArrayList<>();
         for (WorkflowSpec spec : specsByCodeType.values()) {
             for (String site : org.conductoross.conductor.sdk.internal.CodeReader.threadSleeps(spec.method)) {
                 LOGGER.warn("Workflow {} calls Thread.sleep at {}: workflow code runs again each time it continues,"
                         + " so the sleep is repeated on every replay and holds a worker thread. Use"
                         + " Conductor.sleep(Duration) for a durable wait.", spec.name, site);
             }
+            String report = nonDeterministicCode(spec);
+            if (report != null) {
+                refused.add(report);
+            }
+        }
+        if (!refused.isEmpty()) {
+            // before anything is registered or polled: none of these workers is hosted
+            String message = String.join("\n\n", refused);
+            LOGGER.error(message);
+            throw new NonDeterminismException(message);
         }
         running = true;
         registrar = Thread.ofVirtual().name("conductor-register").start(this::registerUntilDone);
@@ -219,15 +269,25 @@ public final class Workers implements AutoCloseable {
             taskExecutor.startPolling();
         }
         List<Worker> codeWorkers = new ArrayList<>();
+        List<Worker> pinnedWorkers = new ArrayList<>();
         Map<String, Integer> threadCounts = new LinkedHashMap<>();
         Map<String, Integer> pollTimeouts = new LinkedHashMap<>();
         for (Map.Entry<String, WorkflowSpec> e : specsByCodeType.entrySet()) {
             WorkflowSpec spec = e.getValue();
+            String codeType = e.getKey();
             Workflow annotation = spec.method.getAnnotation(Workflow.class);
-            threadCounts.put(e.getKey(), setting(spec, "threadCount", annotation.threadCount()));
-            pollTimeouts.put(e.getKey(), setting(spec, "pollTimeout", annotation.pollTimeout()));
-            codeWorkers.add(new CodeWorker(e.getKey(), setting(spec, "pollingInterval", annotation.pollingInterval()),
-                    () -> Boolean.parseBoolean(setting(spec, "paused"))));
+            threadCounts.put(codeType, setting(spec, "threadCount", annotation.threadCount()));
+            pollTimeouts.put(codeType, setting(spec, "pollTimeout", annotation.pollTimeout()));
+            int pollingInterval = setting(spec, "pollingInterval", annotation.pollingInterval());
+            BooleanSupplier paused = () -> Boolean.parseBoolean(setting(spec, "paused"));
+            codeWorkers.add(new CodeWorker(codeType, pollingInterval, paused));
+            if (parkMillis(spec) > 0) {
+                // its own queue is polled only while it holds an execution of this workflow: the
+                // server offers there only what is pinned here, and a queue nobody polls reads as
+                // a worker that is gone, so nothing waits on it
+                pinnedWorkers.add(new CodeWorker(codeType, pollingInterval,
+                        () -> paused.getAsBoolean() || parked.held(codeType) == 0));
+            }
         }
         if (!codeWorkers.isEmpty()) {
             workflowRunner = new TaskRunnerConfigurer.Builder(taskClient, codeWorkers)
@@ -240,8 +300,57 @@ public final class Workers implements AutoCloseable {
                     .build();
             workflowRunner.init();
         }
-        LOGGER.info("Hosting workflows {} and {} tasks as {}", specsByCodeType.keySet(), tasks, workerId);
+        if (!pinnedWorkers.isEmpty()) {
+            pinDomain = newPinDomain(workerId);
+            pinnedRunner = new TaskRunnerConfigurer.Builder(taskClient, pinnedWorkers)
+                    .withTaskThreadCount(threadCounts)
+                    .withTaskPollTimeout(pollTimeouts)
+                    .withUseVirtualThreads(true)
+                    .withTaskUpdateV2(true)
+                    .withDomains(false)
+                    .withFixedDomain(pinDomain)
+                    .withWorkerNamePrefix("conductor-workflow-pinned")
+                    .build();
+            pinnedRunner.init();
+            parkSweeper = Thread.ofVirtual().name("conductor-parked").start(this::dropIdleUntilClosed);
+        }
+        LOGGER.info("Hosting workflows {} and {} tasks as {}{}", specsByCodeType.keySet(), tasks, workerId,
+                pinDomain == null ? "" : "; executions stay in memory between continuations, pinned to domain " + pinDomain);
         return this;
+    }
+
+    /**
+     * A task domain no other process has: this host's id, as far as it can be part of a queue
+     * name, and a random part that changes on every start. A process that restarted holds nothing
+     * in memory, so it must not be offered what was pinned to the one before it.
+     */
+    static String newPinDomain(String workerId) {
+        String host = workerId == null ? "" : workerId.replaceAll("[^A-Za-z0-9_.-]", "_");
+        host = host.length() > 40 ? host.substring(0, 40) : host;
+        String random = Long.toString(java.util.concurrent.ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), 36);
+        return "pin-" + (host.isEmpty() ? "" : host + "-") + random.substring(0, Math.min(8, random.length()));
+    }
+
+    /** Drops the executions that sat idle past their {@code parkTimeout}, once a second. */
+    private void dropIdleUntilClosed() {
+        while (running) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                return;
+            }
+            parked.dropIdle();
+        }
+    }
+
+    /** The executions kept in memory between continuations. */
+    ParkedExecutions parked() {
+        return parked;
+    }
+
+    /** The task domain the executions held here are pinned to, once started; null when none are kept. */
+    String pinDomain() {
+        return pinDomain;
     }
 
     /** Stops polling and the background registration. */
@@ -251,17 +360,72 @@ public final class Workers implements AutoCloseable {
         if (registrar != null) {
             registrar.interrupt();
         }
+        if (parkSweeper != null) {
+            parkSweeper.interrupt();
+        }
         if (workflowRunner != null) {
             workflowRunner.shutdown();
+        }
+        if (pinnedRunner != null) {
+            pinnedRunner.shutdown();
         }
         if (taskExecutor != null) {
             taskExecutor.shutdown();
         }
+        // after the pollers: nothing runs a continuation now. Their next ones replay elsewhere
+        if (pinDomain != null && !closed) {
+            LOGGER.info("Executions kept in memory as {}: {} continuations continued without a replay, {} replayed,"
+                    + " {} executions dropped while held", pinDomain, parked.continued(), parked.replayed(), parked.dropped());
+        }
+        closed = true;
+        parked.closeAll();
     }
 
     /** The task runner of the hosted workflows, once started. */
     TaskRunnerConfigurer workflowRunner() {
         return workflowRunner;
+    }
+
+    /**
+     * Checks a workflow's compiled code for places that ask the JVM itself for a random value or
+     * the time. Such code can take another path when it runs again, as it does on every
+     * continuation and on a retry or rerun. Each place is logged as a warning; with {@code
+     * conductor.workflow.<name>.strictDeterminism=true} (or {@code conductor.workflow.all.}) the
+     * workflow is refused instead, and this returns the report that says why. Null when the
+     * workflow may be hosted.
+     */
+    private String nonDeterministicCode(WorkflowSpec spec) {
+        List<CodeReader.RawSource> found;
+        try {
+            found = CodeReader.rawSources(spec.method);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Workflow {} could not be checked for non-deterministic code: {}", spec.name, e.toString());
+            return null;
+        }
+        if (found.isEmpty()) {
+            return null;
+        }
+        if (!Boolean.parseBoolean(setting(spec, "strictDeterminism"))) {
+            for (CodeReader.RawSource raw : found) {
+                LOGGER.warn("Workflow {} calls {} at {}: workflow code runs again each time it continues, and on a"
+                        + " retry or rerun, so this can give another value there and take the code down another"
+                        + " path. Use {}. Set conductor.workflow.{}.strictDeterminism=true to refuse to host"
+                        + " code like this.", spec.name, raw.call(), raw.site(), raw.replacement(), spec.name);
+            }
+            return null;
+        }
+        int site = found.stream().mapToInt(r -> r.site().length()).max().orElse(0);
+        int call = found.stream().mapToInt(r -> r.call().length()).max().orElse(0);
+        StringBuilder report = new StringBuilder("Workflow ").append(spec.name).append(" cannot be hosted: ")
+                .append(found.size() == 1 ? "1 place in its code is" : found.size() + " places in its code are")
+                .append(" not deterministic.");
+        for (CodeReader.RawSource raw : found) {
+            report.append(String.format("%n  %-" + site + "s  %-" + call + "s  use %s", raw.site(), raw.call(), raw.replacement()));
+        }
+        report.append(String.format("%nA retry or rerun runs this code again and must take the same path. Anything else that can"
+                + "%nchange between runs goes in Conductor.once(name, () -> ...)."
+                + "%nTo host it anyway: conductor.workflow.%s.strictDeterminism=false", spec.name));
+        return report.toString();
     }
 
     /** A workflow's setting: {@code conductor.workflow.<name>.<key>}, else {@code conductor.workflow.all.<key>}. */
@@ -288,6 +452,26 @@ public final class Workers implements AutoCloseable {
                 : value.chars().allMatch(Character::isDigit) ? java.time.Duration.ofSeconds(Long.parseLong(value))
                 : java.time.Duration.parse(value);
         return Math.max(1, timeout.toSeconds());
+    }
+
+    /**
+     * How long an execution of a workflow stays in memory without a continuation, in milliseconds:
+     * {@code conductor.workflow.<name>.parkTimeout} (seconds, or an ISO-8601 duration), else what
+     * {@link #parkTimeout(java.time.Duration)} was given. Zero: its code is not kept in memory.
+     * Always zero in dev mode.
+     */
+    long parkMillis(WorkflowSpec spec) {
+        if (devMode) {
+            // every continuation replays, which shows code that is not deterministic while it is
+            // being written; and a breakpoint may hold a continuation longer than a server waits
+            // for the worker an execution is pinned to
+            return 0;
+        }
+        String value = setting(spec, "parkTimeout");
+        java.time.Duration timeout = value == null ? parkTimeout
+                : value.chars().allMatch(Character::isDigit) ? java.time.Duration.ofSeconds(Long.parseLong(value))
+                : java.time.Duration.parse(value);
+        return Math.max(0, timeout.toMillis());
     }
 
     /**
@@ -491,35 +675,97 @@ public final class Workers implements AutoCloseable {
      */
     TaskResult process(String codeType, Task task) {
         String snapshot = "(not fetched)";
+        String workflowId = task.getWorkflowInstanceId();
+        Replayer replayer = null; // the lanes of this continuation, until they are parked or closed
         try {
             WorkflowSpec spec = specsByCodeType.get(codeType);
             TaskContinuation marker = task.getContinuation();
             if (marker == null) {
                 throw new IllegalStateException("task " + task.getTaskId() + " carries no continuation");
             }
-            Execution exec = fetch(task.getWorkflowInstanceId());
             String lane = laneOf(task);
-            snapshot = describe(exec, lane, numberOf(task));
+            int n = numberOf(task);
             if ("handlers".equals(lane)) {
+                Execution exec = fetch(workflowId);
+                snapshot = describe(exec, lane, n);
                 return processHandlers(spec, exec, task);
             }
-            Replayer.Outcome outcome =
-                    new Replayer(spec, spec.newInstance(), exec).process(lane, numberOf(task));
+            // A server that pins executions hands out the variables with the continuation; only
+            // then is the code kept in memory, since only then does its next continuation come here
+            long keepMillis = spec == null || pinDomain == null || marker.getVariables() == null ? 0 : parkMillis(spec);
+            Replayer.Outcome outcome = null;
+            ParkedExecutions.Parked held = parked.take(codeType, workflowId);
+            if (held != null) {
+                // The stamp is what this process sent with the execution's last continuation. The
+                // server still naming it means that completion applied and nothing has changed
+                // what the code did since: the lanes in memory are where the execution is.
+                if (keepMillis > 0 && held.stamp().equals(marker.getStamp()) && held.replayer().awaits(lane, n)) {
+                    replayer = held.replayer();
+                    try {
+                        outcome = replayer.readsTasks(lane) || task.getExternalOutputPayloadStoragePath() != null
+                                ? replayer.proceed(lane, n, fetch(workflowId))
+                                : replayer.proceed(lane, n, marker.getVariables(), arrived(task));
+                        parked.countContinued();
+                        LOGGER.debug("Execution {} continued {}#{} from the code kept in memory", workflowId, lane, n);
+                    } catch (NonDeterminismException | IllegalStateException e) {
+                        // nothing of this continuation was sent, so the recording is still what
+                        // the execution is: replay it
+                        LOGGER.warn("Execution {} could not continue {}#{} from the code kept in memory ({}): replaying it",
+                                workflowId, lane, n, e.getMessage());
+                        replayer.close();
+                        replayer = null;
+                        outcome = null;
+                    }
+                } else {
+                    // another host continued the execution, or it was retried, rerun or restarted
+                    LOGGER.debug("Execution {} moved on without the code kept in memory: replaying it", workflowId);
+                    held.replayer().close();
+                }
+            }
+            if (outcome == null) {
+                Execution exec = fetch(workflowId);
+                snapshot = describe(exec, lane, n);
+                replayer = new Replayer(spec, spec.newInstance(), exec);
+                outcome = replayer.begin(lane, n);
+                parked.countReplayed();
+            }
             logLaneError(task, lane, outcome.output);
             if (!"main".equals(lane)) {
                 // the server reads what a lane returned or raised for the main lane only
                 outcome.output.remove("result");
                 outcome.output.remove("error");
             }
+            if (keepMillis > 0 && replayer.hasPausedLanes()) {
+                // the completion says so: the server pins the execution to this process and hands
+                // the stamp back with its next continuation
+                String stamp = pinDomain + "." + stamps.incrementAndGet();
+                outcome.output.put("pin", Map.of("domain", pinDomain, "stamp", stamp));
+                replayer.forgetHistory();
+                parked.park(codeType, workflowId, replayer, stamp, keepMillis, setting(spec, "maxParked", 1000));
+            } else {
+                replayer.close();
+            }
+            replayer = null;
             return result(task, TaskResult.Status.COMPLETED, outcome.output, null);
         } catch (NonDeterminismException e) {
-            LOGGER.error("Execution {} diverged from its code: {}", task.getWorkflowInstanceId(), e.getMessage());
-            LOGGER.error("Execution {} as replayed: {}", task.getWorkflowInstanceId(), snapshot);
+            LOGGER.error("Execution {} diverged from its code: {}", workflowId, e.getMessage());
+            LOGGER.error("Execution {} as replayed: {}", workflowId, snapshot);
             return result(task, TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, Map.of(), e.getMessage());
         } catch (Exception | StackOverflowError e) {
-            LOGGER.error("Processing {} of execution {} failed", task.getReferenceTaskName(), task.getWorkflowInstanceId(), e);
+            LOGGER.error("Processing {} of execution {} failed", task.getReferenceTaskName(), workflowId, e);
             return result(task, TaskResult.Status.FAILED, Map.of(), e.toString());
+        } finally {
+            if (replayer != null) {
+                replayer.close();
+            }
         }
+    }
+
+    /** The task a poll handed out, as the lane that waited for it reads it. */
+    private static Execution.TaskView arrived(Task task) {
+        return Execution.TaskView.of(task.getTaskId(), task.getReferenceTaskName(), task.getTaskType(),
+                task.getStatus() == null ? null : task.getStatus().name(), task.getOutputData(),
+                task.getReasonForIncompletion());
     }
 
     /**

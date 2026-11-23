@@ -458,17 +458,102 @@ class SwitchOnTest {
         assertEquals(Map.of("notes", List.of()), out.output.get("variables"));
     }
 
+    /** What the replayer logged at WARN while {@code body} ran. */
+    private static List<String> warnings(Runnable body) {
+        ch.qos.logback.classic.Logger logger =
+                (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Replayer.class);
+        ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> seen = new ch.qos.logback.core.read.ListAppender<>();
+        seen.start();
+        logger.addAppender(seen);
+        try {
+            body.run();
+        } finally {
+            logger.detachAppender(seen);
+        }
+        return seen.list.stream()
+                .filter(e -> e.getLevel() == ch.qos.logback.classic.Level.WARN)
+                .map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object inputOf(Map<String, Object> entry, String name) {
+        return ((Map<String, Object>) entry.get("inputParameters")).get(name);
+    }
+
+    @SuppressWarnings("unchecked")
     @Test
-    void aSwitchThatTakesAnotherCaseOnReplayIsADivergence() {
+    void aSwitchRecordedOnOneCaseTakesItAgainWhateverTheCodeNowComputes() {
         Map<String, Object> aEntry = taskEntry("shipA", "shipA", Map.of("lane", "main", "n", 2));
-        Execution exec = execution(Map.of("route", "none"), // the code now takes "none" ...
+        Execution exec = execution(Map.of("route", "none"), // the code now computes "none" ...
                 List.of(switchEntry("a", List.of(aEntry))), // ... but the recording took "a"
                 List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "a"), null),
                         doneTask("shipA", "shipA", 2, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
                 marker("main", 1, "APPLIED", 1));
+        Replayer.Outcome[] out = new Replayer.Outcome[1];
+        List<String> warnings = warnings(() -> out[0] = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2));
+
+        List<Map<String, Object>> fragment = (List<Map<String, Object>>) out[0].output.get("fragment");
+        assertEquals(1, fragment.size(), String.valueOf(fragment));
+        assertEquals("notify", fragment.get(0).get("taskReferenceName"));
+        assertEquals("x", inputOf(fragment.get(0), "x"), "case a ran, with the recorded result of its task: " + fragment);
+        assertEquals(1, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).contains("route") && warnings.get(0).contains("none") && warnings.get(0).contains(" a"),
+                warnings.get(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void aSwitchRecordedOnItsDefaultTakesTheDefaultAgain() {
+        Map<String, Object> bEntry = taskEntry("shipB", "shipB", Map.of("lane", "main", "n", 2));
+        Execution exec = execution(Map.of("route", "a"), // the code now computes a declared case ...
+                List.of(switchEntry("zzz", List.of(bEntry))), // ... but the recording took the default
+                List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "default"), null),
+                        doneTask("shipB", "shipB", 2, Map.of("result", "y"), marker("main", 2, "LEASED", 0))),
+                marker("main", 1, "APPLIED", 1));
+        Replayer.Outcome out = new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2);
+
+        List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
+        assertEquals("notify", fragment.get(0).get("taskReferenceName"));
+        assertEquals("y", inputOf(fragment.get(0), "x"), "the default ran, with the recorded result of its task: " + fragment);
+    }
+
+    @Test
+    void aValueWithNoCaseOnReplayDoesNotFailAWorkflowWhoseSwitchIsRecorded() {
+        Map<String, Object> aEntry = taskEntry("shipA", "shipA", Map.of("lane", "main", "n", 2));
+        Execution exec = execution(Map.of("route", "q"), // no case for q, and no otherwise ...
+                List.of(switchEntry("a", List.of(aEntry))), // ... but the switch was decided: a
+                List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "a"), null),
+                        doneTask("shipA", "shipA", 2, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
+                marker("main", 1, "APPLIED", 1));
+        Replayer.Outcome out = new Replayer(spec(NoOtherwise.class), new NoOtherwise(), exec).process("main", 2);
+
+        assertEquals(true, out.output.get("done"), String.valueOf(out.output));
+        assertNull(out.output.get("error"), String.valueOf(out.output));
+    }
+
+    @Test
+    void aRecordedCaseTheCodeNoLongerHasIsStillADivergence() {
+        Map<String, Object> goneEntry = taskEntry("shipB", "shipB", Map.of("lane", "main", "n", 2));
+        Execution exec = execution(Map.of("route", "a"),
+                List.of(switchEntry("gone", List.of(goneEntry))), // a case this code does not declare, and it has no otherwise
+                List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "default"), null),
+                        doneTask("shipB", "shipB", 2, Map.of("result", "y"), marker("main", 2, "LEASED", 0))),
+                marker("main", 1, "APPLIED", 1));
         NonDeterminismException e = assertThrows(NonDeterminismException.class,
-                () -> new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2));
-        assertTrue(e.getMessage().contains("took case a"), e.getMessage());
+                () -> new Replayer(spec(NoOtherwise.class), new NoOtherwise(), exec).process("main", 2));
+        assertTrue(e.getMessage().contains("took case gone"), e.getMessage());
+    }
+
+    @Test
+    void aSwitchThatAgreesWithItsRecordingLogsNothing() {
+        Map<String, Object> aEntry = taskEntry("shipA", "shipA", Map.of("lane", "main", "n", 2));
+        Execution exec = execution(Map.of("route", "a"),
+                List.of(switchEntry("a", List.of(aEntry))),
+                List.of(doneTask("route", "SWITCH", 1, Map.of("selectedCase", "a"), null),
+                        doneTask("shipA", "shipA", 2, Map.of("result", "x"), marker("main", 2, "LEASED", 0))),
+                marker("main", 1, "APPLIED", 1));
+        assertEquals(List.of(), warnings(() -> new Replayer(spec(Flow.class), new Flow(), exec).process("main", 2)));
     }
 
     @Test

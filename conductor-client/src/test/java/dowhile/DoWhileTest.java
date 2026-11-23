@@ -102,6 +102,26 @@ class DoWhileTest {
         }
     }
 
+    /** A loop whose condition reads something that is not recorded, so it can differ on a replay. */
+    public static class Unrecorded {
+        static volatile boolean again;
+
+        @Workflow(name = "dw_unrecorded")
+        public String run(Map<String, Object> input) {
+            doWhile("poll", () -> TASKS.step("p"), () -> again);
+            return TASKS.done("z");
+        }
+    }
+
+    /** A loop whose condition calls a task. */
+    public static class TaskInCondition {
+        @Workflow(name = "dw_cond")
+        public String run(Map<String, Object> input) {
+            doWhile("poll", () -> TASKS.step("p"), () -> TASKS.extra("more").equals("yes"));
+            return TASKS.done("z");
+        }
+    }
+
     private static WorkflowSpec spec(Class<?> type) {
         return WorkflowSpec.of(type).get(0);
     }
@@ -130,6 +150,31 @@ class DoWhileTest {
         m.put("resumedWith", Map.of());
         m.put("recorded", Map.of());
         return m;
+    }
+
+    /** An applied marker that recorded these values. */
+    private static Map<String, Object> marker(int n, long step, Object recorded) {
+        Map<String, Object> m = marker(n, "APPLIED", step);
+        m.put("recorded", recorded);
+        return m;
+    }
+
+    /** What the replayer logged at WARN while {@code body} ran. */
+    private static List<String> warnings(Runnable body) {
+        ch.qos.logback.classic.Logger logger =
+                (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Replayer.class);
+        ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> seen = new ch.qos.logback.core.read.ListAppender<>();
+        seen.start();
+        logger.addAppender(seen);
+        try {
+            body.run();
+        } finally {
+            logger.detachAppender(seen);
+        }
+        return seen.list.stream()
+                .filter(e -> e.getLevel() == ch.qos.logback.classic.Level.WARN)
+                .map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+                .toList();
     }
 
     private static Map<String, Object> entry(String ref, String name, int continuation, List<String> loops) {
@@ -227,6 +272,93 @@ class DoWhileTest {
                 .filter(e -> "TERMINATE".equals(e.get("type"))).findFirst().orElse(null);
         assertNotNull(thrown, "the mark of where the code threw: " + sw);
         assertEquals(List.of("poll"), metadata(thrown).get("loops"));
+    }
+
+    @Test
+    void aLoopTakesTheRecordedNumberOfPassesWhenItsConditionDiffersOnReplay() {
+        WorkflowSpec spec = spec(Unrecorded.class);
+        // live: the first pass's task is done and the condition says the loop ends
+        Unrecorded.again = false;
+        Execution second = execution("dw_unrecorded", Map.of(),
+                List.of(entry("dw_step", "dw_step", 2, List.of("poll"))),
+                List.of(doneTask("dw_step", "dw_step", 1, Map.of("result", "p"), marker(2, "LEASED", 0))),
+                marker(1, "APPLIED", 1));
+        Replayer.Outcome live = new Replayer(spec, spec.newInstance(), second).process("main", 2);
+        assertEquals(List.of("dw_done"), refs(fragment(live)));
+        Object recorded = live.output.get("recorded");
+        assertTrue(recorded instanceof Map<?, ?> values && values.containsKey("poll_again"),
+                "the pass's outcome is recorded with the continuation: " + recorded);
+
+        // the task after the loop failed and was retried: the code runs again from the top, and
+        // what the condition reads has changed since
+        Unrecorded.again = true;
+        Map<String, Object> failed = doneTask("dw_done", "dw_done", 2, Map.of(), marker(3, "APPLIED", 3));
+        failed.put("status", "FAILED");
+        Execution retried = execution("dw_unrecorded", Map.of(),
+                List.of(entry("dw_step", "dw_step", 2, List.of("poll")), entry("dw_done", "dw_done", 3, List.of())),
+                List.of(doneTask("dw_step", "dw_step", 1, Map.of("result", "p"), marker(2, 2, recorded)),
+                        failed,
+                        doneTask("dw_done", "dw_done", 3, Map.of("result", "z"), marker(3, "LEASED", 0))),
+                marker(1, "APPLIED", 1));
+        Replayer.Outcome[] out = new Replayer.Outcome[1];
+        List<String> warnings = warnings(() -> out[0] = new Replayer(spec, spec.newInstance(), retried).process("main", 3));
+
+        assertEquals(true, out[0].output.get("done"), String.valueOf(out[0].output));
+        assertNull(out[0].output.get("error"), String.valueOf(out[0].output));
+        assertEquals(1, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).contains("poll"), warnings.get(0));
+    }
+
+    @Test
+    void aLoopWhoseConditionCallsATaskReplaysWithEveryCallReached() {
+        WorkflowSpec spec = spec(TaskInCondition.class);
+        // live: the body's task and the condition's task are done, and the condition ends the loop
+        Execution third = execution("dw_cond", Map.of(),
+                List.of(entry("dw_step", "dw_step", 2, List.of("poll")), entry("dw_extra", "dw_extra", 3, List.of("poll"))),
+                List.of(doneTask("dw_step", "dw_step", 1, Map.of("result", "p"), marker(2, "APPLIED", 2)),
+                        doneTask("dw_extra", "dw_extra", 2, Map.of("result", "no"), marker(3, "LEASED", 0))),
+                marker(1, "APPLIED", 1));
+        Replayer.Outcome live = new Replayer(spec, spec.newInstance(), third).process("main", 3);
+        assertEquals(List.of("dw_done"), refs(fragment(live)));
+
+        // the next continuation replays the loop: the condition's task is still reached
+        Execution fourth = execution("dw_cond", Map.of(),
+                List.of(entry("dw_step", "dw_step", 2, List.of("poll")), entry("dw_extra", "dw_extra", 3, List.of("poll")),
+                        entry("dw_done", "dw_done", 4, List.of())),
+                List.of(doneTask("dw_step", "dw_step", 1, Map.of("result", "p"), marker(2, "APPLIED", 2)),
+                        doneTask("dw_extra", "dw_extra", 2, Map.of("result", "no"), marker(3, 3, live.output.get("recorded"))),
+                        doneTask("dw_done", "dw_done", 3, Map.of("result", "z"), marker(4, "LEASED", 0))),
+                marker(1, "APPLIED", 1));
+        Replayer.Outcome[] out = new Replayer.Outcome[1];
+        List<String> warnings = warnings(() -> out[0] = new Replayer(spec, spec.newInstance(), fourth).process("main", 4));
+
+        assertEquals(true, out[0].output.get("done"), String.valueOf(out[0].output));
+        assertNull(out[0].output.get("error"), String.valueOf(out[0].output));
+        assertEquals(List.of(), warnings);
+    }
+
+    @Test
+    void anExecutionRecordedWithoutThePassesOfItsLoopsReplaysAsBefore() {
+        WorkflowSpec spec = spec(Twice.class);
+        // recorded by a build that did not record the passes: no marker has a value for them
+        Execution fourth = execution("dw_twice", Map.of(),
+                List.of(entry("dw_step", "dw_step", 2, List.of("poll")), entry("dw_step_2", "dw_step", 3, List.of("poll")),
+                        entry("dw_done", "dw_done", 4, List.of())),
+                List.of(doneTask("dw_step", "dw_step", 1, Map.of("result", "p0"), marker(2, "APPLIED", 2)),
+                        doneTask("dw_step_2", "dw_step", 2, Map.of("result", "p1"), marker(3, "APPLIED", 3)),
+                        doneTask("dw_done", "dw_done", 3, Map.of("result", "z"), marker(4, "LEASED", 0))),
+                marker(1, "APPLIED", 1));
+        Replayer.Outcome out = new Replayer(spec, spec.newInstance(), fourth).process("main", 4);
+
+        assertEquals(true, out.output.get("done"), String.valueOf(out.output));
+        assertNull(out.output.get("error"), String.valueOf(out.output));
+    }
+
+    @Test
+    void outsideAWorkflowItIsAPlainLoop() {
+        int[] passes = {0};
+        doWhile("plain", () -> passes[0]++, () -> passes[0] < 3);
+        assertEquals(3, passes[0]);
     }
 
     @Test

@@ -40,6 +40,7 @@ the graph; everything else is just Java.
 
 | File | What it is |
 |---|---|
+| `design/native-workflows/determinism.md` | the guide to determinism: how a replay works, what is recorded, what retry and rerun do, how to write a workflow that takes the same path every time, and the strict determinism check |
 | `native-examples/src/main/java/kitchensink/KitchenSinkWorkflow.java` | a plain class whose `@Workflow` method mirrors `rest/src/main/resources/kitchensink/kitchensink.json` in section 1, and adds timers, loops, signals, updates, queries, human tasks, callbacks, compensation and LLM in section 2, iteration, MCP and A2A agents in section 3, the constructs composed inside each other in section 4, and Conductor's own constructs in section 5 (`switchOn`, `doWhile`, `forEach`, `repeatUntil`, `fanOut`, a workflow started by name, `random()`, `workflowId()`); sections 1 to 4 decide with plain `if` and `switch` and loop with plain `for` and `while` |
 | `native-examples/src/main/java/kitchensink/SubFlow.java` | `sub_flow_1` as a `@Workflow` method, called as a typed child |
 | `native-examples/src/main/java/kitchensink/KitchenSinkTasks.java` | the tasks: today's `@WorkerTask` class, unchanged |
@@ -145,7 +146,7 @@ Static methods on `org.conductoross.conductor.sdk.Conductor`.
 | `once(name, () -> ...)` | none; the value is recorded (`recorded`) on the continuation marker of the task the code pauses on next | never; runs in place |
 | an `if` or `switch` whose arms call the server | SWITCH named after what it decides on (`if_flagged`, `switch_paymentMethod`; `native-code` on `switchCaseValue`). An `if` has the case `true` and its else as the default case (`if (!approved)` has the case `false`: the key is the value of what it is named after); a `switch` has a case per arm, keyed by its labels (`CARD`, `odd`, `even,zero`), and `default`. The arm taken holds the calls it made; the others show what they would call, as previews. Read from the compiled code; see Plain ifs and switches | never by itself; the arm's calls wake the code as usual |
 | a Java `for`, `while` or `do`-`while` | ordinary code, so it may hold ifs, switches, forks, sub workflows and other loops. There is no `DO_WHILE` task: the compiled method says which lines a loop covers, each step is tagged with the loops around it in `metadata.loops`, and the execution diagram draws those steps as one loop | at each call inside it |
-| `doWhile(name, () -> { ... }, () -> condition)` | the same as a Java `do`-`while`, named by the code instead of read from the compiled method: its body runs, then again while the condition holds, as ordinary code; every step made from the body or the condition is tagged with `name` in `metadata.loops` (inside the loops around the call), so the execution diagram draws them as one loop named `name`, also for code whose loops cannot be read. A Java loop or another `doWhile` inside the body nests | at each call inside it |
+| `doWhile(name, () -> { ... }, () -> condition)` | the same as a Java `do`-`while`, named by the code instead of read from the compiled method: its body runs, then again while the condition holds, as ordinary code; each pass's outcome is recorded, so a replay makes the same number of passes; every step made from the body or the condition is tagged with `name` in `metadata.loops` (inside the loops around the call), so the execution diagram draws them as one loop named `name`, also for code whose loops cannot be read. A Java loop or another `doWhile` inside the body nests | at each call inside it |
 | `async(() -> ...)` returning a `java.util.concurrent.Future`, `join(f1, f2)` then `resultNow()`, or `Future.get()` | FORK_JOIN + JOIN, one branch per async block that calls the server, each with its own continuation points; a block that returns without a server call is plain Java. `async` does not wait: lanes still running at the next durable call get a JOIN that completes at once, and a later `join` or `get` adds a JOIN naming those lanes. It works inside another `async` block, and a join waits for what the lane started | each branch when its own task completes |
 | `fanOut(items, item -> ...)`, returning the `List` of results once every item is done | FORK_JOIN with one branch per item + JOIN; drawn as FORK_JOIN_DYNAMIC + JOIN in an untaken case or the registered definition, where the items are not known | once |
 | `child(Other::method, input)` / `childAsync(...)` | SUB_WORKFLOW, typed by the referenced `@Workflow` method | when the child completes |
@@ -177,9 +178,10 @@ to it. Seeing every branch and which one was taken is a core Conductor capabilit
 show what they would have run (see Plain ifs and switches under "How an execution runs").
 `switchOn` is the explicit form: a name and case keys of your choosing, the value recorded as
 `switchCaseValue`, and a value no case handles runs `otherwise`, or fails the workflow with
-`switch <name> has no case for <value>` when there is none. On replay either kind must take the arm
-it recorded; another is a divergence ("took case X in the recorded execution but the code now
-takes Y").
+`switch <name> has no case for <value>` when there is none. On replay a plain `if` or `switch` must
+take the arm it recorded; another is a divergence ("took X in the recorded execution but the code
+now takes Y"). A `switchOn` takes the case it recorded whatever value the code computes then, so a
+value that came from something unrecorded cannot move a retry or rerun to another case.
 
 Input and output mapping: a `@Workflow` method with one record parameter takes the record's fields
 as the workflow input, which is how the JSON kitchensink's `{"mod", "oddEven", "task2Name"}` maps
@@ -198,6 +200,8 @@ referenced unambiguously, and the compiler says so. Do not overload them.
 | schedule | `@Schedule(cron = "0 0 9 * * MON-FRI", zone = "UTC", input = "{}")` on the `@Workflow` method, repeatable | registered with the Conductor scheduler (`POST /api/scheduler/schedules`) when the workers start; needs `conductor.scheduler.enabled=true`. Registration overwrites the schedule, including `paused`, so a schedule paused in the UI is resumed by the next worker start unless the annotation says `paused = true` |
 | priority | `conductor.workflow(X::run).priority(5).start(input)` | the execution's priority (0 to 99), used to order its tasks in the queues |
 | continuation timeout | `conductor.workflows(X.class).continuationTimeout(Duration.ofSeconds(30))`, or `conductor.workflow.<name>.continuationTimeout` / `conductor.workflow.all.continuationTimeout` (seconds, or ISO-8601 such as `PT2M`) | the continuation lease (`metadata.native.continuationTimeoutSeconds`): how long a continuation handed to a worker may go unanswered before the server hands it to another worker; 30 s by default, an hour in dev mode; must exceed the longest replay |
+| code kept in memory | `conductor.workflows(X.class).parkTimeout(Duration.ofHours(1))`, or `conductor.workflow.<name>.parkTimeout` / `conductor.workflow.all.parkTimeout` (seconds, or ISO-8601); `conductor.workflow.<name>.maxParked` (1000). On by default; `parkTimeout=0`, or dev mode, replays every continuation | the execution is pinned to the host that holds it: `nativeState.pinnedTo` and `stamp` from the completion's `pin`; its next continuation is offered to that host's own queue first, and to any host after `conductor.app.nativeWorkflow.pinTimeout` (5 s). See "Code kept in memory" under "How an execution runs" |
+| strict determinism | `conductor.workflow.<name>.strictDeterminism=true`, else `conductor.workflow.all.strictDeterminism`; off by default | none: the host refuses to start when the workflow's code reads a random source or the clock directly (rule 1 under "Rules for workflow code"), instead of warning |
 | hosting | `@Workflow(threadCount = 20, pollingInterval = 100, pollTimeout = 500)`, overridden by `conductor.workflow.<name>.threadCount` (and `pollingInterval`, `pollTimeout`), else `conductor.workflow.all.*`; `conductor.workflow.<name>.paused=true` stops polling | none: each hosted workflow is a `TaskRunner` worker of its code type, as a `@WorkerTask` is of its task type: at most `threadCount` continuations at once (virtual threads), long polls of `pollTimeout` ms, `pollingInterval` ms between empty polls, completed with update-v2, which hands back the next continuation. Properties are system properties, or the Spring environment. A hosted `@WorkerTask` reads `conductor.worker.<task>.*`, else `conductor.worker.all.*`, else its annotation, and gets 8 threads when none sets `threadCount` (`AnnotatedWorkerExecutor` and Spring keep 1) |
 
 ## The developer's day
@@ -287,6 +291,13 @@ cd order-service && ./mvnw -q compile exec:java
 - Continuations are fully distributed: any machine polling the shared queue of the code type can
   run any of them. Task domains do not apply to workflow code: a start's `taskToDomain`, `*`
   included, routes its tasks only. A new `@Workflow(version)` has its own code type and queue.
+- A host keeps the executions it is running in memory and the server sends their continuations
+  back to it first ("Code kept in memory", below). Nothing has to be configured, and nothing
+  depends on it: a host that stops, restarts or is replaced by a deploy drops what it held, and
+  each of those executions is replayed once by whichever host takes its next continuation, at
+  most `conductor.app.nativeWorkflow.pinTimeout` (5 s) later. Every start makes a new queue for
+  the host, `pin-<workerId>-<random>:<codeType>`, polled only while the host holds executions of
+  that workflow; the queues and poll records of hosts that are gone stay behind, empty.
 - Definitions in GitOps: `start()` registers definitions from the annotations by default;
   `conductor.register(OrderService.class, …)` registers them without starting workers, for a
   deploy step, and the static `Conductor.definitions(OrderService.class)` returns the same JSON
@@ -341,7 +352,7 @@ cd order-service && ./mvnw -q compile exec:java
 | The method returns with lanes never joined | they still run: the execution stays `RUNNING` until they finish |
 | A lane nothing joins fails | the execution is not failed; the failure shows on the lane's task |
 | A `switchOn` case key is declared twice | `IllegalArgumentException` at the call (`case <key> of <name> is declared twice`) |
-| The code now takes a different `switchOn` case than the recorded execution did | a divergence: the execution is held, naming both cases |
+| The code now computes a different `switchOn` value than the recorded execution took | the recorded case runs and a warning names both; a divergence only when the code no longer declares the recorded case and has no `otherwise` |
 | Two workers hold the same continuation | only one holds the lease; the other's completion is refused (409) and that worker stops |
 
 ## How an execution runs
@@ -467,7 +478,8 @@ continuation is always `main` #1 (`Execution.bootstrap()`); the handler marker's
 number. A marker stores only `leased`, `retryCount`, and once applied `endTime`, `done`,
 `recorded` and `resumedWith`; applied means `endTime` is set (`Execution.Marker.applied()`).
 
-**Every continuation is a replay.** The worker is stateless. For each continuation it creates a
+**A continuation is a replay, unless the code is still in memory.** The recording on the server
+is all a worker needs: for a continuation it creates a
 fresh instance of the class, fetches the execution with its tasks, replays every applied
 continuation in the order the server applied them (`Execution.segments()`: the applied markers, the first continuation's included, by `endTime`, which the server keeps increasing within a run; `@Variable` fields
 restored to each one's `resumedWith`), then runs the active continuation against the current
@@ -475,6 +487,41 @@ variables. Each call is matched by lane, task name and ordinal; a recorded resul
 missing one is scheduled. Handler runs are not replayed; their effect is in the variables. This is
 a replay engine, a small one: its input is the markers and the task list, not a generic event
 history. The same mechanism powers `DurableReplay`.
+
+**Code kept in memory.** Replaying every continuation costs more the longer an execution gets: the
+k-th continuation fetches and replays the k-1 before it, so an execution of n tasks fetches and
+replays in the order of n² task records over its life. So after a continuation the worker does not
+tear the lanes down. They stay parked where they paused, on their virtual threads
+(`ParkedExecutions`; `Replayer.begin`, `proceed`, `close`), and the next continuation wakes its
+lane with the result of the task it waited for. Nothing is run again and nothing is fetched: the
+poll hands out the awaited task, and with it the workflow's variables and the execution's stamp
+(`TaskContinuation.variables`, `stamp`). A lane that waited on a loop the server ran
+(`repeatUntil`, `forEach`) reads the loop's tasks, so that one continuation fetches the execution;
+it still replays nothing.
+
+This only pays if the next continuation reaches the process that holds the code, so the execution
+is pinned to it. The workers name a task domain of their own on every start
+(`pin-<workerId>-<random>`). Each completion that leaves lanes parked carries
+`pin: {domain, stamp}`; the server records both on the execution and offers the next continuation
+to that domain's queue first, with the shared queue as a fallback once the pin timeout has passed
+(5 s). The stamp is how the worker knows its copy is current: it continues from memory only when
+the server hands back the stamp it sent last, which means that its completion was the last to
+apply and nothing has changed what the code did since. In every other case it closes what it held
+and replays: another host continued the execution, a completion was refused or deferred, or the
+execution was retried, rerun or restarted (the server clears the stamp). **A retry and a rerun
+therefore always replay**; what is kept in memory is never what decides where an execution is.
+
+The copy is dropped after `parkTimeout` without a continuation (an hour by default), when a
+workflow has more than `maxParked` executions held (1000; the ones idle longest go), and when the
+workers close. Dropping one ends its lanes as the end of a continuation always did, by unwinding
+their threads, so a `finally` block in workflow code runs then. Dev mode keeps nothing: every
+continuation replays, which shows code that is not deterministic while it is being written.
+Handler runs are not continued from memory; they fetch the execution as before.
+
+Measured against a server built from the conductor branch (`localhost`, SQLite): a workflow of
+203 tasks ran its method from the first line once with the code kept, and 205 times with
+`parkTimeout=0`. With the host that held an execution killed mid-run, a second host continued it
+after 5.3 s in each of four runs, replaying once.
 
 **Failures.** A task the code waits on is first retried like any Conductor task: worker tasks
 three times with exponential backoff by default (`@WorkerTask(retryCount, retryDelaySeconds)`),
@@ -490,9 +537,18 @@ a human task that nobody answers returns an empty result, and the task shows TIM
 **Divergence policy.** Divergence is strict. A replay that reaches a call, fork, loop, wait,
 switch or recorded value the recording does not have raises `NonDeterminismException`, with a
 message naming the call and its source line, and the server holds the execution, retrying with
-backoff, until a compatible build runs it. A `switchOn` replays against the recorded `switchCaseValue`: the code
-taking another case is a divergence too ("switch <ref> took case X in the recorded execution but
-the code now takes Y").
+backoff, until a compatible build runs it.
+
+The two constructs the code hands to the SDK as lambdas follow the recording instead, since the SDK
+chooses what runs. A `switchOn` that is already recorded runs the case of its recorded
+`switchCaseValue`, whatever value the code computes on the replay; only a recorded case the code no
+longer declares, with no `otherwise`, is a divergence. A `doWhile` records the outcome of its
+condition for each pass (`<name>_again`, `<name>_again_2`, ... among the continuation's recorded
+values) and a replay makes the recorded number of passes. In both the code still computes its
+value (the condition may call tasks, and a replay must reach every recorded call), and a value that
+differs from the recording is logged as a warning naming the switch or loop. An execution recorded
+before passes were recorded has none, and its loops replay by their conditions. Plain Java `if`,
+`switch`, `for` and `while` cannot be steered this way and stay strict.
 
 **Variables.** `@Variable` fields are written to `workflow.variables` by every continuation's
 completion, together with the values the continuation started from (`resumedWith`); the server
@@ -502,8 +558,21 @@ same points as the first time.
 
 ## Rules for workflow code
 
+[determinism.md](determinism.md) explains these with examples: how a replay works, what is recorded,
+what a retry and a rerun do, and how to write a workflow that always takes the same path.
+
 1. Anything non-deterministic or with a side effect that is not a task goes through `once()`,
-   `now()` or `random()`. `once()` is at-least-once on worker loss, like any task.
+   `now()` or `random()`. `once()` is at-least-once on worker loss, like any task. The host reads
+   the compiled workflow code at `start()` and logs a warning for every place it can reach, through
+   lambdas and helpers in the workflow's package, that asks the JVM itself for a random value or
+   the time (`Math.random()`, an unseeded `new Random()`, `ThreadLocalRandom`, `SecureRandom`,
+   `UUID.randomUUID()`, `System.currentTimeMillis()`, `System.nanoTime()`, `Instant.now()` and the
+   other `java.time` `now()`s without a `Clock`, `new Date()`, `Calendar.getInstance()`), with its
+   line and what to use instead. With `conductor.workflow.<name>.strictDeterminism=true` (or
+   `conductor.workflow.all.strictDeterminism`) such a workflow is refused: `start()` throws
+   `NonDeterminismException` listing every place, before anything is registered or polled. The
+   lambda given to `once()`, task methods and handlers are not checked, and a helper in another
+   package is not followed.
 2. Calls are matched by task name and ordinal within their lane on a re-run. Adding a log line,
    reordering independent calls, or adding a call in code that running executions have not reached yet is safe. A call added
    before the point they have reached holds them.

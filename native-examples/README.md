@@ -21,6 +21,10 @@ result.
 | 12 | [MCP](src/main/java/examples/ex12_mcp/McpTools.java) | `mcp(ref)`: list an MCP server's tools and call them |
 | 13 | [Agent](src/main/java/examples/ex13_agent/AgentCalls.java) | `agent(ref)`: a conversation with an A2A agent, and a long-running agent in `async` |
 | 14 | [Agent harness](src/main/java/examples/ex14_agent_harness/AgentHarness.java) | a durable agent loop: a model plans each step, the workflow calls MCP tools, delegates to helper agents and asks a person |
+| 15 | [Strict determinism](src/main/java/examples/ex15_strict_determinism/StrictDeterminism.java) | a workflow that calls `Math.random()`, `UUID.randomUUID()` and `Instant.now()` is refused when its workers start under `strictDeterminism`; the same workflow with `random()`, `once` and `now()` runs |
+
+Example 15 goes with [Determinism in native workflows](../design/native-workflows/determinism.md),
+which explains why workflow code must take the same path each time it runs and how to write it so.
 
 Each example has an in-memory test next to it under `src/test/java/examples`. The test runs the
 workflow without a server, with the answers of tasks, models, tools and agents given by the

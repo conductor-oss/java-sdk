@@ -72,6 +72,21 @@ public class TaskContinuation {
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int n;
 
+    /**
+     * On the marker a poll hands out, never stored: the execution's stamp, which names the
+     * completion that applied last. A worker that kept the code parked in memory continues from
+     * there only when this is still the stamp it sent.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String stamp;
+
+    /**
+     * On the marker a poll hands out, never stored: the workflow's variables as the continuation
+     * starts. A server that sends them pins executions to the worker that holds them in memory.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Map<String, Object> variables;
+
     public TaskContinuation() {}
 
     /** A new marker of a handler run. */
@@ -152,6 +167,22 @@ public class TaskContinuation {
 
     public void setN(int n) {
         this.n = n;
+    }
+
+    public String getStamp() {
+        return stamp;
+    }
+
+    public void setStamp(String stamp) {
+        this.stamp = stamp;
+    }
+
+    public Map<String, Object> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(Map<String, Object> variables) {
+        this.variables = variables;
     }
 
     @Override

@@ -37,14 +37,21 @@ import org.conductoross.conductor.sdk.Functions;
 import org.conductoross.conductor.sdk.NonDeterminismException;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.WorkflowFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Runs workflow code against an execution's recorded tasks and produces the next fragment.
  *
- * <p>The worker is stateless: every continuation is processed by re-running the workflow method
- * from the top. Each lane (the workflow method, and each {@code async} block) runs on its own
- * virtual thread, but only one runs at a time and control is handed between them explicitly, so
- * the code observes a single-threaded world.
+ * <p>A continuation is processed by re-running the workflow method from the top. Each lane (the
+ * workflow method, and each {@code async} block) runs on its own virtual thread, but only one runs
+ * at a time and control is handed between them explicitly, so the code observes a single-threaded
+ * world.
+ *
+ * <p>The lanes may be kept between continuations, parked where they paused ({@link #begin},
+ * {@link #proceed}, {@link #close}): the next continuation then wakes its lane with the result of
+ * the task it waits for, and nothing is run again. That is an optimisation only. The recording is
+ * what the execution is; a replayer that was not kept, or whose copy is no longer current, replays.
  *
  * <p>Segments are replayed in the order the live run processed them (the {@code step} the server
  * recorded on each continuation marker), which reproduces reference-name allocation exactly. A
@@ -57,6 +64,8 @@ import org.conductoross.conductor.sdk.WorkflowFailedException;
  * continuation that follows it.
  */
 public final class Replayer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Replayer.class);
 
     private enum Mode {
         REPLAY,
@@ -79,7 +88,8 @@ public final class Replayer {
 
     private final WorkflowSpec spec;
     private final Object instance;
-    private final Execution exec;
+    /** The execution as last read; a parked replayer is given what arrived since. */
+    private Execution exec;
     private final Set<String> used = new HashSet<>();
     private final Map<String, Lane> lanes = new LinkedHashMap<>();
     private final Participant driver = new Participant();
@@ -89,9 +99,7 @@ public final class Replayer {
     private volatile boolean aborting;
     private volatile RuntimeException fatal;
     /** Values recorded by the active continuation, for its marker. */
-    private final Map<String, Object> recorded = new LinkedHashMap<>();
-    private String activeLaneId;
-    private int activeN;
+    private Map<String, Object> recorded = new LinkedHashMap<>();
     public Replayer(WorkflowSpec spec, Object instance, Execution exec) {
         this.spec = spec;
         this.instance = instance;
@@ -104,55 +112,136 @@ public final class Replayer {
      * replay runs, which checks that the code still matches the recording.
      */
     public Outcome process(String activeLane, int activeContinuation) {
+        try {
+            return begin(activeLane, activeContinuation);
+        } finally {
+            close();
+        }
+    }
+
+    /**
+     * As {@link #process}, but the lanes stay as they are when it returns: parked where they
+     * paused, on their threads. The caller either continues them with {@link #proceed} when the
+     * execution's next continuation comes, or ends them with {@link #close}; it must do one.
+     */
+    public Outcome begin(String activeLane, int activeContinuation) {
         Outcome outcome = new Outcome();
         outcome.instance = instance;
         Lane main = new Lane("main", true, this::invokeWorkflowMethod);
         main.counter = 1;
         main.waitingFor = 1;
         lanes.put(main.id, main);
-        try {
-            for (Execution.Marker seg : exec.segments()) {
-                runSegment(seg.lane, seg.n, Mode.REPLAY, seg.resumedWith);
-            }
-            assertNothingRecordedWasDropped();
-            if (activeLane == null) {
-                outcome.pendingConditions.putAll(pendingConditions);
-                return outcome;
-            }
-            Map<String, Object> current = new LinkedHashMap<>(exec.variables);
-            this.activeLaneId = activeLane;
-            this.activeN = activeContinuation;
-            Lane lane = runSegment(activeLane, activeContinuation, Mode.ACTIVE, current);
-            Map<String, Object> out = outcome.output;
-            out.put("resumedWith", spec.captureVariablesOf(current));
-            out.put("recorded", recorded);
-            List<Map<String, Object>> fragment = lane.root;
-            if (lane.state == State.DONE) {
-                out.put("done", true);
-                if (lane.error != null) {
-                    Map<String, Object> error = errorOf(lane.error);
-                    if (lane.thrownRef != null) {
-                        error.put("ref", lane.thrownRef);
-                    }
-                    out.put("error", error);
-                } else if (lane.main) {
-                    // the workflow's output
-                    out.put("result", Json.encodeOutput(lane.result));
-                } else {
-                    Map<String, Object> returned = new LinkedHashMap<>();
-                    returned.put("value", Json.plain(lane.result)); // null when the lane returned nothing
-                    out.put("result", returned);
-                }
-            } else {
-                out.put("done", false);
-            }
-            out.put("fragment", fragment);
-            out.put("variables", spec.captureVariables(instance));
+        for (Execution.Marker seg : exec.segments()) {
+            runSegment(seg.lane, seg.n, Mode.REPLAY, seg.resumedWith);
+        }
+        assertNothingRecordedWasDropped();
+        if (activeLane == null) {
             outcome.pendingConditions.putAll(pendingConditions);
             return outcome;
-        } finally {
-            abortAll();
         }
+        return active(outcome, activeLane, activeContinuation, new LinkedHashMap<>(exec.variables));
+    }
+
+    /**
+     * Continues parked lanes with the next continuation, without replaying: the lane wakes where
+     * it paused and reads the result of the task it waited for. {@code awaited} is that task as
+     * the poll handed it out, {@code variables} the workflow's variables now. Only for a replayer
+     * that {@link #awaits} this continuation and whose execution is still as it left it.
+     */
+    public Outcome proceed(String activeLane, int activeContinuation, Map<String, Object> variables,
+                           Execution.TaskView awaited) {
+        exec.arrived(awaited);
+        return proceeding(activeLane, activeContinuation, variables);
+    }
+
+    /**
+     * As {@link #proceed(String, int, Map, Execution.TaskView)}, with the whole execution read
+     * again: for a lane that paused on a loop the server ran, whose result is in the loop's tasks.
+     */
+    public Outcome proceed(String activeLane, int activeContinuation, Execution fresh) {
+        this.exec = fresh;
+        return proceeding(activeLane, activeContinuation, fresh.variables);
+    }
+
+    private Outcome proceeding(String activeLane, int activeContinuation, Map<String, Object> variables) {
+        Outcome outcome = new Outcome();
+        outcome.instance = instance;
+        return active(outcome, activeLane, activeContinuation, new LinkedHashMap<>(variables));
+    }
+
+    /** Runs the continuation being processed now, and builds its completion. */
+    private Outcome active(Outcome outcome, String activeLane, int activeContinuation, Map<String, Object> current) {
+        recorded = new LinkedHashMap<>(); // this continuation's own
+        Lane lane = runSegment(activeLane, activeContinuation, Mode.ACTIVE, current);
+        Map<String, Object> out = outcome.output;
+        out.put("resumedWith", spec.captureVariablesOf(current));
+        out.put("recorded", recorded);
+        List<Map<String, Object>> fragment = lane.root;
+        if (lane.state == State.DONE) {
+            out.put("done", true);
+            if (lane.error != null) {
+                Map<String, Object> error = errorOf(lane.error);
+                if (lane.thrownRef != null) {
+                    error.put("ref", lane.thrownRef);
+                }
+                out.put("error", error);
+            } else if (lane.main) {
+                // the workflow's output
+                out.put("result", Json.encodeOutput(lane.result));
+            } else {
+                Map<String, Object> returned = new LinkedHashMap<>();
+                returned.put("value", Json.plain(lane.result)); // null when the lane returned nothing
+                out.put("result", returned);
+            }
+        } else {
+            out.put("done", false);
+        }
+        out.put("fragment", fragment);
+        out.put("variables", spec.captureVariables(instance));
+        outcome.pendingConditions.putAll(pendingConditions);
+        return outcome;
+    }
+
+    /** Whether the lanes are parked with this lane waiting for exactly this continuation. */
+    public boolean awaits(String laneId, int continuation) {
+        Lane lane = lanes.get(laneId);
+        return fatal == null && !aborting && lane != null && lane.state == State.PAUSED
+                && lane.waitingFor == continuation;
+    }
+
+    /**
+     * Whether the lane paused on a loop the server runs ({@code repeatUntil}, {@code forEach}): its
+     * result is read from the loop's tasks, so continuing it takes the whole execution.
+     */
+    public boolean readsTasks(String laneId) {
+        Lane lane = lanes.get(laneId);
+        return lane != null && lane.readsTasks;
+    }
+
+    /** Whether any lane is paused, so that keeping the lanes parked can save a replay. */
+    public boolean hasPausedLanes() {
+        if (fatal != null || aborting) {
+            return false;
+        }
+        for (Lane lane : lanes.values()) {
+            if (lane.state == State.PAUSED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Before the lanes are kept: drops what a parked execution never reads again (its tasks and
+     * the values already replayed), so that it holds its code's state and not its history.
+     */
+    public void forgetHistory() {
+        exec.forgetHistory();
+    }
+
+    /** Ends the lanes: each one's thread unwinds from where it paused. Nothing can be continued after. */
+    public void close() {
+        abortAll();
     }
 
     /**
@@ -693,6 +782,8 @@ public final class Replayer {
         /** The workflow frames of the lane's last call, outermost first. */
         List<Site> lastSites = List.of();
         Group pendingGroup;
+        /** Paused on a loop the server runs: its result is read from the loop's tasks. */
+        boolean readsTasks;
         /** Every group this lane started, for joins that wait on what it left running. */
         final List<Group> groups = new ArrayList<>();
         /** The group this lane belongs to. */
@@ -935,11 +1026,7 @@ public final class Replayer {
                 // too, even when the result is already recorded: the lane continues only when the
                 // continuation that followed this call is replayed.
                 pause(this);
-                Execution.TaskView t = exec.latest(ref);
-                if (t == null || !t.terminal()) {
-                    throw diverged("lane " + id + " resumed before task " + ref + " finished");
-                }
-                return decode(cmd, ref, t);
+                return resultOf(cmd, ref);
             }
             if (mode != Mode.ACTIVE) {
                 String recorded = nextRecordedCall(id);
@@ -955,7 +1042,18 @@ public final class Replayer {
             }
             Entries.continuation(entry, id, counter + 1);
             pause(this);
-            throw new IllegalStateException("a lane resumed within the continuation that paused it");
+            // a lane that was kept parked continues here, in the continuation that follows the
+            // task, with the result the task has by then; one that was not kept never does
+            return resultOf(cmd, ref);
+        }
+
+        /** The result of the task a lane paused on, read when the lane continues. */
+        private Object resultOf(Command cmd, String ref) {
+            Execution.TaskView t = exec.latest(ref);
+            if (t == null || !t.terminal()) {
+                throw diverged("lane " + id + " resumed before task " + ref + " finished");
+            }
+            return decode(cmd, ref, t);
         }
 
         @Override
@@ -1003,6 +1101,34 @@ public final class Replayer {
         @Override
         public double random() {
             return ((Number) recordValue(alloc("random"), () -> ThreadLocalRandom.current().nextDouble())).doubleValue();
+        }
+
+        /**
+         * Whether a {@code doWhile} runs another pass: what the execution recorded for this pass
+         * when it has, so a condition over something that is not recorded cannot change how many
+         * passes a retry or rerun makes. The live run records each pass's outcome with its
+         * continuation. The condition is evaluated either way, never skipped: it may call tasks,
+         * and a replay must reach every call the recording has. An execution recorded before
+         * passes were recorded has no value for them, and is answered by the condition as it was.
+         */
+        @Override
+        public boolean loopAgain(String name, BooleanSupplier condition) {
+            String ref = alloc(name + "_again");
+            boolean computed = condition.getAsBoolean();
+            Object known = exec.recorded.containsKey(ref) ? exec.recorded.get(ref) : recorded.get(ref);
+            if (known instanceof Map<?, ?> record) {
+                boolean again = Boolean.TRUE.equals(Json.recorded(record, spec.type.getClassLoader()));
+                if (again != computed) {
+                    LOGGER.warn("Loop {} of workflow {} {} in the recorded execution and its condition now says {} ({}):"
+                            + " continuing as recorded. The condition reads something that is not recorded.",
+                            name, exec.workflowId, again ? "ran another pass" : "ended", computed ? "another pass" : "end", ref);
+                }
+                return again;
+            }
+            if (mode == Mode.ACTIVE) {
+                recorded.put(ref, Json.record(computed));
+            }
+            return computed;
         }
 
         @Override
@@ -1191,8 +1317,11 @@ public final class Replayer {
             Command wait = new Command(Command.Kind.WAIT, ref, ref);
             wait.input.put("duration", Conductors.duration(timeout));
             emit(Entries.continuation(Entries.of(wait, ref, id), id, counter + 1));
+            pendingConditions.put(ref, condition);
             pause(this);
-            throw new IllegalStateException("a lane resumed within the continuation that paused it");
+            // a lane kept parked continues here once the wait ended, as a replay of it would
+            pendingConditions.remove(ref);
+            return condition.getAsBoolean();
         }
 
         /**
@@ -1208,7 +1337,12 @@ public final class Replayer {
             String ref = alloc(name);
             Object plain = Json.plain(value);
             String key = plain == null ? "null" : String.valueOf(plain);
-            Supplier<?> body = cases.containsKey(key) ? cases.get(key) : otherwise;
+            Map<String, Object> entry = exec.entries.get(ref);
+            // a switch the execution already decided takes the case it recorded, whatever the
+            // code computes now: a retry or rerun continues on the path the execution is on
+            Supplier<?> body = entry != null
+                    ? recordedCase(ref, entry, key, cases, otherwise)
+                    : cases.containsKey(key) ? cases.get(key) : otherwise;
             if (body == null) {
                 if (mode == Mode.ACTIVE && !exec.entries.containsKey(ref)) {
                     // the decision is still drawn, with what every case would call
@@ -1218,17 +1352,10 @@ public final class Replayer {
                 }
                 throw new WorkflowFailedException("switch " + name + " has no case for " + key);
             }
-            Map<String, Object> entry = exec.entries.get(ref);
             List<Map<String, Object>> outer = out;
             List<Map<String, Object>> caseList = null;
             int pausesBefore = counter;
-            if (entry != null) {
-                Map<String, Object> in = (Map<String, Object>) entry.get("inputParameters");
-                Object recorded = in == null ? null : in.get("switchCaseValue");
-                if (!Entries.escape(key).equals(String.valueOf(recorded))) {
-                    throw diverged("switch " + ref + " took case " + recorded + " in the recorded execution but the code now takes " + key);
-                }
-            } else {
+            if (entry == null) {
                 if (mode != Mode.ACTIVE) {
                     throw diverged("the code switches as " + ref + " (" + Entries.site() + ") but the recorded execution has no such switch");
                 }
@@ -1256,6 +1383,36 @@ public final class Replayer {
                     anchorAfter = ref;
                 }
             }
+        }
+
+        /**
+         * The body of the case a recorded switch took: the code's value is not what decides once
+         * the execution has, so a value that differs on a replay (it came from something that is
+         * not recorded) cannot move the execution to another case. Only a recorded case this code
+         * no longer has, with no {@code otherwise} to take it, is a divergence: the code changed.
+         */
+        @SuppressWarnings("unchecked")
+        private Supplier<?> recordedCase(String ref, Map<String, Object> entry, String key,
+                                         Map<String, Supplier<?>> cases, Supplier<?> otherwise) {
+            Map<String, Object> in = (Map<String, Object>) entry.get("inputParameters");
+            String recorded = String.valueOf(in == null ? null : in.get("switchCaseValue"));
+            if (Entries.escape(key).equals(recorded)) {
+                return cases.containsKey(key) ? cases.get(key) : otherwise;
+            }
+            Supplier<?> body = otherwise;
+            for (Map.Entry<String, Supplier<?>> c : cases.entrySet()) {
+                if (Entries.escape(c.getKey()).equals(recorded)) {
+                    body = c.getValue();
+                }
+            }
+            if (body == null) {
+                throw diverged("switch " + ref + " took case " + recorded + " in the recorded execution but the code now takes "
+                        + key + " and has no case for " + recorded);
+            }
+            LOGGER.warn("Switch {} of workflow {} took case {} in the recorded execution and the code now computes {} ({}):"
+                    + " continuing on the recorded case. Its value comes from something that is not recorded.",
+                    ref, exec.workflowId, recorded, key, Entries.site());
+            return body;
         }
 
         /**
@@ -1704,24 +1861,32 @@ public final class Replayer {
             used.add(loopRef + "_backoff");
             used.add(loopRef + "_wait");
             used.add(checkRef);
-            if (exec.entries.containsKey(loopRef)) {
-                pause(this);
-                Execution.TaskView loop = exec.latest(loopRef);
-                if (loop == null || !loop.terminal()) {
-                    throw diverged("lane " + id + " resumed before loop " + loopRef + " finished");
+            if (!exec.entries.containsKey(loopRef)) {
+                if (mode != Mode.ACTIVE) {
+                    throw diverged("the code repeats " + check.name + " as " + loopRef + " but the recorded execution has no such loop");
                 }
-                Execution.TaskView last = exec.latestByBase(checkRef);
-                if (last == null) {
-                    throw new TaskFailure(loopRef, loop.status, loop.reason);
-                }
-                return decode(check, checkRef, last);
+                emit(Entries.continuation(loopEntry(loopRef, check, checkRef, property, backoff), id, counter + 1));
             }
-            if (mode != Mode.ACTIVE) {
-                throw diverged("the code repeats " + check.name + " as " + loopRef + " but the recorded execution has no such loop");
+            pauseOnLoop();
+            Execution.TaskView loop = exec.latest(loopRef);
+            if (loop == null || !loop.terminal()) {
+                throw diverged("lane " + id + " resumed before loop " + loopRef + " finished");
             }
-            emit(Entries.continuation(loopEntry(loopRef, check, checkRef, property, backoff), id, counter + 1));
+            Execution.TaskView last = exec.latestByBase(checkRef);
+            if (last == null) {
+                throw new TaskFailure(loopRef, loop.status, loop.reason);
+            }
+            return decode(check, checkRef, last);
+        }
+
+        /**
+         * Pauses on a loop the server runs. What the loop did is in its tasks, which a lane kept
+         * parked does not have: continuing it reads the execution again ({@link #readsTasks}).
+         */
+        private void pauseOnLoop() {
+            readsTasks = true;
             pause(this);
-            throw new IllegalStateException("a lane resumed within the continuation that paused it");
+            readsTasks = false;
         }
 
         /**
@@ -1739,37 +1904,35 @@ public final class Replayer {
             String loopRef = alloc(name);
             String taskRef = loopRef + "_task";
             used.add(taskRef);
-            if (exec.entries.containsKey(loopRef)) {
-                pause(this);
-                Execution.TaskView loop = exec.latest(loopRef);
-                if (loop == null || !loop.terminal()) {
-                    throw diverged("lane " + id + " resumed before loop " + loopRef + " finished");
+            if (!exec.entries.containsKey(loopRef)) {
+                if (mode != Mode.ACTIVE) {
+                    throw diverged("the code iterates " + task.name + " as " + loopRef + " but the recorded execution has no such loop");
                 }
-                List<Object> results = new ArrayList<>();
-                for (int i = 1; i <= items.size(); i++) {
-                    Execution.TaskView t = exec.latest(taskRef + "__" + i);
-                    if (t == null) {
-                        throw new TaskFailure(loopRef, loop.status, "item " + i + " did not run: " + loop.reason);
-                    }
-                    results.add(decode(task, taskRef, t));
+                task.rawInput.put(itemParameter, "${" + loopRef + ".output.loopItem}");
+                Map<String, Object> entry = new LinkedHashMap<>();
+                entry.put("name", loopRef);
+                entry.put("taskReferenceName", loopRef);
+                entry.put("type", "DO_WHILE");
+                entry.put("inputParameters", Map.of("_items", Entries.escape(Json.plain(items))));
+                entry.put("loopCondition", "true");
+                entry.put("loopOver", List.of(Entries.of(task, taskRef, id)));
+                entry.put("metadata", Entries.metadata(id));
+                emit(Entries.continuation(entry, id, counter + 1));
+            }
+            pauseOnLoop();
+            Execution.TaskView loop = exec.latest(loopRef);
+            if (loop == null || !loop.terminal()) {
+                throw diverged("lane " + id + " resumed before loop " + loopRef + " finished");
+            }
+            List<Object> results = new ArrayList<>();
+            for (int i = 1; i <= items.size(); i++) {
+                Execution.TaskView t = exec.latest(taskRef + "__" + i);
+                if (t == null) {
+                    throw new TaskFailure(loopRef, loop.status, "item " + i + " did not run: " + loop.reason);
                 }
-                return results;
+                results.add(decode(task, taskRef, t));
             }
-            if (mode != Mode.ACTIVE) {
-                throw diverged("the code iterates " + task.name + " as " + loopRef + " but the recorded execution has no such loop");
-            }
-            task.rawInput.put(itemParameter, "${" + loopRef + ".output.loopItem}");
-            Map<String, Object> loop = new LinkedHashMap<>();
-            loop.put("name", loopRef);
-            loop.put("taskReferenceName", loopRef);
-            loop.put("type", "DO_WHILE");
-            loop.put("inputParameters", Map.of("_items", Entries.escape(Json.plain(items))));
-            loop.put("loopCondition", "true");
-            loop.put("loopOver", List.of(Entries.of(task, taskRef, id)));
-            loop.put("metadata", Entries.metadata(id));
-            emit(Entries.continuation(loop, id, counter + 1));
-            pause(this);
-            throw new IllegalStateException("a lane resumed within the continuation that paused it");
+            return results;
         }
 
         private Map<String, Object> loopEntry(String loopRef, Command check, String checkRef, String property, Backoff b) {
