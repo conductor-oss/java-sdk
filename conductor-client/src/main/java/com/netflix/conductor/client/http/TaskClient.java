@@ -170,8 +170,9 @@ public class TaskClient {
 
     /**
      * Detaches the auto-wired {@link MetricsCollector} (if any) from this
-     * client's dispatchers. Called during shutdown to release the entries from
-     * {@link ListenerRegister}'s static registry.
+     * client's dispatchers, after which this client emits no metrics events.
+     * The dispatchers belong to this instance, so this is not needed to free
+     * them; call it only to stop metrics on a client that stays in use.
      */
     public void unregisterListeners() {
         if (metricsCollector != null) {
