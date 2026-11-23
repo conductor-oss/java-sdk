@@ -20,7 +20,10 @@ services:
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-I", "-XGET", "http://localhost:8080/health"]
+      # Images up to 3.34.0-rc2 ship curl but not wget; from rc3 on they ship busybox wget but not
+      # curl. Try both so the status is right on any tag. 127.0.0.1 for wget: busybox wget tries
+      # ::1 first and does not fall back to the IPv4-bound server.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/health || curl -sf http://localhost:8080/health"]
       interval: 10s
       timeout: 10s
       retries: 20
