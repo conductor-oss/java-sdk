@@ -28,7 +28,7 @@ public final class DisabledOnOssCondition implements ExecutionCondition {
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
         return AnnotationSupport.findAnnotation(context.getElement(), DisabledOnOss.class)
-                .filter(annotation -> OSS.equals(System.getenv(SERVER_TYPE_ENV)))
+                .filter(annotation -> TestUtil.isOssServer())
                 .map(annotation -> ConditionEvaluationResult.disabled(
                         SERVER_TYPE_ENV + "=" + OSS, annotation.value()))
                 .orElseGet(() -> ConditionEvaluationResult.enabled("not running against Conductor OSS"));

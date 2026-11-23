@@ -762,8 +762,15 @@ public class TaskClientTests {
 
     // ==================== Search Tests ====================
 
-    // These search on workflowType rather than workflowId: OSS Conductor's Postgres task_index has no
-    // workflow_id column, so a workflowId query fails there.
+    // OSS Conductor's Postgres task_index has no workflow_id column, so a workflowId query fails there.
+    // On the shared Orkes cluster a workflowType query covers every past run of this workflow and can
+    // time out, so only OSS searches by workflowType.
+    private String taskSearchQuery(String workflowId) {
+        return TestUtil.isOssServer()
+                ? "workflowType='" + workflowName + "'"
+                : "workflowId='" + workflowId + "'";
+    }
+
     @Test
     void testSearchTasks() {
         StartWorkflowRequest request = new StartWorkflowRequest();
@@ -774,7 +781,7 @@ public class TaskClientTests {
 
         try {
             var result = TestUtil.retryUntil(
-                    () -> taskClient.search("workflowType='" + workflowName + "'"), 30_000, 2_000);
+                    () -> taskClient.search(taskSearchQuery(workflowId)), 30_000, 2_000);
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
@@ -812,7 +819,7 @@ public class TaskClientTests {
             Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
 
             var result = taskClient.search(
-                    0, 10, "startTime:DESC", "*", "workflowType='" + workflowName + "'");
+                    0, 10, "startTime:DESC", "*", taskSearchQuery(workflowId));
             assertNotNull(result);
         } finally {
             workflowClient.terminateWorkflow(workflowId, "cleanup");
