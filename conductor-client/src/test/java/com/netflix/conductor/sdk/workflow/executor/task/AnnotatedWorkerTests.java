@@ -19,13 +19,21 @@ import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
+import com.netflix.conductor.client.events.taskrunner.TaskAckFailure;
+import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.ConductorClientRequest;
+import com.netflix.conductor.client.http.ConductorClientResponse;
 import com.netflix.conductor.client.http.TaskClient;
+import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.sdk.workflow.executor.task.workers1.CarWorker1;
@@ -37,9 +45,14 @@ import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AnnotatedWorkerTests {
     private void testAnnotatedWorkersExecutor(Consumer<AnnotatedWorkerExecutor> test) {
@@ -82,6 +95,125 @@ public class AnnotatedWorkerTests {
         testAnnotatedWorkersExecutor(executor -> executor.initWorkersFromInstances(List.of(
                 new CarWorker1(), new JumboWorker1(), new CarWorker2(), new JumboWorker2()
         )));
+    }
+
+    @Test
+    @DisplayName("initWorkers should leave exactly one task runner polling")
+    void initWorkersStartsASingleTaskRunner() {
+        var executor = new AnnotatedWorkerExecutor(mock(TaskClient.class));
+        executor.initWorkers("com.netflix.conductor.sdk.workflow.executor.task.workers1");
+
+        var runner = executor.getTaskRunner();
+        assertNotNull(runner);
+
+        // The shape used by examples/old/.../taskdomains/Main.java and by callers following the
+        // docs: initWorkers() followed by an explicit startPolling(). This must not stand up a
+        // replacement runner alongside the live one.
+        executor.startPolling();
+        assertSame(runner, executor.getTaskRunner());
+
+        executor.shutdown();
+    }
+
+    @Test
+    @DisplayName("startPolling should be a no-op while the worker set is unchanged")
+    void startPollingIsIdempotent() {
+        var executor = new AnnotatedWorkerExecutor(mock(TaskClient.class));
+        executor.addBean(new MultipleInputParams());
+
+        executor.startPolling();
+        var first = executor.getTaskRunner();
+        assertNotNull(first);
+
+        executor.startPolling();
+        executor.startPolling();
+        assertSame(first, executor.getTaskRunner());
+
+        executor.shutdown();
+    }
+
+    @Test
+    @DisplayName("startPolling should still rebuild the task runner once new workers are added")
+    void startPollingRebuildsWhenWorkersAreAdded() {
+        var executor = new AnnotatedWorkerExecutor(mock(TaskClient.class));
+        executor.addBean(new MultipleInputParams());
+        executor.startPolling();
+        var first = executor.getTaskRunner();
+        assertEquals(1, first.getWorkerCount());
+
+        executor.addBean(new AnotherAnnotationInput());
+        executor.startPolling();
+        var second = executor.getTaskRunner();
+
+        assertNotSame(first, second);
+        assertEquals(2, second.getWorkerCount());
+
+        executor.shutdown();
+    }
+
+    @Test
+    @DisplayName("startPolling should build a fresh task runner after a shutdown")
+    void startPollingRestartsAfterShutdown() {
+        var executor = new AnnotatedWorkerExecutor(mock(TaskClient.class));
+        executor.addBean(new MultipleInputParams());
+        executor.startPolling();
+        var first = executor.getTaskRunner();
+        assertNotNull(first);
+
+        // A TaskRunnerConfigurer is single-use, so shutdown() has to clear the field as well as
+        // shut the runner down. Otherwise startPolling()'s idempotence check sees a non-null
+        // runner with an unchanged worker set and silently declines to poll ever again.
+        executor.shutdown();
+        assertNull(executor.getTaskRunner());
+
+        executor.startPolling();
+        var second = executor.getTaskRunner();
+        assertNotNull(second);
+        assertNotSame(first, second);
+        assertEquals(1, second.getWorkerCount());
+
+        executor.shutdown();
+    }
+
+    @Test
+    @DisplayName("TaskClient metrics should keep flowing after a restart and after adding a worker")
+    @SuppressWarnings("unchecked")
+    void taskClientMetricsSurviveRunnerReplacement() throws InterruptedException {
+        var collector = mock(MetricsCollector.class);
+        // Delivery is asynchronous, so record ack failures and wait on them. Only this overload is
+        // stubbed: the collector also receives poll events through its other consume() overloads.
+        BlockingQueue<String> ackFailures = new LinkedBlockingQueue<>();
+        doAnswer(invocation -> ackFailures.add(invocation.<TaskAckFailure>getArgument(0).getTaskId()))
+                .when(collector).consume(any(TaskAckFailure.class));
+        var conductorClient = mock(ConductorClient.class);
+        when(conductorClient.getMetricsCollector()).thenReturn(collector);
+        // Polls get no tasks; acks are declined, so TaskClient publishes a TaskAckFailure to its
+        // auto-wired collector -- the listener a TaskRunnerConfigurer shutdown used to remove.
+        when(conductorClient.execute(any(ConductorClientRequest.class), any(TypeReference.class)))
+                .thenAnswer(invocation -> {
+                    ConductorClientRequest request = invocation.getArgument(0);
+                    Object data = request.getPath().endsWith("/ack") ? Boolean.FALSE : List.of();
+                    return new ConductorClientResponse<>(200, Map.of(), data);
+                });
+
+        var taskClient = new TaskClient(conductorClient);
+        var executor = new AnnotatedWorkerExecutor(taskClient);
+        executor.addBean(new MultipleInputParams());
+        executor.startPolling();
+
+        executor.shutdown();
+        executor.startPolling();
+        taskClient.ack("multiple_input_params", "after-restart", "worker");
+        assertEquals("after-restart", ackFailures.poll(5, TimeUnit.SECONDS));
+
+        // Builds the new runner before shutting the old one down, which is the order that
+        // detached the listeners out from under the live runner.
+        executor.addBean(new AnotherAnnotationInput());
+        executor.startPolling();
+        taskClient.ack("multiple_input_params", "after-add", "worker");
+        assertEquals("after-add", ackFailures.poll(5, TimeUnit.SECONDS));
+
+        executor.shutdown();
     }
 
     @Test

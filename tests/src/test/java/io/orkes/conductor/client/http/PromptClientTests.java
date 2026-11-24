@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +30,10 @@ import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.model.integration.Category;
 import io.orkes.conductor.client.model.integration.IntegrationApiUpdate;
 import io.orkes.conductor.client.model.integration.IntegrationUpdate;
-import org.conductoross.conductor.client.model.ai.PromptTemplate;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
+@DisabledOnOss("the Prompts and Integrations APIs (/prompts, /integrations) are not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/prompts|integrations/...')")
 public class PromptClientTests {
     private static final String PROMPT_NAME = "test-sdk-java-prompt";
     private static final String PROMPT_DESCRIPTION = "Test prompt for Java SDK";

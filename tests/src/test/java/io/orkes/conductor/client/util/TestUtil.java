@@ -156,6 +156,11 @@ public class TestUtil {
                 .until(call, result -> true);
     }
 
+    /** True when the suite runs against plain Conductor OSS, i.e. {@code CONDUCTOR_SERVER_TYPE=oss}. */
+    public static boolean isOssServer() {
+        return DisabledOnOssCondition.OSS.equals(System.getenv(DisabledOnOssCondition.SERVER_TYPE_ENV));
+    }
+
     private static boolean isTerminalFailure(Workflow workflow) {
         return workflow.getStatus() == Workflow.WorkflowStatus.FAILED
                 || workflow.getStatus() == Workflow.WorkflowStatus.TERMINATED;

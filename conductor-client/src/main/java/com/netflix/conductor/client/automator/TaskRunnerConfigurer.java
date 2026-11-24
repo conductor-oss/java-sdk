@@ -159,9 +159,11 @@ public class TaskRunnerConfigurer {
             }
         }
         scheduledExecutorService.shutdown();
+        // Only this configurer's own dispatcher. The TaskClient is the caller's and may outlive
+        // this configurer (AnnotatedWorkerExecutor reuses it for the next runner), so its
+        // listeners are left in place.
         if (metricsCollector != null) {
             ListenerRegister.unregister(metricsCollector, eventDispatcher);
-            taskClient.unregisterListeners();
         }
     }
 

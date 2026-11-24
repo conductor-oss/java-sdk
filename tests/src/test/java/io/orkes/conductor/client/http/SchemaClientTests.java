@@ -23,7 +23,9 @@ import com.netflix.conductor.common.metadata.SchemaDef;
 
 import io.orkes.conductor.client.SchemaClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
+@DisabledOnOss("the Schema API (/schema) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/schema')")
 public class SchemaClientTests {
 
     private static final String SCHEMA_NAME = "test-sdk-java-schema";

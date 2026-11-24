@@ -48,7 +48,9 @@ import io.orkes.conductor.client.model.UpsertGroupRequest.RolesEnum;
 import io.orkes.conductor.client.model.UpsertUserRequest;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
+@DisabledOnOss("the Authorization APIs (applications/users/groups/roles/permissions) are not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/applications|users|groups|...')")
 public class AuthorizationClientTests {
     private static AuthorizationClient authorizationClient;
     private static String applicationId;

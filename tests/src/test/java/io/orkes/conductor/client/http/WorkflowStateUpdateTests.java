@@ -35,6 +35,7 @@ import com.netflix.conductor.common.run.Workflow;
 
 import io.orkes.conductor.client.model.WorkflowStateUpdate;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 import lombok.SneakyThrows;
 
@@ -91,6 +92,7 @@ public class WorkflowStateUpdateTests {
     }
 
     @Test
+    @DisabledOnOss("POST /workflow/{workflowId}/state (updateWorkflow) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/{id}/state')")
     public void test() {
         String workflowId = startWorkflow();
         System.out.println(workflowId);
@@ -135,6 +137,7 @@ public class WorkflowStateUpdateTests {
     }
 
     @Test
+    @DisabledOnOss("OSS Conductor ignores start-workflow idempotency keys (RETURN_EXISTING starts a new run instead of returning the original workflowId); see conductor-oss/conductor#1527")
     public void testIdempotency() {
         StartWorkflowRequest startWorkflowRequest = new StartWorkflowRequest();
         startWorkflowRequest.setName("sync_task_variable_updates");

@@ -24,6 +24,7 @@ import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import io.orkes.conductor.client.model.TagObject;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.DisabledOnOss;
 import io.orkes.conductor.client.util.TestUtil;
 import io.orkes.conductor.client.util.WorkflowUtil;
 
@@ -73,6 +74,7 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledOnOss("task tagging (/metadata/task/{name}/tags) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/metadata/task/{name}/tags')")
     void tagTask() throws Exception {
         metadataClient.registerTaskDefs(List.of(Commons.getTaskDef()));
         try {
@@ -98,6 +100,7 @@ public class MetadataClientTests {
     }
 
     @Test
+    @DisabledOnOss("workflow tagging (/metadata/workflow/{name}/tags) is not implemented by OSS Conductor; the path falls through to DELETE /metadata/workflow/{name}/{version} with version=\"tags\", so other methods 405")
     void tagWorkflow() {
         TagObject tagObject = Commons.getTagObject();
         try {

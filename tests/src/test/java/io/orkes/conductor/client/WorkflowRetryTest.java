@@ -31,11 +31,13 @@ import io.orkes.conductor.client.http.OrkesTaskClient;
 import io.orkes.conductor.client.http.OrkesWorkflowClient;
 import io.orkes.conductor.client.util.ClientTestUtil;
 import io.orkes.conductor.client.util.Commons;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DisabledOnOss("workflowClient.uploadCompletedWorkflows() (/workflow/document-store/upload) is not implemented by plain OSS Conductor, confirmed empirically (404 'No static resource api/workflow/document-store/upload')")
 public class WorkflowRetryTest {
     private final OrkesMetadataClient metadataClient;
     private final OrkesWorkflowClient workflowClient;

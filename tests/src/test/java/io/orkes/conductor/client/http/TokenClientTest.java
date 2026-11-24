@@ -20,7 +20,9 @@ import org.junit.jupiter.api.Test;
 import io.orkes.conductor.client.model.GenerateTokenRequest;
 import io.orkes.conductor.client.model.TokenResponse;
 import io.orkes.conductor.client.util.ClientTestUtil;
+import io.orkes.conductor.client.util.DisabledOnOss;
 
+@DisabledOnOss("the auth Token API (/token) is not implemented by plain OSS Conductor (which has no authentication layer), confirmed empirically (404 'No static resource api/token')")
 public class TokenClientTest {
 
     public static OrkesTokenClient tokenClient;
