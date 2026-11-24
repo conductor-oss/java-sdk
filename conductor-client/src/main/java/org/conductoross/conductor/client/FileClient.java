@@ -45,8 +45,8 @@ import com.netflix.conductor.client.http.ConductorClientRequest.Method;
 
 import io.orkes.conductor.client.http.ApiException;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.OkHttpClient;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Workflow-scoped client for Conductor file storage.

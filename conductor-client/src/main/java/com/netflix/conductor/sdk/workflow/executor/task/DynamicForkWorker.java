@@ -25,7 +25,7 @@ import com.netflix.conductor.sdk.workflow.def.tasks.DynamicFork;
 import com.netflix.conductor.sdk.workflow.def.tasks.DynamicForkInput;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class DynamicForkWorker implements Worker {
 

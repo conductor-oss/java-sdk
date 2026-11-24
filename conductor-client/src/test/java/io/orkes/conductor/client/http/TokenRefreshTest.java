@@ -28,12 +28,12 @@ import com.netflix.conductor.client.http.ConductorClientResponse;
 
 import io.orkes.conductor.client.ApiClient;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import tools.jackson.core.type.TypeReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
