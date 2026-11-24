@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.conductoross.conductor.ai.internal.JsonMapper;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Execute code via a remote serverless execution service.

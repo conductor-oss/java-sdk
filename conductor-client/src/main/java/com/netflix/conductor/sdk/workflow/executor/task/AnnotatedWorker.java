@@ -12,7 +12,6 @@
  */
 package com.netflix.conductor.sdk.workflow.executor.task;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

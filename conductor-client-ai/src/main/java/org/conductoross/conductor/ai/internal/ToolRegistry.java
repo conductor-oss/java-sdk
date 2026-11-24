@@ -322,9 +322,9 @@ public class ToolRegistry {
         // even when the method signature declares List<Double>.
         if (List.class.isAssignableFrom(targetType)) {
             try {
-                com.fasterxml.jackson.databind.type.TypeFactory tf =
+                tools.jackson.databind.type.TypeFactory tf =
                         JsonMapper.get().getTypeFactory();
-                com.fasterxml.jackson.databind.JavaType jt = (genericType != null)
+                tools.jackson.databind.JavaType jt = (genericType != null)
                         ? tf.constructType(genericType)
                         : tf.constructCollectionType(List.class, Object.class);
                 return JsonMapper.get().convertValue(value, jt);
@@ -355,7 +355,7 @@ public class ToolRegistry {
         }
         // Fallback: try Jackson conversion for complex types
         try {
-            com.fasterxml.jackson.databind.JavaType jt = (genericType != null)
+            tools.jackson.databind.JavaType jt = (genericType != null)
                     ? JsonMapper.get().getTypeFactory().constructType(genericType)
                     : JsonMapper.get().getTypeFactory().constructType(targetType);
             return JsonMapper.get().convertValue(value, jt);
