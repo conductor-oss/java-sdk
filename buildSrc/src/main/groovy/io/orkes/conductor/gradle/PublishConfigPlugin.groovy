@@ -2,7 +2,6 @@ package io.orkes.conductor.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.GradleException
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.plugins.signing.SigningPlugin
 import org.gradle.api.publish.maven.MavenPublication
@@ -19,9 +18,8 @@ class PublishConfigPlugin implements Plugin<Project> {
         project.plugins.withType(SigningPlugin) {
             signingConfig(project)
         }
-        
-        // Add Maven Central promotion task
-        addMavenCentralPromotionTask(project)
+        // Promotion to Maven Central is the root project's promoteToMavenCentral task,
+        // run once per build rather than once per module.
     }
 
     def publishingConfig(Project project) {
@@ -42,62 +40,6 @@ class PublishConfigPlugin implements Plugin<Project> {
                 }
                 sign project.publishing.publications
             }
-        }
-    }
-
-    def addMavenCentralPromotionTask(Project project) {
-        project.task('promoteToMavenCentral') {
-            group = 'publishing'
-            description = 'Promotes staged artifacts to Maven Central'
-            
-            onlyIf {
-                project.hasProperty('mavenCentral') && 
-                project.hasProperty('username') && 
-                project.hasProperty('password') &&
-                !project.version.endsWith('-SNAPSHOT')
-            }
-            
-            doLast {
-                def username = project.properties['username']
-                def password = project.properties['password']
-                
-                // Create base64 encoded token for authentication
-                def token = "${username}:${password}".bytes.encodeBase64().toString()
-                
-                // Get open staging repositories
-                def response = new URL("https://ossrh-staging-api.central.sonatype.com/manual/search/repositories")
-                    .openConnection()
-                response.setRequestProperty("Authorization", "Basic ${token}")
-                response.setRequestProperty("Content-Type", "application/json")
-                
-                def repositories = new groovy.json.JsonSlurper().parse(response.inputStream)
-                
-                // Promote each open repository
-                repositories.repositories.each { repo ->
-                    if (repo.state == "open") {
-                        project.logger.lifecycle("Promoting repository ${repo.key}")
-                        
-                        def promoteUrl = new URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/repository/${repo.key}?publishing_type=automatic")
-                        def connection = promoteUrl.openConnection()
-                        connection.setRequestMethod("POST")
-                        connection.setRequestProperty("Authorization", "Basic ${token}")
-                        connection.setRequestProperty("Content-Type", "application/json")
-                        
-                        def responseCode = connection.responseCode
-                        if (responseCode == 200) {
-                            project.logger.lifecycle("Successfully promoted repository ${repo.key}")
-                        } else {
-                            def errorMessage = "Failed to promote repository ${repo.key}. Response code: ${responseCode}. Response: ${connection.responseMessage}"
-                            project.logger.error(errorMessage)
-                            throw new GradleException(errorMessage)
-                        }
-                    }
-                }
-            }
-        }
-        
-        project.tasks.matching { it.name == 'publish' }.configureEach { publishTask ->
-            publishTask.finalizedBy project.tasks.promoteToMavenCentral
         }
     }
 
