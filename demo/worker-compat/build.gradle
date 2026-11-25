@@ -1,11 +1,22 @@
 // Worker code compiled against a chosen conductor-client release.
 //   -PsdkVersion=6.0.2              released SDK (Jackson 2), from Maven Central
-//   -PsdkVersion=0.0.0-pr189-demo   this branch, published with publishToMavenLocal
+//   -PsdkVersion=0.0.0-pr189-...    an SDK published with publishToMavenLocal
+//   -PuserCode=jackson2|migrated    user classes as written for 6.x, or with Jackson 3
+//                                   annotations added (src/userCode/<name>/java)
 plugins {
     id 'java'
 }
 
 def sdkVersion = findProperty('sdkVersion') ?: '6.0.2'
+def userCode = findProperty('userCode') ?: 'jackson2'
+
+sourceSets {
+    test {
+        java {
+            srcDir "src/userCode/${userCode}/java"
+        }
+    }
+}
 
 repositories {
     mavenLocal()
@@ -21,6 +32,11 @@ dependencies {
     testImplementation "org.conductoross:conductor-client:${sdkVersion}"
     // The worker app's own Jackson 2, e.g. from Spring Boot 3 or a REST client.
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.18.6'
+    if (userCode == 'migrated') {
+        // Jackson 3 annotations only need to compile. At runtime on SDK 6.x they are absent,
+        // and the JVM ignores annotations whose classes are missing.
+        testCompileOnly 'tools.jackson.core:jackson-databind:3.1.7'
+    }
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

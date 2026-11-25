@@ -14,7 +14,6 @@ package workercompat;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,10 +33,6 @@ import com.netflix.conductor.sdk.workflow.task.InputParam;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.sun.net.httpserver.HttpServer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,20 +44,13 @@ import static org.assertj.core.api.Assertions.fail;
  *
  * <p>Inputs are checked on the object the worker method receives. Outputs are checked on the JSON
  * that TaskClient.updateTask() actually sends, captured by a fake server.
+ *
+ * <p>Customer and Shipment carry Jackson 2 annotations and come from src/userCode/{jackson2,migrated},
+ * picked with -PuserCode. Tier is in Tier.java.
  */
 class WorkerCompatTest {
 
     // ---- Worker types, as a user would write them ----
-
-    public enum Tier {
-        GOLD,
-        SILVER;
-
-        @Override
-        public String toString() {
-            return name().toLowerCase();
-        }
-    }
 
     public static class Order {
         public Tier tier;
@@ -72,19 +60,6 @@ class WorkerCompatTest {
         public List<String> getItems() {
             return items;
         }
-    }
-
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-    public static class Customer {
-        public String customerId;
-    }
-
-    public static class Shipment {
-        public Tier tier = Tier.GOLD;
-        public Duration timeout = Duration.ofSeconds(90);
-
-        @JsonSerialize(using = ToStringSerializer.class)
-        public long trackingId = 42;
     }
 
     public static class Workers {
