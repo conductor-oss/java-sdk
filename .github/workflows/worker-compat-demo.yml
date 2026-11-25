@@ -1,0 +1,70 @@
+# Demo for PR #189 (Jackson 3), issues 2 and 3: the same worker code against the released
+# Jackson 2 SDK (6.0.2) and against this branch. Each test asserts the 6.0.2 behavior, so a
+# red test on this branch is a change worker authors would see after upgrading.
+name: Worker compatibility demo
+
+on:
+  push:
+    branches:
+      - demo/boot3-jackson-annotations
+
+jobs:
+  worker-compat:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: SDK 6.0.2 (released, Jackson 2)
+            sdk: '6.0.2'
+            build: false
+          - label: SDK from this branch (Jackson 3)
+            sdk: '0.0.0-pr189-demo'
+            build: true
+    env:
+      DEMO_M2: ${{ github.workspace }}/build/demo-m2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Zulu JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - name: Publish this branch's SDK to a local Maven repo
+        if: matrix.build
+        run: ./gradlew :conductor-client:publishToMavenLocal -Pversion=${{ matrix.sdk }} -Dmaven.repo.local="$DEMO_M2"
+
+      - name: Run worker tests
+        id: tests
+        run: ./gradlew -p demo/worker-compat test -PsdkVersion=${{ matrix.sdk }} -Dmaven.repo.local="$DEMO_M2"
+
+      - name: Summary
+        if: always()
+        env:
+          LABEL: ${{ matrix.label }}
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import glob, os, xml.etree.ElementTree as ET
+          rows = []
+          for path in glob.glob('demo/worker-compat/build/test-results/test/*.xml'):
+              for case in ET.parse(path).getroot().iter('testcase'):
+                  failure = case.find('failure')
+                  detail = ''
+                  if failure is not None:
+                      detail = ' '.join((failure.get('message') or '').split())[:160]
+                      detail = detail.replace('|', '\\|')
+                  rows.append((case.get('name'), failure is None, detail))
+          rows.sort()
+          print(f"### {os.environ['LABEL']}")
+          print()
+          print("| Behavior (as in SDK 6.0.2) | Result | What happened instead |")
+          print("|---|---|---|")
+          for name, ok, detail in rows:
+              print(f"| {name} | {'✅' if ok else '❌'} | {detail} |")
+          EOF
+          cat "$GITHUB_STEP_SUMMARY"
