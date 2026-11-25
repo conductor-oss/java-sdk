@@ -12,6 +12,10 @@
  */
 package operator;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,7 +39,7 @@ public class ShipmentTasks {
     }
 
     /** Executions the failure workflow was started for. */
-    public static final java.util.List<String> failedShipments = new java.util.concurrent.CopyOnWriteArrayList<>();
+    public static final List<String> failedShipments = new CopyOnWriteArrayList<>();
 
     /** Runs of the scheduled workflow. */
     public static final AtomicInteger pings = new AtomicInteger();
@@ -46,7 +50,7 @@ public class ShipmentTasks {
         return "recorded failure of " + workflowId + ": " + reason;
     }
 
-    private static final java.util.Map<String, AtomicInteger> routeCalls = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<String, AtomicInteger> routeCalls = new ConcurrentHashMap<>();
 
     /** "x" the first time for an id, "y" after that. */
     @WorkerTask("route_decide")
@@ -70,7 +74,7 @@ public class ShipmentTasks {
     }
 
     /** Runs of each task of the forked workflow, by task name and execution input. */
-    public static final java.util.Map<String, AtomicInteger> forkRuns = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final Map<String, AtomicInteger> forkRuns = new ConcurrentHashMap<>();
 
     private static int ranFork(String task, String id) {
         return forkRuns.computeIfAbsent(task + "/" + id, k -> new AtomicInteger()).incrementAndGet();
@@ -105,7 +109,7 @@ public class ShipmentTasks {
     }
 
     /** Runs of each task of the looped workflow, by task and item or execution input. */
-    public static final java.util.Map<String, AtomicInteger> loopRuns = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final Map<String, AtomicInteger> loopRuns = new ConcurrentHashMap<>();
 
     private static int ranLoop(String key) {
         return loopRuns.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();

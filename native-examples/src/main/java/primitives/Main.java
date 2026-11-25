@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.conductoross.conductor.sdk.Conductor;
+import org.conductoross.conductor.sdk.WorkflowFailedException;
 import org.conductoross.conductor.sdk.WorkflowHandle;
 import org.conductoross.conductor.sdk.testing.DurableReplay;
 
@@ -175,7 +176,7 @@ public class Main {
                 reason != null && reason.contains("declined: ok after 3"), fails);
         Throwable failedAsync = fails.resultAsync().handle((result, error) -> error).join();
         check("futures: resultAsync of a failed run completes with WorkflowFailedException",
-                failedAsync instanceof org.conductoross.conductor.sdk.WorkflowFailedException, fails);
+                failedAsync instanceof WorkflowFailedException, fails);
 
         // ---------------------------------------------------------------- side effects
         WorkflowHandle<SideEffects.Seen> seen = started(SideEffects.class, conductor.start(SideEffects::run, "ord"));

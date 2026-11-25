@@ -15,6 +15,7 @@ package operator;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Workflow;
@@ -118,7 +119,7 @@ public class FleetWorkflow {
         ConductorClient client = ConductorClient.fromEnvironment();
         Conductor conductor = Conductor.of(client);
         conductor.workflows(FleetWorkflow.class).tasks(new FleetTasks()).start();
-        WorkflowHandle<String> run = conductor.start(FleetWorkflow::run, java.util.UUID.randomUUID().toString());
+        WorkflowHandle<String> run = conductor.start(FleetWorkflow::run, UUID.randomUUID().toString());
         System.out.println("execution: " + run.workflowId());
         System.out.println("result:    " + run.result(Duration.ofMinutes(2)));
         conductor.close();

@@ -46,7 +46,7 @@ public final class Execution {
     public final Map<String, Object> nativeState;
     public final List<TaskView> tasks = new ArrayList<>();
     /** Every definition entry at any depth, by reference name. */
-    public final Map<String, Map<String, Object>> entries = new java.util.LinkedHashMap<>();
+    public final Map<String, Map<String, Object>> entries = new LinkedHashMap<>();
     /** Every value the code recorded ({@code once}, {@code now}, {@code random}), by name. */
     public final Map<String, Object> recorded = new HashMap<>();
     private final Map<String, TaskView> latest = new HashMap<>();

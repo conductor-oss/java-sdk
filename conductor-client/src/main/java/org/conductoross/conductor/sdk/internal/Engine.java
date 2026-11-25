@@ -15,6 +15,7 @@ package org.conductoross.conductor.sdk.internal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -60,7 +61,7 @@ public interface Engine {
      * all branches, runs the body of the case the value selects (or {@code otherwise}), and
      * returns what it returned. Cases are keyed by the value's string form.
      */
-    Object switchOn(String name, Object value, java.util.Map<String, Supplier<?>> cases, Supplier<?> otherwise);
+    Object switchOn(String name, Object value, Map<String, Supplier<?>> cases, Supplier<?> otherwise);
 
     /**
      * Whether the {@code doWhile} named {@code name} runs another pass. The condition is always

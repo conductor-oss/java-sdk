@@ -12,6 +12,8 @@
  */
 package stubsite;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,8 +72,8 @@ class StubCallSiteTest {
         List<Map<String, Object>> fragment = (List<Map<String, Object>>) out.output.get("fragment");
         assertEquals(1, fragment.size(), "the replay paused on the task: " + out.output);
         Map<String, Object> entry = fragment.get(0);
-        List<String> source = java.nio.file.Files.readAllLines(
-                java.nio.file.Path.of("src/test/java/stubsite/StubCallSiteTest.java"));
+        List<String> source = Files.readAllLines(
+                Path.of("src/test/java/stubsite/StubCallSiteTest.java"));
         int line = 1;
         while (!source.get(line - 1).contains("// CALL_" + "LINE")) {
             line++;

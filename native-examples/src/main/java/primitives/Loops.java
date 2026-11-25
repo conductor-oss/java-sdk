@@ -15,6 +15,8 @@ package primitives;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.Workflow;
@@ -57,7 +59,7 @@ public class Loops {
             return new Status(check, check >= 3);
         }
 
-        private final java.util.Map<String, Integer> polls = new java.util.concurrent.ConcurrentHashMap<>();
+        private final Map<String, Integer> polls = new ConcurrentHashMap<>();
 
         /** Done on the third poll of a key; counts per worker, so a polling loop needs no input change. */
         @WorkerTask("p_poll")

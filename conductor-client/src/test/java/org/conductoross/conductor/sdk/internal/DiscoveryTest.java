@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Signal;
@@ -34,10 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The definition registered for a workflow class is discovered from its code. */
+@SuppressWarnings("unchecked") // generic test data read back from maps and mocks
 class DiscoveryTest {
 
     /** The task stub the workflows below call: its calls schedule the tasks. */
-    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+    static final Tasks TASKS = Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("pick")
@@ -121,7 +123,7 @@ class DiscoveryTest {
         assertEquals("ship", cases.get("true").get(0).get("taskReferenceName"));
     }
 
-    static final java.util.concurrent.atomic.AtomicInteger SIDE_EFFECTS = new java.util.concurrent.atomic.AtomicInteger();
+    static final AtomicInteger SIDE_EFFECTS = new AtomicInteger();
     static volatile boolean releaseSpin;
 
     public static class Spins {

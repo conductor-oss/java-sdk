@@ -15,6 +15,7 @@ package org.conductoross.conductor.sdk.internal;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.conductoross.conductor.sdk.Conductor;
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CodeReaderTest {
 
     /** The task stub the workflows below call: its calls schedule the tasks. */
-    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+    static final Tasks TASKS = Conductor.stub(Tasks.class);
 
     public record Plan(List<String> items, boolean needsApproval, Map<String, String> owner) {}
 
@@ -156,7 +157,7 @@ class CodeReaderTest {
 
         @Workflow(name = "joined_at_once")
         public String joinedAtOnce(String x) {
-            java.util.concurrent.Future<String> p = Conductor.async(() -> TASKS.ship(x));
+            Future<String> p = Conductor.async(() -> TASKS.ship(x));
             Conductor.join(p);
             return p.resultNow();
         }
@@ -169,7 +170,7 @@ class CodeReaderTest {
 
         @Workflow(name = "joined_later")
         public String joinedLater(String x) {
-            java.util.concurrent.Future<String> p = Conductor.async(() -> TASKS.ship(x));
+            Future<String> p = Conductor.async(() -> TASKS.ship(x));
             TASKS.tell(x);
             Conductor.join(p);
             return p.resultNow();

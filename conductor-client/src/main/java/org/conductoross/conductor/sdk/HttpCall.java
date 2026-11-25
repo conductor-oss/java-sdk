@@ -12,11 +12,13 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Engine;
+import org.conductoross.conductor.sdk.internal.Entries;
 import org.conductoross.conductor.sdk.internal.Json;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,14 +37,14 @@ public final class HttpCall {
         request.put("method", "GET");
         request.put("connectionTimeOut", 3000);
         request.put("readTimeOut", 10000);
-        retries(3, java.time.Duration.ofSeconds(1));
+        retries(3, Duration.ofSeconds(1));
     }
 
     /** Retries after a failure, with exponential backoff from the given delay; default 3 and 1s. */
-    public HttpCall retries(int count, java.time.Duration delay) {
+    public HttpCall retries(int count, Duration delay) {
         command.fields.put(
                 "taskDefinition",
-                org.conductoross.conductor.sdk.internal.Entries.retryingDefinition(
+                Entries.retryingDefinition(
                         command.name, count, Math.max(1, delay.toSeconds())));
         return this;
     }

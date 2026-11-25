@@ -12,10 +12,15 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.conductoross.conductor.sdk.internal.Json;
+import org.conductoross.conductor.sdk.internal.JsonSchemas;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,9 +29,11 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
+import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -60,10 +67,10 @@ class WorkerProtocolTest {
     }
 
     /** The entry a handed-out continuation's task carries: its lane, and its number in it. */
-    private static com.netflix.conductor.common.metadata.workflow.WorkflowTask entry(String ref, String lane, int n) {
-        var entry = new com.netflix.conductor.common.metadata.workflow.WorkflowTask();
+    private static WorkflowTask entry(String ref, String lane, int n) {
+        var entry = new WorkflowTask();
         entry.setTaskReferenceName(ref);
-        entry.setMetadata(new java.util.HashMap<>(Map.of("lane", lane, "continuation", n)));
+        entry.setMetadata(new HashMap<>(Map.of("lane", lane, "continuation", n)));
         return entry;
     }
 
@@ -98,7 +105,7 @@ class WorkerProtocolTest {
 
     public static class Notes {
         @Variable
-        private List<String> notes = new java.util.ArrayList<>();
+        private List<String> notes = new ArrayList<>();
 
         @Signal("add")
         public void add(String note) {
@@ -138,9 +145,9 @@ class WorkerProtocolTest {
         Map<String, Object> output = result.getOutputData();
         assertEquals(List.of("first", "second"), ((Map<String, Object>) output.get("variables")).get("notes"));
         Map<String, Object> replies = (Map<String, Object>) output.get("replies");
-        assertEquals(java.util.Set.of("s-1", "s-2"), replies.keySet());
+        assertEquals(Set.of("s-1", "s-2"), replies.keySet());
         // a signal's entry says only when it was handled
-        assertEquals(java.util.Set.of("at"), ((Map<String, Object>) replies.get("s-2")).keySet());
+        assertEquals(Set.of("at"), ((Map<String, Object>) replies.get("s-2")).keySet());
         assertEquals(null, output.get("seen"));
     }
 
@@ -167,7 +174,7 @@ class WorkerProtocolTest {
     @SuppressWarnings("unchecked")
     void schemasAreRegisteredByNameVersionedByContentAndNotEnforced() throws Exception {
         // the input schema is registered already as version 2; the output had another shape
-        String input = Json.MAPPER.writeValueAsString(org.conductoross.conductor.sdk.internal.JsonSchemas.taskInput(
+        String input = Json.MAPPER.writeValueAsString(JsonSchemas.taskInput(
                 Typed.class.getMethod("typed", int.class)));
         List<String> posted = answer(
                 "[{\"name\":\"typed_task_input\",\"version\":2,\"data\":" + input + "},"
@@ -190,8 +197,8 @@ class WorkerProtocolTest {
 
     /** Answers by path, the schemas and task definitions given; records each POST as "path body". */
     private List<String> answer(String schemas, String taskDefs) {
-        List<String> posted = new java.util.concurrent.CopyOnWriteArrayList<>();
-        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher() {
+        List<String> posted = new CopyOnWriteArrayList<>();
+        server.setDispatcher(new Dispatcher() {
             @Override
             public MockResponse dispatch(RecordedRequest request) {
                 String path = request.getPath() == null ? "" : request.getPath().replaceAll("\\?.*", "");

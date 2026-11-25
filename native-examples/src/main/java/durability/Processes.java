@@ -14,6 +14,8 @@ package durability;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -202,8 +204,8 @@ final class Processes {
         }
 
         boolean ready() {
-            try (java.net.Socket s = new java.net.Socket()) {
-                s.connect(new java.net.InetSocketAddress("127.0.0.1", port), 1000);
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress("127.0.0.1", port), 1000);
                 return Processes.run("docker", "exec", container, "pg_isready", "-q") == 0;
             } catch (IOException e) {
                 return false;

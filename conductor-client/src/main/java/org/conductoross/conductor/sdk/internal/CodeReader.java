@@ -18,18 +18,25 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Handle;
@@ -115,7 +122,7 @@ public final class CodeReader {
      * code decides on and {@code lastLine} the last line of its arms; {@code at} is the instruction
      * that decides and {@code region} the instructions of its arms.
      */
-    public record Branch(String name, int line, int lastLine, List<Arm> arms, String site, int at, java.util.BitSet region) {
+    public record Branch(String name, int line, int lastLine, List<Arm> arms, String site, int at, BitSet region) {
         /** The arm whose calls are made from this line, or null. */
         public Arm armAt(int callLine) {
             for (Arm arm : arms) {
@@ -129,20 +136,6 @@ public final class CodeReader {
         /** Whether {@code other}, of the same method, lies inside one of this branch's arms. */
         public boolean contains(Branch other) {
             return other != this && region.get(other.at);
-        }
-
-        /** The arm to draw as taken when the code went past without a call: the only one that can. */
-        public Arm onlyArmWithoutCalls() {
-            Arm only = null;
-            for (Arm arm : arms) {
-                if (arm.canSkip()) {
-                    if (only != null) {
-                        return null;
-                    }
-                    only = arm;
-                }
-            }
-            return only;
         }
 
         Decision decision() {
@@ -253,7 +246,7 @@ public final class CodeReader {
             // forward from the call, stopping at any other call; then back from the next call
             boolean[] fwd = new boolean[n];
             int[] depth = new int[n];
-            java.util.Arrays.fill(depth, Integer.MAX_VALUE);
+            Arrays.fill(depth, Integer.MAX_VALUE);
             ArrayDeque<Integer> todo = new ArrayDeque<>();
             boolean[] reached = new boolean[n];
             for (int s : sources) {
@@ -732,8 +725,8 @@ public final class CodeReader {
             Reading reading = new Reading(declaring, method, active);
             List<Step> steps = Collections.unmodifiableList(reading.steps());
             SHAPES.put(key, reading.shape());
-            SLEEPS.put(key, List.copyOf(new java.util.LinkedHashSet<>(reading.sleeps)));
-            RAW_SOURCES.put(key, List.copyOf(new java.util.LinkedHashSet<>(reading.rawSources)));
+            SLEEPS.put(key, List.copyOf(new LinkedHashSet<>(reading.sleeps)));
+            RAW_SOURCES.put(key, List.copyOf(new LinkedHashSet<>(reading.rawSources)));
             CACHE.put(key, steps);
             return steps;
         } finally {
@@ -1108,7 +1101,7 @@ public final class CodeReader {
                 arms.add(new Arm(c.keys().get(k), k == c.otherwise(), Collections.unmodifiableSet(lines), armSteps.get(k),
                         canSkip(region, c.entries().get(k)), loopsIn(region)));
             }
-            java.util.BitSet region = new java.util.BitSet();
+            BitSet region = new BitSet();
             for (boolean[] r : c.regions()) {
                 for (int i = 0; i < r.length; i++) {
                     if (r[i]) {
@@ -1153,7 +1146,7 @@ public final class CodeReader {
             List<Branch> sorted = new ArrayList<>(found.values());
             sorted.sort(Comparator.comparingInt(Branch::line).thenComparing(Comparator.comparingInt(Branch::lastLine).reversed()));
             boolean[] all = new boolean[insns.length];
-            java.util.Arrays.fill(all, true);
+            Arrays.fill(all, true);
             return new Shape(List.copyOf(sorted), loopsIn(all), Collections.unmodifiableSet(returns), paths());
         }
 
@@ -1308,7 +1301,7 @@ public final class CodeReader {
         }
 
         /** What the sources reach along {@code graph}, entering only instructions {@code ok} and taking only edges {@code edge}. */
-        private boolean[] reach(int[][] graph, List<Integer> sources, java.util.function.IntPredicate ok, Edge edge) {
+        private boolean[] reach(int[][] graph, List<Integer> sources, IntPredicate ok, Edge edge) {
             boolean[] seen = new boolean[graph.length];
             ArrayDeque<Integer> todo = new ArrayDeque<>();
             for (int s : sources) {
@@ -1402,7 +1395,7 @@ public final class CodeReader {
         }
 
         /** The innermost natural loop around {@code i} that {@code skip} does not reject, or null. */
-        private NaturalLoop loopAround(int i, java.util.function.Predicate<NaturalLoop> skip) {
+        private NaturalLoop loopAround(int i, Predicate<NaturalLoop> skip) {
             NaturalLoop best = null;
             for (NaturalLoop l : naturalLoops) {
                 if (l.spans(i) && !skip.test(l) && (best == null || l.size() < best.size())) {
@@ -1595,7 +1588,7 @@ public final class CodeReader {
                 labels = l.labels;
                 dflt = l.dflt;
             }
-            java.util.function.IntPredicate free = k -> !stepAt.contains(k);
+            IntPredicate free = k -> !stepAt.contains(k);
             Edge forward = (a, t) -> !realBackEdge(a, t);
             boolean[] from = reach(flow, List.of(b), free, forward);
             int[][] rev = new int[n][];
@@ -1651,9 +1644,9 @@ public final class CodeReader {
             Set<String> used = new HashSet<>();
             used.add("default");
             for (Map.Entry<Integer, List<String>> e : new TreeMap<>(byExit).entrySet()) {
-                String key = String.join(",", new java.util.LinkedHashSet<>(e.getValue()));
+                String key = String.join(",", new LinkedHashSet<>(e.getValue()));
                 for (int k = 2; !used.add(key); k++) {
-                    key = String.join(",", new java.util.LinkedHashSet<>(e.getValue())) + " (" + k + ")";
+                    key = String.join(",", new LinkedHashSet<>(e.getValue())) + " (" + k + ")";
                 }
                 keyOf.put(e.getKey(), key);
             }
@@ -1729,7 +1722,7 @@ public final class CodeReader {
             List<Integer> entries = new ArrayList<>();
             List<String> keys = new ArrayList<>();
             int[] place = new int[n];
-            java.util.Arrays.fill(place, -1);
+            Arrays.fill(place, -1);
             Map<Integer, Integer> exitArm = new HashMap<>();
             boolean steps = false;
             int end = cond[cond.length - 1] + 1;
@@ -2084,7 +2077,7 @@ public final class CodeReader {
                     request.put("method", "GET");
                     for (MethodInsnNode link : chain(i)) {
                         if (Set.of("get", "post", "put", "delete").contains(link.name)) {
-                            request.put("method", link.name.toUpperCase(java.util.Locale.ROOT));
+                            request.put("method", link.name.toUpperCase(Locale.ROOT));
                             String uri = textOf(indexOf(link), 1, 0);
                             if (uri != null) {
                                 request.put("uri", uri);
@@ -2370,13 +2363,13 @@ public final class CodeReader {
             return links;
         }
 
-        private java.util.Optional<String> chainArg(int i, String name) {
+        private Optional<String> chainArg(int i, String name) {
             for (MethodInsnNode link : chain(i)) {
                 if (link.name.equals(name)) {
-                    return java.util.Optional.ofNullable(textOf(indexOf(link), Type.getArgumentTypes(link.desc).length, 0));
+                    return Optional.ofNullable(textOf(indexOf(link), Type.getArgumentTypes(link.desc).length, 0));
                 }
             }
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
     }
 }

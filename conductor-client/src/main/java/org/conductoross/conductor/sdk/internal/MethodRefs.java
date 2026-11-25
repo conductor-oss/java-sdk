@@ -20,6 +20,10 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.objectweb.asm.Handle;
+
+import com.netflix.conductor.sdk.workflow.task.InputParam;
+
 /**
  * Resolves a serializable method reference to the {@link Method} it names. The JVM gives every
  * serializable lambda a {@code writeReplace} method returning a {@link SerializedLambda}, which
@@ -45,7 +49,7 @@ public final class MethodRefs {
     }
 
     /** The method a bytecode method handle names, or null when it cannot be loaded. */
-    static Method method(ClassLoader loader, org.objectweb.asm.Handle handle) {
+    static Method method(ClassLoader loader, Handle handle) {
         try {
             Class<?> owner = Class.forName(handle.getOwner().replace('/', '.'), false, loader);
             MethodType type = MethodType.fromMethodDescriptorString(handle.getDesc(), loader);
@@ -105,8 +109,8 @@ public final class MethodRefs {
         Parameter[] params = method.getParameters();
         String[] names = new String[params.length];
         for (int i = 0; i < params.length; i++) {
-            com.netflix.conductor.sdk.workflow.task.InputParam ip =
-                    params[i].getAnnotation(com.netflix.conductor.sdk.workflow.task.InputParam.class);
+            InputParam ip =
+                    params[i].getAnnotation(InputParam.class);
             if (ip != null) {
                 names[i] = ip.value();
             } else if (params[i].isNamePresent()) {

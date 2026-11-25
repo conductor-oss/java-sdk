@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,9 +32,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
 
 /**
  * Which Java loops the calling code is inside. A {@code for} or {@code while} compiles to a backward
@@ -177,7 +183,7 @@ public final class CodeLoops {
      * when it does not.
      */
     private static int armAfter(InsnList code, int head, int at, int firstLine) {
-        java.util.Set<Integer> exits = new java.util.HashSet<>();
+        Set<Integer> exits = new HashSet<>();
         int line = 0;
         for (int i = head; i <= at; i++) {
             AbstractInsnNode insn = code.get(i);
@@ -193,7 +199,7 @@ public final class CodeLoops {
         }
         // only code the loop itself goes on to: the jump back falling through to it, or a jump from
         // inside the loop to it, and nothing from outside (a switch's next case also follows a loop)
-        java.util.Set<Integer> start = new java.util.HashSet<>();
+        Set<Integer> start = new HashSet<>();
         for (int i = at + 1; i < code.size(); i++) {
             start.add(i);
             if (code.get(i).getOpcode() >= 0) {
@@ -219,8 +225,8 @@ public final class CodeLoops {
         // the arm: what runs from just after the jump back, without going back into the loop
         int last = 0;
         boolean out = false;
-        java.util.ArrayDeque<Integer> todo = new java.util.ArrayDeque<>(List.of(at + 1));
-        java.util.Set<Integer> seen = new java.util.HashSet<>();
+        ArrayDeque<Integer> todo = new ArrayDeque<>(List.of(at + 1));
+        Set<Integer> seen = new HashSet<>();
         while (!todo.isEmpty()) {
             int i = todo.pop();
             if (i <= at || i >= code.size() || !seen.add(i)) {
@@ -243,11 +249,11 @@ public final class CodeLoops {
                 if (op == Opcodes.GOTO) {
                     continue;
                 }
-            } else if (insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode t) {
+            } else if (insn instanceof TableSwitchInsnNode t) {
                 todo.push(code.indexOf(t.dflt));
                 t.labels.forEach(l -> todo.push(code.indexOf(l)));
                 continue;
-            } else if (insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode l) {
+            } else if (insn instanceof LookupSwitchInsnNode l) {
                 todo.push(code.indexOf(l.dflt));
                 l.labels.forEach(x -> todo.push(code.indexOf(x)));
                 continue;
@@ -261,10 +267,10 @@ public final class CodeLoops {
         List<Integer> out = new ArrayList<>();
         if (insn instanceof JumpInsnNode j) {
             out.add(code.indexOf(j.label));
-        } else if (insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode t) {
+        } else if (insn instanceof TableSwitchInsnNode t) {
             out.add(code.indexOf(t.dflt));
             t.labels.forEach(l -> out.add(code.indexOf(l)));
-        } else if (insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode l) {
+        } else if (insn instanceof LookupSwitchInsnNode l) {
             out.add(code.indexOf(l.dflt));
             l.labels.forEach(x -> out.add(code.indexOf(x)));
         }
@@ -278,12 +284,12 @@ public final class CodeLoops {
     private static boolean restartsAPatternSwitch(InsnList code, int head) {
         for (int i = head; i < code.size(); i++) {
             AbstractInsnNode insn = code.get(i);
-            if (insn instanceof org.objectweb.asm.tree.InvokeDynamicInsnNode indy) {
+            if (insn instanceof InvokeDynamicInsnNode indy) {
                 return indy.bsm.getOwner().equals("java/lang/runtime/SwitchBootstraps");
             }
-            if (insn instanceof JumpInsnNode || insn instanceof org.objectweb.asm.tree.TableSwitchInsnNode
-                    || insn instanceof org.objectweb.asm.tree.LookupSwitchInsnNode
-                    || insn instanceof org.objectweb.asm.tree.MethodInsnNode) {
+            if (insn instanceof JumpInsnNode || insn instanceof TableSwitchInsnNode
+                    || insn instanceof LookupSwitchInsnNode
+                    || insn instanceof MethodInsnNode) {
                 return false;
             }
         }

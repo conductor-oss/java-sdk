@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -470,7 +471,7 @@ public final class Conductor implements AutoCloseable {
 
     private final ConductorClient client;
     /** Read by starts and queries while other threads add workers: iterated as a snapshot. */
-    private final List<Workers> started = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final List<Workers> started = new CopyOnWriteArrayList<>();
     private final Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
     private ScheduledExecutorService poller;
 

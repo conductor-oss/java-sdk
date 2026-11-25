@@ -18,8 +18,10 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A TCP proxy that can partition its clients from its upstreams. With several upstreams it
@@ -33,23 +35,23 @@ final class Proxy implements AutoCloseable {
 
     private final ServerSocket listener;
     private final String upstreamHost;
-    private final java.util.List<Integer> upstreamPorts;
-    private final java.util.concurrent.atomic.AtomicInteger next = new java.util.concurrent.atomic.AtomicInteger();
+    private final List<Integer> upstreamPorts;
+    private final AtomicInteger next = new AtomicInteger();
     private final Set<Socket> open = ConcurrentHashMap.newKeySet();
     private final Set<Socket> held = ConcurrentHashMap.newKeySet();
     private volatile boolean partitioned;
     private volatile boolean closed;
 
     Proxy(int listenPort, String upstreamHost, int upstreamPort) throws IOException {
-        this(listenPort, upstreamHost, java.util.List.of(upstreamPort));
+        this(listenPort, upstreamHost, List.of(upstreamPort));
     }
 
-    Proxy(int listenPort, String upstreamHost, java.util.List<Integer> upstreamPorts) throws IOException {
+    Proxy(int listenPort, String upstreamHost, List<Integer> upstreamPorts) throws IOException {
         this.listener = new ServerSocket();
         this.listener.setReuseAddress(true);
         this.listener.bind(new InetSocketAddress("127.0.0.1", listenPort));
         this.upstreamHost = upstreamHost;
-        this.upstreamPorts = java.util.List.copyOf(upstreamPorts);
+        this.upstreamPorts = List.copyOf(upstreamPorts);
         Thread.ofVirtual().name("proxy-accept").start(this::acceptLoop);
     }
 

@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
@@ -272,7 +273,7 @@ class TaskRunner {
         Future<Task> taskFuture;
         try {
             taskFuture = this.executorService.submit(() -> this.processTask(task));
-        } catch (java.util.concurrent.RejectedExecutionException e) {
+        } catch (RejectedExecutionException e) {
             return false; // shutting down: the caller says what becomes of the task
         }
         if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
@@ -290,7 +291,7 @@ class TaskRunner {
                         TimeUnit.SECONDS
                 );
                 leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
-            } catch (java.util.concurrent.RejectedExecutionException e) {
+            } catch (RejectedExecutionException e) {
                 // shutting down: the task runs, within the grace period, without lease extension
                 LOGGER.debug("No lease extension for task {}: shutting down", task.getTaskId());
             }

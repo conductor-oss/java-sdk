@@ -21,6 +21,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import org.conductoross.conductor.sdk.internal.Json;
+
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -209,7 +211,7 @@ public class AnnotatedWorker implements Worker {
 
     /** Whether the whole input, a JSON object, could be bound to this parameter. */
     private static boolean bindsWholeInput(Parameter parameter) {
-        return !org.conductoross.conductor.sdk.internal.Json.isWrapped(parameter.getParameterizedType());
+        return !Json.isWrapped(parameter.getParameterizedType());
     }
 
     private Object convertNamed(Object value, Parameter parameter) {

@@ -21,8 +21,11 @@ import org.conductoross.conductor.sdk.Workflow;
 import org.conductoross.conductor.sdk.WorkflowHandle;
 
 import com.netflix.conductor.client.http.ConductorClient;
+import com.netflix.conductor.client.http.ConductorClientRequest;
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import static org.conductoross.conductor.sdk.Conductor.sleep;
 
@@ -64,10 +67,10 @@ public class Held {
     @SuppressWarnings("unchecked")
     private static void report(Conductor conductor, String id) {
         Map<String, Object> wf = conductor.client().execute(
-                com.netflix.conductor.client.http.ConductorClientRequest.builder()
-                        .method(com.netflix.conductor.client.http.ConductorClientRequest.Method.GET)
+                ConductorClientRequest.builder()
+                        .method(ConductorClientRequest.Method.GET)
                         .path("/workflow/" + id).addQueryParam("includeTasks", true).build(),
-                new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}).getData();
+                new TypeReference<Map<String, Object>>() {}).getData();
         System.out.println("status " + wf.get("status") + " output " + wf.get("output")
                 + " reason " + wf.get("reasonForIncompletion"));
         for (Map<String, Object> t : (List<Map<String, Object>>) wf.get("tasks")) {
@@ -82,10 +85,10 @@ public class Held {
     private static void awaitFirstTask(Conductor conductor, String id) throws InterruptedException {
         for (int i = 0; i < 300; i++) {
             Map<String, Object> wf = conductor.client().execute(
-                    com.netflix.conductor.client.http.ConductorClientRequest.builder()
-                            .method(com.netflix.conductor.client.http.ConductorClientRequest.Method.GET)
+                    ConductorClientRequest.builder()
+                            .method(ConductorClientRequest.Method.GET)
                             .path("/workflow/" + id).addQueryParam("includeTasks", true).build(),
-                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}).getData();
+                    new TypeReference<Map<String, Object>>() {}).getData();
             List<Map<String, Object>> tasks = (List<Map<String, Object>>) wf.get("tasks");
             if (!tasks.isEmpty() && tasks.get(0).get("continuation") instanceof Map<?, ?> c
                     && c.get("endTime") != null) {

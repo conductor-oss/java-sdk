@@ -14,10 +14,15 @@ package org.conductoross.conductor.sdk;
 
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -37,6 +42,7 @@ import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 import com.netflix.conductor.sdk.workflow.executor.task.AnnotatedWorkerExecutor;
+import com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 /**
@@ -89,10 +95,10 @@ public final class Workers implements AutoCloseable {
     private String workerId;
     private boolean devMode;
     private boolean discovery = true;
-    private java.time.Duration continuationTimeout = java.time.Duration.ofSeconds(30);
-    private java.time.Duration parkTimeout = java.time.Duration.ofHours(1);
+    private Duration continuationTimeout = Duration.ofSeconds(30);
+    private Duration parkTimeout = Duration.ofHours(1);
     private final ParkedExecutions parked = new ParkedExecutions();
-    private final java.util.concurrent.atomic.AtomicLong stamps = new java.util.concurrent.atomic.AtomicLong();
+    private final AtomicLong stamps = new AtomicLong();
     /** The task domain of this process alone, where the server offers the executions held here. */
     private String pinDomain;
     private TaskRunnerConfigurer pinnedRunner;
@@ -110,7 +116,7 @@ public final class Workers implements AutoCloseable {
      * Waits between attempts while the server cannot be reached: 1, 2, 4... seconds, at most a
      * minute, each shortened by up to half at random so that many hosts do not retry in step.
      */
-    static final Backoff OUTAGE = Backoff.every(java.time.Duration.ofSeconds(1)).factor(2).max(java.time.Duration.ofMinutes(1));
+    static final Backoff OUTAGE = Backoff.every(Duration.ofSeconds(1)).factor(2).max(Duration.ofMinutes(1));
 
     Workers(Conductor conductor) {
         this.conductor = conductor;
@@ -150,7 +156,7 @@ public final class Workers implements AutoCloseable {
      * breakpoint does not trigger a retry. {@code conductor.workflow.<name>.continuationTimeout}
      * overrides it for one workflow.
      */
-    public Workers continuationTimeout(java.time.Duration timeout) {
+    public Workers continuationTimeout(Duration timeout) {
         this.continuationTimeout = timeout;
         return this;
     }
@@ -161,7 +167,7 @@ public final class Workers implements AutoCloseable {
      * continuation replays. {@code conductor.workflow.<name>.parkTimeout} overrides it for one
      * workflow.
      */
-    public Workers parkTimeout(java.time.Duration timeout) {
+    public Workers parkTimeout(Duration timeout) {
         this.parkTimeout = timeout;
         return this;
     }
@@ -239,7 +245,7 @@ public final class Workers implements AutoCloseable {
         specsByCodeType.values().forEach(WorkflowSpec::newInstance);
         List<String> refused = new ArrayList<>();
         for (WorkflowSpec spec : specsByCodeType.values()) {
-            for (String site : org.conductoross.conductor.sdk.internal.CodeReader.threadSleeps(spec.method)) {
+            for (String site : CodeReader.threadSleeps(spec.method)) {
                 LOGGER.warn("Workflow {} calls Thread.sleep at {}: workflow code runs again each time it continues,"
                         + " so the sleep is repeated on every replay and holds a worker thread. Use"
                         + " Conductor.sleep(Duration) for a durable wait.", spec.name, site);
@@ -327,7 +333,7 @@ public final class Workers implements AutoCloseable {
     static String newPinDomain(String workerId) {
         String host = workerId == null ? "" : workerId.replaceAll("[^A-Za-z0-9_.-]", "_");
         host = host.length() > 40 ? host.substring(0, 40) : host;
-        String random = Long.toString(java.util.concurrent.ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), 36);
+        String random = Long.toString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE), 36);
         return "pin-" + (host.isEmpty() ? "" : host + "-") + random.substring(0, Math.min(8, random.length()));
     }
 
@@ -448,9 +454,9 @@ public final class Workers implements AutoCloseable {
             return 3600;
         }
         String value = setting(spec, "continuationTimeout");
-        java.time.Duration timeout = value == null ? continuationTimeout
-                : value.chars().allMatch(Character::isDigit) ? java.time.Duration.ofSeconds(Long.parseLong(value))
-                : java.time.Duration.parse(value);
+        Duration timeout = value == null ? continuationTimeout
+                : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
+                : Duration.parse(value);
         return Math.max(1, timeout.toSeconds());
     }
 
@@ -468,9 +474,9 @@ public final class Workers implements AutoCloseable {
             return 0;
         }
         String value = setting(spec, "parkTimeout");
-        java.time.Duration timeout = value == null ? parkTimeout
-                : value.chars().allMatch(Character::isDigit) ? java.time.Duration.ofSeconds(Long.parseLong(value))
-                : java.time.Duration.parse(value);
+        Duration timeout = value == null ? parkTimeout
+                : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
+                : Duration.parse(value);
         return Math.max(0, timeout.toMillis());
     }
 
@@ -479,7 +485,7 @@ public final class Workers implements AutoCloseable {
      * {@code conductor.worker.<task>.<setting>}, else {@code conductor.worker.all.<setting>}, from
      * {@link #settings(Function)}; unset (0 or null) leaves the annotation's value.
      */
-    private final class TaskSettings extends com.netflix.conductor.sdk.workflow.executor.task.WorkerConfiguration {
+    private final class TaskSettings extends WorkerConfiguration {
 
         private String get(String task, String key) {
             String value = settings.apply("conductor.worker." + task + "." + key);
@@ -570,19 +576,19 @@ public final class Workers implements AutoCloseable {
      * {@code spec} and has not registered yet; returns at once otherwise. A start in the same
      * process right after {@link #start()} would otherwise find no definition.
      */
-    void awaitRegistered(WorkflowSpec spec, java.time.Duration max) {
+    void awaitRegistered(WorkflowSpec spec, Duration max) {
         boolean hosted = specsByCodeType.values().stream()
                 .anyMatch(s -> s.name.equals(spec.name) && s.version == spec.version);
         long until = System.nanoTime() + max.toNanos();
         while (hosted && running && !registered && System.nanoTime() < until) {
-            if (!pause(java.time.Duration.ofMillis(50))) {
+            if (!pause(Duration.ofMillis(50))) {
                 return;
             }
         }
     }
 
     /** The spec of a workflow class these workers host, with the factory it was given. */
-    java.util.Optional<WorkflowSpec> hostedSpec(Class<?> type) {
+    Optional<WorkflowSpec> hostedSpec(Class<?> type) {
         return specsByCodeType.values().stream().filter(s -> s.type == type).findFirst();
     }
 
@@ -607,7 +613,7 @@ public final class Workers implements AutoCloseable {
                 LOGGER.info("Registered the definitions of {} after {} attempt(s)", specsByCodeType.keySet(), attempt);
                 return;
             } catch (RuntimeException e) {
-                java.time.Duration wait = OUTAGE.delay(attempt);
+                Duration wait = OUTAGE.delay(attempt);
                 LOGGER.error("Registering the definitions of {} failed (attempt {}), retrying in about {}s: {}",
                         specsByCodeType.keySet(), attempt, wait.toSeconds(), e.toString());
                 if (!pause(wait)) {
@@ -618,10 +624,10 @@ public final class Workers implements AutoCloseable {
     }
 
     /** Sleeps for between half and all of {@code wait}; false when interrupted by shutdown. */
-    private boolean pause(java.time.Duration wait) {
+    private boolean pause(Duration wait) {
         long ms = wait.toMillis();
         try {
-            Thread.sleep(ms / 2 + java.util.concurrent.ThreadLocalRandom.current().nextLong(ms / 2 + 1));
+            Thread.sleep(ms / 2 + ThreadLocalRandom.current().nextLong(ms / 2 + 1));
             return running;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -630,7 +636,7 @@ public final class Workers implements AutoCloseable {
     }
 
     /** How long an update's reply is kept for its caller; the caller waits at most 3 minutes. */
-    static final long REPLY_TTL_MILLIS = java.time.Duration.ofMinutes(10).toMillis();
+    static final long REPLY_TTL_MILLIS = Duration.ofMinutes(10).toMillis();
 
     /** At most this many replies are kept, newest first, whatever their age. */
     static final int REPLY_LIMIT = 500;
@@ -659,7 +665,7 @@ public final class Workers implements AutoCloseable {
             }
         }
         // oldest first, by when each was handled: the map itself comes back in no particular order
-        fresh.sort(java.util.Comparator.comparingLong(e -> ((Number) ((Map<?, ?>) e.getValue()).get("at")).longValue()));
+        fresh.sort(Comparator.comparingLong(e -> ((Number) ((Map<?, ?>) e.getValue()).get("at")).longValue()));
         int from = Math.max(0, fresh.size() - REPLY_LIMIT);
         Map<String, Object> kept = new LinkedHashMap<>();
         for (Map.Entry<String, Object> e : fresh.subList(from, fresh.size())) {

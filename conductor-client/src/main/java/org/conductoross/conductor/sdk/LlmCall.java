@@ -12,8 +12,11 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.time.Duration;
+
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Engine;
+import org.conductoross.conductor.sdk.internal.Entries;
 
 /** A chat completion executed by the server (LLM_CHAT_COMPLETE). Models are {@code provider/model}. */
 public final class LlmCall {
@@ -24,7 +27,7 @@ public final class LlmCall {
         command = new Command(Command.Kind.LLM, ref, ref);
         command.explicitRef = ref;
         command.outputKey = "result"; // the model's answer; the rest of the output is token counts
-        retries(3, java.time.Duration.ofSeconds(1));
+        retries(3, Duration.ofSeconds(1));
     }
 
     /**
@@ -32,10 +35,10 @@ public final class LlmCall {
      * The server retries an AI task at least once: a count below 1 becomes 3, with linear backoff
      * from 2 seconds ({@code AIModelTaskMapper}).
      */
-    public LlmCall retries(int count, java.time.Duration delay) {
+    public LlmCall retries(int count, Duration delay) {
         command.fields.put(
                 "taskDefinition",
-                org.conductoross.conductor.sdk.internal.Entries.retryingDefinition(
+                Entries.retryingDefinition(
                         command.name, count, Math.max(1, delay.toSeconds())));
         return this;
     }

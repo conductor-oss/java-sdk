@@ -12,8 +12,13 @@
  */
 package returnvalues;
 
+import java.lang.reflect.Method;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +30,7 @@ import org.conductoross.conductor.sdk.internal.Execution;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
+import org.conductoross.conductor.sdk.testing.DurableTestEnvironment;
 import org.junit.jupiter.api.Test;
 
 import com.netflix.conductor.sdk.workflow.task.InputParam;
@@ -196,8 +202,8 @@ class ReturnValuesTest {
     void aDurationAndADateEncodeAsOneValueAndDecodeBack() {
         Duration wait = Duration.ofMinutes(5);
         assertEquals(wait, Json.decodeOutput(Json.encodeOutput(wait), Duration.class));
-        java.util.Date at = new java.util.Date(1_700_000_000_000L);
-        assertEquals(at, Json.decodeOutput(Json.encodeOutput(at), java.util.Date.class));
+        Date at = new Date(1_700_000_000_000L);
+        assertEquals(at, Json.decodeOutput(Json.encodeOutput(at), Date.class));
     }
 
     public static class ByUuid {
@@ -210,7 +216,7 @@ class ReturnValuesTest {
     @Test
     void aSingleUuidParameterIsSentByNameAndReadBack() throws Exception {
         UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        java.lang.reflect.Method run = ByUuid.class.getMethod("run", UUID.class);
+        Method run = ByUuid.class.getMethod("run", UUID.class);
 
         Map<String, Object> input = WorkflowSpec.encodeInput(run, new Object[] {id});
 
@@ -234,14 +240,14 @@ class ReturnValuesTest {
         List<Object> values = List.of(
                 "text", 7, 2.5, true, new Order(1), Size.LARGE,
                 UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
-                java.time.Instant.parse("2026-01-02T03:04:05.123456789Z"),
+                Instant.parse("2026-01-02T03:04:05.123456789Z"),
                 Duration.ofSeconds(90),
                 List.of(new Order(1), new Order(2)),
                 List.of(List.of(new Order(1)), List.of(new Order(2), new Order(3))),
-                new java.util.LinkedHashSet<>(List.of(Size.SMALL, Size.LARGE)),
+                new LinkedHashSet<>(List.of(Size.SMALL, Size.LARGE)),
                 Map.of("a", new Order(1)),
                 List.of(),
-                java.util.Arrays.asList("mixed", 1));
+                Arrays.asList("mixed", 1));
         for (Object value : values) {
             // through the server and back: only the JSON survives
             Map<String, Object> stored = asStored(Json.record(value));
@@ -255,7 +261,7 @@ class ReturnValuesTest {
     @Test
     void aValueRecordedByAnEarlierBuildByItsClassNameStillReadsBack() {
         Map<String, Object> earlier = Map.of("value", "2026-01-02T03:04:05Z", "type", "java.time.Instant");
-        assertEquals(java.time.Instant.parse("2026-01-02T03:04:05Z"), Json.recorded(earlier, getClass().getClassLoader()));
+        assertEquals(Instant.parse("2026-01-02T03:04:05Z"), Json.recorded(earlier, getClass().getClassLoader()));
     }
 
     public static class RecordedInMemory {
@@ -270,8 +276,8 @@ class ReturnValuesTest {
     void onceGivesTheCodeTheSameValueOnItsFirstRunAsOnAReRunAndInMemory() {
         // the first run, against a server: what was recorded, read back
         assertEquals(Map.of("result", "ArrayList of Order"), first(RecordedInMemory.class, Map.of("x", "a")).output.get("result"));
-        try (org.conductoross.conductor.sdk.testing.DurableTestEnvironment env =
-                org.conductoross.conductor.sdk.testing.DurableTestEnvironment.inMemory()) {
+        try (DurableTestEnvironment env =
+                DurableTestEnvironment.inMemory()) {
             env.workflows(RecordedInMemory.class);
             assertEquals("ArrayList of Order", env.start(RecordedInMemory::run, "a").result());
         }

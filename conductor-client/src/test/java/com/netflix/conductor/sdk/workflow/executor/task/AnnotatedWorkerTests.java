@@ -448,7 +448,7 @@ public class AnnotatedWorkerTests {
     }
 
     public static class EnumWorker {
-        @com.netflix.conductor.sdk.workflow.task.WorkerTask("enum_result")
+        @WorkerTask("enum_result")
         public Shade doWork() {
             return Shade.DARK;
         }

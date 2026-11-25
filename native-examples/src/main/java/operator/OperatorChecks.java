@@ -14,8 +14,12 @@ package operator;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 
 import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.WorkflowFailedException;
@@ -179,7 +183,7 @@ public class OperatorChecks {
             {"fork_after", "rerun from the task after the join", "1", "1", "2"},
         };
         for (String[] c : cases) {
-            String id = java.util.UUID.randomUUID().toString();
+            String id = UUID.randomUUID().toString();
             WorkflowHandle<String> run = conductor.start(ForkedWorkflow::run, id);
             check("the forked run completes", "L+R joined".equals(outcome(run)));
             rerun(conductor, run, taskId(conductor, run.workflowId(), c[0]));
@@ -190,7 +194,7 @@ public class OperatorChecks {
                             && runs("after", id) == Integer.parseInt(c[4]));
         }
         for (String structure : new String[] {"FORK", "JOIN"}) {
-            WorkflowHandle<String> run = conductor.start(ForkedWorkflow::run, java.util.UUID.randomUUID().toString());
+            WorkflowHandle<String> run = conductor.start(ForkedWorkflow::run, UUID.randomUUID().toString());
             outcome(run);
             boolean refused = false;
             try {
@@ -206,7 +210,7 @@ public class OperatorChecks {
     /** A join of a lane that ends in a decision waits for the task of the chosen case. */
     @SuppressWarnings("unchecked")
     private static void checkSwitchLane(Conductor conductor) {
-        WorkflowHandle<String> run = conductor.start(SwitchLaneWorkflow::run, java.util.UUID.randomUUID().toString());
+        WorkflowHandle<String> run = conductor.start(SwitchLaneWorkflow::run, UUID.randomUUID().toString());
         check("the lane with a decision completes with the chosen case's result", "slow+R".equals(outcome(run)));
         Map<String, Object> wf = conductor.client().execute(
                 ConductorClientRequest.builder().method(ConductorClientRequest.Method.GET).path("/workflow/" + run.workflowId())
@@ -251,7 +255,7 @@ public class OperatorChecks {
     private static void checkLoopReruns(Conductor conductor) throws InterruptedException {
         String expected = "3 labels/true/after";
         // forEach: rerun from the second item; the second and third items run again, the first does not
-        String id = java.util.UUID.randomUUID().toString();
+        String id = UUID.randomUUID().toString();
         WorkflowHandle<String> items = conductor.start(LoopedWorkflow::run, id);
         check("the looped run completes", expected.equals(outcome(items)));
         rerun(conductor, items, taskIdAt(conductor, items.workflowId(), "loop_item", 2));
@@ -262,7 +266,7 @@ public class OperatorChecks {
                 loopRuns("poll/" + id) == 6 && loopRuns("after/" + id) == 2);
 
         // repeatUntil: rerun from the first check; the loop polls until done again
-        id = java.util.UUID.randomUUID().toString();
+        id = UUID.randomUUID().toString();
         WorkflowHandle<String> polled = conductor.start(LoopedWorkflow::run, id);
         check("the looped run completes", expected.equals(outcome(polled)));
         rerun(conductor, polled, taskIdAt(conductor, polled.workflowId(), "loop_poll", 1));
@@ -271,7 +275,7 @@ public class OperatorChecks {
         check("rerun from a repeatUntil check leaves the items alone", loopRuns("item/" + id + "-p") == 1);
 
         // the last task, after both loops
-        id = java.util.UUID.randomUUID().toString();
+        id = UUID.randomUUID().toString();
         WorkflowHandle<String> last = conductor.start(LoopedWorkflow::run, id);
         outcome(last);
         rerun(conductor, last, taskId(conductor, last.workflowId(), "loop_after"));
@@ -289,7 +293,7 @@ public class OperatorChecks {
      * a restart runs it all again.
      */
     private static void checkFleet(Conductor conductor) throws InterruptedException {
-        String id = java.util.UUID.randomUUID().toString();
+        String id = UUID.randomUUID().toString();
         WorkflowHandle<String> run = conductor.start(FleetWorkflow::run, id);
         check("the fleet run completes", FleetWorkflow.EXPECTED.equals(outcome(run)));
         check("the fleet run took every path it should",
@@ -309,7 +313,7 @@ public class OperatorChecks {
                         && FleetTasks.runs(id, "probe", "web-3") == 2 && FleetTasks.runs(id, "report", "fleet") == 4);
 
         // a patch failing in the second region fails the run at that task; retry continues from it
-        String broken = java.util.UUID.randomUUID().toString();
+        String broken = UUID.randomUUID().toString();
         FleetTasks.broken.put(broken + "/web-2", true);
         WorkflowHandle<String> failing = conductor.start(FleetWorkflow::run, broken);
         String failure = outcome(failing);
@@ -351,7 +355,7 @@ public class OperatorChecks {
     }
 
     private static int loopRuns(String key) {
-        java.util.concurrent.atomic.AtomicInteger n = ShipmentTasks.loopRuns.get(key);
+        AtomicInteger n = ShipmentTasks.loopRuns.get(key);
         return n == null ? 0 : n.get();
     }
 
@@ -369,18 +373,18 @@ public class OperatorChecks {
     }
 
     private static int runs(String task, String id) {
-        java.util.concurrent.atomic.AtomicInteger n = ShipmentTasks.forkRuns.get(task + "/" + id);
+        AtomicInteger n = ShipmentTasks.forkRuns.get(task + "/" + id);
         return n == null ? 0 : n.get();
     }
 
     private static WorkflowHandle<String> routed(Conductor conductor) {
-        WorkflowHandle<String> run = conductor.start(RouteWorkflow::route, java.util.UUID.randomUUID().toString());
+        WorkflowHandle<String> run = conductor.start(RouteWorkflow::route, UUID.randomUUID().toString());
         check("the first run takes case x", FIRST.equals(outcome(run)));
         return run;
     }
 
     private static void rerun(Conductor conductor, WorkflowHandle<String> run, String taskId) throws InterruptedException {
-        Map<String, Object> request = new java.util.HashMap<>(Map.of("reRunFromWorkflowId", run.workflowId()));
+        Map<String, Object> request = new HashMap<>(Map.of("reRunFromWorkflowId", run.workflowId()));
         if (taskId != null) {
             request.put("reRunFromTaskId", taskId);
         }
@@ -445,7 +449,7 @@ public class OperatorChecks {
         return out == null ? Map.of() : (Map<String, Object>) out;
     }
 
-    private static boolean waitFor(java.util.function.BooleanSupplier condition, int seconds) throws InterruptedException {
+    private static boolean waitFor(BooleanSupplier condition, int seconds) throws InterruptedException {
         for (int i = 0; i < seconds * 2; i++) {
             if (condition.getAsBoolean()) {
                 return true;

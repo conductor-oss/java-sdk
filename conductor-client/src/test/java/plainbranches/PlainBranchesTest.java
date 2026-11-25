@@ -12,20 +12,26 @@
  */
 package plainbranches;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.NonDeterminismException;
 import org.conductoross.conductor.sdk.Workflow;
+import org.conductoross.conductor.sdk.internal.CodeReader;
 import org.conductoross.conductor.sdk.internal.Execution;
 import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 import org.conductoross.conductor.sdk.testing.DurableTestEnvironment;
 import org.conductoross.conductor.sdk.testing.TestRun;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
@@ -505,26 +511,26 @@ class PlainBranchesTest {
 
     @Test
     void inMemoryAWorkflowTakingTaskClassesCallsTheRegisteredTaskObjects() {
-        Tasks tasks = org.mockito.Mockito.mock(Tasks.class);
-        org.mockito.Mockito.when(tasks.b("y")).thenReturn("from b");
-        org.mockito.Mockito.when(tasks.done("z")).thenReturn("finished");
+        Tasks tasks = Mockito.mock(Tasks.class);
+        Mockito.when(tasks.b("y")).thenReturn("from b");
+        Mockito.when(tasks.done("z")).thenReturn("finished");
         try (DurableTestEnvironment env = DurableTestEnvironment.inMemory()) {
             env.workflows(IfElse.class).tasks(tasks);
             TestRun<String> run = env.start(IfElse::run, "b");
             assertEquals("finished", run.result());
             assertEquals(List.of("pb_b", "pb_done"), run.ranTasks());
-            org.mockito.Mockito.verify(tasks, org.mockito.Mockito.never()).a(org.mockito.ArgumentMatchers.anyString());
+            Mockito.verify(tasks, Mockito.never()).a(ArgumentMatchers.anyString());
         }
     }
 
     @Test
     void inMemoryAFactoryGivesTheWorkflowTaskStubsFromConductorStub() {
-        Tasks tasks = org.mockito.Mockito.mock(Tasks.class);
-        org.mockito.Mockito.when(tasks.done("z")).thenReturn("finished");
+        Tasks tasks = Mockito.mock(Tasks.class);
+        Mockito.when(tasks.done("z")).thenReturn("finished");
         try (DurableTestEnvironment env = DurableTestEnvironment.inMemory()) {
             env.workflows(IfElse.class, () -> new IfElse(Conductor.stub(Tasks.class))).tasks(tasks);
             assertEquals("finished", env.start(IfElse::run, "a").result());
-            org.mockito.Mockito.verify(tasks).a("x");
+            Mockito.verify(tasks).a("x");
         }
     }
 
@@ -541,7 +547,7 @@ class PlainBranchesTest {
         public String run(@InputParam("x") String x) throws InterruptedException {
             Thread.sleep(10); // SLEEP_DIRECT
             nap();
-            org.conductoross.conductor.sdk.Conductor.async(() -> {
+            Conductor.async(() -> {
                 pause(); // SLEEP_LAMBDA_CALL
                 return tasks.a(x);
             });
@@ -563,9 +569,9 @@ class PlainBranchesTest {
 
     @Test
     void everyThreadSleepTheWorkflowCanReachIsFoundWithItsLine() throws Exception {
-        List<String> source = java.nio.file.Files.readAllLines(
-                java.nio.file.Path.of("src/test/java/plainbranches/PlainBranchesTest.java"));
-        java.util.function.Function<String, Integer> line = mark -> {
+        List<String> source = Files.readAllLines(
+                Path.of("src/test/java/plainbranches/PlainBranchesTest.java"));
+        Function<String, Integer> line = mark -> {
             for (int i = 0; i < source.size(); i++) {
                 if (source.get(i).trim().endsWith("// " + mark)) {
                     return i + 1;
@@ -573,14 +579,14 @@ class PlainBranchesTest {
             }
             throw new AssertionError(mark);
         };
-        List<String> sites = org.conductoross.conductor.sdk.internal.CodeReader.threadSleeps(
+        List<String> sites = CodeReader.threadSleeps(
                 Sleepy.class.getMethod("run", String.class));
         assertEquals(List.of(
                         "PlainBranchesTest$Sleepy.run:" + line.apply("SLEEP_DIRECT"),
                         "PlainBranchesTest$Sleepy.nap:" + line.apply("SLEEP_HELPER"),
                         "PlainBranchesTest$Sleepy.pause:" + line.apply("SLEEP_LAMBDA")),
                 sites);
-        assertEquals(List.of(), org.conductoross.conductor.sdk.internal.CodeReader.threadSleeps(
+        assertEquals(List.of(), CodeReader.threadSleeps(
                 IfElse.class.getMethod("run", String.class)));
     }
 
@@ -686,7 +692,7 @@ class PlainBranchesTest {
         assertEquals("TERMINATE", thrown.get("type"));
         assertEquals("NumberFormatException", thrown.get("name"));
         int line = 1;
-        List<String> source = java.nio.file.Files.readAllLines(java.nio.file.Path.of("src/test/java/plainbranches/PlainBranchesTest.java"));
+        List<String> source = Files.readAllLines(Path.of("src/test/java/plainbranches/PlainBranchesTest.java"));
         while (!source.get(line - 1).trim().endsWith("// THROWS_HERE")) {
             line++;
         }

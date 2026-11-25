@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.Query;
+import org.conductoross.conductor.sdk.Schedule;
 import org.conductoross.conductor.sdk.Signal;
 import org.conductoross.conductor.sdk.Update;
 import org.conductoross.conductor.sdk.Variable;
@@ -40,7 +42,7 @@ public final class WorkflowSpec {
     public final long timeoutSeconds;
     public final String failureWorkflow;
     public final int failureWorkflowVersion;
-    public final List<org.conductoross.conductor.sdk.Schedule> schedules = new ArrayList<>();
+    public final List<Schedule> schedules = new ArrayList<>();
     public final Map<String, Field> variables = new LinkedHashMap<>();
     public final Map<String, Method> signals = new LinkedHashMap<>();
     public final Map<String, Method> updates = new LinkedHashMap<>();
@@ -59,7 +61,7 @@ public final class WorkflowSpec {
         this.timeoutSeconds = wf.timeout().isBlank() ? 0 : Duration.parse(wf.timeout()).toSeconds();
         this.failureWorkflow = wf.failureWorkflow();
         this.failureWorkflowVersion = wf.failureWorkflowVersion();
-        schedules.addAll(List.of(method.getAnnotationsByType(org.conductoross.conductor.sdk.Schedule.class)));
+        schedules.addAll(List.of(method.getAnnotationsByType(Schedule.class)));
         for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
             for (Field f : c.getDeclaredFields()) {
                 Variable v = f.getAnnotation(Variable.class);
@@ -98,7 +100,7 @@ public final class WorkflowSpec {
     }
 
     /** All @Workflow methods of a class. */
-    private static final java.util.Map<Method, WorkflowSpec> BY_METHOD = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<Method, WorkflowSpec> BY_METHOD = new ConcurrentHashMap<>();
 
     /** The spec of a {@code @Workflow} method, made once per method. */
     public static WorkflowSpec forMethod(Method method) {

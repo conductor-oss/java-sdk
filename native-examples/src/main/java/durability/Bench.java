@@ -12,10 +12,12 @@
  */
 package durability;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -533,7 +535,7 @@ public class Bench {
                     if (Files.exists(log) && Files.readString(log).contains("started, pid")) {
                         break;
                     }
-                } catch (java.io.IOException ignored) {
+                } catch (IOException ignored) {
                     // not written yet
                 }
                 if (System.currentTimeMillis() > deadline) {
@@ -551,7 +553,7 @@ public class Bench {
     }
 
     static void log(String message) {
-        System.out.println("[bench " + java.time.LocalTime.now().withNano(0) + "] " + message);
+        System.out.println("[bench " + LocalTime.now().withNano(0) + "] " + message);
     }
 
     private static String env(String name, String fallback) {

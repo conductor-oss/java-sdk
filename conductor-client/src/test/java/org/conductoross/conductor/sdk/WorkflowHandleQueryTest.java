@@ -13,6 +13,7 @@
 package org.conductoross.conductor.sdk;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,7 +124,7 @@ class WorkflowHandleQueryTest {
     @Test
     void repliesExpireAndAreCapped() {
         long now = 1_000_000_000L;
-        Map<String, Object> replies = new java.util.LinkedHashMap<>();
+        Map<String, Object> replies = new LinkedHashMap<>();
         replies.put("legacy", Map.of("value", 1)); // no timestamp: an older worker's reply
         replies.put("old", Map.of("value", 2, "at", now - Workers.REPLY_TTL_MILLIS - 1));
         for (int i = 0; i < Workers.REPLY_LIMIT + 5; i++) {
@@ -138,7 +139,7 @@ class WorkflowHandleQueryTest {
     @Test
     void theCapDropsTheOldestRepliesWhateverOrderTheServerReturnsThemIn() {
         long now = 1_000_000_000L;
-        Map<String, Object> replies = new java.util.LinkedHashMap<>();
+        Map<String, Object> replies = new LinkedHashMap<>();
         // the reply written last comes first: the server's map of replies keeps no order
         replies.put("newest", Map.of("value", "n", "at", now));
         for (int i = 0; i < Workers.REPLY_LIMIT; i++) {

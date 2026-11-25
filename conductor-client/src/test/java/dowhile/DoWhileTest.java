@@ -17,11 +17,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Workflow;
 import org.conductoross.conductor.sdk.internal.Execution;
 import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
@@ -39,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DoWhileTest {
 
     /** The task stub the workflows below call: its calls schedule the tasks. */
-    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+    static final Tasks TASKS = Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("dw_step")
@@ -162,7 +164,7 @@ class DoWhileTest {
     /** What the replayer logged at WARN while {@code body} ran. */
     private static List<String> warnings(Runnable body) {
         ch.qos.logback.classic.Logger logger =
-                (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Replayer.class);
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Replayer.class);
         ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> seen = new ch.qos.logback.core.read.ListAppender<>();
         seen.start();
         logger.addAppender(seen);

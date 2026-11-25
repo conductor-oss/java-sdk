@@ -302,6 +302,7 @@ public class Branches {
     }
 
     @Workflow(name = "br_switch_fallthrough")
+    @SuppressWarnings("fallthrough") // the fall-through is what this example draws
     public String switchFallthrough(@InputParam("x") String x) {
         String r = x;
         switch (Integer.parseInt(x)) { // #s3 case 1 falls into case 2: plain code

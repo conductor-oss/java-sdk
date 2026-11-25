@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.Variable;
 import org.conductoross.conductor.sdk.Workflow;
@@ -54,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ParkedLanesTest {
 
-    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+    static final Tasks TASKS = Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("pk_step")

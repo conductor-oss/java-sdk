@@ -15,6 +15,8 @@ package loops;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.Conductor;
@@ -78,7 +80,7 @@ public class LoopShapes {
             return round >= 2; // ready on the second round
         }
 
-        private final java.util.Map<String, Integer> polls = new java.util.concurrent.ConcurrentHashMap<>();
+        private final Map<String, Integer> polls = new ConcurrentHashMap<>();
 
         /** Done on the third poll of a key. */
         @WorkerTask("shape_poll")

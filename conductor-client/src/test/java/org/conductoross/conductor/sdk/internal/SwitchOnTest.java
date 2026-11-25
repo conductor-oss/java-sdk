@@ -16,10 +16,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Future;
 
+import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.NonDeterminismException;
+import org.conductoross.conductor.sdk.Variable;
 import org.conductoross.conductor.sdk.Workflow;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
@@ -34,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SwitchOnTest {
 
     /** The task stub the workflows below call: its calls schedule the tasks. */
-    static final Tasks TASKS = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+    static final Tasks TASKS = Conductor.stub(Tasks.class);
 
     public static class Tasks {
         @WorkerTask("shipA")
@@ -258,12 +264,12 @@ class SwitchOnTest {
                 List.of(doneTask("shipA", "shipA", 1, Map.of("result", "x"), marker("main", 2, "APPLIED", 2)),
                         doneTask("notify", "notify", 2, Map.of("result", "y"), null)),
                 marker("main", 1, "APPLIED", 1));
-        org.junit.jupiter.api.Assertions.assertThrows(org.conductoross.conductor.sdk.NonDeterminismException.class,
+        Assertions.assertThrows(NonDeterminismException.class,
                 () -> new Replayer(spec(DroppedCall.class), new DroppedCall(), exec).process(null, 0));
     }
 
     public static class Previewed {
-        @org.conductoross.conductor.sdk.Variable
+        @Variable
         public List<String> notes = new ArrayList<>();
 
         @Workflow(name = "previewed")
@@ -274,9 +280,9 @@ class SwitchOnTest {
                         // a body that keeps going past its first call, forks, and mutates a variable
                         String first = TASKS.b("y");
                         notes.add("previewed " + first);
-                        java.util.concurrent.Future<String> p1 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("left"));
-                        java.util.concurrent.Future<String> p2 = org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.b("right"));
-                        org.conductoross.conductor.sdk.Conductor.join(p1, p2);
+                        Future<String> p1 = Conductor.async(() -> TASKS.a("left"));
+                        Future<String> p2 = Conductor.async(() -> TASKS.b("right"));
+                        Conductor.join(p1, p2);
                         return TASKS.send(first.toUpperCase());
                     })
                     .when("c", () -> {
@@ -331,7 +337,7 @@ class SwitchOnTest {
     public static class Unjoined {
         @Workflow(name = "unjoined")
         public String run(Map<String, Object> input) {
-            org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("x"));
+            Conductor.async(() -> TASKS.a("x"));
             return "done";
         }
     }
@@ -339,7 +345,7 @@ class SwitchOnTest {
     public static class CallBeforeJoin {
         @Workflow(name = "call_before_join")
         public String run(Map<String, Object> input) {
-            org.conductoross.conductor.sdk.Conductor.async(() -> TASKS.a("x"));
+            Conductor.async(() -> TASKS.a("x"));
             return TASKS.b("y");
         }
     }
@@ -390,8 +396,8 @@ class SwitchOnTest {
 
     @Test
     void aValueThatIsNotAnObjectDecodesFromResult() {
-        java.util.UUID id = java.util.UUID.randomUUID();
-        assertEquals(id, Json.decodeOutput(Map.of("result", id.toString()), java.util.UUID.class));
+        UUID id = UUID.randomUUID();
+        assertEquals(id, Json.decodeOutput(Map.of("result", id.toString()), UUID.class));
     }
 
     public static class FannedOut {
@@ -401,7 +407,7 @@ class SwitchOnTest {
                     .when("a", () -> TASKS.a("x"))
                     .when("b", () -> {
                         List<String> items = new ArrayList<>(); // what a stand-in result looks like
-                        org.conductoross.conductor.sdk.Conductor.fanOut("spread", items, i -> TASKS.b(i));
+                        Conductor.fanOut("spread", items, i -> TASKS.b(i));
                         return TASKS.send("after");
                     })
                     .get();
@@ -461,7 +467,7 @@ class SwitchOnTest {
     /** What the replayer logged at WARN while {@code body} ran. */
     private static List<String> warnings(Runnable body) {
         ch.qos.logback.classic.Logger logger =
-                (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Replayer.class);
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Replayer.class);
         ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> seen = new ch.qos.logback.core.read.ListAppender<>();
         seen.start();
         logger.addAppender(seen);

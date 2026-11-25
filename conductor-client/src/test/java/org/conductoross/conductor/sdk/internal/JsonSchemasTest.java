@@ -28,6 +28,7 @@ import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+@SuppressWarnings("unchecked") // generic test data read back from maps and mocks
 class JsonSchemasTest {
 
     enum Tier { CRITICAL, STANDARD }

@@ -12,9 +12,11 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,6 +29,7 @@ import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
@@ -105,9 +108,9 @@ class UpdateReplyTest {
         }
         TaskContinuation marker = TaskContinuation.handlerRun(2);
         marker.setLeased(true);
-        var entry = new com.netflix.conductor.common.metadata.workflow.WorkflowTask();
+        var entry = new WorkflowTask();
         entry.setTaskReferenceName("handlers");
-        entry.setMetadata(new java.util.HashMap<>(Map.of("lane", "handlers", "continuation", 2)));
+        entry.setMetadata(new HashMap<>(Map.of("lane", "handlers", "continuation", 2)));
         Task task = new Task();
         task.setWorkflowTask(entry);
         task.setTaskId("wf-1|handlers");
@@ -123,7 +126,7 @@ class UpdateReplyTest {
         replies.set(result.getOutputData().get("replies")); // the server keeps them with the execution
         try {
             return answer.get(10, TimeUnit.SECONDS);
-        } catch (java.util.concurrent.ExecutionException e) {
+        } catch (ExecutionException e) {
             throw (Exception) e.getCause();
         }
     }

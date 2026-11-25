@@ -34,11 +34,15 @@ import java.util.function.Supplier;
 import org.conductoross.conductor.sdk.Backoff;
 import org.conductoross.conductor.sdk.Functions;
 import org.conductoross.conductor.sdk.TaskFailure;
+import org.conductoross.conductor.sdk.WorkflowFailedException;
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Engine;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.MethodRefs;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
+
+import com.netflix.conductor.sdk.workflow.executor.task.NonRetryableException;
+import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 /**
  * Runs workflow code in process, answering every server call at once: tasks call the registered
@@ -215,8 +219,8 @@ final class DirectEngine implements Engine {
         }
         // Retried like the server retries it: the @WorkerTask retry count (default 3), except
         // after a NonRetryableException. Delays are skipped.
-        com.netflix.conductor.sdk.workflow.task.WorkerTask wt =
-                method.getAnnotation(com.netflix.conductor.sdk.workflow.task.WorkerTask.class);
+        WorkerTask wt =
+                method.getAnnotation(WorkerTask.class);
         int retries = wt != null && wt.retryCount() >= 0 ? wt.retryCount() : 3;
         method.setAccessible(true);
         for (int attempt = 0; ; attempt++) {
@@ -224,7 +228,7 @@ final class DirectEngine implements Engine {
                 return Json.encodeOutput(method.invoke(target, args));
             } catch (InvocationTargetException e) {
                 Throwable c = e.getCause();
-                boolean terminal = c instanceof com.netflix.conductor.sdk.workflow.executor.task.NonRetryableException;
+                boolean terminal = c instanceof NonRetryableException;
                 if (terminal || attempt >= retries) {
                     throw new TaskFailure(
                             ref,
@@ -250,7 +254,7 @@ final class DirectEngine implements Engine {
         String key = plain == null ? "null" : String.valueOf(plain);
         Supplier<?> body = cases.containsKey(key) ? cases.get(key) : otherwise;
         if (body == null) {
-            throw new org.conductoross.conductor.sdk.WorkflowFailedException("switch " + name + " has no case for " + key);
+            throw new WorkflowFailedException("switch " + name + " has no case for " + key);
         }
         return body.get();
     }

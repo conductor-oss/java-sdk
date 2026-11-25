@@ -12,13 +12,18 @@
  */
 package org.conductoross.conductor.sdk.internal;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +42,7 @@ import org.conductoross.conductor.sdk.Functions;
 import org.conductoross.conductor.sdk.NonDeterminismException;
 import org.conductoross.conductor.sdk.TaskFailure;
 import org.conductoross.conductor.sdk.WorkflowFailedException;
+import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,13 +281,13 @@ public final class Replayer {
 
         List<Map<String, Object>> draw(List<CodeReader.Step> steps) {
             List<Map<String, Object>> entries = new ArrayList<>();
-            drawInto(steps, entries, new java.util.ArrayDeque<>());
+            drawInto(steps, entries, new ArrayDeque<>());
             return entries;
         }
 
         @SuppressWarnings("unchecked")
         private void drawInto(
-                List<CodeReader.Step> steps, List<Map<String, Object>> entries, java.util.Deque<String> running) {
+                List<CodeReader.Step> steps, List<Map<String, Object>> entries, Deque<String> running) {
             for (CodeReader.Step step : steps) {
                 if (step instanceof CodeReader.InLoops in) {
                     // a preview stays in the loops its switch is in; the definition shows each loop
@@ -775,7 +781,7 @@ public final class Replayer {
         /** The entry that marks where the main lane's code threw, when it did. */
         String thrownRef;
         /** Branches the lane is in an arm of, but cannot tell whether the code decided them again since. */
-        final java.util.Set<CodeReader.Branch> unsure = new java.util.HashSet<>();
+        final Set<CodeReader.Branch> unsure = new HashSet<>();
 
         /** The plain Java ifs and switches the lane's code is inside, outermost first. */
         final List<Inside> inside = new ArrayList<>();
@@ -974,7 +980,7 @@ public final class Replayer {
                     return List.of();
                 }
                 at.add(0, new Site(m.getDeclaringClass(), m.getName(),
-                        org.objectweb.asm.Type.getMethodDescriptor(m), f.getLineNumber()));
+                        Type.getMethodDescriptor(m), f.getLineNumber()));
                 if (m.equals(spec.method)) {
                     return at;
                 }
@@ -1435,7 +1441,7 @@ public final class Replayer {
         /** What an untaken case would call, read from its compiled body. */
         private List<Map<String, Object>> previewOf(Supplier<?> body, String caseKey) {
             try {
-                java.io.Serializable source = body instanceof ActionCase<?> action ? action.action() : (java.io.Serializable) body;
+                Serializable source = body instanceof ActionCase<?> action ? action.action() : (Serializable) body;
                 return new Drawing(id, true, caseKey).draw(CodeReader.read(source));
             } catch (RuntimeException e) {
                 return new ArrayList<>(); // a case that cannot be read is drawn empty; the run goes on
@@ -1634,7 +1640,7 @@ public final class Replayer {
 
             /** Draws those whose innermost enclosing branch the lane is in is {@code in}. */
             void drawIn(Inside in) {
-                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
                     CodeReader.Passed p = it.next();
                     if (container(p) == in) {
                         it.remove();
@@ -1647,7 +1653,7 @@ public final class Replayer {
             /** Draws those outside the branches the next call enters (those are drawn as each is entered). */
             void drawRest(List<Inside> entering) {
                 Inside innermost = inside.isEmpty() ? null : inside.get(inside.size() - 1);
-                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
                     CodeReader.Passed p = it.next();
                     if (!within(p, entering) && container(p) == innermost) {
                         it.remove();
@@ -1659,7 +1665,7 @@ public final class Replayer {
 
             /** Draws those in the case of a branch just entered, and not in a branch entered after it. */
             void drawEntered(Inside in, List<Inside> later) {
-                for (java.util.Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
+                for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
                     CodeReader.Passed p = it.next();
                     if (!within(p, later) && container(p) == in) {
                         it.remove();
@@ -1741,7 +1747,7 @@ public final class Replayer {
             if (lastSites.isEmpty() && id.equals("main")) {
                 // code that made no call at all still went through its ifs and switches
                 Site root = new Site(spec.method.getDeclaringClass(), spec.method.getName(),
-                        org.objectweb.asm.Type.getMethodDescriptor(spec.method), 0);
+                        Type.getMethodDescriptor(spec.method), 0);
                 wents.add(new Went(List.of(root), 0, 0, -1));
             }
             while (!inside.isEmpty()) {
@@ -1800,7 +1806,7 @@ public final class Replayer {
 
         @SuppressWarnings("unchecked")
         private Map<String, Object> branchEntry(CodeReader.Branch b, String ref, CodeReader.Arm taken) {
-            java.util.Set<String> keys = new java.util.LinkedHashSet<>();
+            Set<String> keys = new LinkedHashSet<>();
             for (CodeReader.Arm arm : b.arms()) {
                 if (!arm.otherwise()) {
                     keys.add(arm.key());
@@ -1823,7 +1829,7 @@ public final class Replayer {
                     : ((Map<String, List<Map<String, Object>>>) sw.get("decisionCases")).get(arm.key());
         }
 
-        private Map<String, Object> switchEntry(String ref, String key, java.util.Set<String> caseKeys) {
+        private Map<String, Object> switchEntry(String ref, String key, Set<String> caseKeys) {
             Map<String, List<Map<String, Object>>> decisionCases = new LinkedHashMap<>();
             for (String k : caseKeys) {
                 decisionCases.put(k, new ArrayList<>());

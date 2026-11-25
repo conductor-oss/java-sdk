@@ -13,15 +13,26 @@
 package org.conductoross.conductor.sdk.internal;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.temporal.Temporal;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
+import com.netflix.conductor.sdk.workflow.task.InputParam;
 import com.netflix.conductor.sdk.workflow.task.OutputParam;
 import com.netflix.conductor.sdk.workflow.task.WorkflowInstanceIdInputParam;
 
@@ -121,7 +132,7 @@ public final class JsonSchemas {
                 || raw == Character.class) {
             return Map.of("type", "string");
         }
-        if (raw == java.util.UUID.class) {
+        if (raw == UUID.class) {
             return Map.of("type", "string", "format", "uuid");
         }
         if (raw == boolean.class || raw == Boolean.class) {
@@ -129,7 +140,7 @@ public final class JsonSchemas {
         }
         if (raw == byte.class || raw == short.class || raw == int.class || raw == long.class || raw == Byte.class
                 || raw == Short.class || raw == Integer.class || raw == Long.class
-                || raw == java.math.BigInteger.class) {
+                || raw == BigInteger.class) {
             return Map.of("type", "integer");
         }
         if (raw.isPrimitive() || Number.class.isAssignableFrom(raw)) {
@@ -138,16 +149,16 @@ public final class JsonSchemas {
         if (raw.isEnum()) {
             return Map.of("type", "string", "enum", enumValues(raw));
         }
-        if (raw == java.time.LocalDate.class) {
+        if (raw == LocalDate.class) {
             return Map.of("type", "string", "format", "date");
         }
-        if (raw == java.time.LocalTime.class || raw == java.time.OffsetTime.class) {
+        if (raw == LocalTime.class || raw == OffsetTime.class) {
             return Map.of("type", "string", "format", "time");
         }
-        if (java.time.temporal.Temporal.class.isAssignableFrom(raw) || raw == java.util.Date.class) {
+        if (Temporal.class.isAssignableFrom(raw) || raw == Date.class) {
             return Map.of("type", "string", "format", "date-time");
         }
-        if (raw == java.time.Duration.class) {
+        if (raw == Duration.class) {
             return Map.of("type", "string", "format", "duration");
         }
         if (type.isArrayType() || type.isCollectionLikeType()) {
@@ -156,7 +167,7 @@ public final class JsonSchemas {
         if (type.isMapLikeType()) {
             return Map.of("type", "object", "additionalProperties", of(type.getContentType(), visiting));
         }
-        if (raw == Object.class || raw.isInterface() || java.lang.reflect.Modifier.isAbstract(raw.getModifiers())) {
+        if (raw == Object.class || raw.isInterface() || Modifier.isAbstract(raw.getModifiers())) {
             return Map.of(); // any value
         }
         if (!visiting.add(type)) {
@@ -194,15 +205,15 @@ public final class JsonSchemas {
     }
 
     private static List<String> enumValues(Class<?> type) {
-        return java.util.Arrays.stream(type.getEnumConstants())
+        return Arrays.stream(type.getEnumConstants())
                 .map(c -> Json.MAPPER.convertValue(c, String.class))
                 .toList();
     }
 
     /** As {@link MethodRefs#parameterNames}: {@code @InputParam}, else the compiled name; null if neither. */
     private static String nameOf(Parameter p) {
-        com.netflix.conductor.sdk.workflow.task.InputParam ip =
-                p.getAnnotation(com.netflix.conductor.sdk.workflow.task.InputParam.class);
+        InputParam ip =
+                p.getAnnotation(InputParam.class);
         if (ip != null) {
             return ip.value();
         }

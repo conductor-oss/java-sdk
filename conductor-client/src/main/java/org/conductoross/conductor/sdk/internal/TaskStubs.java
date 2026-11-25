@@ -12,10 +12,12 @@
  */
 package org.conductoross.conductor.sdk.internal;
 
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -96,7 +98,7 @@ public final class TaskStubs {
         try {
             constructor.setAccessible(true);
             return type.cast(constructor.newInstance(args));
-        } catch (java.lang.reflect.InvocationTargetException e) {
+        } catch (InvocationTargetException e) {
             throw new IllegalStateException("constructor of " + type.getName() + " failed", e.getCause());
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("cannot create " + type.getName(), e);
@@ -212,7 +214,7 @@ public final class TaskStubs {
     }
 
     /** The command for a call to a {@code @WorkerTask} method. */
-    public static Command taskCommand(java.io.Serializable ref, Object... args) {
+    public static Command taskCommand(Serializable ref, Object... args) {
         return taskCommand(MethodRefs.resolve(ref), args);
     }
 

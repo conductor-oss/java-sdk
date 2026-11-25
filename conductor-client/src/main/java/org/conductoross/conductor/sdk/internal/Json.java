@@ -14,15 +14,25 @@ package org.conductoross.conductor.sdk.internal;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
@@ -80,10 +90,10 @@ public final class Json {
                 || Collection.class.isAssignableFrom(raw)
                 || raw.isArray()
                 // values JSON writes as a string or a number, not as an object
-                || java.time.temporal.Temporal.class.isAssignableFrom(raw)
-                || java.time.temporal.TemporalAmount.class.isAssignableFrom(raw)
-                || java.util.Date.class.isAssignableFrom(raw)
-                || java.util.UUID.class == raw;
+                || Temporal.class.isAssignableFrom(raw)
+                || TemporalAmount.class.isAssignableFrom(raw)
+                || Date.class.isAssignableFrom(raw)
+                || UUID.class == raw;
     }
 
     /** Encodes a task result or workflow result as an output map. */
@@ -166,14 +176,15 @@ public final class Json {
 
     /** The type to read a value's JSON back as. */
     private static JavaType typeOf(Object value) {
-        com.fasterxml.jackson.databind.type.TypeFactory types = MAPPER.getTypeFactory();
+        TypeFactory types = MAPPER.getTypeFactory();
         if (value instanceof Map<?, ?> m) {
             return types.constructMapType(LinkedHashMap.class, common(m.keySet()), common(m.values()));
         }
         if (value instanceof Collection<?> c) {
-            Class<? extends Collection> holder = value instanceof java.util.SortedSet ? java.util.TreeSet.class
-                    : value instanceof java.util.Set ? java.util.LinkedHashSet.class
-                    : java.util.ArrayList.class;
+            @SuppressWarnings("rawtypes") // what TypeFactory.constructCollectionType takes
+            Class<? extends Collection> holder = value instanceof SortedSet ? TreeSet.class
+                    : value instanceof Set ? LinkedHashSet.class
+                    : ArrayList.class;
             return types.constructCollectionType(holder, common(c));
         }
         // an enum constant with a body is its own class: the enum is what reads it back

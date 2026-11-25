@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.conductoross.conductor.sdk.Functions.Fn1;
 import org.conductoross.conductor.sdk.Functions.Proc0;
@@ -109,7 +110,7 @@ public final class TestRun<R> {
     /** Reference names that ran with this base: {@code base}, {@code base_2}, and so on. */
     public List<String> tasks(String base) {
         result();
-        return engine.ran.stream().filter(r -> r.equals(base) || r.matches(java.util.regex.Pattern.quote(base) + "_\\d+")).toList();
+        return engine.ran.stream().filter(r -> r.equals(base) || r.matches(Pattern.quote(base) + "_\\d+")).toList();
     }
 
     /** All reference names, in the order they ran. */

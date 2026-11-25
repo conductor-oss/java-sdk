@@ -15,9 +15,14 @@ package com.netflix.conductor.client.automator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import com.netflix.conductor.client.events.dispatcher.EventDispatcher;
 import com.netflix.conductor.client.events.taskrunner.TaskRunnerEvent;
@@ -43,6 +48,7 @@ import static org.mockito.Mockito.when;
  * The per-runner options (update-v2, polling without domains), and the updates a runner sends: a
  * refused update once, a worker that throws once.
  */
+@SuppressWarnings("unchecked") // generic test data read back from maps and mocks
 class TaskRunnerOptionsTest {
 
     private TaskRunner runner;
@@ -117,14 +123,14 @@ class TaskRunnerOptionsTest {
         when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(task("t1")), List.of());
         Worker worker = worker();
-        org.mockito.Mockito.doThrow(new IllegalStateException("boom")).when(worker).execute(any());
+        Mockito.doThrow(new IllegalStateException("boom")).when(worker).execute(any());
 
         run(worker, client);
 
-        org.mockito.ArgumentCaptor<TaskResult> sent = org.mockito.ArgumentCaptor.forClass(TaskResult.class);
+        ArgumentCaptor<TaskResult> sent = ArgumentCaptor.forClass(TaskResult.class);
         verify(client, after(1500).times(1)).updateTaskV2(sent.capture(), any());
-        org.junit.jupiter.api.Assertions.assertEquals(TaskResult.Status.FAILED, sent.getValue().getStatus());
-        org.junit.jupiter.api.Assertions.assertTrue(sent.getValue().getReasonForIncompletion().contains("boom"));
+        Assertions.assertEquals(TaskResult.Status.FAILED, sent.getValue().getStatus());
+        Assertions.assertTrue(sent.getValue().getReasonForIncompletion().contains("boom"));
     }
 
     @Test
@@ -144,7 +150,7 @@ class TaskRunnerOptionsTest {
     void aWorkerPausedWhileATaskRunsTakesNoNextTaskFromItsUpdate() {
         Task first = task("t1");
         Task next = task("t2");
-        java.util.concurrent.atomic.AtomicBoolean paused = new java.util.concurrent.atomic.AtomicBoolean();
+        AtomicBoolean paused = new AtomicBoolean();
         TaskClient client = mock(TaskClient.class);
         when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
         when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
@@ -173,8 +179,8 @@ class TaskRunnerOptionsTest {
     void aTaskFinishingDuringShutdownTakesNoNextTaskFromItsUpdate() throws Exception {
         Task first = task("t1");
         Task next = task("t2");
-        java.util.concurrent.CountDownLatch running = new java.util.concurrent.CountDownLatch(1);
-        java.util.concurrent.CountDownLatch finish = new java.util.concurrent.CountDownLatch(1);
+        CountDownLatch running = new CountDownLatch(1);
+        CountDownLatch finish = new CountDownLatch(1);
         TaskClient client = mock(TaskClient.class);
         when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
         when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
@@ -209,8 +215,8 @@ class TaskRunnerOptionsTest {
     void aTaskHandedBackAfterShutdownBeganStillRuns() throws Exception {
         Task first = task("t1");
         Task next = task("t2");
-        java.util.concurrent.CountDownLatch updating = new java.util.concurrent.CountDownLatch(1);
-        java.util.concurrent.CountDownLatch answer = new java.util.concurrent.CountDownLatch(1);
+        CountDownLatch updating = new CountDownLatch(1);
+        CountDownLatch answer = new CountDownLatch(1);
         TaskClient client = mock(TaskClient.class);
         when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
         when(client.batchPollTasksInDomain(eq("code_type"), isNull(), anyString(), anyInt(), anyInt()))
@@ -236,14 +242,14 @@ class TaskRunnerOptionsTest {
         // own result goes with the update that hands nothing back
         verify(worker).execute(next);
         verify(client).updateTask(any(), any());
-        verify(client, org.mockito.Mockito.times(1)).updateTaskV2(any(), any());
+        verify(client, Mockito.times(1)).updateTaskV2(any(), any());
     }
 
     @Test
     void theTasksOfAPollInFlightWhenShutdownBeginsStillRun() throws Exception {
         Task first = task("t1");
-        java.util.concurrent.CountDownLatch polling = new java.util.concurrent.CountDownLatch(1);
-        java.util.concurrent.CountDownLatch answer = new java.util.concurrent.CountDownLatch(1);
+        CountDownLatch polling = new CountDownLatch(1);
+        CountDownLatch answer = new CountDownLatch(1);
         TaskClient client = mock(TaskClient.class);
         when(client.evaluateAndUploadLargePayload(any(), any())).thenReturn(Optional.empty());
         // the poll is on its way when shutdown begins; the server answers it with a task

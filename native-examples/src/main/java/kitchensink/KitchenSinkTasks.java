@@ -15,6 +15,7 @@ package kitchensink;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.netflix.conductor.sdk.workflow.executor.task.NonRetryableException;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
@@ -94,7 +95,7 @@ public class KitchenSinkTasks {
         return new JobStatus(done, done ? "finished after " + checks + " checks" : "still running");
     }
 
-    private final java.util.Map<String, Integer> checks = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, Integer> checks = new ConcurrentHashMap<>();
 
     /** No retries: a failed charge must surface to the workflow, which compensates. */
     @WorkerTask(value = "charge", retryCount = 0)

@@ -12,6 +12,8 @@
  */
 package strict;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -156,8 +158,8 @@ class StrictDeterminismTest {
     }
 
     private static int line(String mark) throws Exception {
-        List<String> source = java.nio.file.Files.readAllLines(
-                java.nio.file.Path.of("src/test/java/strict/StrictDeterminismTest.java"));
+        List<String> source = Files.readAllLines(
+                Path.of("src/test/java/strict/StrictDeterminismTest.java"));
         for (int i = 0; i < source.size(); i++) {
             if (source.get(i).trim().endsWith("// " + mark)) {
                 return i + 1;

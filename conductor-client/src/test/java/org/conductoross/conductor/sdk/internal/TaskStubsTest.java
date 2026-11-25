@@ -15,7 +15,9 @@ package org.conductoross.conductor.sdk.internal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.conductoross.conductor.sdk.Conductor;
 import org.conductoross.conductor.sdk.Workflow;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +42,7 @@ class TaskStubsTest {
         private final Inventory inventory;
 
         public Tasks(Inventory inventory) {
-            this.inventory = java.util.Objects.requireNonNull(inventory);
+            this.inventory = Objects.requireNonNull(inventory);
         }
 
         @WorkerTask("stub_reserve")
@@ -85,7 +87,7 @@ class TaskStubsTest {
 
         @Workflow(name = "stub_each")
         public List<String> run(Order order) {
-            return org.conductoross.conductor.sdk.Conductor.forEach("ship_each", List.of("a", "b"), tasks::ship2);
+            return Conductor.forEach("ship_each", List.of("a", "b"), tasks::ship2);
         }
     }
 
@@ -149,7 +151,7 @@ class TaskStubsTest {
 
     @Test
     void conductorStubGivesAFactoryTheSameStub() {
-        Tasks stub = org.conductoross.conductor.sdk.Conductor.stub(Tasks.class);
+        Tasks stub = Conductor.stub(Tasks.class);
         assertInstanceOf(TaskStubs.Stub.class, stub);
         assertInstanceOf(Tasks.class, stub);
     }

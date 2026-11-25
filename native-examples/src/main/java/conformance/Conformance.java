@@ -14,6 +14,7 @@ package conformance;
 
 import java.nio.file.*;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -89,7 +90,7 @@ public class Conformance {
         @WorkerTask("tmap") public Map<String,Integer> map(@InputParam("x") String x) { return Map.of(x, 7); }
         @WorkerTask("tint") public int num(@InputParam("x") int x) { return x + 1; }
         static final ConcurrentHashMap<String,Integer> flaky = new ConcurrentHashMap<>();
-        @WorkerTask("tinstant") public java.time.Instant instant(@InputParam("x") String x) { return java.time.Instant.parse("2026-01-02T03:04:05Z"); }
+        @WorkerTask("tinstant") public Instant instant(@InputParam("x") String x) { return Instant.parse("2026-01-02T03:04:05Z"); }
         @WorkerTask("tuuid") public UUID uuid(@InputParam("x") String x) { return UUID.fromString("00000000-0000-0000-0000-000000000007"); }
         @WorkerTask("tarr") public String[] arr(@InputParam("x") String x) { return new String[] {x, "y"}; }
         @WorkerTask("tbool") public boolean bool(@InputParam("x") String x) { return true; }
@@ -241,7 +242,7 @@ public class Conformance {
     @Workflow(name="c_refunrolled") public String refUnrolled(String x) { String r = task("ta").ref("zed").input("x", x).as(String.class); r = task("ta").ref("zed").input("x", r).as(String.class); return task("ta").ref("zed").input("x", r).as(String.class); }
 
     // ---- round 2
-    @Workflow(name="c_instant") public String instant(String x) { java.time.Instant i = t.instant(x); return a(i.toString()); }
+    @Workflow(name="c_instant") public String instant(String x) { Instant i = t.instant(x); return a(i.toString()); }
     @Workflow(name="c_uuid") public String uuid(String x) { UUID u = t.uuid(x); return a(u.toString()); }
     @Workflow(name="c_arr") public String arr(String x) { String[] r = t.arr(x); return a(r[0] + r[1]); }
     @Workflow(name="c_bool") public String bool(String x) { boolean r = t.bool(x); return a("" + r); }
@@ -289,7 +290,7 @@ public class Conformance {
     @Workflow(name="c_mid") public String mid(String x) { return b(child(Conformance::kid, x)); }
     @Workflow(name="c_start") public String startWf(String x) { startWorkflow(Conformance::kid, "y"); return a(x); }
     @Workflow(name="c_sleep0") public String sleepZero(String x) { sleep(Duration.ZERO); return a(x); }
-    @Workflow(name="c_sleeppast") public String sleepPast(String x) { sleepUntil(java.time.Instant.parse("2020-01-01T00:00:00Z")); return a(x); }
+    @Workflow(name="c_sleeppast") public String sleepPast(String x) { sleepUntil(Instant.parse("2020-01-01T00:00:00Z")); return a(x); }
     @Workflow(name="c_repno") public String repNo(String x) { try { Status s = repeatUntil(() -> t.pollNo("k"), Status::done, Backoff.every(Duration.ofSeconds(1)).attempts(2)); return "returned done=" + s.done(); } catch (TaskFailure e) { return "threw"; } }
     @Workflow(name="c_onceloop") public String onceLoop(String x) { String r = ""; for (int i = 0; i < 2; i++) { final int k = i; r += once("v", () -> "n" + k); a(x + i); } return r; }
     @Workflow(name="c_unjoined") public String unjoined(String x) { async(() -> a(x)); return "done"; }

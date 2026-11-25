@@ -13,7 +13,9 @@
 package org.conductoross.conductor.sdk;
 
 import java.io.Serializable;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Serializable functional interfaces for method references and lambdas. A method reference such
@@ -51,11 +53,11 @@ public final class Functions {
     public interface Pred<T> extends Predicate<T>, Serializable {}
 
     /** The body of a switch case. Serializable so that its compiled code can be located. */
-    public interface CaseBody<R> extends java.util.function.Supplier<R>, Serializable {}
+    public interface CaseBody<R> extends Supplier<R>, Serializable {}
 
     /** A switch case body with no result. */
     public interface CaseAction extends Runnable, Serializable {}
 
     /** The condition of a {@code doWhile}. Serializable so that its compiled code can be located. */
-    public interface Condition extends java.util.function.BooleanSupplier, Serializable {}
+    public interface Condition extends BooleanSupplier, Serializable {}
 }

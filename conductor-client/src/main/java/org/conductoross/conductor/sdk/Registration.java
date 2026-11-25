@@ -18,8 +18,15 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToLongFunction;
 
+import org.conductoross.conductor.sdk.internal.Json;
+import org.conductoross.conductor.sdk.internal.JsonSchemas;
+import org.conductoross.conductor.sdk.internal.MethodRefs;
+import org.conductoross.conductor.sdk.internal.Replayer;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
@@ -28,6 +35,7 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 final class Registration {
 
     /** The owner of task definitions this SDK created; any other owner's are left alone. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(Registration.class);
     private static final String NATIVE_OWNER = "native@conductor.local";
 
     private Registration() {}
@@ -53,7 +61,7 @@ final class Registration {
 
     /** @param continuationTimeoutSeconds each workflow's continuation lease, in seconds */
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
-            java.util.function.ToLongFunction<WorkflowSpec> continuationTimeoutSeconds, boolean discover) {
+            ToLongFunction<WorkflowSpec> continuationTimeoutSeconds, boolean discover) {
         Schemas schemas = new Schemas(client);
         // each task's input and output schema references, by task name
         Map<String, Map<String, Object>> taskSchemas = new LinkedHashMap<>();
@@ -63,8 +71,8 @@ final class Registration {
                 WorkerTask wt = e.getValue().getAnnotation(WorkerTask.class);
                 Map<String, Object> refs = schemas.refs(
                         e.getKey(),
-                        org.conductoross.conductor.sdk.internal.JsonSchemas.taskInput(e.getValue()),
-                        org.conductoross.conductor.sdk.internal.JsonSchemas.taskOutput(e.getValue()));
+                        JsonSchemas.taskInput(e.getValue()),
+                        JsonSchemas.taskOutput(e.getValue()));
                 taskSchemas.put(e.getKey(), refs);
                 Map<String, Object> def = new LinkedHashMap<>();
                 def.putAll(refs);
@@ -95,9 +103,11 @@ final class Registration {
             Map<String, Object> def = skeleton(spec, continuationTimeoutSeconds.applyAsLong(spec), discover);
             def.putAll(schemas.refs(
                     spec.name,
-                    org.conductoross.conductor.sdk.internal.JsonSchemas.workflowInput(spec.method),
-                    org.conductoross.conductor.sdk.internal.JsonSchemas.workflowOutput(spec.method)));
-            withTaskSchemas((List<Map<String, Object>>) def.get("tasks"), taskSchemas);
+                    JsonSchemas.workflowInput(spec.method),
+                    JsonSchemas.workflowOutput(spec.method)));
+            @SuppressWarnings("unchecked") // skeleton builds "tasks" as a list of entry maps
+            List<Map<String, Object>> tasks = (List<Map<String, Object>>) def.get("tasks");
+            withTaskSchemas(tasks, taskSchemas);
             workflowDefs.add(def);
         }
         if (!taskDefs.isEmpty()) {
@@ -114,14 +124,14 @@ final class Registration {
     static void registerSchedules(ConductorClient client, Collection<WorkflowSpec> specs) {
         for (WorkflowSpec spec : specs) {
             int n = 0;
-            for (org.conductoross.conductor.sdk.Schedule s : spec.schedules) {
+            for (Schedule s : spec.schedules) {
                 n++;
                 String name = !s.name().isBlank() ? s.name() : spec.name + "_schedule" + (n > 1 ? "_" + n : "");
                 Map<String, Object> start = new LinkedHashMap<>();
                 start.put("name", spec.name);
                 start.put("version", spec.version);
                 try {
-                    start.put("input", org.conductoross.conductor.sdk.internal.Json.MAPPER.readValue(s.input(), Map.class));
+                    start.put("input", Json.MAPPER.readValue(s.input(), Map.class));
                 } catch (Exception e) {
                     throw new IllegalArgumentException("@Schedule input of " + spec.name + " is not a JSON object: " + s.input(), e);
                 }
@@ -135,8 +145,7 @@ final class Registration {
                 try {
                     Http.post(client, "/scheduler/schedules", schedule, Map.class);
                 } catch (RuntimeException e) {
-                    org.slf4j.LoggerFactory.getLogger(Registration.class)
-                            .warn("Could not register schedule {} (is conductor.scheduler.enabled=true?): {}", name, e.toString());
+                    LOGGER.warn("Could not register schedule {} (is conductor.scheduler.enabled=true?): {}", name, e.toString());
                 }
             }
         }
@@ -180,11 +189,10 @@ final class Registration {
         // execution's own copy of the definition starts empty and grows with what the code calls.
         List<Map<String, Object>> discovered;
         try {
-            discovered = discover ? org.conductoross.conductor.sdk.internal.Replayer.discover(spec) : List.of();
+            discovered = discover ? Replayer.discover(spec) : List.of();
         } catch (RuntimeException e) {
             discovered = List.of();
-            org.slf4j.LoggerFactory.getLogger(Registration.class)
-                    .warn("Could not discover the graph of workflow {}: {}", spec.name, e.getMessage());
+            LOGGER.warn("Could not discover the graph of workflow {}: {}", spec.name, e.getMessage());
         }
         inlineTaskDefinitions(discovered);
         def.put("metadata", Map.of("native", nativeMeta));
@@ -196,11 +204,11 @@ final class Registration {
 
     /** The workflow method's parameter names (a single record's components), for the definition. */
     static List<String> inputParameters(WorkflowSpec spec) {
-        java.lang.reflect.Method m = spec.method;
+        Method m = spec.method;
         if (m.getParameterCount() == 0) {
             return List.of();
         }
-        if (m.getParameterCount() == 1 && !org.conductoross.conductor.sdk.internal.Json.isWrapped(m.getGenericParameterTypes()[0])) {
+        if (m.getParameterCount() == 1 && !Json.isWrapped(m.getGenericParameterTypes()[0])) {
             Class<?> type = m.getParameterTypes()[0];
             if (type.isRecord()) {
                 List<String> names = new ArrayList<>();
@@ -211,7 +219,7 @@ final class Registration {
             }
             return List.of();
         }
-        return List.of(org.conductoross.conductor.sdk.internal.MethodRefs.parameterNames(m));
+        return List.of(MethodRefs.parameterNames(m));
     }
 
     /** The inline definitions of the discovered tasks reference their tasks' schemas, for the editor. */
@@ -270,13 +278,13 @@ final class Registration {
         private Map<String, Object> ref(String name, Map<String, Object> data) {
             try {
                 List<Map<String, Object>> versions = registered().getOrDefault(name, new ArrayList<>());
-                var wanted = org.conductoross.conductor.sdk.internal.Json.MAPPER.valueToTree(data);
+                var wanted = Json.MAPPER.valueToTree(data);
                 int version = 0;
                 int highest = 0;
                 for (Map<String, Object> v : versions) {
                     int n = v.get("version") instanceof Number num ? num.intValue() : 0;
                     highest = Math.max(highest, n);
-                    if (wanted.equals(org.conductoross.conductor.sdk.internal.Json.MAPPER.valueToTree(v.get("data")))) {
+                    if (wanted.equals(Json.MAPPER.valueToTree(v.get("data")))) {
                         version = n;
                     }
                 }
@@ -297,8 +305,7 @@ final class Registration {
                 ref.put("type", "JSON");
                 return ref;
             } catch (RuntimeException e) {
-                org.slf4j.LoggerFactory.getLogger(Registration.class)
-                        .warn("Could not register schema {} (does the server have a schema registry?): {}", name, e.toString());
+                LOGGER.warn("Could not register schema {} (does the server have a schema registry?): {}", name, e.toString());
                 return null;
             }
         }
