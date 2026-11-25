@@ -104,7 +104,7 @@ class TaskRunner {
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean useVirtualThreads) {
         this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
-                pollFilters, eventDispatcher, useVirtualThreads, false, true);
+                pollFilters, eventDispatcher, useVirtualThreads, false, true, null);
     }
 
     /**
@@ -113,24 +113,6 @@ class TaskRunner {
      *     variable is set
      * @param useDomains poll the domain from the properties or {@code taskToDomain}; false polls
      *     only the shared queue
-     */
-    TaskRunner(Worker worker,
-               TaskClient taskClient,
-               int updateRetryCount,
-               Map<String, String> taskToDomain,
-               String workerNamePrefix,
-               int threadCount,
-               int taskPollTimeout,
-               List<PollFilter> pollFilters,
-               EventDispatcher<TaskRunnerEvent> eventDispatcher,
-               boolean useVirtualThreads,
-               boolean updateV2,
-               boolean useDomains) {
-        this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
-                pollFilters, eventDispatcher, useVirtualThreads, updateV2, useDomains, null);
-    }
-
-    /**
      * @param fixedDomain the one task domain to poll, whatever the properties and {@code
      *     taskToDomain} say; null to resolve the domain as {@code useDomains} says
      */
@@ -160,16 +142,16 @@ class TaskRunner {
 
         LOGGER.info("taskUpdateV2 is set to {} for {}", this.enableUpdateV2, worker.getTaskDefName());
         //1. Is there a worker level override?
-        this.domain = useDomains ? PropertyFactory.getString(taskType, Worker.PROP_DOMAIN, null) : null;
-        if (this.domain == null && useDomains) {
+        this.domain = PropertyFactory.getString(taskType, Worker.PROP_DOMAIN, null);
+        if (this.domain == null) {
             //2. If not, is there a blanket override?
             this.domain = PropertyFactory.getString(Worker.PROP_ALL_WORKERS, Worker.PROP_DOMAIN, null);
         }
-        if (this.domain == null && useDomains) {
+        if (this.domain == null) {
             //3. was it supplied as part of the config?
             this.domain = taskToDomain.get(taskType);
         }
-        if (fixedDomain != null) {
+        if (!useDomains || fixedDomain != null) {
             this.domain = fixedDomain;
         }
 
@@ -292,20 +274,12 @@ class TaskRunner {
                 );
                 leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
             } catch (RejectedExecutionException e) {
-                // shutting down: the task runs, within the grace period, without lease extension
+                // shutting down: the task, already submitted, runs without lease extension; a
+                // throw here would make the caller release the permit the task also releases
                 LOGGER.debug("No lease extension for task {}: shutting down", task.getTaskId());
             }
         }
         return true;
-    }
-
-    /**
-     * Stops polling without waiting: the poll in flight, if any, still returns. For stopping
-     * several runners together, so that their last polls end at the same time rather than one
-     * after another; {@link #shutdown(int)} then waits for this runner's.
-     */
-    public void stopPolling() {
-        pollingAndExecuting = false;
     }
 
     /**
@@ -475,7 +449,7 @@ class TaskRunner {
                 // The executor takes nothing new: shutdown began while the update was on its way.
                 // The server has leased the task to this worker, so it runs here, on this thread,
                 // which shutdown lets finish; its own result is sent with the update that hands
-                // nothing back. Left alone, it would wait out its response timeout.
+                // nothing back. Left alone, it would wait out its lease.
                 if (Thread.currentThread().isInterrupted()) {
                     LOGGER.error("Shutdown is forced; dropping task {} of type {}", next.getTaskId(), taskType);
                     break;
@@ -573,7 +547,7 @@ class TaskRunner {
                 task.setStatus(Task.Status.FAILED);
                 result = new TaskResult(task);
             }
-            markFailed(e, result, task); // sent once, by the update below
+            return handleException(e, result, worker, task); // sends it: not again below
         }
 
         LOGGER.trace(
@@ -658,22 +632,13 @@ class TaskRunner {
     }
 
     /**
-     * Whether this runner would poll for a task now: it is running, its worker is not paused and
-     * no filter holds it back. Only then is a result sent with update-v2, which hands back the
-     * next task: a task handed to a paused worker would run despite the pause, and one handed
-     * over during shutdown could not run, and would wait out its response timeout before the
-     * server gives it to another worker.
+     * Whether this runner takes another task now: it is running and its worker is not paused. Only
+     * then is a result sent with update-v2, which hands back the next task: a task handed to a
+     * paused worker would run despite the pause, and one handed over during shutdown could not
+     * run, and would wait out its response timeout.
      */
     private boolean takesMoreWork() {
-        if (!pollingAndExecuting || worker.paused()) {
-            return false;
-        }
-        for (PollFilter filter : pollFilters) {
-            if (!filter.filter(taskType, domain)) {
-                return false;
-            }
-        }
-        return true;
+        return pollingAndExecuting && !worker.paused();
     }
 
     private Optional<String> upload(TaskResult result, String taskType) {
@@ -712,18 +677,13 @@ class TaskRunner {
     }
 
     private Task handleException(Throwable t, TaskResult result, Worker worker, Task task) {
-        markFailed(t, result, task);
-        return updateTaskResult(updateRetryCount, task, result, worker);
-    }
-
-    /** Records on the result that the task failed with {@code t}, without sending it. */
-    private void markFailed(Throwable t, TaskResult result, Task task) {
         LOGGER.error(String.format("Error while executing task %s", task.toString()), t);
         result.setStatus(TaskResult.Status.FAILED);
         result.setReasonForIncompletion("Error while executing the task: " + t);
         StringWriter stringWriter = new StringWriter();
         t.printStackTrace(new PrintWriter(stringWriter));
         result.log(stringWriter.toString());
+        return updateTaskResult(updateRetryCount, task, result, worker);
     }
 
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {

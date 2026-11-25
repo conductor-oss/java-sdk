@@ -161,8 +161,6 @@ public class TaskRunnerConfigurer {
     public void shutdown() {
         if (taskRunners != null) {
             synchronized (taskRunners) {
-                // all of them stop polling first, so their last polls end together, not in turn
-                taskRunners.forEach(TaskRunner::stopPolling);
                 taskRunners.forEach(taskRunner -> taskRunner.shutdown(shutdownGracePeriodSeconds));
             }
         }

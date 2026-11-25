@@ -86,7 +86,7 @@ class TaskRunnerOptionsTest {
     private void run(Worker worker, TaskClient client) {
         // a domain is configured, and ignored
         runner = new TaskRunner(worker, client, 3, Map.of("code_type", "blue"), "test-%d", 2, 100, List.of(),
-                (EventDispatcher<TaskRunnerEvent>) mock(EventDispatcher.class), true, true, false);
+                (EventDispatcher<TaskRunnerEvent>) mock(EventDispatcher.class), true, true, false, null);
         Thread poller = new Thread(runner::pollAndExecute);
         poller.setDaemon(true);
         poller.start();
