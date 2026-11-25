@@ -77,8 +77,11 @@ jobs:
         run: |
           actual=$([ "$OUTCOME" = success ] && echo pass || echo fail)
           verdict=$([ "$actual" = "$EXPECT" ] && echo "as predicted" || echo "UNEXPECTED")
-          errors=$(grep -rhoE 'NoClassDefFoundError: [A-Za-z0-9/_$]+' \
-            conductor-client-spring/build/test-results/bootCompatTest/ 2>/dev/null | sort -u | paste -sd ',' - || true)
+          results=conductor-client-spring/build/test-results/bootCompatTest/
+          errors=$(grep -rhoE 'NoClassDefFoundError: [A-Za-z0-9/_$]+' "$results" 2>/dev/null \
+            | sort -u | paste -sd ',' - || true)
+          sdk_message=$(grep -rhoE 'Conductor SDK could not start Jackson[^<&"]*' "$results" 2>/dev/null \
+            | sort -u | head -1 || true)
           {
             echo "### Boot $BOOT: $actual ($verdict)"
             echo
@@ -87,5 +90,11 @@ jobs:
             echo "| $BOOT | $ENGINE | $ANNOTATIONS | $KOTLIN | $EXPECT | $actual | ${errors:-none} |"
             echo
             echo "Why: $WHY"
+            if [ -n "$sdk_message" ]; then
+              echo
+              echo "What the user sees:"
+              echo
+              echo "> $sdk_message"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
           cat "$GITHUB_STEP_SUMMARY"

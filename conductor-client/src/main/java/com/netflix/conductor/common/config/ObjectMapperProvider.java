@@ -12,6 +12,9 @@
  */
 package com.netflix.conductor.common.config;
 
+import java.io.InputStream;
+import java.util.Properties;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -21,6 +24,10 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.module.kotlin.KotlinModule;
 
 public class ObjectMapperProvider {
+
+    // Keep in sync with jacksonBom in versions.gradle: the jackson-annotations release that
+    // the Jackson 3 engine was built against.
+    private static final String MIN_JACKSON_ANNOTATIONS = "2.21";
 
     private static final ObjectMapper objectMapper = _getObjectMapper();
 
@@ -39,17 +46,105 @@ public class ObjectMapperProvider {
      * payload format seen by the server and stored task/workflow documents.
      */
     private static ObjectMapper _getObjectMapper() {
-        return JsonMapper.builder()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
-                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .changeDefaultPropertyInclusion(
-                        value ->
-                                JsonInclude.Value.construct(
-                                        JsonInclude.Include.NON_NULL, JsonInclude.Include.ALWAYS))
-                .addModule(new KotlinModule.Builder().build())
-                .build();
+        try {
+            ObjectMapper mapper =
+                    JsonMapper.builder()
+                            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                            .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+                            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                            .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                            .changeDefaultPropertyInclusion(
+                                    value ->
+                                            JsonInclude.Value.construct(
+                                                    JsonInclude.Include.NON_NULL,
+                                                    JsonInclude.Include.ALWAYS))
+                            .addModule(new KotlinModule.Builder().build())
+                            .build();
+            selfCheck(mapper);
+            return mapper;
+        } catch (RuntimeException | LinkageError e) {
+            LinkageError missing = findLinkageError(e);
+            if (missing == null) {
+                throw e;
+            }
+            throw new IllegalStateException(incompatibleJacksonMessage(missing), e);
+        }
+    }
+
+    /**
+     * Some classes Jackson needs are only loaded the first time it inspects a bean, so convert
+     * one here. An incompatible classpath then fails at startup, not on the first task.
+     */
+    private static void selfCheck(ObjectMapper mapper) {
+        SelfCheck value = new SelfCheck();
+        value.value = "ok";
+        mapper.readValue(mapper.writeValueAsString(value), SelfCheck.class);
+    }
+
+    public static class SelfCheck {
+        public String value;
+    }
+
+    private static LinkageError findLinkageError(Throwable t) {
+        for (Throwable cause = t; cause != null; cause = cause.getCause()) {
+            if (cause instanceof LinkageError linkageError) {
+                return linkageError;
+            }
+        }
+        return null;
+    }
+
+    private static String incompatibleJacksonMessage(LinkageError e) {
+        String missing = String.valueOf(e.getMessage());
+        String hint;
+        if (missing.startsWith("com/fasterxml/jackson/annotation/")) {
+            hint = "jackson-annotations is older than this Jackson version needs.";
+        } else if (missing.startsWith("kotlin/")) {
+            hint = "kotlin-stdlib is older than this Jackson version needs.";
+        } else {
+            hint = "A Jackson dependency is older than this Jackson version needs.";
+        }
+        return "Conductor SDK could not start Jackson: missing class "
+                + missing
+                + ". "
+                + hint
+                + " Found jackson-databind "
+                + mavenVersion("tools.jackson.core", "jackson-databind")
+                + ", jackson-annotations "
+                + mavenVersion("com.fasterxml.jackson.core", "jackson-annotations")
+                + ", kotlin-stdlib "
+                + kotlinVersion()
+                + ". A dependency BOM most likely forced an older version; in a Spring Boot 3 app,"
+                + " Boot's BOM manages jackson-annotations and Kotlin. This SDK needs"
+                + " jackson-annotations "
+                + MIN_JACKSON_ANNOTATIONS
+                + " or later: use Spring Boot 3.5.13 or later, or set the jackson-bom.version"
+                + " property to "
+                + MIN_JACKSON_ANNOTATIONS
+                + ".x.";
+    }
+
+    private static String mavenVersion(String group, String artifact) {
+        String path = "META-INF/maven/" + group + "/" + artifact + "/pom.properties";
+        try (InputStream in = ObjectMapperProvider.class.getClassLoader().getResourceAsStream(path)) {
+            if (in == null) {
+                return "unknown";
+            }
+            Properties properties = new Properties();
+            properties.load(in);
+            return properties.getProperty("version", "unknown");
+        } catch (Exception | LinkageError ignored) {
+            return "unknown";
+        }
+    }
+
+    private static String kotlinVersion() {
+        try {
+            String version = Class.forName("kotlin.Unit").getPackage().getImplementationVersion();
+            return version == null ? "unknown" : version;
+        } catch (Exception | LinkageError ignored) {
+            return "not on classpath";
+        }
     }
 }
