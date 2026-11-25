@@ -204,6 +204,7 @@ For worker patterns, workflow definitions, and testing, continue with the [core 
 | Task remains `SCHEDULED` | A worker is polling the exact task type and has enough threads. |
 | Authentication failure | `CONDUCTOR_AUTH_KEY` and `CONDUCTOR_AUTH_SECRET` are set for the target server. |
 | AI agent cannot call a model | The server—not only the client process—has a configured LLM provider and model. |
+| `Conductor SDK could not start Jackson` at startup | On Spring Boot 3, use 3.5.13+ or set `jackson-bom.version` to 2.21.x; see [older Spring Boot 3 versions](conductor-client-spring/README.md#older-spring-boot-3-versions). |
 
 ## Support and project policies
 
