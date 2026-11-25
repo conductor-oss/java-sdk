@@ -1,0 +1,91 @@
+# Demo for PR #189 (Jackson 3). In a Spring Boot 3 app, Boot's BOM picks the
+# jackson-annotations and Kotlin versions, while the SDK picks the Jackson 3 engine.
+# When the engine needs newer ones than Boot supplies, the app fails with NoClassDefFoundError.
+name: Boot 3 compatibility demo
+
+on:
+  push:
+    branches:
+      - demo/boot3-jackson-annotations
+
+jobs:
+  boot3-compat:
+    name: Boot ${{ matrix.boot }} + Jackson ${{ matrix.jackson || '3.1.7 (PR default)' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - boot: '3.5.12'
+            jackson: ''
+            expect: fail
+            why: 'annotations 2.19 < 2.21 needed by Jackson 3.1.7, so the app fails to start'
+          - boot: '3.5.13'
+            jackson: ''
+            expect: pass
+            why: 'annotations 2.21 is what Jackson 3.1.7 needs'
+          - boot: '3.5.16'
+            jackson: '3.2.3'
+            expect: fail
+            why: 'Kotlin 1.9 forced by Boot (first of two blockers; annotations 2.21 < 2.22 is the second)'
+    env:
+      COMPAT_ARGS: -PcompatBootVersion=${{ matrix.boot }} ${{ matrix.jackson && format('-PcompatJacksonVersion={0}', matrix.jackson) || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Zulu JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - name: Show resolved versions
+        id: versions
+        run: |
+          resolved() {
+            local out
+            out=$(./gradlew -q :conductor-client-spring:dependencyInsight \
+              --configuration bootCompatTestRuntimeClasspath --dependency "$1" $COMPAT_ARGS)
+            echo "$out" | awk 'NR==1 {print $1}' | awk -F: '{print $NF}'
+          }
+          annotations=$(resolved com.fasterxml.jackson.core:jackson-annotations)
+          engine=$(resolved tools.jackson.core:jackson-databind)
+          kotlin=$(resolved org.jetbrains.kotlin:kotlin-stdlib)
+          echo "jackson-annotations=$annotations  jackson-databind=$engine  kotlin-stdlib=$kotlin"
+          {
+            echo "annotations=$annotations"
+            echo "engine=$engine"
+            echo "kotlin=$kotlin"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Boot 3 compatibility tests
+        id: tests
+        run: ./gradlew :conductor-client-spring:bootCompatTest $COMPAT_ARGS
+
+      - name: Summary
+        if: always()
+        env:
+          BOOT: ${{ matrix.boot }}
+          EXPECT: ${{ matrix.expect }}
+          WHY: ${{ matrix.why }}
+          OUTCOME: ${{ steps.tests.outcome }}
+          ANNOTATIONS: ${{ steps.versions.outputs.annotations }}
+          ENGINE: ${{ steps.versions.outputs.engine }}
+          KOTLIN: ${{ steps.versions.outputs.kotlin }}
+        run: |
+          actual=$([ "$OUTCOME" = success ] && echo pass || echo fail)
+          verdict=$([ "$actual" = "$EXPECT" ] && echo "as predicted" || echo "UNEXPECTED")
+          errors=$(grep -rhoE 'NoClassDefFoundError: [A-Za-z0-9/_$]+' \
+            conductor-client-spring/build/test-results/bootCompatTest/ 2>/dev/null | sort -u | paste -sd ',' - || true)
+          {
+            echo "### Boot $BOOT: $actual ($verdict)"
+            echo
+            echo "| Boot | Jackson engine | jackson-annotations | Kotlin | Expected | Actual | Error |"
+            echo "|---|---|---|---|---|---|---|"
+            echo "| $BOOT | $ENGINE | $ANNOTATIONS | $KOTLIN | $EXPECT | $actual | ${errors:-none} |"
+            echo
+            echo "Why: $WHY"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"

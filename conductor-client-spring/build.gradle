@@ -32,3 +32,42 @@ java {
 test {
     useJUnitPlatform()
 }
+
+// Runs the starter on the dependency versions a real Spring Boot app resolves.
+// enforcedPlatform makes Boot's BOM win, like spring-boot-starter-parent does,
+// so jackson-annotations comes from Boot rather than from our Jackson 3 BOM.
+//   -PcompatBootVersion=3.5.12        Boot BOM to resolve against
+//   -PcompatJacksonVersion=3.2.3      optional: force a different Jackson 3 engine
+def compatBoot = findProperty('compatBootVersion') ?: '3.5.13'
+def compatJackson = findProperty('compatJacksonVersion')
+
+testing {
+    suites {
+        bootCompatTest(JvmTestSuite) {
+            useJUnitJupiter()
+            dependencies {
+                implementation project()
+                implementation enforcedPlatform("org.springframework.boot:spring-boot-dependencies:${compatBoot}")
+                implementation 'org.springframework.boot:spring-boot-starter-test'
+                if (compatJackson) {
+                    ['tools.jackson.core:jackson-databind',
+                     'tools.jackson.core:jackson-core',
+                     'tools.jackson.module:jackson-module-kotlin'].each { coord ->
+                        implementation(coord) { version { strictly compatJackson } }
+                    }
+                }
+            }
+            targets.all {
+                testTask.configure {
+                    // Fresh JVM per test class so each one reports the root
+                    // NoClassDefFoundError, not "Could not initialize class".
+                    forkEvery = 1
+                    testLogging {
+                        events 'passed', 'failed'
+                        exceptionFormat 'full'
+                    }
+                }
+            }
+        }
+    }
+}
