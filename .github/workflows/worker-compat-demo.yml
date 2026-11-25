@@ -1,0 +1,108 @@
+# Demo for PR #189 (Jackson 3), issues 2 and 3: the same worker tests in four setups. Each test
+# asserts the SDK 6.0.2 (Jackson 2) behavior, so a red test is a change a worker author would see.
+#   1. SDK 6.0.2                                  -> baseline
+#   2. PR #189 as submitted (db7b12a)            -> what users get today from the PR
+#   3. PR + SDK fixes (this branch)              -> what the SDK alone can restore
+#   4. PR + SDK fixes + migrated user code       -> after users add Jackson 3 annotations
+name: Worker compatibility demo
+
+on:
+  push:
+    branches:
+      - demo/boot3-jackson-annotations
+
+jobs:
+  worker-compat:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: 1. SDK 6.0.2 (released, Jackson 2)
+            sdk: '6.0.2'
+            sdk_source: none
+            user_code: jackson2
+            expect_pass: 8
+          - label: 2. PR 189 as submitted (Jackson 3)
+            sdk: '0.0.0-pr189-asis'
+            sdk_source: db7b12ae0bb6764b0f023eabebf3a34444fb9e48
+            user_code: jackson2
+            expect_pass: 0
+          - label: 3. PR 189 + SDK fixes
+            sdk: '0.0.0-pr189-fixed'
+            sdk_source: this-branch
+            user_code: jackson2
+            expect_pass: 6
+          - label: 4. PR 189 + SDK fixes + migrated user code
+            sdk: '0.0.0-pr189-fixed'
+            sdk_source: this-branch
+            user_code: migrated
+            expect_pass: 8
+    env:
+      DEMO_M2: ${{ github.workspace }}/build/demo-m2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Checkout the PR as submitted
+        if: matrix.sdk_source != 'none' && matrix.sdk_source != 'this-branch'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.sdk_source }}
+          path: sdk-src
+
+      - name: Set up Zulu JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "zulu"
+          java-version: "21"
+
+      - name: Publish the SDK under test to a local Maven repo
+        if: matrix.sdk_source != 'none'
+        run: |
+          dir=$([ "${{ matrix.sdk_source }}" = this-branch ] && echo . || echo sdk-src)
+          cd "$dir"
+          ./gradlew :conductor-client:publishToMavenLocal -Pversion=${{ matrix.sdk }} -Dmaven.repo.local="$DEMO_M2"
+
+      - name: Run worker tests
+        id: tests
+        run: >
+          ./gradlew -p demo/worker-compat test
+          -PsdkVersion=${{ matrix.sdk }}
+          -PuserCode=${{ matrix.user_code }}
+          -Dmaven.repo.local="$DEMO_M2"
+
+      - name: Summary
+        if: always()
+        env:
+          LABEL: ${{ matrix.label }}
+          USER_CODE: ${{ matrix.user_code }}
+          EXPECT_PASS: ${{ matrix.expect_pass }}
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import glob, os, xml.etree.ElementTree as ET
+          rows = []
+          for path in glob.glob('demo/worker-compat/build/test-results/test/*.xml'):
+              for case in ET.parse(path).getroot().iter('testcase'):
+                  failure = case.find('failure')
+                  detail = ''
+                  if failure is not None:
+                      detail = ' '.join((failure.get('message') or '').split())[:160]
+                      detail = detail.replace('|', '\\|')
+                  rows.append((case.get('name'), failure is None, detail))
+          rows.sort()
+          passed = sum(1 for _, ok, _ in rows if ok)
+          expected = int(os.environ['EXPECT_PASS'])
+          verdict = 'as predicted' if passed == expected else f'UNEXPECTED, predicted {expected}'
+          print(f"### {os.environ['LABEL']}: {passed}/{len(rows)} pass ({verdict})")
+          print()
+          print(f"User code: `src/userCode/{os.environ['USER_CODE']}`")
+          print()
+          print("| Behavior (as in SDK 6.0.2) | Result | What happened instead |")
+          print("|---|---|---|")
+          for name, ok, detail in rows:
+              print(f"| {name} | {'✅' if ok else '❌'} | {detail} |")
+          EOF
+          cat "$GITHUB_STEP_SUMMARY"

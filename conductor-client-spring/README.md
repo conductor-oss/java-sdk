@@ -2,7 +2,7 @@
 
 Spring Boot 3 auto-configuration for the Conductor core client, workflow SDK, and Java workers.
 
-**Prerequisites:** Java 21+, Spring Boot 3, and a running [OSS or Orkes Conductor server](../docs/connection-authentication.md). For Spring Boot 4, use [the Boot 4 module](../conductor-client-spring-boot4/README.md).
+**Prerequisites:** Java 21+, Spring Boot 3.5.13+ (see [Older Spring Boot 3 versions](#older-spring-boot-3-versions)), and a running [OSS or Orkes Conductor server](../docs/connection-authentication.md). For Spring Boot 4, use [the Boot 4 module](../conductor-client-spring-boot4/README.md).
 
 ## Install
 
@@ -18,6 +18,24 @@ implementation 'org.conductoross:conductor-client-spring:<VERSION>'
     <artifactId>conductor-client-spring</artifactId>
     <version>&lt;VERSION&gt;</version>
 </dependency>
+```
+
+### Older Spring Boot 3 versions
+
+The SDK uses Jackson 3, which needs `com.fasterxml.jackson.core:jackson-annotations` 2.21 or later. Spring Boot's dependency management picks that version for your app, and Spring Boot 3.5.12 and earlier pick an older one. The app then fails at startup with `Conductor SDK could not start Jackson: missing class com/fasterxml/jackson/annotation/...`.
+
+Upgrade to Spring Boot 3.5.13 or later, or override Boot's Jackson version:
+
+```xml
+<!-- Maven, with spring-boot-starter-parent -->
+<properties>
+    <jackson-bom.version>2.21.4</jackson-bom.version>
+</properties>
+```
+
+```groovy
+// Gradle, with the io.spring.dependency-management plugin
+ext['jackson-bom.version'] = '2.21.4'
 ```
 
 ## Configure

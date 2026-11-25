@@ -1,0 +1,2 @@
+// Standalone build: depends on a published conductor-client, like a user's project.
+rootProject.name = 'worker-compat'
