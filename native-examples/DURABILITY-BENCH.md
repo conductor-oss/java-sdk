@@ -131,7 +131,7 @@ the shipped server or SDK. Each is a patch in `mutants/`:
 
 | Directory | Applies to | Mutants |
 |---|---|---|
-| `mutants/server/` | the server repository | `no-completion-deferral`, `no-variable-fencing`, `no-retry-count-fence`, `join-ignores-lanes`, `workflow-saved-last`, `no-claim-fence`, `destructive-pull`, `no-stale-write-guard`, `terminate-on-storage-errors` |
+| `mutants/server/` | the server repository | `no-completion-deferral`, `no-retry-count-fence`, `join-ignores-lanes`, `workflow-saved-last`, `no-claim-fence`, `destructive-pull`, `no-stale-write-guard`, `terminate-on-storage-errors` |
 | `mutants/sdk/` | this repository | `no-message-dedupe`, `drop-some-signals`, `no-reply-prune` |
 
 Apply a patch to a scratch copy, build it, and bench the copy. For a server mutant:

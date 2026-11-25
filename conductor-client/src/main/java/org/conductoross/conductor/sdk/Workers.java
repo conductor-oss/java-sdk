@@ -836,8 +836,8 @@ public final class Workers implements AutoCloseable {
         Map<String, Object> vars = spec.captureVariables(instance);
         Map<String, Object> output = new LinkedHashMap<>();
         output.put("variables", vars);
-        // what this handler started from: the server applies only what the handler changed,
-        // and runs it again if another completion changed the same variables meanwhile
+        // what this handler started from, kept on the marker for replay; the server applies the
+        // variables as sent (one continuation runs at a time, so nothing else changed them)
         output.put("resumedWith", spec.captureVariablesOf(exec.variables));
         output.put("replies", pruneReplies(replies, System.currentTimeMillis()));
         output.put("releases", releases(spec, exec, vars));
