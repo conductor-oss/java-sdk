@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      # Demo only: shows bootCompatTest running in the normal build. Remove before merging.
+      - demo/boot3-jackson-annotations
   pull_request:
     branches:
       - main
@@ -148,7 +150,7 @@ jobs:
         if: always()
         uses: mikepenz/action-junit-report@v6
         with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
+          report_paths: '**/build/test-results/{test,bootCompatTest}/TEST-*.xml'
           
       - name: Check Tests Status
         if: steps.tests.outcome == 'failure'

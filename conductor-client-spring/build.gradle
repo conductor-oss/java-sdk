@@ -71,3 +71,6 @@ testing {
         }
     }
 }
+
+// Run the suite (on the default, oldest supported Boot 3) in every build.
+tasks.named('check') { dependsOn testing.suites.bootCompatTest }
