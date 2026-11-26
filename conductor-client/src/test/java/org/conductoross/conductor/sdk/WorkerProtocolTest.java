@@ -125,7 +125,8 @@ class WorkerProtocolTest {
         // s-1 was handled by an earlier run; a retried send queued it again
         server.enqueue(json("{\"workflowId\":\"wf-1\",\"status\":\"RUNNING\",\"variables\":{\"notes\":[\"first\"]},"
                 + "\"nativeState\":{\"replies\":{\"s-1\":{\"at\":" + now + "}}}}"));
-        TaskContinuation marker = TaskContinuation.handlerRun(2);
+        TaskContinuation marker = new TaskContinuation();
+        marker.setN(2); // the handler lane's second run
         marker.setLeased(true);
         marker.setRetryCount(1);
         Task task = new Task();

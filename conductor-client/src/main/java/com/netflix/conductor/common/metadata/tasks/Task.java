@@ -194,14 +194,6 @@ public class Task {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private TaskContinuation continuation;
 
-    public TaskContinuation getContinuation() {
-        return continuation;
-    }
-
-    public void setContinuation(TaskContinuation continuation) {
-        this.continuation = continuation;
-    }
-
     public void setInputData(Map<String, Object> inputData) {
         if (inputData == null) {
             inputData = new HashMap<>();

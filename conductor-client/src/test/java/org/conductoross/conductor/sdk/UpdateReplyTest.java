@@ -106,7 +106,8 @@ class UpdateReplyTest {
         while (posted.get() == null) {
             Thread.sleep(10);
         }
-        TaskContinuation marker = TaskContinuation.handlerRun(2);
+        TaskContinuation marker = new TaskContinuation();
+        marker.setN(2); // the handler lane's second run
         marker.setLeased(true);
         var entry = new WorkflowTask();
         entry.setTaskReferenceName("handlers");

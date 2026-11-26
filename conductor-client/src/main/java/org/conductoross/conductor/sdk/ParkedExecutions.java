@@ -50,9 +50,12 @@ final class ParkedExecutions {
     /** By code type, each in the order they were parked: the first is the one idle longest. */
     private final Map<String, LinkedHashMap<String, Parked>> byCodeType = new HashMap<>();
     private final LongSupplier clock;
-    private final AtomicLong continued = new AtomicLong();
-    private final AtomicLong replayed = new AtomicLong();
-    private final AtomicLong dropped = new AtomicLong();
+    /** Continuations that continued parked lanes, with no replay. */
+    final AtomicLong continued = new AtomicLong();
+    /** Continuations that replayed the execution: nothing was held, or it was no longer current. */
+    final AtomicLong replayed = new AtomicLong();
+    /** Executions closed while held: idle too long, too many, or replaced. */
+    final AtomicLong dropped = new AtomicLong();
 
     ParkedExecutions() {
         this(System::currentTimeMillis);
@@ -131,28 +134,5 @@ final class ParkedExecutions {
             dropped.incrementAndGet();
             p.replayer().close();
         }
-    }
-
-    void countContinued() {
-        continued.incrementAndGet();
-    }
-
-    void countReplayed() {
-        replayed.incrementAndGet();
-    }
-
-    /** Continuations that continued parked lanes, with no replay. */
-    long continued() {
-        return continued.get();
-    }
-
-    /** Continuations that replayed the execution: nothing was held, or it was no longer current. */
-    long replayed() {
-        return replayed.get();
-    }
-
-    /** Executions closed while held: idle too long, too many, or replaced. */
-    long dropped() {
-        return dropped.get();
     }
 }

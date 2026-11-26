@@ -15,7 +15,6 @@ package org.conductoross.conductor.sdk.testing;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -76,7 +75,7 @@ public final class TestRun<R> {
     @SuppressWarnings("unchecked")
     public R result() {
         if (engine == null) {
-            WorkflowSpec spec = DirectEngine.spec(method);
+            WorkflowSpec spec = WorkflowSpec.forMethod(method);
             engine = new DirectEngine(env, "test-" + UUID.randomUUID());
             Object target = instance();
             for (Object[] s : signals) {
@@ -121,12 +120,8 @@ public final class TestRun<R> {
 
     private Object instance() {
         if (instance == null) {
-            instance = env.newInstance(DirectEngine.spec(method));
+            instance = env.newInstance(WorkflowSpec.forMethod(method));
         }
         return instance;
-    }
-
-    Map<String, Object> variables() {
-        return DirectEngine.spec(method).captureVariables(instance());
     }
 }

@@ -469,15 +469,6 @@ public final class Replayer {
         }
     }
 
-    private static final class Capture extends RuntimeException {
-        final Command command;
-
-        Capture(Command command) {
-            super(null, null, false, false);
-            this.command = command;
-        }
-    }
-
     private void transfer(Participant from, Participant to, boolean fromWaits) {
         to.sem.release();
         if (fromWaits) {
@@ -938,7 +929,7 @@ public final class Replayer {
         @Override
         public Object call(Command cmd) {
             if (capture) {
-                throw new Capture(cmd);
+                throw new Command.Capture(cmd);
             }
             flushSyncGroup();
             follow();
@@ -1777,7 +1768,7 @@ public final class Replayer {
             try {
                 loopBody.get();
                 throw new IllegalArgumentException("the repeatUntil body must make exactly one task call");
-            } catch (Capture c) {
+            } catch (Command.Capture c) {
                 check = c.command;
             } finally {
                 capture = false;

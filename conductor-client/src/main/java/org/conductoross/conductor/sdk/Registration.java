@@ -25,6 +25,7 @@ import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.JsonSchemas;
 import org.conductoross.conductor.sdk.internal.MethodRefs;
 import org.conductoross.conductor.sdk.internal.Replayer;
+import org.conductoross.conductor.sdk.internal.TaskStubs;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,20 +42,6 @@ final class Registration {
 
     private Registration() {}
 
-    static Map<String, Method> workerMethods(Class<?> type) {
-        Map<String, Method> methods = new LinkedHashMap<>();
-        for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
-            for (Method m : c.getDeclaredMethods()) {
-                WorkerTask wt = m.getAnnotation(WorkerTask.class);
-                if (wt != null && !methods.containsKey(wt.value())) {
-                    m.setAccessible(true);
-                    methods.put(wt.value(), m);
-                }
-            }
-        }
-        return methods;
-    }
-
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
             long continuationTimeoutSeconds) {
         register(client, specs, taskObjects, spec -> continuationTimeoutSeconds, true);
@@ -68,7 +55,7 @@ final class Registration {
         Map<String, Map<String, Object>> taskSchemas = new LinkedHashMap<>();
         List<Map<String, Object>> taskDefs = new ArrayList<>();
         for (Object o : taskObjects) {
-            for (Map.Entry<String, Method> e : workerMethods(o.getClass()).entrySet()) {
+            for (Map.Entry<String, Method> e : TaskStubs.workerMethods(o.getClass()).entrySet()) {
                 WorkerTask wt = e.getValue().getAnnotation(WorkerTask.class);
                 Map<String, Object> refs = schemas.refs(
                         e.getKey(),

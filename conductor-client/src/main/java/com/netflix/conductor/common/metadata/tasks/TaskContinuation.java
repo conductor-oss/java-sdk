@@ -15,8 +15,9 @@ package com.netflix.conductor.common.metadata.tasks;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The continuation of a native (code-defined) workflow that runs when this task finishes.
@@ -29,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * it. The workflow's first continuation and its handler runs have no task to wait on; the workflow
  * record carries their markers (see {@code NativeState}).
  */
+@Getter
+@Setter
 public class TaskContinuation {
 
     /**
@@ -86,104 +89,6 @@ public class TaskContinuation {
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, Object> variables;
-
-    public TaskContinuation() {}
-
-    /** A new marker of a handler run. */
-    public static TaskContinuation handlerRun(int n) {
-        TaskContinuation marker = new TaskContinuation();
-        marker.n = n;
-        return marker;
-    }
-
-    /**
-     * A fresh marker for the same continuation, as a rerun task or a restarted run carries: another
-     * attempt, so its retry count goes up and a completion of an offer made before the reset can
-     * never match it.
-     */
-    public TaskContinuation reset() {
-        TaskContinuation fresh = new TaskContinuation();
-        fresh.n = n;
-        fresh.retryCount = retryCount + 1;
-        return fresh;
-    }
-
-    @JsonIgnore // derived from endTime, not stored
-    public boolean isApplied() {
-        return endTime > 0;
-    }
-
-    public boolean isLeased() {
-        return leased;
-    }
-
-    public void setLeased(boolean leased) {
-        this.leased = leased;
-    }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
-    }
-
-    public boolean isDone() {
-        return done;
-    }
-
-    public void setDone(boolean done) {
-        this.done = done;
-    }
-
-    public Map<String, Object> getRecorded() {
-        return recorded;
-    }
-
-    public void setRecorded(Map<String, Object> recorded) {
-        this.recorded = recorded;
-    }
-
-    public Map<String, Object> getResumedWith() {
-        return resumedWith;
-    }
-
-    public void setResumedWith(Map<String, Object> resumedWith) {
-        this.resumedWith = resumedWith;
-    }
-
-    public int getN() {
-        return n;
-    }
-
-    public void setN(int n) {
-        this.n = n;
-    }
-
-    public String getStamp() {
-        return stamp;
-    }
-
-    public void setStamp(String stamp) {
-        this.stamp = stamp;
-    }
-
-    public Map<String, Object> getVariables() {
-        return variables;
-    }
-
-    public void setVariables(Map<String, Object> variables) {
-        this.variables = variables;
-    }
 
     @Override
     public String toString() {

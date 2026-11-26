@@ -75,15 +75,6 @@ final class DirectEngine implements Engine {
         }
     }
 
-    private static final class Capture extends RuntimeException {
-        final Command command;
-
-        Capture(Command command) {
-            super(null, null, false, false);
-            this.command = command;
-        }
-    }
-
     private String alloc(String base) {
         String ref = base;
         for (int n = 2; used.contains(ref); n++) {
@@ -118,7 +109,7 @@ final class DirectEngine implements Engine {
     @Override
     public Object call(Command cmd) {
         if (capture) {
-            throw new Capture(cmd);
+            throw new Command.Capture(cmd);
         }
         settleGroup();
         // numbered like Replayer.call: x, x_2, x_3 by how many came before
@@ -352,7 +343,7 @@ final class DirectEngine implements Engine {
         try {
             body.get();
             throw new IllegalArgumentException("the repeatUntil body must make exactly one task call");
-        } catch (Capture c) {
+        } catch (Command.Capture c) {
             check = c.command;
         } finally {
             capture = false;
@@ -461,9 +452,5 @@ final class DirectEngine implements Engine {
 
     static Map<String, Object> plainInput(Method method, Object input) {
         return input == null ? new LinkedHashMap<>() : WorkflowSpec.encodeInput(method, new Object[] {input});
-    }
-
-    static WorkflowSpec spec(Method method) {
-        return WorkflowSpec.forMethod(method);
     }
 }

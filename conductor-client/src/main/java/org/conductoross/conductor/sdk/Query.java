@@ -17,7 +17,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** A read-only method a caller can invoke on a running execution; computed on the worker from the current variables. */
+/**
+ * A read-only method a caller can invoke on an execution: run by the caller, on an instance
+ * restored from the execution's current variables (see {@link WorkflowHandle#query}).
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Query {

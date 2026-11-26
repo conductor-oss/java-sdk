@@ -105,6 +105,19 @@ public final class Command {
         return value;
     }
 
+    /**
+     * What an engine throws at a call while it captures one (the call a {@code repeatUntil} body
+     * makes, for the server to repeat): the call, not made.
+     */
+    public static final class Capture extends RuntimeException {
+        public final Command command;
+
+        public Capture(Command command) {
+            super(null, null, false, false);
+            this.command = command;
+        }
+    }
+
     public boolean blocking() {
         return kind != Kind.EVENT && kind != Kind.START_WORKFLOW;
     }

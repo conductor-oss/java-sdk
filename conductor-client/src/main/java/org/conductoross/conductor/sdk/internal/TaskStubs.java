@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -61,16 +62,21 @@ public final class TaskStubs {
 
     /** Whether a class has {@code @WorkerTask} methods. */
     public static boolean isTaskType(Class<?> type) {
-        return TASK_TYPES.computeIfAbsent(type, t -> {
-            for (Class<?> c = t; c != null && c != Object.class; c = c.getSuperclass()) {
-                for (Method m : c.getDeclaredMethods()) {
-                    if (m.isAnnotationPresent(WorkerTask.class)) {
-                        return true;
-                    }
+        return TASK_TYPES.computeIfAbsent(type, t -> !workerMethods(t).isEmpty());
+    }
+
+    /** The {@code @WorkerTask} methods of a class and its superclasses, by task name: the first of each name. */
+    public static Map<String, Method> workerMethods(Class<?> type) {
+        Map<String, Method> methods = new LinkedHashMap<>();
+        for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Method m : c.getDeclaredMethods()) {
+                WorkerTask wt = m.getAnnotation(WorkerTask.class);
+                if (wt != null) {
+                    methods.putIfAbsent(wt.value(), m);
                 }
             }
-            return false;
-        });
+        }
+        return methods;
     }
 
     @SuppressWarnings("unchecked")

@@ -31,6 +31,7 @@ import org.conductoross.conductor.sdk.internal.CodeReader;
 import org.conductoross.conductor.sdk.internal.Execution;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.Replayer;
+import org.conductoross.conductor.sdk.internal.TaskStubs;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,10 +226,6 @@ public final class Workers implements AutoCloseable {
         return this;
     }
 
-    public String workerId() {
-        return workerId;
-    }
-
     /**
      * Starts hosting and returns at once. The definitions are registered in the background,
      * retried with backoff for as long as the server cannot be reached, and polling starts now:
@@ -267,7 +264,8 @@ public final class Workers implements AutoCloseable {
         if (!taskObjects.isEmpty()) {
             taskExecutor = new AnnotatedWorkerExecutor(taskClient, new TaskSettings());
             for (Object o : taskObjects) {
-                for (Method m : Registration.workerMethods(o.getClass()).values()) {
+                for (Method m : TaskStubs.workerMethods(o.getClass()).values()) {
+                    m.setAccessible(true); // a task method need not be public
                     taskExecutor.addMethod(m.getAnnotation(WorkerTask.class), m, o);
                     tasks++;
                 }
@@ -296,33 +294,35 @@ public final class Workers implements AutoCloseable {
             }
         }
         if (!codeWorkers.isEmpty()) {
-            workflowRunner = new TaskRunnerConfigurer.Builder(taskClient, codeWorkers)
-                    .withTaskThreadCount(threadCounts)
-                    .withTaskPollTimeout(pollTimeouts)
-                    .withUseVirtualThreads(true)
-                    .withTaskUpdateV2(true)
-                    .withDomains(false)
-                    .withWorkerNamePrefix("conductor-workflow")
-                    .build();
-            workflowRunner.init();
+            workflowRunner = runner(codeWorkers, threadCounts, pollTimeouts, null, "conductor-workflow");
         }
         if (!pinnedWorkers.isEmpty()) {
             pinDomain = newPinDomain(workerId);
-            pinnedRunner = new TaskRunnerConfigurer.Builder(taskClient, pinnedWorkers)
-                    .withTaskThreadCount(threadCounts)
-                    .withTaskPollTimeout(pollTimeouts)
-                    .withUseVirtualThreads(true)
-                    .withTaskUpdateV2(true)
-                    .withDomains(false)
-                    .withFixedDomain(pinDomain)
-                    .withWorkerNamePrefix("conductor-workflow-pinned")
-                    .build();
-            pinnedRunner.init();
+            pinnedRunner = runner(pinnedWorkers, threadCounts, pollTimeouts, pinDomain, "conductor-workflow-pinned");
             parkSweeper = Thread.ofVirtual().name("conductor-parked").start(this::dropIdleUntilClosed);
         }
         LOGGER.info("Hosting workflows {} and {} tasks as {}{}", specsByCodeType.keySet(), tasks, workerId,
                 pinDomain == null ? "" : "; executions stay in memory between continuations, pinned to domain " + pinDomain);
         return this;
+    }
+
+    /**
+     * Polls the workers' continuations on virtual threads, each completion handing back the next
+     * one (update-v2): from the shared queue of each code type, or from {@code domain} alone.
+     */
+    private TaskRunnerConfigurer runner(List<Worker> workers, Map<String, Integer> threadCounts,
+            Map<String, Integer> pollTimeouts, String domain, String namePrefix) {
+        TaskRunnerConfigurer runner = new TaskRunnerConfigurer.Builder(taskClient, workers)
+                .withTaskThreadCount(threadCounts)
+                .withTaskPollTimeout(pollTimeouts)
+                .withUseVirtualThreads(true)
+                .withTaskUpdateV2(true)
+                .withDomains(false)
+                .withFixedDomain(domain)
+                .withWorkerNamePrefix(namePrefix)
+                .build();
+        runner.init();
+        return runner;
     }
 
     /**
@@ -381,7 +381,7 @@ public final class Workers implements AutoCloseable {
         // after the pollers: nothing runs a continuation now. Their next ones replay elsewhere
         if (pinDomain != null && !closed) {
             LOGGER.info("Executions kept in memory as {}: {} continuations continued without a replay, {} replayed,"
-                    + " {} executions dropped while held", pinDomain, parked.continued(), parked.replayed(), parked.dropped());
+                    + " {} executions dropped while held", pinDomain, parked.continued, parked.replayed, parked.dropped);
         }
         closed = true;
         parked.closeAll();
@@ -436,11 +436,24 @@ public final class Workers implements AutoCloseable {
 
     /** A workflow's setting: {@code conductor.workflow.<name>.<key>}, else {@code conductor.workflow.all.<key>}. */
     private String setting(WorkflowSpec spec, String key) {
-        String value = settings.apply("conductor.workflow." + spec.name + "." + key);
+        return setting("conductor.workflow", spec.name, key);
+    }
+
+    /** {@code <prefix>.<name>.<key>}, else {@code <prefix>.all.<key>}: trimmed, null when unset or blank. */
+    private String setting(String prefix, String name, String key) {
+        String value = settings.apply(prefix + "." + name + "." + key);
         if (value == null || value.isBlank()) {
-            value = settings.apply("conductor.workflow.all." + key);
+            value = settings.apply(prefix + ".all." + key);
         }
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    /** A duration setting, in seconds or as an ISO-8601 duration; {@code otherwise} when unset. */
+    private Duration duration(WorkflowSpec spec, String key, Duration otherwise) {
+        String value = setting(spec, key);
+        return value == null ? otherwise
+                : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
+                : Duration.parse(value);
     }
 
     private int setting(WorkflowSpec spec, String key, int otherwise) {
@@ -453,11 +466,7 @@ public final class Workers implements AutoCloseable {
         if (devMode) {
             return 3600;
         }
-        String value = setting(spec, "continuationTimeout");
-        Duration timeout = value == null ? continuationTimeout
-                : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
-                : Duration.parse(value);
-        return Math.max(1, timeout.toSeconds());
+        return Math.max(1, duration(spec, "continuationTimeout", continuationTimeout).toSeconds());
     }
 
     /**
@@ -473,11 +482,7 @@ public final class Workers implements AutoCloseable {
             // for the worker an execution is pinned to
             return 0;
         }
-        String value = setting(spec, "parkTimeout");
-        Duration timeout = value == null ? parkTimeout
-                : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
-                : Duration.parse(value);
-        return Math.max(0, timeout.toMillis());
+        return Math.max(0, duration(spec, "parkTimeout", parkTimeout).toMillis());
     }
 
     /**
@@ -487,16 +492,8 @@ public final class Workers implements AutoCloseable {
      */
     private final class TaskSettings extends WorkerConfiguration {
 
-        private String get(String task, String key) {
-            String value = settings.apply("conductor.worker." + task + "." + key);
-            if (value == null || value.isBlank()) {
-                value = settings.apply("conductor.worker.all." + key);
-            }
-            return value == null || value.isBlank() ? null : value.trim();
-        }
-
         private int number(String task, String key) {
-            String value = get(task, key);
+            String value = setting("conductor.worker", task, key);
             return value == null ? 0 : Integer.parseInt(value);
         }
 
@@ -505,7 +502,7 @@ public final class Workers implements AutoCloseable {
             return number(task, "threadCount");
         }
 
-        /** What every hosted task had before tasks were configured one by one. */
+        /** Threads for a hosted task whose settings and {@code @WorkerTask} set none. */
         @Override
         public int getDefaultThreadCount() {
             return 8;
@@ -528,7 +525,7 @@ public final class Workers implements AutoCloseable {
 
         @Override
         public String getDomain(String task) {
-            return get(task, "domain");
+            return setting("conductor.worker", task, "domain");
         }
     }
 
@@ -593,7 +590,7 @@ public final class Workers implements AutoCloseable {
     }
 
     /** Whether the definitions have been registered since {@link #start()}. */
-    public boolean isRegistered() {
+    boolean isRegistered() {
         return registered;
     }
 
@@ -654,7 +651,7 @@ public final class Workers implements AutoCloseable {
     /**
      * Drops replies older than {@link #REPLY_TTL_MILLIS} and keeps at most {@link #REPLY_LIMIT},
      * so an execution that serves many updates does not grow its variables without bound.
-     * Replies without a timestamp, from older workers, count as expired.
+     * A reply without a timestamp counts as expired.
      */
     static Map<String, Object> pruneReplies(Map<String, Object> replies, long now) {
         List<Map.Entry<String, Object>> fresh = new ArrayList<>();
@@ -711,7 +708,7 @@ public final class Workers implements AutoCloseable {
                         outcome = replayer.readsTasks(lane) || task.getExternalOutputPayloadStoragePath() != null
                                 ? replayer.proceed(lane, n, fetch(workflowId))
                                 : replayer.proceed(lane, n, marker.getVariables(), arrived(task));
-                        parked.countContinued();
+                        parked.continued.incrementAndGet();
                         LOGGER.debug("Execution {} continued {}#{} from the code kept in memory", workflowId, lane, n);
                     } catch (NonDeterminismException | IllegalStateException e) {
                         // nothing of this continuation was sent, so the recording is still what
@@ -733,7 +730,7 @@ public final class Workers implements AutoCloseable {
                 snapshot = () -> describe(exec, lane, n);
                 replayer = new Replayer(spec, spec.newInstance(), exec);
                 outcome = replayer.begin(lane, n);
-                parked.countReplayed();
+                parked.replayed.incrementAndGet();
             }
             logLaneError(task, lane, outcome.output);
             if (!"main".equals(lane)) {
@@ -817,7 +814,7 @@ public final class Workers implements AutoCloseable {
                 LOGGER.debug("message {} of execution {} was already handled", id, exec.workflowId);
                 continue;
             }
-            // a query (sent as a message by older clients) must not change the execution:
+            // a query sent as a message must not change the execution:
             // whatever its handler does to the instance is undone
             Map<String, Object> beforeQuery = "query".equals(kind) ? spec.captureVariables(instance) : null;
             try {

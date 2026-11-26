@@ -17,12 +17,17 @@ import java.util.Map;
 
 import com.netflix.conductor.common.metadata.tasks.TaskContinuation;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Engine state of a native (code-defined) workflow that has no task to live on. Everything else
  * about the code's progress is on the tasks it paused on ({@link TaskContinuation}), so this stays
  * small however long the execution runs. The code type and the continuation timeout are the
  * definition's {@code metadata.native}, which the execution carries.
  */
+@Getter
+@Setter
 public class NativeState {
 
     /**
@@ -46,44 +51,4 @@ public class NativeState {
 
     /** Names the completion that applied last, as its worker chose. */
     private String stamp;
-
-    public TaskContinuation getBootstrap() {
-        return bootstrap;
-    }
-
-    public void setBootstrap(TaskContinuation bootstrap) {
-        this.bootstrap = bootstrap;
-    }
-
-    public TaskContinuation getHandlers() {
-        return handlers;
-    }
-
-    public void setHandlers(TaskContinuation handlers) {
-        this.handlers = handlers;
-    }
-
-    public Map<String, Object> getReplies() {
-        return replies;
-    }
-
-    public void setReplies(Map<String, Object> replies) {
-        this.replies = replies;
-    }
-
-    public String getPinnedTo() {
-        return pinnedTo;
-    }
-
-    public void setPinnedTo(String pinnedTo) {
-        this.pinnedTo = pinnedTo;
-    }
-
-    public String getStamp() {
-        return stamp;
-    }
-
-    public void setStamp(String stamp) {
-        this.stamp = stamp;
-    }
 }

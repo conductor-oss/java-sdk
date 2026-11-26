@@ -390,7 +390,7 @@ public final class Conductor implements AutoCloseable {
     @SuppressWarnings("unchecked")
     public static <T, A, R> R child(Fn1<T, A, R> workflow, A input) {
         Method method = MethodRefs.resolve(workflow);
-        WorkflowSpec spec = spec(method);
+        WorkflowSpec spec = WorkflowSpec.forMethod(method);
         Command command = new Command(Command.Kind.SUB_WORKFLOW, spec.name);
         command.fields.put("subWorkflowParam", Map.of("name", spec.name, "version", spec.version));
         command.input.putAll(WorkflowSpec.encodeInput(method, new Object[] {input}));
@@ -403,7 +403,7 @@ public final class Conductor implements AutoCloseable {
     /** Starts a {@code @Workflow} method as an independent execution and does not wait. */
     public static <T, A, R> void startWorkflow(Fn1<T, A, R> workflow, A input) {
         Method method = MethodRefs.resolve(workflow);
-        WorkflowSpec spec = spec(method);
+        WorkflowSpec spec = WorkflowSpec.forMethod(method);
         startWorkflowCommand(spec.name, spec.version, WorkflowSpec.encodeInput(method, new Object[] {input}));
     }
 
@@ -458,10 +458,6 @@ public final class Conductor implements AutoCloseable {
     /** Calls an AI agent (remote over A2A, or a Conductor agent) from the Conductor server. */
     public static AgentCall agent(String ref) {
         return new AgentCall(ref);
-    }
-
-    private static WorkflowSpec spec(Method method) {
-        return WorkflowSpec.forMethod(method);
     }
 
     // ================================================================== client
@@ -679,7 +675,7 @@ public final class Conductor implements AutoCloseable {
 
         /** Starts the execution with these options. */
         public WorkflowHandle<R> start(A input) {
-            WorkflowSpec spec = spec(method);
+            WorkflowSpec spec = WorkflowSpec.forMethod(method);
             // a host of this process registers in the background: a start right after it waits
             for (Workers host : conductor.started) {
                 host.awaitRegistered(spec, Duration.ofSeconds(30));

@@ -85,7 +85,7 @@ public final class McpCall {
         return this;
     }
 
-    private Command command(Command.Kind kind, String type) {
+    private Command command(Command.Kind kind) {
         Command c = new Command(kind, ref);
         c.explicitRef = ref;
         c.input.put("mcpServer", server);
@@ -99,7 +99,7 @@ public final class McpCall {
     /** The tools the server offers. */
     @SuppressWarnings("unchecked")
     public List<McpTool> listTools() {
-        Command c = command(Command.Kind.MCP_LIST, "LIST_MCP_TOOLS");
+        Command c = command(Command.Kind.MCP_LIST);
         c.outputKey = "tools";
         c.resultType = Json.MAPPER.getTypeFactory().constructCollectionType(List.class, McpTool.class);
         return (List<McpTool>) Engine.current().call(c);
@@ -107,7 +107,7 @@ public final class McpCall {
 
     /** Calls a tool with arguments. */
     public McpResult call(String tool, Map<String, ?> arguments) {
-        Command c = command(Command.Kind.MCP_CALL, "CALL_MCP_TOOL");
+        Command c = command(Command.Kind.MCP_CALL);
         c.input.put("method", tool);
         Map<String, Object> args = new LinkedHashMap<>();
         arguments.forEach((k, v) -> args.put(k, Json.plain(v)));

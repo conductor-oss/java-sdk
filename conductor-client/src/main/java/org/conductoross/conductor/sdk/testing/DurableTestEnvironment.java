@@ -23,9 +23,9 @@ import java.util.function.Supplier;
 
 import org.conductoross.conductor.sdk.Functions.Fn1;
 import org.conductoross.conductor.sdk.internal.MethodRefs;
+import org.conductoross.conductor.sdk.internal.TaskStubs;
 import org.conductoross.conductor.sdk.internal.WorkflowSpec;
 
-import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 /**
  * Tests for native workflows without a server or Docker. {@link #inMemory()} runs the workflow
@@ -54,15 +54,12 @@ public final class DurableTestEnvironment implements AutoCloseable {
     }
 
     /**
-     * Workflow classes, created as the host creates them: a constructor taking task classes gets
-     * stubs whose calls go to the task objects registered with {@link #tasks}, or a no-argument
-     * constructor. A constructor that also takes other parameters needs {@link #workflow(Class,
-     * Supplier)}. Classes used as children must be listed too.
+     * The workflow classes a test runs, for the reader: every workflow class, listed or not, is
+     * created as the host creates it. A constructor taking task classes gets stubs whose calls go
+     * to the task objects registered with {@link #tasks}; else its no-argument constructor runs. A
+     * constructor that also takes other parameters needs {@link #workflows(Class, Supplier)}.
      */
     public DurableTestEnvironment workflows(Class<?>... types) {
-        for (Class<?> t : types) {
-            factories.putIfAbsent(t, null);
-        }
         return this;
     }
 
@@ -138,7 +135,7 @@ public final class DurableTestEnvironment implements AutoCloseable {
     }
 
     Object runChild(Method childMethod, Object input) {
-        WorkflowSpec spec = DirectEngine.spec(childMethod);
+        WorkflowSpec spec = WorkflowSpec.forMethod(childMethod);
         DirectEngine engine = new DirectEngine(this, "child-" + UUID.randomUUID());
         return DirectEngine.runWorkflow(spec, newInstance(spec), DirectEngine.plainInput(childMethod, input), engine);
     }
@@ -154,13 +151,9 @@ public final class DurableTestEnvironment implements AutoCloseable {
 
     Map.Entry<Object, Method> taskByName(String name) {
         for (Object o : taskObjects) {
-            for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-                for (Method m : c.getDeclaredMethods()) {
-                    WorkerTask wt = m.getAnnotation(WorkerTask.class);
-                    if (wt != null && wt.value().equals(name)) {
-                        return Map.entry(o, m);
-                    }
-                }
+            Method m = TaskStubs.workerMethods(o.getClass()).get(name);
+            if (m != null) {
+                return Map.entry(o, m);
             }
         }
         throw new IllegalStateException("no @WorkerTask named " + name + " among the registered task objects");

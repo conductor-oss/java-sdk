@@ -22,8 +22,9 @@ import java.lang.annotation.Target;
  * ordinary Java, and every static call imported from {@link Conductor} goes to the server and shows
  * in the workflow graph.
  *
- * <p>The class must have a no-argument constructor, or be registered with a factory. A new instance
- * serves each execution.
+ * <p>The class must have a no-argument constructor, a sole constructor whose parameters are task
+ * classes (each gets a stub that schedules its tasks), or be registered with a factory. A new
+ * instance serves each execution.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

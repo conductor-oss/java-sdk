@@ -227,8 +227,8 @@ class ParkedExecutionsTest {
         // the code returned: there is nothing to hold, and the completion says so
         assertNull(pin(three));
         assertEquals(0, workers.parked().held(CODE_TYPE));
-        assertEquals(2, workers.parked().continued());
-        assertEquals(1, workers.parked().replayed());
+        assertEquals(2, workers.parked().continued.get());
+        assertEquals(1, workers.parked().replayed.get());
     }
 
     @Test
@@ -245,7 +245,7 @@ class ParkedExecutionsTest {
         assertEquals(List.of("pk_two"), refs(two));
         assertEquals(2, fetched.get());
         assertEquals(2, RAN_FROM_THE_TOP.get());
-        assertEquals(0, workers.parked().continued());
+        assertEquals(0, workers.parked().continued.get());
         // it is held again, from the replay
         assertEquals(workers.pinDomain(), pin(two).get("domain"));
         assertEquals(1, workers.parked().held(CODE_TYPE));
@@ -386,7 +386,7 @@ class ParkedExecutionsTest {
 
         assertNull(parked.take(CODE_TYPE, "wf-early"));
         assertFalse(early.hasPausedLanes()); // its lanes were ended
-        assertEquals(1, parked.dropped());
+        assertEquals(1, parked.dropped.get());
         assertEquals(1, parked.held(CODE_TYPE));
         assertTrue(late.hasPausedLanes());
         parked.closeAll();

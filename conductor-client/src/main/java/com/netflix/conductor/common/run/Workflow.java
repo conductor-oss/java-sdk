@@ -117,22 +117,6 @@ public class Workflow extends Auditable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String failedTaskId;
 
-    public String getFailedTaskId() {
-        return failedTaskId;
-    }
-
-    public void setFailedTaskId(String failedTaskId) {
-        this.failedTaskId = failedTaskId;
-    }
-
-    public NativeState getNativeState() {
-        return nativeState;
-    }
-
-    public void setNativeState(NativeState nativeState) {
-        this.nativeState = nativeState;
-    }
-
     private String rateLimitKey;
 
     private boolean rateLimited;

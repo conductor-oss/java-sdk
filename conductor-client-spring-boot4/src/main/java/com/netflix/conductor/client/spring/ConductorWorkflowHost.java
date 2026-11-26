@@ -49,9 +49,8 @@ import lombok.extern.slf4j.Slf4j;
  * registers their task definitions, from the {@code @WorkerTask} attributes.
  *
  * <p>Properties under {@code conductor.workflows}: {@code worker-id} and {@code dev-mode}. Per
- * workflow, read from the environment: {@code conductor.workflow.<name>.threadCount}, {@code
- * pollingInterval}, {@code pollTimeout}, {@code paused} and {@code continuationTimeout}, or {@code
- * conductor.workflow.all.*} (see {@link Workers}).
+ * workflow, read from the environment: {@code conductor.workflow.<name>.<setting>}, or {@code
+ * conductor.workflow.all.<setting>}, for the settings {@link Workers} reads.
  */
 @Slf4j
 public class ConductorWorkflowHost implements SmartLifecycle {
