@@ -51,19 +51,25 @@ public final class MethodRefs {
     /** The method a bytecode method handle names, or null when it cannot be loaded. */
     static Method method(ClassLoader loader, Handle handle) {
         try {
-            Class<?> owner = Class.forName(handle.getOwner().replace('/', '.'), false, loader);
-            MethodType type = MethodType.fromMethodDescriptorString(handle.getDesc(), loader);
-            for (Class<?> c = owner; c != null; c = c.getSuperclass()) {
-                try {
-                    return c.getDeclaredMethod(handle.getName(), type.parameterArray());
-                } catch (NoSuchMethodException ignored) {
-                    // keep looking up the hierarchy
-                }
-            }
-            return owner.getMethod(handle.getName(), type.parameterArray());
+            return find(loader, handle.getOwner(), handle.getName(), handle.getDesc());
         } catch (ReflectiveOperationException | TypeNotPresentException e) {
             return null;
         }
+    }
+
+    /** A method by its class's internal name, its name and descriptor: declared up the hierarchy, else public. */
+    private static Method find(ClassLoader loader, String owner, String name, String descriptor)
+            throws ReflectiveOperationException {
+        Class<?> type = Class.forName(owner.replace('/', '.'), false, loader);
+        Class<?>[] parameters = MethodType.fromMethodDescriptorString(descriptor, loader).parameterArray();
+        for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+            try {
+                return c.getDeclaredMethod(name, parameters);
+            } catch (NoSuchMethodException ignored) {
+                // keep looking up the hierarchy
+            }
+        }
+        return type.getMethod(name, parameters);
     }
 
     private static SerializedLambda serialized(Serializable ref) {
@@ -84,19 +90,7 @@ public final class MethodRefs {
                     "expected a method reference such as Tasks::method, got a lambda");
         }
         try {
-            ClassLoader loader = ref.getClass().getClassLoader();
-            Class<?> owner = Class.forName(lambda.getImplClass().replace('/', '.'), false, loader);
-            MethodType type = MethodType.fromMethodDescriptorString(lambda.getImplMethodSignature(), loader);
-            for (Class<?> c = owner; c != null; c = c.getSuperclass()) {
-                try {
-                    Method m = c.getDeclaredMethod(name, type.parameterArray());
-                    m.setAccessible(true);
-                    return m;
-                } catch (NoSuchMethodException ignored) {
-                    // keep looking up the hierarchy
-                }
-            }
-            Method m = owner.getMethod(name, type.parameterArray());
+            Method m = find(ref.getClass().getClassLoader(), lambda.getImplClass(), name, lambda.getImplMethodSignature());
             m.setAccessible(true);
             return m;
         } catch (ReflectiveOperationException e) {

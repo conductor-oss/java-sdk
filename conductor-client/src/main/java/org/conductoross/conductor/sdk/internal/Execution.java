@@ -60,7 +60,7 @@ public final class Execution {
         this.variables = orEmpty((Map<String, Object>) json.get("variables"));
         this.definition = orEmpty((Map<String, Object>) json.get("workflowDefinition"));
         this.nativeState = orEmpty((Map<String, Object>) json.get("nativeState"));
-        collect((List<Map<String, Object>>) definition.get("tasks"));
+        Entries.forEachEntry((List<Map<String, Object>>) definition.get("tasks"), e -> entries.put((String) e.get("taskReferenceName"), e));
         List<Map<String, Object>> raw = (List<Map<String, Object>>) json.get("tasks");
         if (raw != null) {
             for (Map<String, Object> t : raw) {
@@ -78,25 +78,6 @@ public final class Execution {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void collect(List<Map<String, Object>> list) {
-        if (list == null) {
-            return;
-        }
-        for (Map<String, Object> e : list) {
-            entries.put((String) e.get("taskReferenceName"), e);
-            List<List<Map<String, Object>>> forks = (List<List<Map<String, Object>>>) e.get("forkTasks");
-            if (forks != null) {
-                forks.forEach(this::collect);
-            }
-            Map<String, List<Map<String, Object>>> cases = (Map<String, List<Map<String, Object>>>) e.get("decisionCases");
-            if (cases != null) {
-                cases.values().forEach(this::collect);
-            }
-            collect((List<Map<String, Object>>) e.get("defaultCase"));
-            collect((List<Map<String, Object>>) e.get("loopOver"));
-        }
-    }
 
     /** The latest attempt of the task with exactly this reference name. */
     public TaskView latest(String ref) {

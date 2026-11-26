@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,13 +115,7 @@ public final class CodeLoops {
                     || TaskStubs.isStubClass(c)) {
                 return;
             }
-            List<String> inFrame = new ArrayList<>(named(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor()));
-            for (Loop loop : loopsOf(frame)) {
-                if (loop.first <= frame.getLineNumber() && frame.getLineNumber() <= loop.last) {
-                    inFrame.add(loop.id);
-                }
-            }
-            path.addAll(0, inFrame);
+            path.addAll(0, around(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor(), frame.getLineNumber()));
         });
         return List.copyOf(path);
     }
@@ -147,10 +140,6 @@ public final class CodeLoops {
             }
         }
         return ids;
-    }
-
-    private static List<Loop> loopsOf(StackWalker.StackFrame frame) {
-        return loopsOf(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor());
     }
 
     private static List<Loop> loopsOf(Class<?> type, String method, String descriptor) {
@@ -244,18 +233,8 @@ public final class CodeLoops {
             if ((op >= Opcodes.IRETURN && op <= Opcodes.RETURN) || op == Opcodes.ATHROW) {
                 continue;
             }
-            if (insn instanceof JumpInsnNode j) {
-                todo.push(code.indexOf(j.label));
-                if (op == Opcodes.GOTO) {
-                    continue;
-                }
-            } else if (insn instanceof TableSwitchInsnNode t) {
-                todo.push(code.indexOf(t.dflt));
-                t.labels.forEach(l -> todo.push(code.indexOf(l)));
-                continue;
-            } else if (insn instanceof LookupSwitchInsnNode l) {
-                todo.push(code.indexOf(l.dflt));
-                l.labels.forEach(x -> todo.push(code.indexOf(x)));
+            jumpTargets(code, insn).forEach(todo::push);
+            if (op == Opcodes.GOTO || insn instanceof TableSwitchInsnNode || insn instanceof LookupSwitchInsnNode) {
                 continue;
             }
             todo.push(i + 1);
@@ -263,7 +242,8 @@ public final class CodeLoops {
         return out ? last : 0;
     }
 
-    private static List<Integer> jumpTargets(InsnList code, AbstractInsnNode insn) {
+    /** Where an instruction can jump to: a jump's target, a switch's default and cases. */
+    static List<Integer> jumpTargets(InsnList code, AbstractInsnNode insn) {
         List<Integer> out = new ArrayList<>();
         if (insn instanceof JumpInsnNode j) {
             out.add(code.indexOf(j.label));
@@ -319,7 +299,7 @@ public final class CodeLoops {
                     }
                 }
                 int last = 0;
-                for (int i = code.indexOf(jump.label); i <= at; i++) {
+                for (int i = head; i <= at; i++) {
                     AbstractInsnNode insn = code.get(i);
                     if (insn instanceof LineNumberNode line) {
                         first = Math.min(first, line.line);
@@ -330,16 +310,14 @@ public final class CodeLoops {
                     // an arm after the last jump back that ends by breaking out (`if (c) { ...; break; }`
                     // or an else that breaks, last in a loop): it jumps to where the loop's condition
                     // exits, so it is in the loop
-                    last = Math.max(last, armAfter(code, code.indexOf(jump.label), at, first));
-                }
-                if (last > 0) {
+                    last = Math.max(last, armAfter(code, head, at, first));
                     lastByFirst.merge(first, last, Math::max);
                 }
             }
         }
+        // outermost first: by first line, which the map is ordered by
         List<Loop> loops = new ArrayList<>();
         lastByFirst.forEach((first, last) -> loops.add(new Loop(first, last, className + "_loop_" + first)));
-        loops.sort(Comparator.comparingInt(Loop::first).thenComparing(Comparator.comparingInt(Loop::last).reversed()));
         return loops;
     }
 }

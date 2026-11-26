@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /** Builds workflow task definitions, as JSON maps, from commands. */
 public final class Entries {
@@ -24,7 +25,12 @@ public final class Entries {
 
     private Entries() {}
 
+    /** The entry of a call the code makes now, at the call site on the stack. */
     public static Map<String, Object> of(Command c, String ref, String lane) {
+        return of(c, ref, lane, site());
+    }
+
+    public static Map<String, Object> of(Command c, String ref, String lane, String site) {
         Map<String, Object> e = new LinkedHashMap<>();
         e.put("name", c.name);
         e.put("taskReferenceName", ref);
@@ -37,14 +43,18 @@ public final class Entries {
         // continuation, where the code receives it as TaskFailure, instead of failing the
         // workflow. In native workflows the task keeps its real status (FAILED, TIMED_OUT).
         e.putIfAbsent("optional", true);
-        e.put("metadata", metadata(lane));
+        e.put("metadata", metadata(lane, site));
         return e;
     }
 
+    /** An entry's metadata for the code making a call now, at the call site on the stack. */
     public static Map<String, Object> metadata(String lane) {
+        return metadata(lane, site());
+    }
+
+    public static Map<String, Object> metadata(String lane, String site) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("lane", lane);
-        String site = site();
         if (site != null) {
             m.put("site", site);
         }
@@ -130,5 +140,31 @@ public final class Entries {
             return (T) out;
         }
         return value;
+    }
+
+    /**
+     * Each entry of a list, at any depth: an entry, then the entries in its fork branches, switch
+     * cases and loop body.
+     */
+    @SuppressWarnings("unchecked")
+    public static void forEachEntry(List<Map<String, Object>> entries, Consumer<Map<String, Object>> action) {
+        if (entries == null) {
+            return;
+        }
+        for (Map<String, Object> e : entries) {
+            action.accept(e);
+            if (e.get("forkTasks") instanceof List<?> branches) {
+                branches.forEach(b -> forEachEntry((List<Map<String, Object>>) b, action));
+            }
+            if (e.get("decisionCases") instanceof Map<?, ?> cases) {
+                cases.values().forEach(c -> forEachEntry((List<Map<String, Object>>) c, action));
+            }
+            if (e.get("defaultCase") instanceof List<?> d) {
+                forEachEntry((List<Map<String, Object>>) d, action);
+            }
+            if (e.get("loopOver") instanceof List<?> l) {
+                forEachEntry((List<Map<String, Object>>) l, action);
+            }
+        }
     }
 }

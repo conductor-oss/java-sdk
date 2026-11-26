@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToLongFunction;
 
+import org.conductoross.conductor.sdk.internal.Entries;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.JsonSchemas;
 import org.conductoross.conductor.sdk.internal.MethodRefs;
@@ -34,8 +35,8 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 /** Registers skeleton workflow definitions and task definitions from annotations. */
 final class Registration {
 
-    /** The owner of task definitions this SDK created; any other owner's are left alone. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Registration.class);
+    /** The owner of task definitions this SDK created; any other owner's are left alone. */
     private static final String NATIVE_OWNER = "native@conductor.local";
 
     private Registration() {}
@@ -152,9 +153,10 @@ final class Registration {
     }
 
     /**
-     * The registered definition: no tasks, and the native metadata the engine needs to run the
-     * first continuation of the workflow method (and the handler lane, when the class has
-     * handlers). The execution's own copy grows from here, one fragment per continuation.
+     * The registered definition: the graph discovered from the code, and the native metadata the
+     * engine needs to run the first continuation of the workflow method (and the handler lane,
+     * when the class has handlers). The execution's own copy starts empty and grows from there,
+     * one fragment per continuation.
      */
     static Map<String, Object> skeleton(WorkflowSpec spec, long continuationTimeoutSeconds) {
         return skeleton(spec, continuationTimeoutSeconds, true);
@@ -229,23 +231,11 @@ final class Registration {
     /** The inline definitions of the discovered tasks reference their tasks' schemas, for the editor. */
     @SuppressWarnings("unchecked")
     private static void withTaskSchemas(List<Map<String, Object>> entries, Map<String, Map<String, Object>> schemas) {
-        for (Map<String, Object> e : entries) {
+        Entries.forEachEntry(entries, e -> {
             if (e.get("taskDefinition") instanceof Map<?, ?> td && schemas.containsKey(String.valueOf(e.get("name")))) {
                 ((Map<String, Object>) td).putAll(schemas.get(String.valueOf(e.get("name"))));
             }
-            if (e.get("forkTasks") instanceof List<?> branches) {
-                branches.forEach(b -> withTaskSchemas((List<Map<String, Object>>) b, schemas));
-            }
-            if (e.get("decisionCases") instanceof Map<?, ?> dc) {
-                dc.values().forEach(c -> withTaskSchemas((List<Map<String, Object>>) c, schemas));
-            }
-            if (e.get("defaultCase") instanceof List<?> dflt) {
-                withTaskSchemas((List<Map<String, Object>>) dflt, schemas);
-            }
-            if (e.get("loopOver") instanceof List<?> body) {
-                withTaskSchemas((List<Map<String, Object>>) body, schemas);
-            }
-        }
+        });
     }
 
     /**
@@ -326,9 +316,8 @@ final class Registration {
     }
 
     /** Discovered SIMPLE tasks carry an inline definition, so registration validates without one. */
-    @SuppressWarnings("unchecked")
     private static void inlineTaskDefinitions(List<Map<String, Object>> entries) {
-        for (Map<String, Object> e : entries) {
+        Entries.forEachEntry(entries, e -> {
             if ("SIMPLE".equals(e.get("type")) && !e.containsKey("taskDefinition")) {
                 Map<String, Object> td = new LinkedHashMap<>();
                 td.put("name", e.get("name"));
@@ -336,25 +325,9 @@ final class Registration {
                 td.put("timeoutSeconds", 0);
                 td.put("responseTimeoutSeconds", 120);
                 td.put("timeoutPolicy", "RETRY");
-                td.put("ownerEmail", "native@conductor.local");
+                td.put("ownerEmail", NATIVE_OWNER);
                 e.put("taskDefinition", td);
             }
-            if (e.get("forkTasks") instanceof List<?> branches) {
-                for (Object b : branches) {
-                    inlineTaskDefinitions((List<Map<String, Object>>) b);
-                }
-            }
-            if (e.get("decisionCases") instanceof Map<?, ?> dc) {
-                for (Object v : dc.values()) {
-                    inlineTaskDefinitions((List<Map<String, Object>>) v);
-                }
-            }
-            if (e.get("defaultCase") instanceof List<?> d) {
-                inlineTaskDefinitions((List<Map<String, Object>>) d);
-            }
-            if (e.get("loopOver") instanceof List<?> l) {
-                inlineTaskDefinitions((List<Map<String, Object>>) l);
-            }
-        }
+        });
     }
 }

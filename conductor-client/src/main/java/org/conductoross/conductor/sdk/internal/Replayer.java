@@ -300,7 +300,7 @@ public final class Replayer {
                 int before = entries.size();
                 if (step instanceof CodeReader.Call c) {
                     Command cmd = c.command();
-                    entries.add(finish(Entries.of(cmd, ref(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase), lane), c.site()));
+                    entries.add(finish(Entries.of(cmd, ref(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase), lane, c.site())));
                 } else if (step instanceof CodeReader.Decision d) {
                     entries.add(decision(d));
                 } else if (step instanceof CodeReader.Fork f) {
@@ -356,8 +356,8 @@ public final class Replayer {
             d.cases().forEach((k, body) -> cases.put(k, nested(k).draw(body)));
             sw.put("decisionCases", cases);
             sw.put("defaultCase", nested("default").draw(d.otherwise()));
-            sw.put("metadata", Entries.metadata(lane));
-            return finish(sw, d.site());
+            sw.put("metadata", Entries.metadata(lane, d.site()));
+            return finish(sw);
         }
 
         private Map<String, Object> loop(CodeReader.Loop l) {
@@ -367,12 +367,12 @@ public final class Replayer {
             List<Map<String, Object>> body = new ArrayList<>();
             for (CodeReader.Step step : l.body()) {
                 if (step instanceof CodeReader.Call c && l.perItem()) {
-                    body.add(finish(Entries.of(c.command(), ref + "_task", lane), c.site()));
+                    body.add(finish(Entries.of(c.command(), ref + "_task", lane, c.site())));
                 } else if (step instanceof CodeReader.Call c) {
                     // repeatUntil, as the server runs it: wait out the backoff, then make the call
                     body.add(structural(ref + "_backoff", ref + "_backoff", "INLINE", l.site()));
                     body.add(structural(ref + "_wait", ref + "_wait", "WAIT", l.site()));
-                    body.add(finish(Entries.of(c.command(), ref + "_check", lane), c.site()));
+                    body.add(finish(Entries.of(c.command(), ref + "_check", lane, c.site())));
                 } else {
                     body.addAll(draw(List.of(step)));
                 }
@@ -390,8 +390,8 @@ public final class Replayer {
             entry.put("name", name);
             entry.put("taskReferenceName", ref);
             entry.put("type", type);
-            entry.put("metadata", Entries.metadata(lane));
-            return finish(entry, site);
+            entry.put("metadata", Entries.metadata(lane, site));
+            return finish(entry);
         }
 
         private Map<String, Object> join(String forkName, String forkRef, String site) {
@@ -401,11 +401,9 @@ public final class Replayer {
         }
 
         @SuppressWarnings("unchecked")
-        private Map<String, Object> finish(Map<String, Object> entry, String site) {
-            Map<String, Object> metadata = (Map<String, Object>) entry.get("metadata");
-            metadata.put("site", site);
+        private Map<String, Object> finish(Map<String, Object> entry) {
             if (preview) {
-                metadata.put("preview", true);
+                ((Map<String, Object>) entry.get("metadata")).put("preview", true);
                 entry.remove("optional");
             }
             return entry;
@@ -538,7 +536,7 @@ public final class Replayer {
         Set<String> inLoops = new HashSet<>();
         for (Map<String, Object> entry : exec.entries.values()) {
             if ("DO_WHILE".equals(entry.get("type")) && entry.get("loopOver") instanceof List<?> body) {
-                addRefs((List<Map<String, Object>>) body, inLoops);
+                Entries.forEachEntry((List<Map<String, Object>>) body, e -> inLoops.add((String) e.get("taskReferenceName")));
             }
         }
         for (Map.Entry<String, Map<String, Object>> entry : exec.entries.entrySet()) {
@@ -548,26 +546,6 @@ public final class Replayer {
                     && metadata.get("lane") != null
                     && !Boolean.TRUE.equals(metadata.get("preview"))) {
                 throw diverged("the recorded execution has " + entry.getKey() + " but the code no longer reaches it");
-            }
-        }
-    }
-
-    /** Adds the reference names of the entries at any depth. */
-    @SuppressWarnings("unchecked")
-    private static void addRefs(List<Map<String, Object>> entries, Set<String> refs) {
-        for (Map<String, Object> e : entries) {
-            refs.add((String) e.get("taskReferenceName"));
-            if (e.get("forkTasks") instanceof List<?> branches) {
-                branches.forEach(b -> addRefs((List<Map<String, Object>>) b, refs));
-            }
-            if (e.get("decisionCases") instanceof Map<?, ?> cases) {
-                cases.values().forEach(c -> addRefs((List<Map<String, Object>>) c, refs));
-            }
-            if (e.get("defaultCase") instanceof List<?> d) {
-                addRefs((List<Map<String, Object>>) d, refs);
-            }
-            if (e.get("loopOver") instanceof List<?> l) {
-                addRefs((List<Map<String, Object>>) l, refs);
             }
         }
     }
