@@ -2054,6 +2054,17 @@ public final class CodeReader {
 
         private void sdkCall(int i, MethodInsnNode m) {
             int argc = Type.getArgumentTypes(m.desc).length;
+            // A builder chain written over several lines (human("x")\n .input(..)\n .await(..))
+            // calls the server at its last link, and that line is the site the running code
+            // records; the drawn step must carry the same, or the UI cannot place an execution
+            // in this definition.
+            List<MethodInsnNode> links = chain(i);
+            if (!links.isEmpty()) {
+                int last = indexOf(links.get(links.size() - 1));
+                if (last >= 0 && lineAt[last] > 0) {
+                    line = lineAt[last];
+                }
+            }
             switch (m.name) {
                 case "task" -> {
                     Command c = named(Command.Kind.SIMPLE, text(i, argc, 0, "task"));

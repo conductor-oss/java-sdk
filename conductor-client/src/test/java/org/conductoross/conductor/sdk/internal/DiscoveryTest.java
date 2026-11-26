@@ -94,6 +94,8 @@ class DiscoveryTest {
         assertEquals(List.of("item", "region", "quantity"), def.get("inputParameters"));
         Map<String, Object> nativeMeta = (Map<String, Object>) ((Map<String, Object>) def.get("metadata")).get("native");
         assertEquals(true, nativeMeta.get("handlers")); // it has a signal
+        // where the code is, in Java's own notation, for the UI: a nested class reads as written
+        assertEquals(DiscoveryTest.class.getName() + ".Fulfilment#run", nativeMeta.get("source"));
 
         List<Map<String, Object>> tasks = (List<Map<String, Object>>) def.get("tasks");
         assertEquals(List.of("pick", "fork", "fork_join", "sleep", "region"),

@@ -181,6 +181,10 @@ final class Registration {
         Map<String, Object> nativeMeta = new LinkedHashMap<>();
         nativeMeta.put("class", spec.type.getName());
         nativeMeta.put("method", spec.method.getName());
+        // where the code is, as this language names it; the UI shows it as is. Every SDK sets it
+        // in its own notation (Python `module:function`, TypeScript `file#export`).
+        String className = spec.type.getCanonicalName() != null ? spec.type.getCanonicalName() : spec.type.getName();
+        nativeMeta.put("source", className + "#" + spec.method.getName());
         // how long the server waits for a continuation it handed to a worker before handing it
         // to another (the lease)
         nativeMeta.put("continuationTimeoutSeconds", continuationTimeoutSeconds);
