@@ -31,7 +31,7 @@ public final class HttpCall {
     private final Map<String, Object> headers = new LinkedHashMap<>();
 
     HttpCall(String ref) {
-        command = new Command(Command.Kind.HTTP, ref, ref);
+        command = new Command(Command.Kind.HTTP, ref);
         command.explicitRef = ref;
         command.httpBody = true;
         request.put("method", "GET");

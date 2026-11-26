@@ -24,7 +24,7 @@ public final class LlmCall {
     private final Command command;
 
     LlmCall(String ref) {
-        command = new Command(Command.Kind.LLM, ref, ref);
+        command = new Command(Command.Kind.LLM, ref);
         command.explicitRef = ref;
         command.outputKey = "result"; // the model's answer; the rest of the output is token counts
         retries(3, Duration.ofSeconds(1));

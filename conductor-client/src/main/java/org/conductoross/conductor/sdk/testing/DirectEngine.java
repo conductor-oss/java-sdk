@@ -122,7 +122,7 @@ final class DirectEngine implements Engine {
         }
         settleGroup();
         // numbered like Replayer.call: x, x_2, x_3 by how many came before
-        String ref = alloc(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase);
+        String ref = alloc(cmd.ref());
         return execute(cmd, ref);
     }
 
@@ -239,11 +239,6 @@ final class DirectEngine implements Engine {
                 throw new IllegalStateException(e);
             }
         }
-    }
-
-    @Override
-    public void fire(Command cmd) {
-        call(cmd);
     }
 
     @Override

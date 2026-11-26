@@ -110,9 +110,7 @@ public final class CodeLoops {
     public static List<String> here() {
         List<String> path = new ArrayList<>();
         WALKER.forEach(frame -> {
-            String c = frame.getClassName();
-            if (c.startsWith("org.conductoross.conductor.sdk.") || c.startsWith("java.") || c.startsWith("jdk.")
-                    || TaskStubs.isStubClass(c)) {
+            if (!Entries.isWorkflowCode(frame.getClassName())) {
                 return;
             }
             path.addAll(0, around(frame.getDeclaringClass(), frame.getMethodName(), frame.getDescriptor(), frame.getLineNumber()));

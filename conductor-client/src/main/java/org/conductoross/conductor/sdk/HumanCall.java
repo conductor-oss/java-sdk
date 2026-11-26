@@ -30,7 +30,7 @@ public final class HumanCall {
     private final Command command;
 
     HumanCall(String ref) {
-        command = new Command(Command.Kind.HUMAN, ref, ref);
+        command = new Command(Command.Kind.HUMAN, ref);
         command.explicitRef = ref;
     }
 
@@ -61,7 +61,6 @@ public final class HumanCall {
         c.resultType = type;
         c.optional = true;
         c.timeoutIsEmpty = true;
-        c.seconds = timeout.toSeconds();
         return (Optional<T>) Engine.current().call(c);
     }
 }

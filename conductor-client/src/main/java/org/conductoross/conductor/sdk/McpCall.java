@@ -86,7 +86,7 @@ public final class McpCall {
     }
 
     private Command command(Command.Kind kind, String type) {
-        Command c = new Command(kind, ref, ref);
+        Command c = new Command(kind, ref);
         c.explicitRef = ref;
         c.input.put("mcpServer", server);
         if (!headers.isEmpty()) {

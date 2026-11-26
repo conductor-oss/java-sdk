@@ -24,7 +24,7 @@ public final class TaskCall {
     private final Command command;
 
     TaskCall(String name) {
-        this.command = new Command(Command.Kind.SIMPLE, name, name);
+        this.command = new Command(Command.Kind.SIMPLE, name);
     }
 
     public TaskCall ref(String taskReferenceName) {

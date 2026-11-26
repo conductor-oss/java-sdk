@@ -12,7 +12,6 @@
  */
 package org.conductoross.conductor.sdk.internal;
 
-import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -213,11 +212,6 @@ public final class TaskStubs {
         throw new IllegalStateException("no " + method + " in " + type.getName() + Arrays.toString(method.getParameterTypes()));
     }
 
-    /** The command for a call to a {@code @WorkerTask} method. */
-    public static Command taskCommand(Serializable ref, Object... args) {
-        return taskCommand(MethodRefs.resolve(ref), args);
-    }
-
     /** The command for a call to a {@code @WorkerTask} method, by a reference or on a task stub. */
     public static Command taskCommand(Method method, Object[] args) {
         WorkerTask annotation = method.getAnnotation(WorkerTask.class);
@@ -225,7 +219,7 @@ public final class TaskStubs {
             throw new IllegalArgumentException(
                     method.getDeclaringClass().getSimpleName() + "." + method.getName() + " is not a @WorkerTask method");
         }
-        Command command = new Command(Command.Kind.SIMPLE, annotation.value(), annotation.value());
+        Command command = new Command(Command.Kind.SIMPLE, annotation.value());
         String[] names = MethodRefs.parameterNames(method);
         for (int i = 0; i < names.length; i++) {
             command.input.put(names[i], Json.plain(args[i]));

@@ -31,11 +31,11 @@ import org.conductoross.conductor.sdk.Functions;
  */
 public interface Engine {
 
-    /** A call that needs a result; returns it decoded, or throws TaskFailure. */
+    /**
+     * A call to the server: returns its result decoded, or throws TaskFailure. A call that needs
+     * no result (an event, a workflow started without waiting) returns null at once.
+     */
     Object call(Command command);
-
-    /** A call that needs no result (events, fire-and-forget workflows). */
-    void fire(Command command);
 
     Object once(String name, Supplier<?> supplier);
 

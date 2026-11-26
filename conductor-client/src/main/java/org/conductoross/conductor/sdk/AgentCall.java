@@ -151,7 +151,7 @@ public final class AgentCall {
      * {@link AgentResult#needsInput() needs input}, the next {@code ask} answers it.
      */
     public AgentResult ask(String text) {
-        Command command = new Command(Command.Kind.AGENT, ref, ref);
+        Command command = new Command(Command.Kind.AGENT, ref);
         command.explicitRef = ref;
         command.input.putAll(input);
         if (input.get("headers") instanceof Map<?, ?> headers) {

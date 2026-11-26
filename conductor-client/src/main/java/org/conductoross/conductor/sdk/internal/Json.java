@@ -216,12 +216,4 @@ public final class Json {
         }
         return Object.class;
     }
-
-    public static String write(Object value) {
-        try {
-            return MAPPER.writeValueAsString(value);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("cannot serialize " + value, e);
-        }
-    }
 }

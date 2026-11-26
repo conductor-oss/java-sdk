@@ -45,8 +45,8 @@ import org.conductoross.conductor.sdk.Functions.Pred;
 import org.conductoross.conductor.sdk.internal.ActionCase;
 import org.conductoross.conductor.sdk.internal.CodeLoops;
 import org.conductoross.conductor.sdk.internal.Command;
-import org.conductoross.conductor.sdk.internal.Conductors;
 import org.conductoross.conductor.sdk.internal.Engine;
+import org.conductoross.conductor.sdk.internal.Entries;
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.MethodRefs;
 import org.conductoross.conductor.sdk.internal.TaskStubs;
@@ -290,10 +290,9 @@ public final class Conductor implements AutoCloseable {
 
     /** Waits on the server (a WAIT task); the code resumes when the timer fires. */
     public static void sleep(Duration duration) {
-        Command wait = new Command(Command.Kind.WAIT, "sleep", "sleep");
-        wait.input.put("duration", Conductors.duration(duration));
+        Command wait = new Command(Command.Kind.WAIT, "sleep");
+        wait.input.put("duration", Entries.duration(duration));
         wait.resultType = Void.class;
-        wait.seconds = duration.toSeconds();
         Engine.current().call(wait);
     }
 
@@ -310,7 +309,7 @@ public final class Conductor implements AutoCloseable {
         String until = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'")
                 .withZone(ZoneOffset.UTC)
                 .format(minute);
-        Command wait = new Command(Command.Kind.WAIT, "sleep_until", "sleep_until");
+        Command wait = new Command(Command.Kind.WAIT, "sleep_until");
         wait.input.put("until", until);
         wait.resultType = Void.class;
         Engine.current().call(wait);
@@ -325,7 +324,7 @@ public final class Conductor implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     public static <I, R> List<R> forEach(String name, List<I> items, Functions.TaskOf<I, R> task) {
-        Command command = TaskStubs.taskCommand(task, new Object[] {null});
+        Command command = TaskStubs.taskCommand(MethodRefs.resolve(task), new Object[] {null});
         String itemParameter = command.input.keySet().iterator().next();
         command.input.clear();
         return (List<R>) (List<?>) Engine.current().forEach(name, new ArrayList<>(items), command, itemParameter);
@@ -392,7 +391,7 @@ public final class Conductor implements AutoCloseable {
     public static <T, A, R> R child(Fn1<T, A, R> workflow, A input) {
         Method method = MethodRefs.resolve(workflow);
         WorkflowSpec spec = spec(method);
-        Command command = new Command(Command.Kind.SUB_WORKFLOW, spec.name, spec.name);
+        Command command = new Command(Command.Kind.SUB_WORKFLOW, spec.name);
         command.fields.put("subWorkflowParam", Map.of("name", spec.name, "version", spec.version));
         command.input.putAll(WorkflowSpec.encodeInput(method, new Object[] {input}));
         command.resultType = method.getGenericReturnType();
@@ -405,26 +404,24 @@ public final class Conductor implements AutoCloseable {
     public static <T, A, R> void startWorkflow(Fn1<T, A, R> workflow, A input) {
         Method method = MethodRefs.resolve(workflow);
         WorkflowSpec spec = spec(method);
-        startWorkflowCommand(spec.name, spec.version, WorkflowSpec.encodeInput(method, new Object[] {input}), method, input);
+        startWorkflowCommand(spec.name, spec.version, WorkflowSpec.encodeInput(method, new Object[] {input}));
     }
 
     /** Starts any registered workflow by name and does not wait. */
     public static void startWorkflow(String name, int version, Map<String, ?> input) {
         Map<String, Object> plain = new LinkedHashMap<>();
         input.forEach((k, v) -> plain.put(k, Json.plain(v)));
-        startWorkflowCommand(name, version, plain, null, null);
+        startWorkflowCommand(name, version, plain);
     }
 
-    private static void startWorkflowCommand(String name, int version, Map<String, Object> input, Method method, Object childInput) {
-        Command command = new Command(Command.Kind.START_WORKFLOW, "start_" + name, "start_" + name);
+    private static void startWorkflowCommand(String name, int version, Map<String, Object> input) {
+        Command command = new Command(Command.Kind.START_WORKFLOW, "start_" + name);
         Map<String, Object> start = new LinkedHashMap<>();
         start.put("name", name);
         start.put("version", version);
         start.put("input", input);
         command.input.put("startWorkflow", start);
-        command.childMethod = method;
-        command.childInput = childInput;
-        Engine.current().fire(command);
+        Engine.current().call(command);
     }
 
     // ------------------------------------------------------------------ server steps

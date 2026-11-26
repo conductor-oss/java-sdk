@@ -16,8 +16,8 @@ import java.time.Duration;
 import java.util.Optional;
 
 import org.conductoross.conductor.sdk.internal.Command;
-import org.conductoross.conductor.sdk.internal.Conductors;
 import org.conductoross.conductor.sdk.internal.Engine;
+import org.conductoross.conductor.sdk.internal.Entries;
 
 /**
  * Waits for an external system to call {@code POST /api/tasks/{workflowId}/{ref}/COMPLETED} with
@@ -30,7 +30,7 @@ public final class ExternalWait {
     private final Command command;
 
     ExternalWait(String ref) {
-        command = new Command(Command.Kind.WAIT, ref, ref);
+        command = new Command(Command.Kind.WAIT, ref);
         command.explicitRef = ref;
         command.optional = true;
         command.emptyIsEmpty = true;
@@ -41,8 +41,7 @@ public final class ExternalWait {
     public <T> Optional<T> await(Class<T> type, Duration timeout) {
         Command c = command.copy();
         c.resultType = type;
-        c.input.put("duration", Conductors.duration(timeout));
-        c.seconds = timeout.toSeconds();
+        c.input.put("duration", Entries.duration(timeout));
         return (Optional<T>) Engine.current().call(c);
     }
 }

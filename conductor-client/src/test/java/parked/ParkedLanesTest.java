@@ -265,8 +265,7 @@ class ParkedLanesTest {
                 } else {
                     // all a poll hands out: the task the lane waited for, and the variables
                     outcome = kept.proceed(lane, n, copy(variables), Execution.TaskView.of(
-                            (String) awaited.get("taskId"), ref, (String) awaited.get("taskType"),
-                            (String) awaited.get("status"), copy(output(awaited)),
+                            ref, (String) awaited.get("status"), copy(output(awaited)),
                             (String) awaited.get("reasonForIncompletion")));
                 }
                 continuedInMemory++;

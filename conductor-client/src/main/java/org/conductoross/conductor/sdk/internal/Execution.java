@@ -24,8 +24,7 @@ import java.util.Set;
  * A read-only view of an execution as the server returns it ({@code GET /workflow/{id}} with
  * tasks): its own grown definition, its tasks, its variables, and the continuation markers (the
  * bootstrap marker in {@code nativeState}, and one on each task the code paused on). Plain JSON
- * maps are used throughout because the definition carries fields (task metadata) that the client
- * model classes drop.
+ * maps, as the replay reads and writes entries: definitions are JSON maps throughout.
  */
 public final class Execution {
 
@@ -39,7 +38,6 @@ public final class Execution {
     public final String workflowId;
     public final String status;
     public final Map<String, Object> input;
-    public final Map<String, Object> output;
     public final Map<String, Object> variables;
     public final Map<String, Object> definition;
     /** The engine's native state: bootstrap and handler markers, and the handled messages. */
@@ -56,7 +54,6 @@ public final class Execution {
         this.workflowId = (String) json.get("workflowId");
         this.status = (String) json.get("status");
         this.input = orEmpty((Map<String, Object>) json.get("input"));
-        this.output = orEmpty((Map<String, Object>) json.get("output"));
         this.variables = orEmpty((Map<String, Object>) json.get("variables"));
         this.definition = orEmpty((Map<String, Object>) json.get("workflowDefinition"));
         this.nativeState = orEmpty((Map<String, Object>) json.get("nativeState"));
@@ -196,34 +193,24 @@ public final class Execution {
 
     /** One task of the execution. */
     public static final class TaskView {
-        public final String taskId;
         public final String ref;
-        public final String taskType;
         public final String status;
         public final int seq;
-        public final int iteration;
-        public final Map<String, Object> input;
         public final Map<String, Object> output;
         public final String reason;
-        public final String definitionType;
         /** The continuation marker, when the code paused on this task; else null. */
         public final Marker marker;
 
         @SuppressWarnings("unchecked")
         TaskView(Map<String, Object> t) {
-            this.taskId = (String) t.get("taskId");
             this.ref = (String) t.get("referenceTaskName");
-            this.taskType = (String) t.get("taskType");
             this.seq = t.get("seq") instanceof Number n ? n.intValue() : 0;
-            this.iteration = t.get("iteration") instanceof Number n ? n.intValue() : 0;
-            this.input = orEmpty((Map<String, Object>) t.get("inputData"));
             this.output = orEmpty((Map<String, Object>) t.get("outputData"));
             this.status = this.output.get(FAILED_STATUS) instanceof String failed
                     ? failed
                     : (String) t.get("status");
             this.reason = (String) t.get("reasonForIncompletion");
             Map<String, Object> wt = (Map<String, Object>) t.get("workflowTask");
-            this.definitionType = wt == null ? null : (String) wt.get("type");
             Object c = t.get("continuation");
             Map<String, Object> meta = wt == null ? null : (Map<String, Object>) wt.get("metadata");
             this.marker = c instanceof Map && meta != null
@@ -235,12 +222,9 @@ public final class Execution {
         }
 
         /** A task from the fields a poll hands out. */
-        public static TaskView of(String taskId, String ref, String taskType, String status,
-                                  Map<String, Object> output, String reason) {
+        public static TaskView of(String ref, String status, Map<String, Object> output, String reason) {
             Map<String, Object> t = new LinkedHashMap<>();
-            t.put("taskId", taskId);
             t.put("referenceTaskName", ref);
-            t.put("taskType", taskType);
             t.put("status", status);
             t.put("outputData", output);
             t.put("reasonForIncompletion", reason);

@@ -12,6 +12,7 @@
  */
 package org.conductoross.conductor.sdk.internal;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,14 +64,12 @@ public final class Entries {
 
     /**
      * Marks {@code entry} as the task the code paused on: when it finishes, the server runs
-     * continuation {@code n} of {@code lane}, which appends what the code does next after it.
+     * continuation {@code n} of the entry's lane, which appends what the code does next after it.
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> continuation(Map<String, Object> entry, String lane, int n) {
-        Map<String, Object> m = (Map<String, Object>) entry.computeIfAbsent("metadata", k -> new LinkedHashMap<>());
-        // the lane's n-th continuation runs when this task ends; the lane is the entry's own
-        m.putIfAbsent("lane", lane);
-        m.put("continuation", n);
+    public static Map<String, Object> continuation(Map<String, Object> entry, int n) {
+        // the n-th continuation of the entry's own lane runs when this task ends
+        ((Map<String, Object>) entry.get("metadata")).put("continuation", n);
         return entry;
     }
 
@@ -92,6 +91,11 @@ public final class Entries {
         return def;
     }
 
+    /** A duration in the server's WAIT format; never zero, since a zero WAIT waits forever. */
+    public static String duration(Duration d) {
+        return Math.max(1, d.toSeconds()) + "s";
+    }
+
     public static String type(Command.Kind kind) {
         return switch (kind) {
             case LLM -> "LLM_CHAT_COMPLETE";
@@ -101,17 +105,17 @@ public final class Entries {
         };
     }
 
+    /** Whether a stack frame's class is workflow code: not the SDK, the JDK, or a task stub. */
+    static boolean isWorkflowCode(String className) {
+        return !className.startsWith("org.conductoross.conductor.sdk.") && !className.startsWith("java.")
+                && !className.startsWith("jdk.") && !className.startsWith("sun.") && !TaskStubs.isStubClass(className);
+    }
+
     /** The first stack frame outside the SDK and the JDK: where workflow code made the call. */
     public static String site() {
         return WALKER.walk(
                 frames ->
-                        frames.filter(f -> {
-                                    String c = f.getClassName();
-                                    return !c.startsWith("org.conductoross.conductor.sdk.")
-                                            && !c.startsWith("java.")
-                                            && !c.startsWith("jdk.")
-                                            && !TaskStubs.isStubClass(c);
-                                })
+                        frames.filter(f -> isWorkflowCode(f.getClassName()))
                                 .findFirst()
                                 .map(f -> {
                                     String c = f.getClassName();

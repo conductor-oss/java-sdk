@@ -89,7 +89,8 @@ public final class WorkflowSpec {
                 queries.put(q.value().isBlank() ? m.getName() : q.value(), m);
             }
         }
-        this.factory = defaultFactory(type);
+        // its no-argument constructor, or its only constructor with a task stub for each task class
+        this.factory = () -> TaskStubs.newWorkflow(type, TaskStubs::unsupplied);
     }
 
     public static WorkflowSpec of(Method method) {
@@ -99,7 +100,6 @@ public final class WorkflowSpec {
         return new WorkflowSpec(method);
     }
 
-    /** All @Workflow methods of a class. */
     private static final Map<Method, WorkflowSpec> BY_METHOD = new ConcurrentHashMap<>();
 
     /** The spec of a {@code @Workflow} method, made once per method. */
@@ -107,6 +107,7 @@ public final class WorkflowSpec {
         return BY_METHOD.computeIfAbsent(method, WorkflowSpec::of);
     }
 
+    /** All @Workflow methods of a class. */
     public static List<WorkflowSpec> of(Class<?> type) {
         List<WorkflowSpec> specs = new ArrayList<>();
         for (Method m : type.getMethods()) {
@@ -225,11 +226,6 @@ public final class WorkflowSpec {
                         }
                     }
                 });
-    }
-
-    /** Its no-argument constructor, or its only constructor with a task stub for each task class. */
-    private static Supplier<Object> defaultFactory(Class<?> type) {
-        return () -> TaskStubs.newWorkflow(type, TaskStubs::unsupplied);
     }
 
     static String snake(String camel) {

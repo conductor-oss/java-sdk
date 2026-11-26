@@ -59,8 +59,8 @@ import org.slf4j.LoggerFactory;
  * the task it waits for, and nothing is run again. That is an optimisation only. The recording is
  * what the execution is; a replayer that was not kept, or whose copy is no longer current, replays.
  *
- * <p>Segments are replayed in the order the live run processed them (the {@code step} the server
- * recorded on each continuation marker), which reproduces reference-name allocation exactly. A
+ * <p>Segments are replayed in the order the live run processed them (by the {@code endTime} the
+ * server recorded on each continuation marker), which reproduces reference-name allocation exactly. A
  * call whose reference name is already in the definition returns the recorded result, or pauses
  * the lane if that task has not finished. Before a lane resumes at a continuation, the
  * {@code @Variable} fields are restored to the values recorded when that continuation was first
@@ -89,7 +89,6 @@ public final class Replayer {
     public static final class Outcome {
         public final Map<String, Object> output = new LinkedHashMap<>();
         public final Map<String, BooleanSupplier> pendingConditions = new LinkedHashMap<>();
-        public Object instance;
     }
 
     private final WorkflowSpec spec;
@@ -131,21 +130,19 @@ public final class Replayer {
      * execution's next continuation comes, or ends them with {@link #close}; it must do one.
      */
     public Outcome begin(String activeLane, int activeContinuation) {
-        Outcome outcome = new Outcome();
-        outcome.instance = instance;
         Lane main = new Lane("main", true, this::invokeWorkflowMethod);
         main.counter = 1;
-        main.waitingFor = 1;
         lanes.put(main.id, main);
         for (Execution.Marker seg : exec.segments()) {
             runSegment(seg.lane, seg.n, Mode.REPLAY, seg.resumedWith);
         }
         assertNothingRecordedWasDropped();
         if (activeLane == null) {
-            outcome.pendingConditions.putAll(pendingConditions);
+            Outcome outcome = new Outcome();
+            outcome.pendingConditions.putAll(pendingConditions); // the condition waits still waiting
             return outcome;
         }
-        return active(outcome, activeLane, activeContinuation, new LinkedHashMap<>(exec.variables));
+        return active(activeLane, activeContinuation, exec.variables);
     }
 
     /**
@@ -157,7 +154,7 @@ public final class Replayer {
     public Outcome proceed(String activeLane, int activeContinuation, Map<String, Object> variables,
                            Execution.TaskView awaited) {
         exec.arrived(awaited);
-        return proceeding(activeLane, activeContinuation, variables);
+        return active(activeLane, activeContinuation, variables);
     }
 
     /**
@@ -166,19 +163,14 @@ public final class Replayer {
      */
     public Outcome proceed(String activeLane, int activeContinuation, Execution fresh) {
         this.exec = fresh;
-        return proceeding(activeLane, activeContinuation, fresh.variables);
-    }
-
-    private Outcome proceeding(String activeLane, int activeContinuation, Map<String, Object> variables) {
-        Outcome outcome = new Outcome();
-        outcome.instance = instance;
-        return active(outcome, activeLane, activeContinuation, new LinkedHashMap<>(variables));
+        return active(activeLane, activeContinuation, fresh.variables);
     }
 
     /** Runs the continuation being processed now, and builds its completion. */
-    private Outcome active(Outcome outcome, String activeLane, int activeContinuation, Map<String, Object> current) {
+    private Outcome active(String activeLane, int activeContinuation, Map<String, Object> current) {
         recorded = new LinkedHashMap<>(); // this continuation's own
         Lane lane = runSegment(activeLane, activeContinuation, Mode.ACTIVE, current);
+        Outcome outcome = new Outcome();
         Map<String, Object> out = outcome.output;
         out.put("resumedWith", spec.captureVariablesOf(current));
         out.put("recorded", recorded);
@@ -192,19 +184,14 @@ public final class Replayer {
                 }
                 out.put("error", error);
             } else if (lane.main) {
-                // the workflow's output
+                // the workflow's output; what another lane returns its joiner reads, not the server
                 out.put("result", Json.encodeOutput(lane.result));
-            } else {
-                Map<String, Object> returned = new LinkedHashMap<>();
-                returned.put("value", Json.plain(lane.result)); // null when the lane returned nothing
-                out.put("result", returned);
             }
         } else {
             out.put("done", false);
         }
         out.put("fragment", fragment);
         out.put("variables", spec.captureVariables(instance));
-        outcome.pendingConditions.putAll(pendingConditions);
         return outcome;
     }
 
@@ -212,7 +199,7 @@ public final class Replayer {
     public boolean awaits(String laneId, int continuation) {
         Lane lane = lanes.get(laneId);
         return fatal == null && !aborting && lane != null && lane.state == State.PAUSED
-                && lane.waitingFor == continuation;
+                && lane.counter == continuation;
     }
 
     /**
@@ -247,7 +234,21 @@ public final class Replayer {
 
     /** Ends the lanes: each one's thread unwinds from where it paused. Nothing can be continued after. */
     public void close() {
-        abortAll();
+        aborting = true;
+        for (Lane lane : lanes.values()) {
+            if (lane.thread != null && lane.thread.isAlive()) {
+                lane.sem.release();
+            }
+        }
+        for (Lane lane : lanes.values()) {
+            if (lane.thread != null) {
+                try {
+                    lane.thread.join(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     /**
@@ -300,7 +301,7 @@ public final class Replayer {
                 int before = entries.size();
                 if (step instanceof CodeReader.Call c) {
                     Command cmd = c.command();
-                    entries.add(finish(Entries.of(cmd, ref(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase), lane, c.site())));
+                    entries.add(finish(Entries.of(cmd, ref(cmd.ref()), lane, c.site())));
                 } else if (step instanceof CodeReader.Decision d) {
                     entries.add(decision(d));
                 } else if (step instanceof CodeReader.Fork f) {
@@ -342,22 +343,12 @@ public final class Replayer {
             }
         }
 
-        @SuppressWarnings("unchecked")
         private Map<String, Object> decision(CodeReader.Decision d) {
-            Map<String, Object> sw = new LinkedHashMap<>();
             String ref = ref(d.name());
-            sw.put("name", ref);
-            sw.put("taskReferenceName", ref);
-            sw.put("type", "SWITCH");
-            sw.put("evaluatorType", "native-code"); // the code decided: the server reads the case it took
-            sw.put("expression", "switchCaseValue");
-            sw.put("inputParameters", Map.of("switchCaseValue", ""));
             Map<String, List<Map<String, Object>>> cases = new LinkedHashMap<>();
             d.cases().forEach((k, body) -> cases.put(k, nested(k).draw(body)));
-            sw.put("decisionCases", cases);
-            sw.put("defaultCase", nested("default").draw(d.otherwise()));
-            sw.put("metadata", Entries.metadata(lane, d.site()));
-            return finish(sw);
+            List<Map<String, Object>> otherwise = nested("default").draw(d.otherwise());
+            return finish(switchTask(ref, "", cases, otherwise, Entries.metadata(lane, d.site())));
         }
 
         private Map<String, Object> loop(CodeReader.Loop l) {
@@ -434,9 +425,9 @@ public final class Replayer {
         if (lane.state == State.DONE) {
             throw new NonDeterminismException("the recording continues lane " + laneId + ", which already returned");
         }
-        if (lane.waitingFor != continuation) {
+        if (lane.counter != continuation) {
             throw new NonDeterminismException(
-                    "lane " + laneId + " paused at continuation " + lane.waitingFor + " but the recording resumes continuation " + continuation);
+                    "lane " + laneId + " paused at continuation " + lane.counter + " but the recording resumes continuation " + continuation);
         }
         mode = m;
         spec.restoreVariables(instance, vars);
@@ -509,8 +500,7 @@ public final class Replayer {
     }
 
     private void pause(Lane lane) {
-        lane.counter++;
-        lane.waitingFor = lane.counter;
+        lane.counter++; // the continuation it waits for
         lane.state = State.PAUSED;
         transfer(lane, lane.returnTo, true);
         lane.state = State.RUNNING;
@@ -556,24 +546,6 @@ public final class Replayer {
         return e;
     }
 
-    private void abortAll() {
-        aborting = true;
-        for (Lane lane : lanes.values()) {
-            if (lane.thread != null && lane.thread.isAlive()) {
-                lane.sem.release();
-            }
-        }
-        for (Lane lane : lanes.values()) {
-            if (lane.thread != null) {
-                try {
-                    lane.thread.join(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-    }
-
     // ------------------------------------------------------------------ allocation
 
     private String alloc(String base) {
@@ -585,6 +557,22 @@ public final class Replayer {
         return ref;
     }
 
+
+    /** A SWITCH the code decides: the case it took ({@code key}; empty when only drawn) and each case's entries. */
+    private static Map<String, Object> switchTask(String ref, String key, Map<String, List<Map<String, Object>>> cases,
+            List<Map<String, Object>> otherwise, Map<String, Object> metadata) {
+        Map<String, Object> sw = new LinkedHashMap<>();
+        sw.put("name", ref);
+        sw.put("taskReferenceName", ref);
+        sw.put("type", "SWITCH");
+        sw.put("evaluatorType", "native-code"); // the code decided: the server reads the case it took
+        sw.put("expression", "switchCaseValue");
+        sw.put("inputParameters", Map.of("switchCaseValue", Entries.escape(key)));
+        sw.put("decisionCases", cases);
+        sw.put("defaultCase", otherwise);
+        sw.put("metadata", metadata);
+        return sw;
+    }
 
     /** The error a lane ended with; for the main lane its message is the workflow's failure reason. */
     private static Map<String, Object> errorOf(Throwable t) {
@@ -619,43 +607,6 @@ public final class Replayer {
 
     private boolean allDone(Group g) {
         return g.members.stream().allMatch(l -> l.state == State.DONE);
-    }
-
-    /**
-     * Runs before anything durable the code does next, and when a lane returns. Lanes that finished
-     * without pausing go inline. Lanes still running are forked with a JOIN that does not wait, so
-     * they run on their own; a later join or get waits for them with a JOIN of its own.
-     */
-    @SuppressWarnings("unchecked")
-    private void flushSyncGroup(Lane lane) {
-        Group g = lane.pendingGroup;
-        if (g == null) {
-            return;
-        }
-        lane.pendingGroup = null;
-        if (allDone(g)) {
-            if (mode == Mode.ACTIVE) {
-                for (Lane l : g.members) {
-                    for (Map<String, Object> e : l.root) {
-                        lane.keepLoops(e, g.loops);
-                        lane.emit(e);
-                    }
-                }
-            }
-            return;
-        }
-        String forkRef = alloc(g.forkName != null ? g.forkName : "fork");
-        g.forkRef = forkRef;
-        String joinRef = alloc(forkRef + "_join");
-        if (mode == Mode.ACTIVE) {
-            lane.emitFork(g, forkRef);
-            Map<String, Object> join = lane.joinEntry(joinRef);
-            ((Map<String, Object>) join.get("metadata")).put("detached", true);
-            lane.tagLoops(join, g.loops);
-            lane.emit(join);
-        } else if (!exec.entries.containsKey(forkRef)) {
-            throw lane.divergedAt("the code forks as " + forkRef + " but the recorded execution has no such fork");
-        }
     }
 
     /** The lanes a wait on this one needs: itself, or what it left running if it has returned. */
@@ -709,8 +660,7 @@ public final class Replayer {
     private static String siteOf(Throwable t) {
         for (StackTraceElement f : t.getStackTrace()) {
             String c = f.getClassName();
-            if (!c.startsWith("org.conductoross.conductor.sdk.") && !c.startsWith("java.") && !c.startsWith("jdk.")
-                    && !c.startsWith("sun.") && !TaskStubs.isStubClass(c) && f.getLineNumber() > 0) {
+            if (Entries.isWorkflowCode(c) && f.getLineNumber() > 0) {
                 return c.substring(c.lastIndexOf('.') + 1) + "." + f.getMethodName() + ":" + f.getLineNumber();
             }
         }
@@ -721,9 +671,7 @@ public final class Replayer {
     private static List<Site> sites() {
         List<Site> sites = new ArrayList<>();
         FRAMES.forEach(f -> {
-            String c = f.getClassName();
-            if (c.startsWith("org.conductoross.conductor.sdk.") || c.startsWith("java.") || c.startsWith("jdk.")
-                    || c.startsWith("sun.") || TaskStubs.isStubClass(c) || f.getLineNumber() < 0) {
+            if (!Entries.isWorkflowCode(f.getClassName()) || f.getLineNumber() < 0) {
                 return;
             }
             sites.add(0, new Site(f.getDeclaringClass(), f.getMethodName(), f.getDescriptor(), f.getLineNumber()));
@@ -745,8 +693,8 @@ public final class Replayer {
         final Supplier<?> body;
         Thread thread;
         State state = State.NEW;
+        /** The continuation the lane is at: the one it waits for while paused. */
         int counter;
-        int waitingFor;
         Object result;
         Throwable error;
         Participant returnTo;
@@ -784,9 +732,7 @@ public final class Replayer {
         void start() {
             // A throwaway replay runs code that may never yield, on a thread that can be abandoned
             // without pinning a carrier of the virtual-thread pool.
-            Thread.Builder builder = Thread.ofVirtual();
-            thread = builder.name("conductor-lane-" + id).unstarted(this::run);
-            thread.start();
+            thread = Thread.ofVirtual().name("conductor-lane-" + id).start(this::run);
         }
 
         /** The Java loops around the code that started this lane, which its stack cannot show. */
@@ -850,7 +796,7 @@ public final class Replayer {
                 error = t;
             }
             try {
-                flushSyncGroup(this); // lanes it never joined still run
+                flushSyncGroup(); // lanes it never joined still run
             } catch (LaneAbort abort) {
                 return;
             } catch (Throwable t) {
@@ -948,12 +894,10 @@ public final class Replayer {
         private List<Site> sitesOf(Throwable t) {
             List<Site> at = new ArrayList<>();
             for (StackTraceElement f : t.getStackTrace()) {
-                String c = f.getClassName();
-                if (c.startsWith("org.conductoross.conductor.sdk.") || c.startsWith("java.") || c.startsWith("jdk.")
-                        || c.startsWith("sun.") || TaskStubs.isStubClass(c) || f.getLineNumber() <= 0) {
+                if (!Entries.isWorkflowCode(f.getClassName()) || f.getLineNumber() <= 0) {
                     continue;
                 }
-                Method m = uniqueMethod(c, f.getMethodName());
+                Method m = uniqueMethod(f.getClassName(), f.getMethodName());
                 if (m == null) {
                     return List.of();
                 }
@@ -996,38 +940,35 @@ public final class Replayer {
             if (capture) {
                 throw new Capture(cmd);
             }
-            flushSyncGroup(this);
+            flushSyncGroup();
             follow();
             // a name given in the code is a base like a task's: a call made again, in a loop or
             // written out again, is numbered by how many came before (x, x_2, x_3), never by the
             // shape of the bytecode
-            String ref = alloc(cmd.explicitRef != null ? cmd.explicitRef : cmd.refBase);
-            if (exec.entries.containsKey(ref)) {
-                if (!cmd.blocking()) {
-                    return null;
+            String ref = alloc(cmd.ref());
+            if (!exec.entries.containsKey(ref)) {
+                if (mode != Mode.ACTIVE) {
+                    String recorded = nextRecordedCall(id);
+                    throw diverged(
+                            "The running code differs from what this execution recorded: at " + Entries.site()
+                                    + " it calls " + cmd.name + ", but the recording has "
+                                    + (recorded == null ? "no further call" : recorded)
+                                    + " there. Deploy a compatible build to continue.");
                 }
-                // Every blocking call was a pause in the live run, so it is a pause in the replay
-                // too, even when the result is already recorded: the lane continues only when the
-                // continuation that followed this call is replayed.
-                pause(this);
-                return resultOf(cmd, ref);
+                Map<String, Object> entry = emit(Entries.of(cmd, ref, id));
+                if (cmd.blocking()) {
+                    Entries.continuation(entry, counter + 1);
+                }
             }
-            if (mode != Mode.ACTIVE) {
-                String recorded = nextRecordedCall(id);
-                throw diverged(
-                        "The running code differs from what this execution recorded: at " + Entries.site()
-                                + " it calls " + cmd.name + ", but the recording has "
-                                + (recorded == null ? "no further call" : recorded)
-                                + " there. Deploy a compatible build to continue.");
-            }
-            Map<String, Object> entry = emit(Entries.of(cmd, ref, id));
             if (!cmd.blocking()) {
                 return null;
             }
-            Entries.continuation(entry, id, counter + 1);
+            // Every blocking call was a pause in the live run, so it is a pause in the replay too,
+            // even when the result is already recorded: the lane continues only when the
+            // continuation that followed this call is replayed. A lane that was kept parked
+            // continues here, in the continuation that follows the task, with the result the task
+            // has by then.
             pause(this);
-            // a lane that was kept parked continues here, in the continuation that follows the
-            // task, with the result the task has by then; one that was not kept never does
             return resultOf(cmd, ref);
         }
 
@@ -1040,11 +981,6 @@ public final class Replayer {
             return decode(cmd, ref, t);
         }
 
-        @Override
-        public void fire(Command cmd) {
-            call(cmd);
-        }
-
         /**
          * A value computed once: the live run computes it and the continuation's marker records
          * it ({@code recorded}); every replay reads it back. The live run returns what it
@@ -1053,7 +989,7 @@ public final class Replayer {
          * it is computed, rather than at the next continuation.
          */
         private Object recordValue(String ref, Supplier<?> supplier) {
-            Object known = exec.recorded.containsKey(ref) ? exec.recorded.get(ref) : recorded.get(ref);
+            Object known = exec.recorded.get(ref); // (a ref just allocated: this continuation has not recorded it)
             if (known instanceof Map<?, ?> record) {
                 return Json.recorded(record, spec.type.getClassLoader());
             }
@@ -1099,7 +1035,7 @@ public final class Replayer {
         public boolean loopAgain(String name, BooleanSupplier condition) {
             String ref = alloc(name + "_again");
             boolean computed = condition.getAsBoolean();
-            Object known = exec.recorded.containsKey(ref) ? exec.recorded.get(ref) : recorded.get(ref);
+            Object known = exec.recorded.get(ref);
             if (known instanceof Map<?, ?> record) {
                 boolean again = Boolean.TRUE.equals(Json.recorded(record, spec.type.getClassLoader()));
                 if (again != computed) {
@@ -1168,7 +1104,7 @@ public final class Replayer {
         private void joinGroup(List<? extends Future<?>> branches) {
             Group g = pendingGroup;
             if (g != null && allDone(g)) {
-                flushSyncGroup(this);
+                flushSyncGroup();
                 g = null;
             }
             List<Lane> wanted = new ArrayList<>();
@@ -1184,23 +1120,16 @@ public final class Replayer {
                 return;
             }
             if (g != null && wanted.stream().noneMatch(g.members::contains)) {
-                flushSyncGroup(this);
+                flushSyncGroup();
                 g = null;
             }
             String joinRef;
             boolean whole = false;
             if (g != null) {
-                String forkRef = alloc(g.forkName != null ? g.forkName : "fork");
-                g.forkRef = forkRef;
-                joinRef = alloc(forkRef + "_join");
                 List<Lane> running = new ArrayList<>();
                 g.members.forEach(l -> unfinished(l, running));
                 whole = running.containsAll(wanted) && wanted.containsAll(running);
-                if (mode == Mode.ACTIVE) {
-                    emitFork(g, forkRef);
-                } else if (!exec.entries.containsKey(forkRef)) {
-                    throw diverged("the code forks as " + forkRef + " but the recorded execution has no such fork");
-                }
+                joinRef = forkGroup(g);
                 pendingGroup = null;
             } else {
                 joinRef = alloc((wanted.get(0).group.forkRef != null ? wanted.get(0).group.forkRef : "fork") + "_wait");
@@ -1210,7 +1139,7 @@ public final class Replayer {
                 if (!whole) {
                     ((Map<String, Object>) join.get("metadata")).put("waitFor", wanted.stream().map(l -> l.id).toList());
                 }
-                emit(Entries.continuation(join, id, counter + 1));
+                emit(Entries.continuation(join, counter + 1));
             } else if (!exec.entries.containsKey(joinRef)) {
                 throw diverged("the code waits at " + joinRef + " but the recorded execution has no such join");
             }
@@ -1222,14 +1151,60 @@ public final class Replayer {
             }
         }
 
+        /**
+         * Runs before anything durable the code does next, and when a lane returns. Lanes that
+         * finished without pausing go inline. Lanes still running are forked with a JOIN that does
+         * not wait, so they run on their own; a later join or get waits for them with a JOIN of
+         * its own.
+         */
+        @SuppressWarnings("unchecked")
+        private void flushSyncGroup() {
+            Group g = pendingGroup;
+            if (g == null) {
+                return;
+            }
+            pendingGroup = null;
+            if (allDone(g)) {
+                if (mode == Mode.ACTIVE) {
+                    g.members.forEach(l -> inline(l, g));
+                }
+                return;
+            }
+            String joinRef = forkGroup(g);
+            if (mode == Mode.ACTIVE) {
+                Map<String, Object> join = joinEntry(joinRef);
+                ((Map<String, Object>) join.get("metadata")).put("detached", true);
+                tagLoops(join, g.loops);
+                emit(join);
+            }
+        }
+
+        /** Names the group's fork and its join, and forks it: in the fragment, or as the recording has it. */
+        private String forkGroup(Group g) {
+            String forkRef = alloc(g.forkName != null ? g.forkName : "fork");
+            g.forkRef = forkRef;
+            String joinRef = alloc(forkRef + "_join");
+            if (mode == Mode.ACTIVE) {
+                emitFork(g, forkRef);
+            } else if (!exec.entries.containsKey(forkRef)) {
+                throw diverged("the code forks as " + forkRef + " but the recorded execution has no such fork");
+            }
+            return joinRef;
+        }
+
+        /** A lane that finished without pausing: its entries go inline, where the code forked it. */
+        private void inline(Lane l, Group g) {
+            for (Map<String, Object> e : l.root) {
+                keepLoops(e, g.loops);
+                emit(e);
+            }
+        }
+
         private void emitFork(Group g, String forkRef) {
             List<List<Map<String, Object>>> branches = new ArrayList<>();
             for (Lane l : g.members) {
                 if (l.state == State.DONE) {
-                    for (Map<String, Object> e : l.root) {
-                        keepLoops(e, g.loops);
-                        emit(e);
-                    }
+                    inline(l, g);
                 } else {
                     branches.add(l.root);
                 }
@@ -1254,14 +1229,10 @@ public final class Replayer {
             return join;
         }
 
-        RuntimeException divergedAt(String message) {
-            return diverged(message);
-        }
-
         @Override
         @SuppressWarnings("unchecked")
         public <I, R> List<R> fanOut(String name, List<I> items, Function<I, R> fn) {
-            flushSyncGroup(this);
+            flushSyncGroup();
             follow();
             Group g = new Group(++groupCounter, name);
             g.loops = loopsHere();
@@ -1280,7 +1251,7 @@ public final class Replayer {
 
         @Override
         public boolean awaitCondition(BooleanSupplier condition, Duration timeout) {
-            flushSyncGroup(this);
+            flushSyncGroup();
             follow();
             if (condition.getAsBoolean()) {
                 return true;
@@ -1298,9 +1269,9 @@ public final class Replayer {
             if (mode != Mode.ACTIVE) {
                 throw diverged("the code waits for a condition as " + ref + " but the recorded execution has no such wait");
             }
-            Command wait = new Command(Command.Kind.WAIT, ref, ref);
-            wait.input.put("duration", Conductors.duration(timeout));
-            emit(Entries.continuation(Entries.of(wait, ref, id), id, counter + 1));
+            Command wait = new Command(Command.Kind.WAIT, ref);
+            wait.input.put("duration", Entries.duration(timeout));
+            emit(Entries.continuation(Entries.of(wait, ref, id), counter + 1));
             pendingConditions.put(ref, condition);
             pause(this);
             // a lane kept parked continues here once the wait ended, as a replay of it would
@@ -1316,7 +1287,7 @@ public final class Replayer {
         @Override
         @SuppressWarnings("unchecked")
         public Object switchOn(String name, Object value, Map<String, Supplier<?>> cases, Supplier<?> otherwise) {
-            flushSyncGroup(this);
+            flushSyncGroup();
             follow();
             String ref = alloc(name);
             Object plain = Json.plain(value);
@@ -1515,10 +1486,10 @@ public final class Replayer {
             while (inside.size() > keep) {
                 Inside in = inside.get(inside.size() - 1);
                 for (Went w : olds) {
-                    w.drawIn(in); // before the arm ends: they go in its case
+                    w.drawIn(in, List.of()); // before the arm ends: they go in its case
                 }
                 if (went != null) {
-                    went.drawIn(in);
+                    went.drawIn(in, List.of());
                 }
                 leave(inside.remove(inside.size() - 1));
             }
@@ -1558,10 +1529,10 @@ public final class Replayer {
             enter(in, sites);
             List<Inside> later = entering.subList(k + 1, entering.size());
             if (went != null) {
-                went.drawEntered(in, later);
+                went.drawIn(in, later);
             }
             for (Went w : news) {
-                w.drawEntered(in, later);
+                w.drawIn(in, later);
             }
         }
 
@@ -1616,11 +1587,14 @@ public final class Replayer {
                 }
             }
 
-            /** Draws those whose innermost enclosing branch the lane is in is {@code in}. */
-            void drawIn(Inside in) {
+            /**
+             * Draws those whose innermost enclosing branch the lane is in is {@code in}, and that are
+             * not inside one of {@code skip} (branches entered later, drawn as each is entered).
+             */
+            void drawIn(Inside in, List<Inside> skip) {
                 for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
                     CodeReader.Passed p = it.next();
-                    if (container(p) == in) {
+                    if (!within(p, skip) && container(p) == in) {
                         it.remove();
                         draw(p);
                     }
@@ -1630,27 +1604,7 @@ public final class Replayer {
 
             /** Draws those outside the branches the next call enters (those are drawn as each is entered). */
             void drawRest(List<Inside> entering) {
-                Inside innermost = inside.isEmpty() ? null : inside.get(inside.size() - 1);
-                for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
-                    CodeReader.Passed p = it.next();
-                    if (!within(p, entering) && container(p) == innermost) {
-                        it.remove();
-                        draw(p);
-                    }
-                }
-                open.clear();
-            }
-
-            /** Draws those in the case of a branch just entered, and not in a branch entered after it. */
-            void drawEntered(Inside in, List<Inside> later) {
-                for (Iterator<CodeReader.Passed> it = todo.iterator(); it.hasNext(); ) {
-                    CodeReader.Passed p = it.next();
-                    if (!within(p, later) && container(p) == in) {
-                        it.remove();
-                        draw(p);
-                    }
-                }
-                open.clear();
+                drawIn(inside.isEmpty() ? null : inside.get(inside.size() - 1), entering);
             }
 
             private boolean within(CodeReader.Passed p, List<Inside> branches) {
@@ -1722,7 +1676,7 @@ public final class Replayer {
             for (int k = lastSites.size() - 1; k >= 0; k--) {
                 wents.add(new Went(lastSites, k, lastSites.get(k).line(), -1));
             }
-            if (lastSites.isEmpty() && id.equals("main")) {
+            if (lastSites.isEmpty() && main) {
                 // code that made no call at all still went through its ifs and switches
                 Site root = new Site(spec.method.getDeclaringClass(), spec.method.getName(),
                         Type.getMethodDescriptor(spec.method), 0);
@@ -1731,7 +1685,7 @@ public final class Replayer {
             while (!inside.isEmpty()) {
                 Inside in = inside.get(inside.size() - 1);
                 for (Went w : wents) {
-                    w.drawIn(in);
+                    w.drawIn(in, List.of());
                 }
                 leave(inside.remove(inside.size() - 1));
             }
@@ -1812,22 +1766,12 @@ public final class Replayer {
             for (String k : caseKeys) {
                 decisionCases.put(k, new ArrayList<>());
             }
-            Map<String, Object> sw = new LinkedHashMap<>();
-            sw.put("name", ref);
-            sw.put("taskReferenceName", ref);
-            sw.put("type", "SWITCH");
-            sw.put("evaluatorType", "native-code"); // the code decided: the server reads the case it took
-            sw.put("expression", "switchCaseValue");
-            sw.put("inputParameters", Map.of("switchCaseValue", Entries.escape(key)));
-            sw.put("decisionCases", decisionCases);
-            sw.put("defaultCase", new ArrayList<Map<String, Object>>());
-            sw.put("metadata", Entries.metadata(id));
-            return sw;
+            return switchTask(ref, key, decisionCases, new ArrayList<>(), Entries.metadata(id));
         }
 
         @Override
         public Object repeatUntil(Supplier<?> loopBody, Functions.Pred<?> condition, Backoff backoff) {
-            flushSyncGroup(this);
+            flushSyncGroup();
             Command check;
             capture = true;
             try {
@@ -1849,7 +1793,7 @@ public final class Replayer {
                 if (mode != Mode.ACTIVE) {
                     throw diverged("the code repeats " + check.name + " as " + loopRef + " but the recorded execution has no such loop");
                 }
-                emit(Entries.continuation(loopEntry(loopRef, check, checkRef, property, backoff), id, counter + 1));
+                emit(Entries.continuation(loopEntry(loopRef, check, checkRef, property, backoff), counter + 1));
             }
             pauseOnLoop();
             Execution.TaskView loop = exec.latest(loopRef);
@@ -1880,7 +1824,7 @@ public final class Replayer {
          */
         @Override
         public List<Object> forEach(String name, List<?> items, Command task, String itemParameter) {
-            flushSyncGroup(this);
+            flushSyncGroup();
             follow();
             if (items.isEmpty()) {
                 return new ArrayList<>();
@@ -1901,7 +1845,7 @@ public final class Replayer {
                 entry.put("loopCondition", "true");
                 entry.put("loopOver", List.of(Entries.of(task, taskRef, id)));
                 entry.put("metadata", Entries.metadata(id));
-                emit(Entries.continuation(entry, id, counter + 1));
+                emit(Entries.continuation(entry, counter + 1));
             }
             pauseOnLoop();
             Execution.TaskView loop = exec.latest(loopRef);

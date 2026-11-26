@@ -2029,7 +2029,7 @@ public final class CodeReader {
         }
 
         private Command named(Command.Kind kind, String name) {
-            return new Command(kind, name, name);
+            return new Command(kind, name);
         }
 
         /** A server step, whose first argument is its reference name. */

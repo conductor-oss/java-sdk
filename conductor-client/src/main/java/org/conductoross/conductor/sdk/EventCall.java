@@ -22,7 +22,7 @@ public final class EventCall {
     private final Command command;
 
     EventCall(String ref) {
-        command = new Command(Command.Kind.EVENT, ref, ref);
+        command = new Command(Command.Kind.EVENT, ref);
         command.explicitRef = ref;
     }
 
@@ -36,6 +36,6 @@ public final class EventCall {
         Command c = command.copy();
         c.input.putAll(Json.encodeOutput(payload));
         c.fields.putIfAbsent("sink", "conductor");
-        Engine.current().fire(c);
+        Engine.current().call(c);
     }
 }

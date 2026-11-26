@@ -41,8 +41,6 @@ public final class Command {
     public final Kind kind;
     /** Task name: the worker task name, sub-workflow name, or a server step's name. */
     public final String name;
-    /** Base for the derived reference name when no explicit reference is given. */
-    public final String refBase;
     public String explicitRef;
     public final Map<String, Object> input = new LinkedHashMap<>();
     /** Type-specific definition fields: subWorkflowParam, sink, taskDefinition and so on. */
@@ -68,13 +66,10 @@ public final class Command {
     /** For the in-memory engine: the child workflow method. */
     public Method childMethod;
     public Object childInput;
-    /** For the in-memory engine: duration of a WAIT, in seconds. */
-    public long seconds;
 
-    public Command(Kind kind, String name, String refBase) {
+    public Command(Kind kind, String name) {
         this.kind = kind;
         this.name = name;
-        this.refBase = refBase;
     }
 
     /**
@@ -83,7 +78,7 @@ public final class Command {
      * Maps one level down (an HTTP request, headers) are copied too.
      */
     public Command copy() {
-        Command c = new Command(kind, name, refBase);
+        Command c = new Command(kind, name);
         c.explicitRef = explicitRef;
         input.forEach((k, v) -> c.input.put(k, copied(v)));
         fields.forEach((k, v) -> c.fields.put(k, copied(v)));
@@ -98,7 +93,6 @@ public final class Command {
         c.args = args;
         c.childMethod = childMethod;
         c.childInput = childInput;
-        c.seconds = seconds;
         return c;
     }
 
@@ -115,7 +109,8 @@ public final class Command {
         return kind != Kind.EVENT && kind != Kind.START_WORKFLOW;
     }
 
-    public String ref(String allocated) {
-        return explicitRef != null ? explicitRef : allocated;
+    /** What the reference name is allocated from: the one given in the code, else the name. */
+    public String ref() {
+        return explicitRef != null ? explicitRef : name;
     }
 }

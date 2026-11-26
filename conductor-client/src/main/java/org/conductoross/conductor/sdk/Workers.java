@@ -680,7 +680,7 @@ public final class Workers implements AutoCloseable {
      * never throws: a failure is the code's result, not the task's.
      */
     TaskResult process(String codeType, Task task) {
-        String snapshot = "(not fetched)";
+        Supplier<String> snapshot = () -> "(not fetched)"; // the execution as replayed, built only to report a divergence
         String workflowId = task.getWorkflowInstanceId();
         Replayer replayer = null; // the lanes of this continuation, until they are parked or closed
         try {
@@ -693,7 +693,7 @@ public final class Workers implements AutoCloseable {
             int n = numberOf(task);
             if ("handlers".equals(lane)) {
                 Execution exec = fetch(workflowId);
-                snapshot = describe(exec, lane, n);
+                snapshot = () -> describe(exec, lane, n);
                 return processHandlers(spec, exec, task);
             }
             // A server that pins executions hands out the variables with the continuation; only
@@ -730,16 +730,14 @@ public final class Workers implements AutoCloseable {
             }
             if (outcome == null) {
                 Execution exec = fetch(workflowId);
-                snapshot = describe(exec, lane, n);
+                snapshot = () -> describe(exec, lane, n);
                 replayer = new Replayer(spec, spec.newInstance(), exec);
                 outcome = replayer.begin(lane, n);
                 parked.countReplayed();
             }
             logLaneError(task, lane, outcome.output);
             if (!"main".equals(lane)) {
-                // the server reads what a lane returned or raised for the main lane only
-                outcome.output.remove("result");
-                outcome.output.remove("error");
+                outcome.output.remove("error"); // the server reads what the main lane raised only
             }
             if (keepMillis > 0 && replayer.hasPausedLanes()) {
                 // the completion says so: the server pins the execution to this process and hands
@@ -755,7 +753,7 @@ public final class Workers implements AutoCloseable {
             return result(task, TaskResult.Status.COMPLETED, outcome.output, null);
         } catch (NonDeterminismException e) {
             LOGGER.error("Execution {} diverged from its code: {}", workflowId, e.getMessage());
-            LOGGER.error("Execution {} as replayed: {}", workflowId, snapshot);
+            LOGGER.error("Execution {} as replayed: {}", workflowId, snapshot.get());
             return result(task, TaskResult.Status.FAILED_WITH_TERMINAL_ERROR, Map.of(), e.getMessage());
         } catch (Exception | StackOverflowError e) {
             LOGGER.error("Processing {} of execution {} failed", task.getReferenceTaskName(), workflowId, e);
@@ -769,9 +767,8 @@ public final class Workers implements AutoCloseable {
 
     /** The task a poll handed out, as the lane that waited for it reads it. */
     private static Execution.TaskView arrived(Task task) {
-        return Execution.TaskView.of(task.getTaskId(), task.getReferenceTaskName(), task.getTaskType(),
-                task.getStatus() == null ? null : task.getStatus().name(), task.getOutputData(),
-                task.getReasonForIncompletion());
+        return Execution.TaskView.of(task.getReferenceTaskName(), task.getStatus() == null ? null : task.getStatus().name(),
+                task.getOutputData(), task.getReasonForIncompletion());
     }
 
     /**
@@ -857,8 +854,9 @@ public final class Workers implements AutoCloseable {
             return List.of();
         }
         List<Map<String, Object>> releases = new ArrayList<>();
-        Replayer.Outcome outcome = new Replayer(spec, spec.newInstance(), exec).process(null, 0);
-        spec.restoreVariables(outcome.instance, vars);
+        Object instance = spec.newInstance();
+        Replayer.Outcome outcome = new Replayer(spec, instance, exec).process(null, 0);
+        spec.restoreVariables(instance, vars);
         for (Map.Entry<String, BooleanSupplier> c : outcome.pendingConditions.entrySet()) {
             if (c.getValue().getAsBoolean()) {
                 Map<String, Object> release = new LinkedHashMap<>();
