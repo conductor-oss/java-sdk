@@ -30,11 +30,6 @@ public class WorkerConfiguration {
         return 0;
     }
 
-    /** Threads for a task whose configuration and {@code @WorkerTask} set none. */
-    public int getDefaultThreadCount() {
-        return 1;
-    }
-
     public String getDomain(String taskName) {
         return null;
     }

@@ -191,9 +191,6 @@ public class AnnotatedWorkerExecutor {
         if (threadCount == 0) {
             threadCount = annotation.threadCount();
         }
-        if (threadCount < 1) {
-            threadCount = workerConfiguration.getDefaultThreadCount();
-        }
         workerToThreadCount.put(name, threadCount);
 
         int pollingInterval = workerConfiguration.getPollingInterval(name);

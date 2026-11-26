@@ -96,7 +96,9 @@ public final class Workers implements AutoCloseable {
     private String workerId;
     private boolean devMode;
     private boolean discovery = true;
-    private Duration continuationTimeout = Duration.ofSeconds(30);
+    /** The continuation lease a workflow gets when no setting names one. */
+    static final Duration CONTINUATION_TIMEOUT = Duration.ofSeconds(30);
+    private Duration continuationTimeout = CONTINUATION_TIMEOUT;
     private Duration parkTimeout = Duration.ofHours(1);
     private final ParkedExecutions parked = new ParkedExecutions();
     private final AtomicLong stamps = new AtomicLong();
@@ -436,11 +438,11 @@ public final class Workers implements AutoCloseable {
 
     /** A workflow's setting: {@code conductor.workflow.<name>.<key>}, else {@code conductor.workflow.all.<key>}. */
     private String setting(WorkflowSpec spec, String key) {
-        return setting("conductor.workflow", spec.name, key);
+        return setting(settings, "conductor.workflow", spec.name, key);
     }
 
     /** {@code <prefix>.<name>.<key>}, else {@code <prefix>.all.<key>}: trimmed, null when unset or blank. */
-    private String setting(String prefix, String name, String key) {
+    private static String setting(Function<String, String> settings, String prefix, String name, String key) {
         String value = settings.apply(prefix + "." + name + "." + key);
         if (value == null || value.isBlank()) {
             value = settings.apply(prefix + ".all." + key);
@@ -448,12 +450,21 @@ public final class Workers implements AutoCloseable {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
-    /** A duration setting, in seconds or as an ISO-8601 duration; {@code otherwise} when unset. */
-    private Duration duration(WorkflowSpec spec, String key, Duration otherwise) {
-        String value = setting(spec, key);
+    /** A workflow's duration setting, in seconds or as an ISO-8601 duration; {@code otherwise} when unset. */
+    private static Duration duration(Function<String, String> settings, WorkflowSpec spec, String key, Duration otherwise) {
+        String value = setting(settings, "conductor.workflow", spec.name, key);
         return value == null ? otherwise
                 : value.chars().allMatch(Character::isDigit) ? Duration.ofSeconds(Long.parseLong(value))
                 : Duration.parse(value);
+    }
+
+    /**
+     * A workflow's continuation lease in seconds, read from these settings: {@code
+     * conductor.workflow.<name>.continuationTimeout}, else {@code conductor.workflow.all.}, else
+     * {@code otherwise}.
+     */
+    static long continuationTimeoutSeconds(Function<String, String> settings, WorkflowSpec spec, Duration otherwise) {
+        return Math.max(1, duration(settings, spec, "continuationTimeout", otherwise).toSeconds());
     }
 
     private int setting(WorkflowSpec spec, String key, int otherwise) {
@@ -466,7 +477,7 @@ public final class Workers implements AutoCloseable {
         if (devMode) {
             return 3600;
         }
-        return Math.max(1, duration(spec, "continuationTimeout", continuationTimeout).toSeconds());
+        return continuationTimeoutSeconds(settings, spec, continuationTimeout);
     }
 
     /**
@@ -482,7 +493,7 @@ public final class Workers implements AutoCloseable {
             // for the worker an execution is pinned to
             return 0;
         }
-        return Math.max(0, duration(spec, "parkTimeout", parkTimeout).toMillis());
+        return Math.max(0, duration(settings, spec, "parkTimeout", parkTimeout).toMillis());
     }
 
     /**
@@ -493,19 +504,13 @@ public final class Workers implements AutoCloseable {
     private final class TaskSettings extends WorkerConfiguration {
 
         private int number(String task, String key) {
-            String value = setting("conductor.worker", task, key);
+            String value = setting(settings, "conductor.worker", task, key);
             return value == null ? 0 : Integer.parseInt(value);
         }
 
         @Override
         public int getThreadCount(String task) {
             return number(task, "threadCount");
-        }
-
-        /** Threads for a hosted task whose settings and {@code @WorkerTask} set none. */
-        @Override
-        public int getDefaultThreadCount() {
-            return 8;
         }
 
         @Override
@@ -525,7 +530,7 @@ public final class Workers implements AutoCloseable {
 
         @Override
         public String getDomain(String task) {
-            return setting("conductor.worker", task, "domain");
+            return setting(settings, "conductor.worker", task, "domain");
         }
     }
 

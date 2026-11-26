@@ -734,6 +734,7 @@ public final class CodeReader {
         /** Random sources and clock reads in this method and in the code it calls. */
         private final List<RawSource> rawSources = new ArrayList<>();
         private int current;
+        private String loopClass;
 
         Reading(String owner, MethodNode method, Set<String> active) {
             this.owner = owner;
@@ -933,8 +934,20 @@ public final class CodeReader {
 
         /** The steps, inside the loops of this method around the current line, if any. */
         private List<Step> inLoops(List<Step> more) {
-            List<String> loops = CodeLoops.around(method, owner.substring(owner.lastIndexOf('/') + 1), line);
+            List<String> loops = CodeLoops.around(method, loopClass(), line);
             return loops.isEmpty() ? more : List.of(new InLoops(loops, List.copyOf(more), site()));
+        }
+
+        /** What loops are named after, as the running code names them: the class's simple name. */
+        private String loopClass() {
+            if (loopClass == null) {
+                try {
+                    loopClass = Class.forName(owner.replace('/', '.'), false, loader).getSimpleName();
+                } catch (ClassNotFoundException | LinkageError e) {
+                    loopClass = owner.substring(Math.max(owner.lastIndexOf('/'), owner.lastIndexOf('$')) + 1);
+                }
+            }
+            return loopClass;
         }
 
         /** The code waits here: for the lanes just started, or for a fork left running earlier. */

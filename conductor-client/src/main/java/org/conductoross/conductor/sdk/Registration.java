@@ -42,11 +42,6 @@ final class Registration {
 
     private Registration() {}
 
-    static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
-            long continuationTimeoutSeconds) {
-        register(client, specs, taskObjects, spec -> continuationTimeoutSeconds, true);
-    }
-
     /** @param continuationTimeoutSeconds each workflow's continuation lease, in seconds */
     static void register(ConductorClient client, Collection<WorkflowSpec> specs, List<Object> taskObjects,
             ToLongFunction<WorkflowSpec> continuationTimeoutSeconds, boolean discover) {
@@ -145,10 +140,6 @@ final class Registration {
      * when the class has handlers). The execution's own copy starts empty and grows from there,
      * one fragment per continuation.
      */
-    static Map<String, Object> skeleton(WorkflowSpec spec, long continuationTimeoutSeconds) {
-        return skeleton(spec, continuationTimeoutSeconds, true);
-    }
-
     static Map<String, Object> skeleton(WorkflowSpec spec, long continuationTimeoutSeconds, boolean discover) {
         Map<String, Object> def = new LinkedHashMap<>();
         def.put("name", spec.name);

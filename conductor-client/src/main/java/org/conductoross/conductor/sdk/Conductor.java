@@ -488,14 +488,15 @@ public final class Conductor implements AutoCloseable {
     /**
      * Registers the definitions of these workflow classes, and their schedules, without starting
      * workers: for a deploy step that publishes what a build contains. {@link Workers#start()}
-     * does the same on start-up.
+     * does the same on start-up. Each workflow's continuation lease is read as a host reads it,
+     * from the system properties ({@code conductor.workflow.<name>.continuationTimeout}).
      */
     public void register(Class<?>... workflows) {
         List<WorkflowSpec> specs = new ArrayList<>();
         for (Class<?> type : workflows) {
             specs.addAll(WorkflowSpec.of(type));
         }
-        Registration.register(client, specs, List.of(), 30);
+        Registration.register(client, specs, List.of(), Conductor::continuationTimeoutSeconds, true);
     }
 
     /**
@@ -505,9 +506,14 @@ public final class Conductor implements AutoCloseable {
     public static List<Map<String, Object>> definitions(Class<?> workflow) {
         List<Map<String, Object>> defs = new ArrayList<>();
         for (WorkflowSpec spec : WorkflowSpec.of(workflow)) {
-            defs.add(Registration.skeleton(spec, 30));
+            defs.add(Registration.skeleton(spec, continuationTimeoutSeconds(spec), true));
         }
         return defs;
+    }
+
+    /** A workflow's continuation lease as a host started with the system properties has it. */
+    private static long continuationTimeoutSeconds(WorkflowSpec spec) {
+        return Workers.continuationTimeoutSeconds(System::getProperty, spec, Workers.CONTINUATION_TIMEOUT);
     }
 
     /**

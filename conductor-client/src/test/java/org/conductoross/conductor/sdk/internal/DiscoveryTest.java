@@ -86,6 +86,23 @@ class DiscoveryTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void theDefinitionHasTheContinuationLeaseAHostWouldRegister() {
+        Map<String, Object> def = Conductor.definitions(Fulfilment.class).get(0);
+        Map<String, Object> nativeMeta = (Map<String, Object>) ((Map<String, Object>) def.get("metadata")).get("native");
+        assertEquals(30L, ((Number) nativeMeta.get("continuationTimeoutSeconds")).longValue());
+
+        System.setProperty("conductor.workflow.fulfilment.continuationTimeout", "PT2M");
+        try {
+            def = Conductor.definitions(Fulfilment.class).get(0);
+            nativeMeta = (Map<String, Object>) ((Map<String, Object>) def.get("metadata")).get("native");
+            assertEquals(120L, ((Number) nativeMeta.get("continuationTimeoutSeconds")).longValue());
+        } finally {
+            System.clearProperty("conductor.workflow.fulfilment.continuationTimeout");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void theDefinitionHoldsTheGraphTheCodeDescribes() {
         Map<String, Object> def = Conductor.definitions(Fulfilment.class).get(0);
 

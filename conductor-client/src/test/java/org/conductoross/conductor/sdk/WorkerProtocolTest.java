@@ -158,7 +158,7 @@ class WorkerProtocolTest {
         List<String> posted = answer(
                 "[]", "[{\"name\":\"shared_task\",\"ownerEmail\":\"team-a@example.com\",\"retryCount\":7}]");
 
-        Registration.register(conductor.client(), List.of(), List.of(new Mine()), 30);
+        Registration.register(conductor.client(), List.of(), List.of(new Mine()), spec -> 30, true);
 
         List<Map<String, Object>> defs = Json.MAPPER.readValue(last(posted, "/api/metadata/taskdefs"), List.class);
         assertEquals(List.of("my_task"), defs.stream().map(d -> d.get("name")).toList());
@@ -182,7 +182,7 @@ class WorkerProtocolTest {
                         + "{\"name\":\"typed_task_output\",\"version\":4,\"data\":{\"type\":\"string\"}}]",
                 "[]");
 
-        Registration.register(conductor.client(), List.of(), List.of(new Typed()), 30);
+        Registration.register(conductor.client(), List.of(), List.of(new Typed()), spec -> 30, true);
 
         // only the output is new: the next version after the highest registered
         List<Map<String, Object>> schemas = Json.MAPPER.readValue(last(posted, "/api/schema"), List.class);

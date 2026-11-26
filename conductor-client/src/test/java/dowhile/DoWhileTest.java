@@ -375,5 +375,11 @@ class DoWhileTest {
         nested.forEach(e -> all.add(metadata(e).get("loops")));
         assertEquals(2, ((List<?>) all.get(0)).size(), "the for loop, then the doWhile: " + all);
         assertEquals("inner", ((List<?>) all.get(0)).get(1));
+
+        // named as the running code names them, also for a nested class: Nested_loop_<line>
+        WorkflowSpec spec = spec(Nested.class);
+        Execution first = execution("dw_nested", Map.of("rounds", List.of("a")), List.of(), List.of(), marker(1, "LEASED", 0));
+        List<Map<String, Object>> ran = fragment(new Replayer(spec, spec.newInstance(), first).process("main", 1));
+        assertEquals(metadata(ran.get(0)).get("loops"), all.get(0));
     }
 }
