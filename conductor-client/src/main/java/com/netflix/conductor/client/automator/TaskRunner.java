@@ -80,10 +80,8 @@ class TaskRunner {
     private int pollingErrorCount;
     private String domain;
     private volatile boolean pollingAndExecuting = true;
-    /** Guards {@link #pollsInFlight}, and the end of {@link #pollingAndExecuting}. */
-    private final Object pollLock = new Object();
-    /** Polls whose tasks are not yet handed to the executor. */
-    private int pollsInFlight;
+    /** Polls whose tasks are not yet handed to the executor; shutdown waits for them. */
+    private final AtomicInteger pollsInFlight = new AtomicInteger();
     /** Set when a poll is terminating the JVM: it never returns, and shutdown does not wait for it. */
     private volatile boolean exiting;
     private final List<PollFilter> pollFilters;
@@ -209,13 +207,13 @@ class TaskRunner {
      * ({@link #awaitPolls}). Null when the runner is shutting down.
      */
     private List<Task> pollAndSubmit() {
-        synchronized (pollLock) {
+        pollsInFlight.incrementAndGet();
+        try {
+            // checked once this poll is counted: shutdown stops polling, then waits for the polls
+            // it counts, so a poll either sees the stop or is waited for
             if (!pollingAndExecuting) {
                 return null;
             }
-            pollsInFlight++;
-        }
-        try {
             List<Task> tasks = pollTasksForWorker();
             tasks.forEach(task -> {
                 if (!submit(task)) {
@@ -224,10 +222,7 @@ class TaskRunner {
             });
             return tasks;
         } finally {
-            synchronized (pollLock) {
-                pollsInFlight--;
-                pollLock.notifyAll();
-            }
+            pollsInFlight.decrementAndGet();
         }
     }
 
@@ -267,15 +262,12 @@ class TaskRunner {
      */
     private void awaitPolls(int timeout) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
-        synchronized (pollLock) {
-            while (pollsInFlight > 0 && !exiting) {
-                long millis = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
-                if (millis <= 0) {
-                    LOGGER.warn("A poll for {} did not return within {} seconds", taskType, timeout);
-                    return;
-                }
-                pollLock.wait(millis);
+        while (pollsInFlight.get() > 0 && !exiting) {
+            if (System.nanoTime() - deadline > 0) {
+                LOGGER.warn("A poll for {} did not return within {} seconds", taskType, timeout);
+                return;
             }
+            Thread.sleep(10);
         }
     }
 
@@ -294,9 +286,7 @@ class TaskRunner {
 
     public void shutdown(int timeout) {
         try {
-            synchronized (pollLock) {
-                pollingAndExecuting = false; // no poll starts after this
-            }
+            pollingAndExecuting = false;
             awaitPolls(timeout);
 
             leaseExtendMap.values().forEach(future -> future.cancel(false));
