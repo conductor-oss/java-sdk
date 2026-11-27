@@ -406,10 +406,18 @@ public class TaskRunnerConfigurer {
         }
 
         /**
-         * The task domain every worker polls, or with null the shared queue of its task type,
+         * Used by the native workflow host ({@link org.conductoross.conductor.sdk.Workers}) to poll
+         * workflow code; other workers seldom need it.
+         *
+         * <p>Every worker polls {@code domain}, or with null the shared queue of its task type,
          * whatever {@code conductor.worker.<task>.domain}, {@code conductor.worker.all.domain} and
-         * {@link #withTaskToDomain} say. For workers whose queue the caller decides, not the
-         * process's domain settings.
+         * {@link #withTaskToDomain} say. Not called, the domain comes from those, as before.
+         *
+         * <p>Why the native host needs it: the server puts a workflow's continuations on the shared
+         * queue of its code type, or in the domain of the host it is pinned to, and ignores task
+         * domains for them. Without this, an app that sets {@code conductor.worker.all.domain} for
+         * its own workers would poll its workflow code in that domain too, where nothing arrives,
+         * and its native workflows would never progress.
          */
         public Builder withFixedDomain(String domain) {
             this.domainFixed = true;

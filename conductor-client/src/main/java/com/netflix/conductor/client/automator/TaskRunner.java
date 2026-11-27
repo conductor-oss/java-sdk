@@ -106,7 +106,8 @@ class TaskRunner {
      *     without a poll; also on when the {@code taskUpdateV2} system property or environment
      *     variable is set
      * @param domainFixed poll {@code fixedDomain}, whatever the properties and {@code taskToDomain}
-     *     say; false to take the domain from them
+     *     say, as the native workflow host does for workflow code (see {@link
+     *     TaskRunnerConfigurer.Builder#withFixedDomain}); false to take the domain from them
      * @param fixedDomain the task domain to poll when {@code domainFixed}; null for the shared queue
      */
     TaskRunner(Worker worker,
