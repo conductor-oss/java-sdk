@@ -56,7 +56,7 @@ public class TaskRunnerConfigurer {
     private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
     private final boolean taskUpdateV2;
-    private final boolean useDomains;
+    private final boolean domainFixed;
     private final String fixedDomain;
 
     /**
@@ -81,7 +81,7 @@ public class TaskRunnerConfigurer {
         this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
         this.taskUpdateV2 = builder.taskUpdateV2;
-        this.useDomains = builder.useDomains;
+        this.domainFixed = builder.domainFixed;
         this.fixedDomain = builder.fixedDomain;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
@@ -187,7 +187,7 @@ public class TaskRunnerConfigurer {
                 eventDispatcher,
                 useVirtualThreads,
                 taskUpdateV2,
-                useDomains,
+                domainFixed,
                 fixedDomain);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
@@ -222,7 +222,7 @@ public class TaskRunnerConfigurer {
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
         private boolean taskUpdateV2;
-        private boolean useDomains = true;
+        private boolean domainFixed;
         private String fixedDomain;
 
         /**
@@ -406,21 +406,13 @@ public class TaskRunnerConfigurer {
         }
 
         /**
-         * Whether workers poll a task domain: from {@code conductor.worker.<task>.domain}, then
-         * {@code conductor.worker.all.domain}, then {@link #withTaskToDomain}. On by default; off,
-         * every worker polls the shared queue of its task type.
-         */
-        public Builder withDomains(boolean useDomains) {
-            this.useDomains = useDomains;
-            return this;
-        }
-
-        /**
-         * The one task domain every worker polls, whatever {@code conductor.worker.<task>.domain},
-         * {@code conductor.worker.all.domain} and {@link #withTaskToDomain} say. For a queue that
-         * belongs to this process alone.
+         * The task domain every worker polls, or with null the shared queue of its task type,
+         * whatever {@code conductor.worker.<task>.domain}, {@code conductor.worker.all.domain} and
+         * {@link #withTaskToDomain} say. For workers whose queue the caller decides, not the
+         * process's domain settings.
          */
         public Builder withFixedDomain(String domain) {
+            this.domainFixed = true;
             this.fixedDomain = domain;
             return this;
         }

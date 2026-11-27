@@ -98,17 +98,16 @@ class TaskRunner {
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean useVirtualThreads) {
         this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
-                pollFilters, eventDispatcher, useVirtualThreads, false, true, null);
+                pollFilters, eventDispatcher, useVirtualThreads, false, false, null);
     }
 
     /**
      * @param updateV2 complete tasks with update-v2, which hands back this worker's next task to run
      *     without a poll; also on when the {@code taskUpdateV2} system property or environment
      *     variable is set
-     * @param useDomains poll the domain from the properties or {@code taskToDomain}; false polls
-     *     only the shared queue
-     * @param fixedDomain the one task domain to poll, whatever the properties and {@code
-     *     taskToDomain} say; null to resolve the domain as {@code useDomains} says
+     * @param domainFixed poll {@code fixedDomain}, whatever the properties and {@code taskToDomain}
+     *     say; false to take the domain from them
+     * @param fixedDomain the task domain to poll when {@code domainFixed}; null for the shared queue
      */
     TaskRunner(Worker worker,
                TaskClient taskClient,
@@ -121,7 +120,7 @@ class TaskRunner {
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean useVirtualThreads,
                boolean updateV2,
-               boolean useDomains,
+               boolean domainFixed,
                String fixedDomain) {
         this.worker = worker;
         this.taskClient = taskClient;
@@ -145,7 +144,7 @@ class TaskRunner {
             //3. was it supplied as part of the config?
             this.domain = taskToDomain.get(taskType);
         }
-        if (!useDomains || fixedDomain != null) {
+        if (domainFixed) {
             this.domain = fixedDomain;
         }
 

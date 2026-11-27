@@ -319,7 +319,6 @@ public final class Workers implements AutoCloseable {
                 .withTaskPollTimeout(pollTimeouts)
                 .withUseVirtualThreads(true)
                 .withTaskUpdateV2(true)
-                .withDomains(false)
                 .withFixedDomain(domain)
                 .withWorkerNamePrefix(namePrefix)
                 .build();
