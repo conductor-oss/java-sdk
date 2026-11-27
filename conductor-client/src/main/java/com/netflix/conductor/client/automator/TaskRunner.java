@@ -58,6 +58,7 @@ import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 
+import io.orkes.conductor.client.http.ApiException;
 import io.orkes.conductor.client.http.FatalAuthenticationException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -79,6 +80,12 @@ class TaskRunner {
     private int pollingErrorCount;
     private String domain;
     private volatile boolean pollingAndExecuting = true;
+    /** Guards {@link #pollsInFlight}, and the end of {@link #pollingAndExecuting}. */
+    private final Object pollLock = new Object();
+    /** Polls whose tasks are not yet handed to the executor. */
+    private int pollsInFlight;
+    /** Set when a poll is terminating the JVM: it never returns, and shutdown does not wait for it. */
+    private volatile boolean exiting;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final LinkedBlockingQueue<Task> tasksTobeExecuted;
@@ -175,7 +182,10 @@ class TaskRunner {
             }
 
             try {
-                List<Task> tasks = pollTasksForWorker();
+                List<Task> tasks = pollAndSubmit();
+                if (tasks == null) {
+                    break; // shutting down
+                }
                 if (tasks.isEmpty()) {
                     if (stopwatch == null) {
                         stopwatch = Stopwatch.createStarted();
@@ -188,43 +198,107 @@ class TaskRunner {
                     LOGGER.trace("Poller for task {} waited for {} ms before getting {} tasks to execute", taskType, stopwatch.elapsed(TimeUnit.MILLISECONDS), tasks.size());
                     stopwatch = null;
                 }
-                tasks.forEach(task -> {
-                    Future<Task> taskFuture;
-                    try {
-                        taskFuture = this.executorService.submit(() -> this.processTask(task));
-                    } catch (java.util.concurrent.RejectedExecutionException e) {
-                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
-                                task.getTaskId(), taskType, e);
-                        permits.release();
-                        return;
-                    }
-
-                    if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-                        ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
-                        if (existingFuture != null) {
-                            existingFuture.cancel(false);
-                        }
-
-                        long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-                        ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                                extendLease(task, taskFuture),
-                                delay,
-                                delay,
-                                TimeUnit.SECONDS
-                        );
-                        leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
-                    }
-                });
             } catch (Throwable t) {
                 LOGGER.error(t.getMessage(), t);
             }
         }
     }
 
+    /**
+     * Polls, and hands the tasks that come back to the executor: one step, which shutdown waits for
+     * ({@link #awaitPolls}). Null when the runner is shutting down.
+     */
+    private List<Task> pollAndSubmit() {
+        synchronized (pollLock) {
+            if (!pollingAndExecuting) {
+                return null;
+            }
+            pollsInFlight++;
+        }
+        try {
+            List<Task> tasks = pollTasksForWorker();
+            tasks.forEach(task -> {
+                if (!submit(task)) {
+                    permits.release();
+                }
+            });
+            return tasks;
+        } finally {
+            synchronized (pollLock) {
+                pollsInFlight--;
+                pollLock.notifyAll();
+            }
+        }
+    }
+
+    /** Runs a task on the executor, under a permit the caller holds. False when the executor refused it: the permit is then the caller's to release. */
+    private boolean submit(Task task) {
+        Future<Task> taskFuture;
+        try {
+            taskFuture = this.executorService.submit(() -> this.processTask(task));
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                    task.getTaskId(), taskType, e);
+            return false;
+        }
+
+        if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
+            ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+            if (existingFuture != null) {
+                existingFuture.cancel(false);
+            }
+
+            long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
+            ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                    extendLease(task, taskFuture),
+                    delay,
+                    delay,
+                    TimeUnit.SECONDS
+            );
+            leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+        }
+        return true;
+    }
+
+    /**
+     * Waits, at most {@code timeout} seconds, for a poll in flight to return and its tasks to be
+     * handed to the executor, which must still take them: the server has leased them to this
+     * worker, and refused, they would wait out their response timeout.
+     */
+    private void awaitPolls(int timeout) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
+        synchronized (pollLock) {
+            while (pollsInFlight > 0 && !exiting) {
+                long millis = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
+                if (millis <= 0) {
+                    LOGGER.warn("A poll for {} did not return within {} seconds", taskType, timeout);
+                    return;
+                }
+                pollLock.wait(millis);
+            }
+        }
+    }
+
+    /**
+     * Runs the tasks update-v2 handed back that the poll loop, now ended, did not take: the server
+     * has leased them to this worker, so left alone they would wait out their response timeout.
+     * Their results go with the update that hands nothing back.
+     */
+    private void runHandedBackTasks() {
+        for (Task task; (task = tasksTobeExecuted.poll()) != null; ) {
+            LOGGER.info("Shutting down: running task {} of type {}, handed back by an update", task.getTaskId(), taskType);
+            task.getExecutionMetadata().setClientReceiveTime(System.currentTimeMillis());
+            processTask(task); // the permit it releases no longer matters: nothing polls
+        }
+    }
+
     public void shutdown(int timeout) {
         try {
-            pollingAndExecuting = false;
-            
+            synchronized (pollLock) {
+                pollingAndExecuting = false; // no poll starts after this
+            }
+            awaitPolls(timeout);
+
             leaseExtendMap.values().forEach(future -> future.cancel(false));
             leaseExtendMap.clear();
             
@@ -237,6 +311,7 @@ class TaskRunner {
             executorService.shutdown();
             if (executorService.awaitTermination(timeout, TimeUnit.SECONDS)) {
                 LOGGER.debug("tasks completed, shutting down");
+                runHandedBackTasks();
             } else {
                 LOGGER.warn(String.format("forcing shutdown after waiting for %s second", timeout));
                 executorService.shutdownNow();
@@ -297,6 +372,7 @@ class TaskRunner {
 
             if (hasFatalAuthCause(e)) {
                 LOGGER.error("Fatal authentication failure — terminating JVM");
+                exiting = true; // a shutdown hook must not wait for this thread, which waits for the hooks
                 exitAction.run();
             }
 
@@ -475,7 +551,8 @@ class TaskRunner {
             result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
-            if(enableUpdateV2) {
+            // update-v2 hands back the next task, which only a running poll loop takes
+            if(enableUpdateV2 && pollingAndExecuting) {
                 Task nextTask = retryOperation(
                         (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
                         count,
@@ -540,11 +617,21 @@ class TaskRunner {
                 return operation.apply(input);
             } catch (Exception e) {
                 LOGGER.error("Error executing {}", opName, e);
+                if (refused(e)) {
+                    throw e; // the same request is refused again: retrying cannot help
+                }
                 index++;
                 Uninterruptibles.sleepUninterruptibly(500L * (count + 1), TimeUnit.MILLISECONDS);
             }
         }
         throw new RuntimeException("Exhausted retries performing " + opName);
+    }
+
+    /** A client error other than a timeout (408) or throttling (429). */
+    private static boolean refused(Exception e) {
+        return e instanceof ApiException api
+                && api.getStatusCode() >= 400 && api.getStatusCode() < 500
+                && api.getStatusCode() != 408 && api.getStatusCode() != 429;
     }
 
     private void handleException(Throwable t, TaskResult result, Worker worker, Task task) {
