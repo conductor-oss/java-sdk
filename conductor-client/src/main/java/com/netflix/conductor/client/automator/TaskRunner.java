@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
@@ -57,7 +56,6 @@ import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.TaskResult;
 
-import io.orkes.conductor.client.http.ApiException;
 import io.orkes.conductor.client.http.FatalAuthenticationException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -79,10 +77,6 @@ class TaskRunner {
     private int pollingErrorCount;
     private String domain;
     private volatile boolean pollingAndExecuting = true;
-    /** How many threads are in {@link #pollAndExecute()}; its own lock. */
-    private final int[] pollLoops = new int[1];
-    /** Set when the poll loop is terminating the JVM: it never ends, and shutdown does not wait for it. */
-    private volatile boolean exiting;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final boolean enableUpdateV2;
@@ -199,20 +193,6 @@ class TaskRunner {
     }
 
     public void pollAndExecute() {
-        synchronized (pollLoops) {
-            pollLoops[0]++;
-        }
-        try {
-            pollUntilStopped();
-        } finally {
-            synchronized (pollLoops) {
-                pollLoops[0]--;
-                pollLoops.notifyAll();
-            }
-        }
-    }
-
-    private void pollUntilStopped() {
         Stopwatch stopwatch = null;
         while (pollingAndExecuting) {
             if (Thread.currentThread().isInterrupted()) {
@@ -235,8 +215,6 @@ class TaskRunner {
                 }
                 tasks.forEach(task -> {
                     if (!submit(task)) {
-                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
-                                task.getTaskId(), taskType);
                         permits.release();
                     }
                 });
@@ -247,17 +225,19 @@ class TaskRunner {
     }
 
     /**
-     * Runs a task on the executor, under a permit the caller holds, with lease extension when the
-     * worker asks for it. False when the executor refused it: the permit is then the caller's to
-     * release.
+     * Runs a task on the executor, under a permit the caller holds. False when the executor refused
+     * it: the permit is then the caller's to release.
      */
     private boolean submit(Task task) {
         Future<Task> taskFuture;
         try {
             taskFuture = this.executorService.submit(() -> this.processTask(task));
-        } catch (RejectedExecutionException e) {
-            return false; // shutting down: the caller says what becomes of the task
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                    task.getTaskId(), taskType, e);
+            return false;
         }
+
         if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
             ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
             if (existingFuture != null) {
@@ -265,47 +245,21 @@ class TaskRunner {
             }
 
             long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-            try {
-                ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                        extendLease(task, taskFuture),
-                        delay,
-                        delay,
-                        TimeUnit.SECONDS
-                );
-                leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
-            } catch (RejectedExecutionException e) {
-                // shutting down: the task, already submitted, runs without lease extension; a
-                // throw here would make the caller release the permit the task also releases
-                LOGGER.debug("No lease extension for task {}: shutting down", task.getTaskId());
-            }
+            ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                    extendLease(task, taskFuture),
+                    delay,
+                    delay,
+                    TimeUnit.SECONDS
+            );
+            leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
         }
         return true;
-    }
-
-    /**
-     * Waits, at most {@code timeout} seconds, for the poll loop to end: its poll in flight returns
-     * and the tasks it brought are handed to the executor, which must still take them. The server
-     * has leased those tasks to this worker; refused, they would wait out their response timeout.
-     */
-    private void awaitPollLoop(int timeout) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
-        synchronized (pollLoops) {
-            while (pollLoops[0] > 0 && !exiting) {
-                long millis = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
-                if (millis <= 0) {
-                    LOGGER.warn("The poll loop of {} did not end within {} seconds", taskType, timeout);
-                    return;
-                }
-                pollLoops.wait(millis);
-            }
-        }
     }
 
     public void shutdown(int timeout) {
         try {
             pollingAndExecuting = false;
-            awaitPollLoop(timeout);
-
+            
             leaseExtendMap.values().forEach(future -> future.cancel(false));
             leaseExtendMap.clear();
             
@@ -378,7 +332,6 @@ class TaskRunner {
 
             if (hasFatalAuthCause(e)) {
                 LOGGER.error("Fatal authentication failure — terminating JVM");
-                exiting = true; // a shutdown hook must not wait for this thread, which waits for the hooks
                 exitAction.run();
             }
 
@@ -440,26 +393,13 @@ class TaskRunner {
     }
 
     private Task processTask(Task task) {
-        boolean handedOn = false;
+        Task next = null;
         try {
+            next = runTask(task);
+        } finally {
             // the next task update-v2 handed back runs now, on this task's permit, rather than
             // waiting for the poll loop, which may be in a long poll or its polling interval
-            Task next = runTask(task);
-            while (next != null && !(handedOn = submit(next))) {
-                // The executor takes nothing new: shutdown began while the update was on its way.
-                // The server has leased the task to this worker, so it runs here, on this thread,
-                // which shutdown lets finish; its own result is sent with the update that hands
-                // nothing back. Left alone, it would wait out its lease.
-                if (Thread.currentThread().isInterrupted()) {
-                    LOGGER.error("Shutdown is forced; dropping task {} of type {}", next.getTaskId(), taskType);
-                    break;
-                }
-                LOGGER.info("Shutting down: task {} of type {}, handed back by the last update, runs before this thread ends",
-                        next.getTaskId(), taskType);
-                next = runTask(next);
-            }
-        } finally {
-            if (!handedOn) {
+            if (next == null || !submit(next)) {
                 permits.release();
             }
         }
@@ -547,7 +487,8 @@ class TaskRunner {
                 task.setStatus(Task.Status.FAILED);
                 result = new TaskResult(task);
             }
-            return handleException(e, result, worker, task); // sends it: not again below
+            // sends the result; sent again below, update-v2 would hand back a second next task
+            return handleException(e, result, worker, task);
         }
 
         LOGGER.trace(
@@ -582,7 +523,7 @@ class TaskRunner {
             result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
-            if (enableUpdateV2 && takesMoreWork()) {
+            if(enableUpdateV2 && pollsNow()) {
                 Task nextTask = retryOperation(
                         (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
                         count,
@@ -632,13 +573,13 @@ class TaskRunner {
     }
 
     /**
-     * Whether this runner takes another task now: it is running and its worker is not paused. Only
-     * then is a result sent with update-v2, which hands back the next task: a task handed to a
-     * paused worker would run despite the pause, and one handed over during shutdown could not
-     * run, and would wait out its response timeout.
+     * Whether the poll loop would take a task now: it is running, the worker is not paused and no
+     * poll filter holds it back. Only then is a result sent with update-v2, which hands back the
+     * next task.
      */
-    private boolean takesMoreWork() {
-        return pollingAndExecuting && !worker.paused();
+    private boolean pollsNow() {
+        return pollingAndExecuting && !worker.paused()
+                && pollFilters.stream().allMatch(filter -> filter.filter(taskType, domain));
     }
 
     private Optional<String> upload(TaskResult result, String taskType) {
@@ -658,22 +599,12 @@ class TaskRunner {
             try {
                 return operation.apply(input);
             } catch (Exception e) {
-                if (refused(e)) {
-                    throw e; // the same request is refused again: retrying cannot help
-                }
                 LOGGER.error("Error executing {}", opName, e);
                 index++;
                 Uninterruptibles.sleepUninterruptibly(500L * (count + 1), TimeUnit.MILLISECONDS);
             }
         }
         throw new RuntimeException("Exhausted retries performing " + opName);
-    }
-
-    /** A client error other than a timeout (408) or throttling (429). */
-    private static boolean refused(Exception e) {
-        return e instanceof ApiException api
-                && api.getStatusCode() >= 400 && api.getStatusCode() < 500
-                && api.getStatusCode() != 408 && api.getStatusCode() != 429;
     }
 
     private Task handleException(Throwable t, TaskResult result, Worker worker, Task task) {
