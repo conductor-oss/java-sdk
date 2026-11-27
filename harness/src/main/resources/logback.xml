@@ -5,6 +5,9 @@
         </encoder>
     </appender>
 
+    <logger name="com.netflix.conductor.client.automator.AdaptiveConcurrencyController"
+            level="${E2E_CONTROLLER_LOG_LEVEL:-INFO}" />
+
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>

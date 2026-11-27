@@ -58,6 +58,15 @@ class SpringWorkerConfiguration extends WorkerConfiguration {
     }
 
     @Override
+    public int getAdaptiveMaxConcurrency(String taskName) {
+        Integer maxConcurrency = getProperty(taskName, "adaptiveMaxConcurrency", Integer.class, 0);
+        if (maxConcurrency == 0) {
+            maxConcurrency = getProperty(taskName, Worker.PROP_ADAPTIVE_MAX_CONCURRENCY, Integer.class, 0);
+        }
+        return maxConcurrency;
+    }
+
+    @Override
     public String getDomain(String taskName) {
         return getProperty(taskName, Worker.PROP_DOMAIN, String.class, null);
     }

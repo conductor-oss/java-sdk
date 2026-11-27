@@ -18,6 +18,8 @@ import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyConfig;
+
 @ConfigurationProperties("conductor.client")
 public class ClientProperties {
 
@@ -51,6 +53,229 @@ public class ClientProperties {
         }
     }
 
+    public static class AdaptiveConcurrency {
+
+        // Enables adaptive concurrency for workers started by this client
+        private boolean enabled = false;
+
+        // Aggregate admission ceiling for all adaptive workers
+        private int maxProcessConcurrency = 256;
+
+        // Initial process target; 0 uses min(logical queues, available processors)
+        private int initialProcessConcurrency = 0;
+
+        // Lowest process target an idle process decays to; CPU and heap pressure may go below it
+        private int minProcessConcurrency = 1;
+
+        // Per-worker ceiling for workers without their own
+        private int defaultMaxWorkerConcurrency = 64;
+
+        // Ceiling for the number of tasks requested by one poll
+        private int maxPollBatch = 16;
+
+        private Duration resourceSampleInterval = Duration.ofSeconds(1);
+
+        private Duration metricFreshness = Duration.ofSeconds(5);
+
+        private Duration depthSampleInterval = Duration.ofSeconds(1);
+
+        private Duration depthFreshness = Duration.ofSeconds(5);
+
+        private Duration heartbeatInterval = Duration.ofSeconds(5);
+
+        private Duration standbyPollTimeout = Duration.ofSeconds(1);
+
+        private Duration controlInterval = Duration.ofSeconds(5);
+
+        private double cpuSmoothingAlpha = 0.2;
+
+        private double growthThreshold = 0.75;
+
+        private double cpuPressureThreshold = 0.90;
+
+        private double heapPauseThreshold = 0.90;
+
+        private double heapResumeThreshold = 0.80;
+
+        // Allow running without CPU and heap metrics
+        private boolean demandOnlyEnabled = false;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getMaxProcessConcurrency() {
+            return maxProcessConcurrency;
+        }
+
+        public void setMaxProcessConcurrency(int maxProcessConcurrency) {
+            this.maxProcessConcurrency = maxProcessConcurrency;
+        }
+
+        public int getInitialProcessConcurrency() {
+            return initialProcessConcurrency;
+        }
+
+        public void setInitialProcessConcurrency(int initialProcessConcurrency) {
+            this.initialProcessConcurrency = initialProcessConcurrency;
+        }
+
+        public int getMinProcessConcurrency() {
+            return minProcessConcurrency;
+        }
+
+        public void setMinProcessConcurrency(int minProcessConcurrency) {
+            this.minProcessConcurrency = minProcessConcurrency;
+        }
+
+        public int getDefaultMaxWorkerConcurrency() {
+            return defaultMaxWorkerConcurrency;
+        }
+
+        public void setDefaultMaxWorkerConcurrency(int defaultMaxWorkerConcurrency) {
+            this.defaultMaxWorkerConcurrency = defaultMaxWorkerConcurrency;
+        }
+
+        public int getMaxPollBatch() {
+            return maxPollBatch;
+        }
+
+        public void setMaxPollBatch(int maxPollBatch) {
+            this.maxPollBatch = maxPollBatch;
+        }
+
+        public Duration getResourceSampleInterval() {
+            return resourceSampleInterval;
+        }
+
+        public void setResourceSampleInterval(Duration resourceSampleInterval) {
+            this.resourceSampleInterval = resourceSampleInterval;
+        }
+
+        public Duration getMetricFreshness() {
+            return metricFreshness;
+        }
+
+        public void setMetricFreshness(Duration metricFreshness) {
+            this.metricFreshness = metricFreshness;
+        }
+
+        public Duration getDepthSampleInterval() {
+            return depthSampleInterval;
+        }
+
+        public void setDepthSampleInterval(Duration depthSampleInterval) {
+            this.depthSampleInterval = depthSampleInterval;
+        }
+
+        public Duration getDepthFreshness() {
+            return depthFreshness;
+        }
+
+        public void setDepthFreshness(Duration depthFreshness) {
+            this.depthFreshness = depthFreshness;
+        }
+
+        public Duration getHeartbeatInterval() {
+            return heartbeatInterval;
+        }
+
+        public void setHeartbeatInterval(Duration heartbeatInterval) {
+            this.heartbeatInterval = heartbeatInterval;
+        }
+
+        public Duration getStandbyPollTimeout() {
+            return standbyPollTimeout;
+        }
+
+        public void setStandbyPollTimeout(Duration standbyPollTimeout) {
+            this.standbyPollTimeout = standbyPollTimeout;
+        }
+
+        public Duration getControlInterval() {
+            return controlInterval;
+        }
+
+        public void setControlInterval(Duration controlInterval) {
+            this.controlInterval = controlInterval;
+        }
+
+        public double getCpuSmoothingAlpha() {
+            return cpuSmoothingAlpha;
+        }
+
+        public void setCpuSmoothingAlpha(double cpuSmoothingAlpha) {
+            this.cpuSmoothingAlpha = cpuSmoothingAlpha;
+        }
+
+        public double getGrowthThreshold() {
+            return growthThreshold;
+        }
+
+        public void setGrowthThreshold(double growthThreshold) {
+            this.growthThreshold = growthThreshold;
+        }
+
+        public double getCpuPressureThreshold() {
+            return cpuPressureThreshold;
+        }
+
+        public void setCpuPressureThreshold(double cpuPressureThreshold) {
+            this.cpuPressureThreshold = cpuPressureThreshold;
+        }
+
+        public double getHeapPauseThreshold() {
+            return heapPauseThreshold;
+        }
+
+        public void setHeapPauseThreshold(double heapPauseThreshold) {
+            this.heapPauseThreshold = heapPauseThreshold;
+        }
+
+        public double getHeapResumeThreshold() {
+            return heapResumeThreshold;
+        }
+
+        public void setHeapResumeThreshold(double heapResumeThreshold) {
+            this.heapResumeThreshold = heapResumeThreshold;
+        }
+
+        public boolean isDemandOnlyEnabled() {
+            return demandOnlyEnabled;
+        }
+
+        public void setDemandOnlyEnabled(boolean demandOnlyEnabled) {
+            this.demandOnlyEnabled = demandOnlyEnabled;
+        }
+
+        public AdaptiveConcurrencyConfig toConfig() {
+            return new AdaptiveConcurrencyConfig.Builder()
+                    .withMaxProcessConcurrency(maxProcessConcurrency)
+                    .withInitialProcessConcurrency(initialProcessConcurrency)
+                    .withMinProcessConcurrency(minProcessConcurrency)
+                    .withDefaultMaxWorkerConcurrency(defaultMaxWorkerConcurrency)
+                    .withMaxPollBatch(maxPollBatch)
+                    .withResourceSampleInterval(resourceSampleInterval)
+                    .withMetricFreshness(metricFreshness)
+                    .withDepthSampleInterval(depthSampleInterval)
+                    .withDepthFreshness(depthFreshness)
+                    .withHeartbeatInterval(heartbeatInterval)
+                    .withStandbyPollTimeout(standbyPollTimeout)
+                    .withControlInterval(controlInterval)
+                    .withCpuSmoothingAlpha(cpuSmoothingAlpha)
+                    .withGrowthThreshold(growthThreshold)
+                    .withCpuPressureThreshold(cpuPressureThreshold)
+                    .withHeapPauseThreshold(heapPauseThreshold)
+                    .withHeapResumeThreshold(heapResumeThreshold)
+                    .withDemandOnlyEnabled(demandOnlyEnabled)
+                    .build();
+        }
+    }
+
     private String rootUri;
 
     private String basePath;
@@ -74,6 +299,36 @@ public class ClientProperties {
     private Timeout timeout = new Timeout();
 
     private boolean verifyingSsl = true;
+
+    private boolean useVirtualThreads = false;
+
+    private boolean updateV2 = false;
+
+    private AdaptiveConcurrency adaptiveConcurrency = new AdaptiveConcurrency();
+
+    public boolean isUseVirtualThreads() {
+        return useVirtualThreads;
+    }
+
+    public void setUseVirtualThreads(boolean useVirtualThreads) {
+        this.useVirtualThreads = useVirtualThreads;
+    }
+
+    public boolean isUpdateV2() {
+        return updateV2;
+    }
+
+    public void setUpdateV2(boolean updateV2) {
+        this.updateV2 = updateV2;
+    }
+
+    public AdaptiveConcurrency getAdaptiveConcurrency() {
+        return adaptiveConcurrency;
+    }
+
+    public void setAdaptiveConcurrency(AdaptiveConcurrency adaptiveConcurrency) {
+        this.adaptiveConcurrency = adaptiveConcurrency;
+    }
 
     public void setVerifyingSsl(boolean verifyingSsl) {
         this.verifyingSsl = verifyingSsl;

@@ -17,6 +17,7 @@ import com.netflix.conductor.client.events.task.TaskClientEvent;
 import com.netflix.conductor.client.events.task.TaskPayloadUsedEvent;
 import com.netflix.conductor.client.events.task.TaskResultPayloadSizeEvent;
 import com.netflix.conductor.client.events.taskrunner.ActiveWorkersChanged;
+import com.netflix.conductor.client.events.taskrunner.AdaptiveConcurrencyChanged;
 import com.netflix.conductor.client.events.taskrunner.PollCompleted;
 import com.netflix.conductor.client.events.taskrunner.PollFailure;
 import com.netflix.conductor.client.events.taskrunner.PollStarted;
@@ -70,6 +71,7 @@ public class ListenerRegister {
         dispatcher.register(TaskPaused.class, listener, listener::consume);
         dispatcher.register(ThreadUncaughtException.class, listener, listener::consume);
         dispatcher.register(ActiveWorkersChanged.class, listener, listener::consume);
+        dispatcher.register(AdaptiveConcurrencyChanged.class, listener, listener::consume);
     }
 
     public static void unregister(TaskRunnerEventsListener listener, EventDispatcher<TaskRunnerEvent> dispatcher) {
@@ -87,6 +89,7 @@ public class ListenerRegister {
         dispatcher.unregister(TaskPaused.class, listener);
         dispatcher.unregister(ThreadUncaughtException.class, listener);
         dispatcher.unregister(ActiveWorkersChanged.class, listener);
+        dispatcher.unregister(AdaptiveConcurrencyChanged.class, listener);
     }
 
     // --- TaskClientListener ---

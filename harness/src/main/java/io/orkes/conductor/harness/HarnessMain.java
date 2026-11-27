@@ -12,6 +12,7 @@
  */
 package io.orkes.conductor.harness;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +22,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyConfig;
+import com.netflix.conductor.client.automator.AdaptiveConcurrencyController;
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
 import com.netflix.conductor.client.http.ConductorClient;
 import com.netflix.conductor.client.http.MetadataClient;
@@ -57,6 +60,8 @@ public class HarnessMain {
         int pollIntervalMs = envInt("HARNESS_POLL_INTERVAL_MS", 100);
         int metricsPort = envInt("HARNESS_METRICS_PORT", 9991);
         int probeRatePerSec = envInt("HARNESS_PROBE_RATE_PER_SEC", 0);
+        boolean adaptive = envBoolean("HARNESS_ADAPTIVE", false);
+        boolean virtualThreads = envBoolean("HARNESS_VIRTUAL_THREADS", false);
 
         List<Worker> workers = new ArrayList<>();
         for (String[] entry : SIMULATED_WORKERS) {
@@ -84,10 +89,21 @@ public class HarnessMain {
 
         TaskClient taskClient = new TaskClient(client);
 
-        TaskRunnerConfigurer configurer =
-                new TaskRunnerConfigurer.Builder(taskClient, workers)
-                        .withTaskThreadCount(threadCounts)
-                        .build();
+        var configurerBuilder = new TaskRunnerConfigurer.Builder(taskClient, workers)
+                .withTaskThreadCount(threadCounts)
+                .withUseVirtualThreads(virtualThreads);
+        if (adaptive) {
+            var adaptiveConfig = new AdaptiveConcurrencyConfig.Builder()
+                    .withMaxProcessConcurrency(envInt("HARNESS_ADAPTIVE_MAX_PROCESS_CONCURRENCY", 256))
+                    .withInitialProcessConcurrency(envInt("HARNESS_ADAPTIVE_INITIAL_PROCESS_CONCURRENCY", 0))
+                    .withMinProcessConcurrency(envInt("HARNESS_ADAPTIVE_MIN_PROCESS_CONCURRENCY", 1))
+                    .withStandbyPollTimeout(Duration.ofMillis(envInt("HARNESS_ADAPTIVE_STANDBY_POLL_TIMEOUT_MS", 1000)))
+                    .withDefaultMaxWorkerConcurrency(envInt("HARNESS_ADAPTIVE_MAX_WORKER_CONCURRENCY", 64))
+                    .build();
+            configurerBuilder.withAdaptiveConcurrency(new AdaptiveConcurrencyController(adaptiveConfig));
+            log.info("Adaptive concurrency enabled with process ceiling {}", adaptiveConfig.getMaxProcessConcurrency());
+        }
+        TaskRunnerConfigurer configurer = configurerBuilder.build();
 
         if (!workersOnly) {
             try {
@@ -166,6 +182,14 @@ public class HarnessMain {
 
         metadataClient.updateWorkflowDefs(List.of(workflowDef));
         log.info("Registered workflow definition: {}", WORKFLOW_NAME);
+    }
+
+    private static boolean envBoolean(String name, boolean defaultValue) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value.trim());
     }
 
     private static int envInt(String name, int defaultValue) {
