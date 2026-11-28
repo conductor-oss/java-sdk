@@ -12,11 +12,15 @@
  */
 package org.conductoross.conductor.sdk;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -45,6 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 /**
  * An execution's code stays in memory between its continuations, pinned to the worker that holds
@@ -428,5 +434,47 @@ class ParkedExecutionsTest {
         assertNull(parked.take(CODE_TYPE, "wf-1"));
         assertEquals(0, parked.held(CODE_TYPE));
         held.close();
+    }
+
+    @Test
+    void underContentionAnExecutionIsTakenOrClosedNeverBoth() throws Exception {
+        ParkedExecutions parked = new ParkedExecutions();
+        Map<Replayer, AtomicInteger> closes = new ConcurrentHashMap<>();
+        AtomicInteger closedWhileTaken = new AtomicInteger();
+        int threads = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        List<Future<?>> done = new ArrayList<>();
+        for (int t = 0; t < threads; t++) {
+            int thread = t;
+            done.add(pool.submit(() -> {
+                for (int i = 0; i < 500; i++) {
+                    Replayer replayer = mock(Replayer.class);
+                    AtomicInteger closed = new AtomicInteger();
+                    closes.put(replayer, closed);
+                    doAnswer(call -> closed.incrementAndGet()).when(replayer).close();
+                    // 16 executions shared by the threads, at most 4 held: parks replace, evict
+                    parked.park(CODE_TYPE, "wf-" + (i % 16), replayer, "s", 60_000, 4);
+                    ParkedExecutions.Parked taken = parked.take(CODE_TYPE, "wf-" + ((i * 7 + thread) % 16));
+                    if (taken != null) {
+                        if (closes.get(taken.replayer()).get() != 0) {
+                            closedWhileTaken.incrementAndGet();
+                        }
+                        taken.replayer().close(); // what its continuation does when it is done
+                    }
+                    if (i % 50 == 0) {
+                        parked.dropIdle();
+                    }
+                }
+            }));
+        }
+        for (Future<?> f : done) {
+            f.get();
+        }
+        pool.shutdown();
+        parked.closeAll();
+
+        assertEquals(0, closedWhileTaken.get());
+        assertEquals(0, parked.held(CODE_TYPE));
+        closes.values().forEach(closed -> assertEquals(1, closed.get())); // replaced, evicted, taken or left
     }
 }

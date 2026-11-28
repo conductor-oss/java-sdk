@@ -12,12 +12,8 @@
  */
 package org.conductoross.conductor.sdk;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
@@ -34,7 +30,8 @@ import org.conductoross.conductor.sdk.internal.Replayer;
  * <p>It is a cache and nothing else. The server's recording remains what the execution is, so an
  * execution dropped from here (it sat idle too long, too many are held, the process restarted) is
  * replayed by whichever worker gets its next continuation. An execution is out of the cache while
- * one of its continuations runs ({@link #take}), so only one thread ever has its lanes.
+ * one of its continuations runs ({@link #take}), so only one thread ever has its lanes: the thread
+ * that removes it from the map, to continue it or to close it.
  */
 final class ParkedExecutions {
 
@@ -44,11 +41,13 @@ final class ParkedExecutions {
      * @param stamp what the completion of its last continuation carried; the lanes may continue
      *     only while the server still names it as the last completion that applied
      * @param until when it has sat idle for too long, in the clock's milliseconds
+     * @param order when it was parked, against the others: the lowest is the one idle longest
      */
-    record Parked(Replayer replayer, String stamp, long until) {}
+    record Parked(Replayer replayer, String stamp, long until, long order) {}
 
-    /** By code type, each in the order they were parked: the first is the one idle longest. */
-    private final Map<String, LinkedHashMap<String, Parked>> byCodeType = new HashMap<>();
+    /** By code type, then by workflow id. */
+    private final Map<String, Map<String, Parked>> byCodeType = new ConcurrentHashMap<>();
+    private final AtomicLong parks = new AtomicLong();
     private final LongSupplier clock;
     /** Continuations that continued parked lanes, with no replay. */
     final AtomicLong continued = new AtomicLong();
@@ -69,8 +68,8 @@ final class ParkedExecutions {
      * Takes an execution's parked lanes out, for the continuation about to run; null when none
      * are held. The caller parks them again, or closes them.
      */
-    synchronized Parked take(String codeType, String workflowId) {
-        LinkedHashMap<String, Parked> held = byCodeType.get(codeType);
+    Parked take(String codeType, String workflowId) {
+        Map<String, Parked> held = byCodeType.get(codeType);
         return held == null ? null : held.remove(workflowId);
     }
 
@@ -79,60 +78,57 @@ final class ParkedExecutions {
      * that makes more than {@code max} of its code type, the ones idle longest are closed.
      */
     void park(String codeType, String workflowId, Replayer replayer, String stamp, long idleMillis, int max) {
-        List<Parked> closing = new ArrayList<>();
-        synchronized (this) {
-            LinkedHashMap<String, Parked> held = byCodeType.computeIfAbsent(codeType, k -> new LinkedHashMap<>());
-            Parked replaced = held.put(workflowId, new Parked(replayer, stamp, clock.getAsLong() + idleMillis));
-            if (replaced != null) {
-                closing.add(replaced); // two workers threads were handed the same continuation
+        Map<String, Parked> held = byCodeType.computeIfAbsent(codeType, k -> new ConcurrentHashMap<>());
+        Parked replaced = held.put(workflowId,
+                new Parked(replayer, stamp, clock.getAsLong() + idleMillis, parks.incrementAndGet()));
+        if (replaced != null) {
+            drop(replaced); // two workers threads were handed the same continuation
+        }
+        while (held.size() > Math.max(1, max)) {
+            // a scan, only while too many are held
+            Map.Entry<String, Parked> eldest = null;
+            for (Map.Entry<String, Parked> e : held.entrySet()) {
+                if (eldest == null || e.getValue().order() < eldest.getValue().order()) {
+                    eldest = e;
+                }
             }
-            for (Iterator<Parked> eldest = held.values().iterator(); held.size() > Math.max(1, max); ) {
-                closing.add(eldest.next());
-                eldest.remove();
+            if (eldest == null) {
+                break;
+            }
+            if (held.remove(eldest.getKey(), eldest.getValue())) {
+                drop(eldest.getValue());
             }
         }
-        close(closing);
     }
 
     /** How many executions of a code type are held. */
-    synchronized int held(String codeType) {
-        LinkedHashMap<String, Parked> held = byCodeType.get(codeType);
+    int held(String codeType) {
+        Map<String, Parked> held = byCodeType.get(codeType);
         return held == null ? 0 : held.size();
     }
 
     /** Closes the executions that have sat idle past their time. */
     void dropIdle() {
-        List<Parked> closing = new ArrayList<>();
         long now = clock.getAsLong();
-        synchronized (this) {
-            for (LinkedHashMap<String, Parked> held : byCodeType.values()) {
-                held.values().removeIf(p -> {
-                    if (p.until() > now) {
-                        return false;
-                    }
-                    closing.add(p);
-                    return true;
-                });
+        byCodeType.values().forEach(held -> held.forEach((workflowId, p) -> {
+            if (p.until() <= now && held.remove(workflowId, p)) {
+                drop(p);
             }
-        }
-        close(closing);
+        }));
     }
 
     /** Closes every execution held: the process stops hosting. */
     void closeAll() {
-        List<Parked> closing = new ArrayList<>();
-        synchronized (this) {
-            byCodeType.values().forEach(held -> closing.addAll(held.values()));
-            byCodeType.clear();
-        }
-        closing.forEach(p -> p.replayer().close());
+        byCodeType.values().forEach(held -> held.forEach((workflowId, p) -> {
+            if (held.remove(workflowId, p)) {
+                p.replayer().close();
+            }
+        }));
     }
 
-    /** Outside the lock: closing a replayer waits for its lanes' threads to unwind. */
-    private void close(List<Parked> closing) {
-        for (Parked p : closing) {
-            dropped.incrementAndGet();
-            p.replayer().close();
-        }
+    /** Closing a replayer waits for its lanes' threads to unwind. */
+    private void drop(Parked p) {
+        dropped.incrementAndGet();
+        p.replayer().close();
     }
 }

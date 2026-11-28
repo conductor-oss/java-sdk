@@ -36,6 +36,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -466,7 +467,8 @@ public final class Conductor implements AutoCloseable {
     /** Read by starts and queries while other threads add workers: iterated as a snapshot. */
     private final List<Workers> started = new CopyOnWriteArrayList<>();
     private final Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
-    private ScheduledExecutorService poller;
+    /** Created by the first wait for a result. */
+    private final AtomicReference<ScheduledExecutorService> poller = new AtomicReference<>();
 
     private Conductor(ConductorClient client) {
         this.client = client;
@@ -580,10 +582,9 @@ public final class Conductor implements AutoCloseable {
     public void close() {
         started.forEach(Workers::close);
         List.copyOf(waiting).forEach(future -> future.cancel(false));
-        synchronized (this) {
-            if (poller != null) {
-                poller.shutdownNow();
-            }
+        ScheduledExecutorService checks = poller.get();
+        if (checks != null) {
+            checks.shutdownNow();
         }
     }
 
@@ -624,15 +625,22 @@ public final class Conductor implements AutoCloseable {
         return future;
     }
 
-    private synchronized ScheduledExecutorService poller() {
-        if (poller == null) {
-            poller = Executors.newSingleThreadScheduledExecutor(runnable -> {
+    private ScheduledExecutorService poller() {
+        ScheduledExecutorService current = poller.get();
+        if (current == null) {
+            ScheduledExecutorService created = Executors.newSingleThreadScheduledExecutor(runnable -> {
                 Thread thread = new Thread(runnable, "conductor-results");
                 thread.setDaemon(true);
                 return thread;
             });
+            current = poller.compareAndExchange(null, created);
+            if (current == null) {
+                current = created;
+            } else {
+                created.shutdown(); // another thread's came first; this one never started a thread
+            }
         }
-        return poller;
+        return current;
     }
 
     /** Options for starting an execution. */
