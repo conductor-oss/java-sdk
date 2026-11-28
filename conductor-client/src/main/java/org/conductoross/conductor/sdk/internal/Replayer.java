@@ -1260,7 +1260,9 @@ public final class Replayer {
             if (mode != Mode.ACTIVE) {
                 throw diverged("the code waits for a condition as " + ref + " but the recorded execution has no such wait");
             }
-            Command wait = new Command(Command.Kind.WAIT, ref);
+            // named "condition" whatever its reference, as sleep is "sleep": the UI folds a Java
+            // loop's passes by call site and name, so a name numbered like the ref never repeats
+            Command wait = new Command(Command.Kind.WAIT, "condition");
             wait.input.put("duration", Entries.duration(timeout));
             emit(Entries.continuation(Entries.of(wait, ref, id), counter + 1));
             pendingConditions.put(ref, condition);

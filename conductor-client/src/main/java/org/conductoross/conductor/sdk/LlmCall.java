@@ -13,10 +13,12 @@
 package org.conductoross.conductor.sdk;
 
 import java.time.Duration;
+import java.util.List;
 
 import org.conductoross.conductor.sdk.internal.Command;
 import org.conductoross.conductor.sdk.internal.Engine;
 import org.conductoross.conductor.sdk.internal.Entries;
+import org.conductoross.conductor.sdk.internal.Json;
 
 /** A chat completion executed by the server (LLM_CHAT_COMPLETE). Models are {@code provider/model}. */
 public final class LlmCall {
@@ -61,6 +63,17 @@ public final class LlmCall {
 
     public LlmCall prompt(String prompt) {
         command.input.put("userInput", prompt);
+        return this;
+    }
+
+    /**
+     * The conversation so far, oldest first: each message an object with {@code role} ({@code
+     * user}, {@code assistant} or {@code system}) and {@code message}, as the server's {@code
+     * ChatMessage}. With messages the server ignores {@link #prompt}: the last message is the one
+     * the model answers.
+     */
+    public LlmCall messages(List<?> messages) {
+        command.input.put("messages", Json.plain(messages));
         return this;
     }
 
