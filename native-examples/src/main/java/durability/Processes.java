@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntFunction;
 
 /** Starts, kills, pauses and resumes the server and the worker processes for the bench. */
 final class Processes {
@@ -230,7 +231,7 @@ final class Processes {
     /** The worker processes, each a {@link BenchWorker} with its own worker id. */
     static final class Workers {
         private final List<Slot> slots = new ArrayList<>();
-        private final String serverUrl;
+        private final IntFunction<String> serverUrl;
         private final Path out;
         private final Map<String, String> extraEnv;
         private final String mainClass;
@@ -257,6 +258,11 @@ final class Processes {
 
         /** Worker processes running {@code mainClass}, each with its own worker id. */
         Workers(int count, String serverUrl, Path out, Map<String, String> extraEnv, String mainClass) {
+            this(count, slot -> serverUrl, out, extraEnv, mainClass);
+        }
+
+        /** The same, each slot reaching the server at its own URL, so that one can be cut off alone. */
+        Workers(int count, IntFunction<String> serverUrl, Path out, Map<String, String> extraEnv, String mainClass) {
             this.mainClass = mainClass;
             for (int i = 0; i < count; i++) {
                 slots.add(new Slot(i));
@@ -281,7 +287,7 @@ final class Processes {
             ProcessBuilder pb = new ProcessBuilder(java, "-Xmx384m", "-cp", System.getProperty("java.class.path"),
                     mainClass);
             pb.environment().putAll(extraEnv);
-            pb.environment().put("CONDUCTOR_SERVER_URL", serverUrl);
+            pb.environment().put("CONDUCTOR_SERVER_URL", serverUrl.apply(slot.index));
             pb.environment().put("CONDUCTOR_WORKER_ID", workerId);
             pb.environment().put("LEDGER_DIR", out.resolve("ledger").toString());
             // production settings: dev mode stretches the continuation response timeout to an hour

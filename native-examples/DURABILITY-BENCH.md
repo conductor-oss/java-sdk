@@ -315,6 +315,133 @@ passed. The kitchensink and the operator checks pass against the cluster through
 three worker processes, and a `@Schedule` workflow runs exactly once per tick with three
 schedulers.
 
+## Worker failover
+
+`durability.Failover` (`native-examples/failover.sh`) checks failover between workers alone, with
+every SDK feature in play: the kitchensink runs on several worker processes. Faults are aimed at the
+worker that holds an execution, and the server's records must show that the execution did not wait
+for that worker and finished. The server is never touched.
+
+```bash
+python3 native-examples/stubs/ai_stub.py 8765 &
+./gradlew :native-examples:installDist
+FAILOVER_SERVER_URL=http://localhost:8099/api ./native-examples/failover.sh   # exit 0: every fault handed over
+```
+
+The server needs `conductor.workflow-message-queue.enabled=true` and
+`conductor.ai.litellm.baseURL=http://localhost:8765`, as the kitchensink does.
+
+### Workload
+
+- Four drivers (`kitchensink.Main` with `KITCHENSINK_HOST=false`) run their three executions at
+  once on three `kitchensink.Worker` processes. That makes twelve executions, plus their children.
+- `slow_step` runs 20 s instead of 3 s, so it is a long-running task. Its response timeout is 60 s.
+- The drivers wait 20 s before answering the human task and the callback, as a person or another
+  system would.
+- `check_status` keeps its count in a shared directory, so a worker restart doesn't lose the job's
+  state.
+- Workers run with production timeouts: a continuation lease is 30 s. The bench waits for them to
+  register those definitions before starting anything.
+
+### Who holds an execution
+
+The faulted worker is the one that holds an execution:
+- **the one it is pinned to:** `nativeState.pinnedTo` is `pin-<workerId>-<random>`. That worker keeps
+  the execution's code parked in memory and is offered its next continuation;
+- **for a long-running task, the one running its `slow_step`:** tasks report the host name as
+  their worker id, so `slow_step` logs its task id and `CONDUCTOR_WORKER_ID`, and the bench reads
+  that.
+
+### Faults
+
+| Fault | How | What must happen |
+|---|---|---|
+| `kill` | SIGKILL; the slot comes back 20 s later as a new host | a live worker continues: a continuation applies 2 s or more after the worker was seen dead, or the execution is pinned to another worker. A killed `slow_step` runs again on another worker |
+| `pause` | SIGSTOP for 75–105 s, then SIGCONT: the worker wakes up as a zombie that still thinks it holds its executions and leases | a continuation that came due during the pause, 20 s or more before the worker resumed, was applied before it resumed, so by another worker. The 20 s covers the 5 s pin timeout, a poll and a replay. A continuation already due when the pause began gets 45 s, since the worker may have leased it and the 30 s lease runs out first. A stopped worker can't lease anything new |
+| `gc-pause` | bursts of 2–5 SIGSTOPs of 0.5–8 s each: a JVM in stop-the-world collections. A signal sets lengths and times that a real collector won't | the execution rides it out |
+| `partition` | the worker's own proxy resets its connections and holds new ones unanswered for 75–105 s; the worker keeps running | as for a pause |
+
+- **Kill targets:** kills are aimed first at each point of the code:
+  - a running `slow_step`;
+  - a task in flight in a Java loop, in a `doWhile`, in a loop the server runs, in a switch case, or in a fork lane;
+  - a timer;
+  - a human task;
+  - an external wait;
+  - a child workflow;
+  - a continuation leased (the code running).
+
+  The killer looks for every target not yet hit on each scan. Once they are all hit, it kills the holder of a random execution every 15 s.
+- **Pauses, GC pauses and partitions:** these take turns on a second thread, aimed at an execution with something due soon.
+- **One fault at a time, by default:** a fault starts only while every worker is healthy, meaning up for 15 s with no fault on it. Each outcome is then the fault's own.
+- **Overlapping faults:** `FAILOVER_OVERLAP=true` lets faults overlap, Jepsen style, as long as one worker stays healthy. A continuation that then waited for a paused or cut-off worker, while the other workers had faults too, is reported `OVERLAPPED`: neither a handover nor a failure.
+
+### Checks
+
+A run passes when:
+- every fault was handed over, ridden out, or had nothing due;
+- every kill target except `continuation` was hit, since a continuation lasts milliseconds;
+- at least 2 pauses and 2 partitions were handed over, and 4 GC pauses ridden out;
+- every execution and child completed and replays against its code (`DurableReplay`);
+- every driver check passed;
+- no worker logged a divergence.
+
+The report also gives:
+- the failover delay for each fault type;
+- execution durations;
+- continuation latency.
+
+The run directory holds:
+- `faults.jsonl`;
+- `holders.jsonl`: each execution's `pinnedTo` over time;
+- the final records under `executions/`;
+- the logs of the workers and drivers;
+- `report.json`.
+
+`failover.sh check <run dir>` judges a finished run again from those files.
+
+### It catches a server that does not fail over
+
+To show the pause check can fail, run it against a server that keeps waiting for a stalled worker:
+- start the server with `conductor.app.activeWorkerLastPollTimeout=3600s` and `conductor.app.nativeWorkflow.pinTimeout=3600s`, so continuations stay with the pinned worker for an hour;
+- run `FAILOVER_FAULTS=pause FAILOVER_PAUSES=1 FAILOVER_DRIVERS=2`.
+
+The run fails: "a continuation due 53 s into it waited 38 s, for the paused worker to come back".
+Raising only `activeWorkerLastPollTimeout` isn't enough. Per `NativeContinuationService.offerTo`, the shared-queue fallback still appears after the pin timeout.
+
+### How long a takeover takes
+
+- **Continuations:** a worker that dies, stalls or is cut off delays the execution's next continuation by the server's pin timeout. The server offers a pinned execution's continuation on the worker's own queue. It also puts the same message on the shared queue, visible 5 s later (`conductor.app.nativeWorkflow.pinTimeout`).
+- **Leased continuations:** a continuation the worker had already leased waits out its 30 s lease first.
+- **Tasks:** a task the worker was running is retried after its response timeout.
+
+### Last runs
+
+**One fault at a time (the default):** three workers and ten driver rounds, that is 30 kitchensink executions and their children. Passed:
+
+| Fault | Injected | Outcome | Failover delay p50 / p95 / max |
+|---|---|---|---|
+| kill | 20 | 20 handed over; every target hit (long-task 3, Java loop 1, doWhile 1, server loop 1, switch 3, fork 3, timer 3, human 2, external 1, child 1, continuation 2) | 5.1 s / 5.1 s / 82 s (the 82 s is a killed `slow_step`: its 60 s response timeout, then a retry) |
+| pause | 6 | 6 handed over | 5.0 s / 5.1 s / 5.1 s |
+| partition | 4 | 4 handed over | 0.2 s / 5.1 s / 5.1 s |
+| gc-pause | 4 | 4 ridden out | — |
+
+- **Executions:** 190 of 190 completed, and each replays against its code.
+- **Driver checks:** 1270 passed, none failed.
+- **Divergence:** no worker logged one.
+- **Continuation latency:** 57 ms p50 and 5.1 s p99 over 2680 continuations.
+- **Wall time:** 31 minutes.
+
+**Overlapping faults** (an earlier build, the same as `FAILOVER_OVERLAP=true`): twelve executions. Judged again with `check`, it passed:
+
+| Fault | Injected | Outcome |
+|---|---|---|
+| kill | 24 | 24 handed over |
+| pause | 5 | 3 handed over, 1 with nothing due, 1 overlapped |
+| partition | 3 | 3 handed over |
+| gc-pause | 5 | 5 ridden out |
+
+The overlapped pause had a continuation that waited 95 s. Meanwhile both other workers were killed again and again, and their replacements were still booting.
+
 ## Known limits of the bench
 
 - Single machine: every process shares one host, so there is no clock skew between nodes and no

@@ -133,8 +133,10 @@ public class Main {
         check("query reads the variables", summary != null && summary.contains("notes"));
 
         // The outside world: a person answers the human task, a carrier posts the callback.
+        takeTime(conductor, run.workflowId(), "approval");
         run.completeTask("approval", new Approval("finance-bot", true), Duration.ofMinutes(10));
         System.out.println("answered the approval");
+        takeTime(conductor, run.workflowId(), "callback");
         run.completeTask("callback", new Callback("delivered"), Duration.ofMinutes(10));
         System.out.println("posted the callback");
 
@@ -210,6 +212,24 @@ public class Main {
             System.out.println("exported execution to " + out);
         }
         return result;
+    }
+
+    /**
+     * With {@code KITCHENSINK_ANSWER_DELAY_MS} (the failover bench), waits until the task is
+     * waiting, then that long before answering it, as a person or another system would: the
+     * execution sits on it long enough for its worker to fail meanwhile.
+     */
+    private static void takeTime(Conductor conductor, String workflowId, String ref) throws InterruptedException {
+        long delay = Long.parseLong(System.getenv().getOrDefault("KITCHENSINK_ANSWER_DELAY_MS", "0"));
+        if (delay <= 0) {
+            return;
+        }
+        long deadline = System.currentTimeMillis() + Duration.ofMinutes(10).toMillis();
+        while (!"IN_PROGRESS".equals(taskNamed(conductor, workflowId, ref).get("status"))
+                && System.currentTimeMillis() < deadline) {
+            Thread.sleep(500);
+        }
+        Thread.sleep(delay);
     }
 
     @SuppressWarnings("unchecked")

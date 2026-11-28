@@ -12,12 +12,18 @@
  */
 package kitchensink;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.netflix.conductor.sdk.workflow.executor.task.NonRetryableException;
+import com.netflix.conductor.sdk.workflow.executor.task.TaskContext;
 import com.netflix.conductor.sdk.workflow.task.WorkerTask;
 
 import kitchensink.KitchenSinkModel.DynamicTask;
@@ -90,12 +96,35 @@ public class KitchenSinkTasks {
     @WorkerTask("check_status")
     public JobStatus checkStatus(String runId) {
         // the job finishes on the third check of each run
-        int checks = this.checks.merge(runId, 1, Integer::sum);
+        int checks = checked(runId);
         boolean done = checks >= 3;
         return new JobStatus(done, done ? "finished after " + checks + " checks" : "still running");
     }
 
     private final Map<String, Integer> checks = new ConcurrentHashMap<>();
+
+    /**
+     * How many times a run's job was checked: counted in this process, or, with {@code
+     * KITCHENSINK_STATE_DIR} (the failover bench, which kills and restarts the workers), in a file
+     * there, as a real job's status lives outside the worker that asks for it.
+     */
+    private int checked(String runId) {
+        String dir = System.getenv("KITCHENSINK_STATE_DIR");
+        if (dir == null) {
+            return checks.merge(runId, 1, Integer::sum);
+        }
+        Path file = Path.of(dir, "checks-" + runId.replaceAll("[^A-Za-z0-9_.-]", "_"));
+        try {
+            String before = Files.exists(file) ? Files.readString(file).trim() : "";
+            int n = (before.isEmpty() ? 0 : Integer.parseInt(before)) + 1;
+            Path next = Files.createTempFile(Path.of(dir), "checks", ".tmp");
+            Files.writeString(next, Integer.toString(n));
+            Files.move(next, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            return n;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     /** No retries: a failed charge must surface to the workflow, which compensates. */
     @WorkerTask(value = "charge", retryCount = 0)
@@ -119,11 +148,22 @@ public class KitchenSinkTasks {
         return label;
     }
 
-    /** Long enough that a join that does not wait for this task is caught finishing first. */
-    @WorkerTask("slow_step")
+    private static final long SLOW_MS = Long.parseLong(System.getenv().getOrDefault("KITCHENSINK_SLOW_MS", "3000"));
+
+    /**
+     * Long enough that a join that does not wait for this task is caught finishing first: 3 s, or
+     * {@code KITCHENSINK_SLOW_MS}. The failover bench makes it a long-running task and kills the
+     * worker running it; another worker runs it again once its response timeout passes.
+     */
+    @WorkerTask(value = "slow_step", threadCount = 4, responseTimeoutSeconds = 60)
     public String slowStep(String label) {
+        TaskContext context = TaskContext.get();
+        if (context != null && System.getenv("CONDUCTOR_WORKER_ID") != null) {
+            // tasks report the host name as their worker id, so the bench finds the process here
+            System.out.println("slow_step " + context.getTaskId() + " running on " + System.getenv("CONDUCTOR_WORKER_ID"));
+        }
         try {
-            Thread.sleep(3_000);
+            Thread.sleep(SLOW_MS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

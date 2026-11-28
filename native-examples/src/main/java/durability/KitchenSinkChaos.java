@@ -59,7 +59,19 @@ import durability.Processes.Dice;
  */
 public class KitchenSinkChaos {
 
-    private static final Pattern STARTED = Pattern.compile("^started (\\S+)", Pattern.MULTILINE);
+    /** A driver's line naming an execution it started. */
+    static final Pattern STARTED = Pattern.compile("^started (\\S+)", Pattern.MULTILINE);
+
+    /** A kitchensink driver: {@code kitchensink.Main} hosting no workers, talking to the server directly. */
+    static ProcessBuilder kitchensinkDriver(Path log, String serverUrl) {
+        String java = ProcessHandle.current().info().command().orElse("java");
+        ProcessBuilder pb = new ProcessBuilder(java, "-cp", System.getProperty("java.class.path"), "kitchensink.Main");
+        pb.environment().put("CONDUCTOR_SERVER_URL", serverUrl);
+        pb.environment().put("KITCHENSINK_HOST", "false");
+        pb.environment().remove("KITCHENSINK_EXPORT");
+        pb.redirectErrorStream(true).redirectOutput(log.toFile());
+        return pb;
+    }
 
     public static void main(String[] args) throws Exception {
         int serverPort = intEnv("CHAOS_SERVER_PORT", 8099);
@@ -111,15 +123,10 @@ public class KitchenSinkChaos {
         int failedRounds = 0;
         for (int round = 1; round <= rounds; round++) {
             Path log = out.resolve("driver-" + round + ".log");
-            String java = ProcessHandle.current().info().command().orElse("java");
-            ProcessBuilder pb = new ProcessBuilder(java, "-cp", System.getProperty("java.class.path"), "kitchensink.Main");
-            pb.environment().put("CONDUCTOR_SERVER_URL", "http://localhost:" + serverPort + "/api");
-            pb.environment().put("KITCHENSINK_HOST", "false");
-            pb.environment().remove("KITCHENSINK_EXPORT");
+            ProcessBuilder pb = kitchensinkDriver(log, "http://localhost:" + serverPort + "/api");
             if (injecting) {
                 pb.environment().put("KITCHENSINK_KEEP_GOING", "true");
             }
-            pb.redirectErrorStream(true).redirectOutput(log.toFile());
             Process driver = pb.start();
             Bench.log("round " + round + ": driver started (pid " + driver.pid() + ")");
             long until = System.currentTimeMillis() + Duration.ofMinutes(40).toMillis();
