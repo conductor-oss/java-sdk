@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
@@ -37,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.conductor.client.automator.TaskRunnerConfigurer;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateCompleted;
+import com.netflix.conductor.client.events.taskrunner.TaskUpdateFailure;
 import com.netflix.conductor.client.http.TaskClient;
 import com.netflix.conductor.client.worker.Worker;
 import com.netflix.conductor.common.metadata.tasks.Task;
@@ -59,7 +63,8 @@ import com.netflix.conductor.sdk.workflow.task.WorkerTask;
  * continuation arrives as the task the code paused on, carrying its continuation marker, and is
  * processed by re-running the workflow method against the execution's recorded tasks, so any host
  * of the same code can process any continuation. Continuations of one execution are processed one
- * at a time, and completed with update-v2, which hands back the next one.
+ * at a time, each completed with a plain task update: the next one comes from the code type's
+ * poll, which is always outstanding.
  *
  * <p>An execution's code stays in memory between its continuations ({@link ParkedExecutions}):
  * its lanes are left parked where they paused, and the next continuation wakes its lane with the
@@ -101,6 +106,11 @@ public final class Workers implements AutoCloseable {
     private Duration continuationTimeout = CONTINUATION_TIMEOUT;
     private Duration parkTimeout = Duration.ofHours(1);
     private final ParkedExecutions parked = new ParkedExecutions();
+    /**
+     * The continuations whose completion ends their execution, until the server has it: then the
+     * results waiting in this process are checked at once, not at their next scheduled check.
+     */
+    private final Set<String> ending = ConcurrentHashMap.newKeySet();
     private final AtomicLong stamps = new AtomicLong();
     /** The task domain of this process alone, where the server offers the executions held here. */
     private String pinDomain;
@@ -309,8 +319,12 @@ public final class Workers implements AutoCloseable {
     }
 
     /**
-     * Polls the workers' continuations on virtual threads, each completion handing back the next
-     * one (update-v2): from the shared queue of each code type, or from {@code domain} alone.
+     * Polls the workers' continuations on virtual threads: from the shared queue of each code type,
+     * or from {@code domain} alone. A completion is a plain task update, not update-v2: a server
+     * whose update-v2 long-polls for the next task would hold the reply, and with it the news that
+     * the completion applied, for that poll's timeout, while this runner's own poll is outstanding
+     * anyway. Once the server has the completion that ends an execution, the results waiting for it
+     * here are checked.
      */
     private TaskRunnerConfigurer runner(List<Worker> workers, Map<String, Integer> threadCounts,
             Map<String, Integer> pollTimeouts, String domain, String namePrefix) {
@@ -318,12 +332,23 @@ public final class Workers implements AutoCloseable {
                 .withTaskThreadCount(threadCounts)
                 .withTaskPollTimeout(pollTimeouts)
                 .withUseVirtualThreads(true)
-                .withTaskUpdateV2(true)
                 .withFixedDomain(domain)
                 .withWorkerNamePrefix(namePrefix)
+                .withListener(TaskUpdateCompleted.class, sent -> sent(sent.getTaskId(), sent.getWorkflowInstanceId()))
+                .withListener(TaskUpdateFailure.class, failed -> ending.remove(failed.getTaskId()))
                 .build();
         runner.init();
         return runner;
+    }
+
+    /**
+     * The server has a continuation's completion. When it is the one that ends the execution, the
+     * results waiting for it in this process are checked now.
+     */
+    void sent(String taskId, String workflowId) {
+        if (ending.remove(taskId)) {
+            conductor.checkResultNow(workflowId);
+        }
     }
 
     /**
@@ -751,6 +776,9 @@ public final class Workers implements AutoCloseable {
                 replayer.close();
             }
             replayer = null;
+            if ("main".equals(lane) && Boolean.TRUE.equals(outcome.output.get("done"))) {
+                ending.add(task.getTaskId()); // the code returned or threw: this ends the execution
+            }
             return result(task, TaskResult.Status.COMPLETED, outcome.output, null);
         } catch (NonDeterminismException e) {
             LOGGER.error("Execution {} diverged from its code: {}", workflowId, e.getMessage());

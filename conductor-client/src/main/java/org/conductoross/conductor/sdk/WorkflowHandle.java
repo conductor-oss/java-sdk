@@ -109,7 +109,7 @@ public final class WorkflowHandle<R> {
      * running. Closing the Conductor cancels the futures still waiting.
      */
     public CompletableFuture<R> resultAsync() {
-        return conductor.whenFinished(() -> {
+        return conductor.whenFinished(workflowId, () -> {
             Workflow execution;
             try {
                 execution = workflows.getWorkflow(workflowId, false);

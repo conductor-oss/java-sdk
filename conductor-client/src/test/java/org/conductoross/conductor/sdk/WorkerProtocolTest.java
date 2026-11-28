@@ -17,7 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.conductoross.conductor.sdk.internal.Json;
 import org.conductoross.conductor.sdk.internal.JsonSchemas;
@@ -39,6 +43,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** What a worker sends the server: failed continuations, and task definitions it does not own. */
 class WorkerProtocolTest {
@@ -116,6 +121,56 @@ class WorkerProtocolTest {
         public String run() {
             return "done";
         }
+    }
+
+    public static class Ends {
+        @Workflow(name = "ends_test", version = 1)
+        public String run(String ignored) {
+            return "done";
+        }
+    }
+
+    @Test
+    void theResultIsCheckedOnceTheServerHasTheContinuationThatEndedTheExecution() throws Exception {
+        AtomicReference<String> status = new AtomicReference<>("RUNNING");
+        AtomicInteger resultReads = new AtomicInteger();
+        server.setDispatcher(new Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                if ("false".equals(request.getRequestUrl().queryParameter("includeTasks"))) {
+                    resultReads.incrementAndGet(); // a check of the result
+                }
+                return json("{\"workflowId\":\"wf-1\",\"status\":\"" + status.get() + "\",\"output\":{\"result\":\"done\"}}");
+            }
+        });
+        Workers workers = conductor.workflows(Ends.class);
+        Task task = new Task();
+        task.setWorkflowTask(entry("main", "main", 1));
+        task.setTaskId("t-1");
+        task.setWorkflowInstanceId("wf-1");
+        task.setReferenceTaskName("main");
+        task.setStatus(Task.Status.IN_PROGRESS);
+        TaskContinuation marker = new TaskContinuation();
+        marker.setLeased(true);
+        task.setContinuation(marker);
+        // the code returns: this continuation ends the execution
+        assertEquals(true, workers.process("ends_test.v1.code", task).getOutputData().get("done"));
+
+        CompletableFuture<String> result = conductor.attach(Ends::run, "wf-1").resultAsync();
+        long deadline = System.currentTimeMillis() + 5000;
+        while (resultReads.get() == 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(5); // the first check; the next is 250 ms after it
+        }
+        status.set("COMPLETED");
+        workers.sent("t-0", "wf-1"); // a continuation that did not end it
+        Thread.sleep(30);
+        assertEquals(1, resultReads.get(), "only the continuation that ends the execution checks its result");
+
+        long sent = System.nanoTime();
+        workers.sent("t-1", "wf-1");
+        assertEquals("done", result.get(5, TimeUnit.SECONDS));
+        long tookMillis = (System.nanoTime() - sent) / 1_000_000;
+        assertTrue(tookMillis < 120, "checked " + tookMillis + " ms after the server had the completion");
     }
 
     @Test

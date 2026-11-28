@@ -104,6 +104,22 @@ class WorkflowHandleResultAsyncTest {
     }
 
     @Test
+    void anExecutionEndedHereIsCheckedAtOnceNotAtTheNextCheck() throws Exception {
+        CompletableFuture<String> result = conductor.attach(Greeter::run, "wf-1").resultAsync();
+        awaitReads(1); // the first check; the next is 250 ms after it
+        next.set("COMPLETED");
+        conductor.checkResultNow("wf-2"); // another execution: nothing to check
+        Thread.sleep(30);
+        assertTrue(!result.isDone(), "a check for another execution does not read this one");
+
+        long nudged = System.nanoTime();
+        conductor.checkResultNow("wf-1");
+        assertEquals("hello ada", result.get(5, TimeUnit.SECONDS));
+        long tookMillis = (System.nanoTime() - nudged) / 1_000_000;
+        assertTrue(tookMillis < 120, "checked " + tookMillis + " ms after the execution ended here");
+    }
+
+    @Test
     void cancellingStopsTheChecks() throws Exception {
         CompletableFuture<String> result = conductor.attach(Greeter::run, "wf-1").resultAsync();
         awaitReads(1);

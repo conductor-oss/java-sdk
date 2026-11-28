@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -467,6 +468,8 @@ public final class Conductor implements AutoCloseable {
     /** Read by starts and queries while other threads add workers: iterated as a snapshot. */
     private final List<Workers> started = new CopyOnWriteArrayList<>();
     private final Set<CompletableFuture<?>> waiting = ConcurrentHashMap.newKeySet();
+    /** The checks of the results waiting here, by execution, for {@link #checkResultNow}. */
+    private final Map<String, Set<Runnable>> checksByExecution = new ConcurrentHashMap<>();
     /** Created by the first wait for a result. */
     private final AtomicReference<ScheduledExecutorService> poller = new AtomicReference<>();
 
@@ -590,12 +593,12 @@ public final class Conductor implements AutoCloseable {
 
     /**
      * A future of an execution's outcome: {@code check} runs every 250 ms on this instance's one
-     * polling thread and returns the execution once it has finished (null until then), and {@code
-     * outcome} turns it into the result or throws. The future completes on the common pool, so a
-     * dependent stage cannot hold up the polling of other executions; cancelling it stops the
-     * checks.
+     * polling thread, and at once when this process ends the execution ({@link #checkResultNow}),
+     * and returns the execution once it has finished (null until then); {@code outcome} turns it
+     * into the result or throws. The future completes on the common pool, so a dependent stage
+     * cannot hold up the polling of other executions; cancelling it stops the checks.
      */
-    <E, R> CompletableFuture<R> whenFinished(Supplier<E> check, Function<E, R> outcome) {
+    <E, R> CompletableFuture<R> whenFinished(String workflowId, Supplier<E> check, Function<E, R> outcome) {
         CompletableFuture<R> future = new CompletableFuture<>();
         AtomicBoolean settled = new AtomicBoolean();
         Runnable tick = () -> {
@@ -616,13 +619,39 @@ public final class Conductor implements AutoCloseable {
             settled.set(true);
             ForkJoinPool.commonPool().execute(complete);
         };
+        // registered before the first check, which may finish the future before this returns
+        checksByExecution.computeIfAbsent(workflowId, id -> ConcurrentHashMap.newKeySet()).add(tick);
         ScheduledFuture<?> checks = poller().scheduleWithFixedDelay(tick, 0, 250, TimeUnit.MILLISECONDS);
         waiting.add(future);
         future.whenComplete((result, error) -> {
             checks.cancel(false);
             waiting.remove(future);
+            checksByExecution.computeIfPresent(workflowId, (id, ticks) -> {
+                ticks.remove(tick);
+                return ticks.isEmpty() ? null : ticks;
+            });
         });
         return future;
+    }
+
+    /**
+     * Checks the results waiting for an execution now rather than at their next 250 ms check: this
+     * process has just applied the continuation that ended it. The checks run on the same one
+     * polling thread as the scheduled ones, so the two never overlap.
+     */
+    void checkResultNow(String workflowId) {
+        Set<Runnable> ticks = checksByExecution.get(workflowId);
+        ScheduledExecutorService checks = poller.get();
+        if (ticks == null || checks == null) {
+            return;
+        }
+        for (Runnable tick : ticks) {
+            try {
+                checks.execute(tick);
+            } catch (RejectedExecutionException e) {
+                return; // closed: the futures were cancelled
+            }
+        }
     }
 
     private ScheduledExecutorService poller() {
