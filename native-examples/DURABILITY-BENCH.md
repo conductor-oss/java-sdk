@@ -442,11 +442,82 @@ Raising only `activeWorkerLastPollTimeout` isn't enough. Per `NativeContinuation
 
 The overlapped pause had a continuation that waited 95 s. Meanwhile both other workers were killed again and again, and their replacements were still booting.
 
+## Latency
+
+`durability.Latency` (`native-examples/latency.sh`) times a workflow of 10 sequential worker tasks
+of 1 ms each, one execution at a time: as a native workflow, and as the same 10 tasks in a JSON
+definition, on the same worker in the same process.
+
+```bash
+./gradlew :native-examples:installDist
+LATENCY_SERVER_URL=http://localhost:8099/api ./native-examples/latency.sh
+JAVA_OPTS="-Dconductor.worker.all.pollingInterval=10 -Dconductor.workflow.all.pollingInterval=10" \
+  LATENCY_SERVER_URL=http://localhost:8099/api ./native-examples/latency.sh
+```
+
+For each mode it prints p50, p90 and max of:
+
+- the server's time, from the execution's start to its end;
+- the caller's time, from `start` to the result in hand;
+- for each task:
+  - how long it waited to be picked up;
+  - how long it ran and reported back;
+  - how long from its completion to the next task being scheduled. For native, this is the
+    continuation's hop through the workflow's code.
+
+### What the time goes to
+
+- **The polling interval.** A worker whose threads are all busy sleeps the polling interval, 100 ms
+  by default, before it polls again. `@WorkerTask` methods run one thread by default, so a worker
+  picks up at most one task about every 100 ms, however soon the next is ready. The workflow
+  code's poller also sleeps the interval after each empty long poll. Both intervals are
+  properties: `conductor.worker.<task>.pollingInterval` and
+  `conductor.workflow.<name>.pollingInterval`, or `.all.` for every one.
+- **The server's long poll.**
+  - On SQLite and Postgres it checks the queue every 100 ms, and a native workflow pays this twice
+    per task: once for the task, once for the continuation.
+  - On Redis with `orkes-conductor-queues` 2.0.0.rc4, a push wakes a waiting poll in the same
+    server process, so neither wait applies.
+- **The caller's checks.** A result is checked every 250 ms, and also as soon as the host that ran
+  the execution's last continuation has had it accepted by the server.
+- **update-v2.** A server's update-v2 long-polls 100 ms for the next task before it replies. If
+  the workflow code used it, the host would learn its last continuation was accepted about 100 ms
+  after the execution ended. So the workflow code sends plain task updates, and the server's
+  update-v2 doesn't wait after a continuation either.
+- **Redis queue wakeups.** In rc4, a push could miss its wake-up and wait out the queue poller's
+  backoff, up to the poll timeout (500 ms for workflow code). orkes-io/orkes-queues#32 fixes this.
+
+### Last runs
+
+These are p50 over 20 runs, in milliseconds. All runs used a scratch server on one machine.
+
+| Server and settings | Native, server | Native, caller | JSON, server | JSON, caller |
+|---|---|---|---|---|
+| SQLite, defaults | 1141 | | 1056 | |
+| Redis (rc4), defaults | 1088 | 1272 | 1029 | 1034 |
+| Redis, 10 ms polling interval | 159 | 254 | 113 | 116 |
+| Redis, 10 ms, result checked when the host ends the execution | 138 | 230 | 124 | 127 |
+| Redis, 10 ms, plain updates for workflow code | 136 | 138 | 124 | 129 |
+| Redis with orkes-queues#32, defaults | 1049 | 1052 | 1037 | 1039 |
+| Redis with orkes-queues#32, 10 ms | 135 | 136 | 122 | 125 |
+
+- **The tail, from the native 10 ms runs, 100 runs each, same server build:**
+  - with rc4: p90 156 ms and max 626 ms, and the slowest step from one task to the next took
+    499 ms;
+  - with orkes-queues#32: p90 135 ms and max 141 ms, and that step took 12 ms at most.
+- **Cost of 10 ms when idle.** One idle host with one workflow and one task type made 10.45 polls
+  a second over HTTP, against 6.4 with defaults. In Redis queue reads it made no difference: rc4
+  takes the queue reads off the HTTP polls.
+- **The update-v2 wait, before the change.** At 10 ms it put about 90 ms on the native caller's
+  time, after the execution had ended. Code runners averaged 92 ms per run-and-update, against
+  8 ms for the task worker.
+
 ## Known limits of the bench
 
 - Single machine: every process shares one host, so there is no clock skew between nodes and no
   real network latency. Partitions are made by proxies, not by the network.
-- Redis queues and MySQL are not exercised by the bench (MySQL only by its unit tests).
+- Redis queues and MySQL are not exercised by the failure benches (MySQL only by its unit tests);
+  the latency bench was run on Redis.
 - Clients are never partitioned from the servers.
 - Runs last minutes, not hours, so rare interleavings need many runs. Vary `BENCH_SEED` and run it
   in a loop to search longer.
