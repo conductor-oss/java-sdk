@@ -197,4 +197,36 @@ class TaskRunnerOptionsTest {
         verify(worker, never()).execute(next);
     }
 
+    @Test
+    void aFixedDomainIsPolledWhateverTheWorkerPropertiesSay() {
+        // conductor-workers.properties in the test resources sets conductor.worker.workerA.domain
+        Assertions.assertEquals("domainA", polledDomain(null));
+        Assertions.assertNull(polledDomain(builder -> builder.withFixedDomain(null)));
+        Assertions.assertEquals("pin-1", polledDomain(builder -> builder.withFixedDomain("pin-1")));
+    }
+
+    /** The domain a configurer's runner polls for workerA, also in {@code taskToDomain}. */
+    private static String polledDomain(java.util.function.Consumer<TaskRunnerConfigurer.Builder> option) {
+        TaskClient client = mock(TaskClient.class);
+        Worker worker = mock(Worker.class);
+        when(worker.getTaskDefName()).thenReturn("workerA");
+        when(worker.getPollingInterval()).thenReturn(10);
+        when(worker.getIdentity()).thenReturn("w");
+        TaskRunnerConfigurer.Builder builder = new TaskRunnerConfigurer.Builder(client, List.of(worker))
+                .withThreadCount(1)
+                .withTaskToDomain(Map.of("workerA", "blue"));
+        if (option != null) {
+            option.accept(builder);
+        }
+        TaskRunnerConfigurer configurer = builder.build();
+        configurer.init();
+        try {
+            ArgumentCaptor<String> domain = ArgumentCaptor.forClass(String.class);
+            verify(client, timeout(2000).atLeastOnce())
+                    .batchPollTasksInDomain(eq("workerA"), domain.capture(), any(), anyInt(), anyInt());
+            return domain.getValue();
+        } finally {
+            configurer.shutdown();
+        }
+    }
 }
