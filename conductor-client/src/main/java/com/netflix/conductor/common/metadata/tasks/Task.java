@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.tasks.TypedTask;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
@@ -186,6 +187,13 @@ public class Task {
      */
     private Map<String, String> runtimeMetadata;
 
+    /**
+     * Set on a task of a native (code-first) workflow that the code paused on: when the task
+     * finishes, the server hands this continuation to a host of the workflow code.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private TaskContinuation continuation;
+
     public void setInputData(Map<String, Object> inputData) {
         if (inputData == null) {
             inputData = new HashMap<>();
@@ -300,6 +308,7 @@ public class Task {
         copy.setSubworkflowChanged(subworkflowChanged);
         copy.setParentTaskId(parentTaskId);
         copy.setFirstStartTime(firstStartTime);
+        copy.setContinuation(continuation);
         return copy;
     }
 

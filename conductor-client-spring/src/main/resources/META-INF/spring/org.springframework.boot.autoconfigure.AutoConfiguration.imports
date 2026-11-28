@@ -1,3 +1,4 @@
 com.netflix.conductor.client.spring.ConductorClientAutoConfiguration
 com.netflix.conductor.client.spring.ConductorWorkerAutoConfiguration
 io.orkes.conductor.client.spring.OrkesConductorClientAutoConfiguration
+com.netflix.conductor.client.spring.ConductorWorkflowAutoConfiguration

@@ -24,6 +24,7 @@ import java.util.Objects;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.tasks.TaskType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
@@ -136,6 +137,14 @@ public class WorkflowTask {
     private CacheConfig cacheConfig;
 
     private boolean permissive;
+
+    /**
+     * Editor and integration metadata associated with this task, as on the server. Native
+     * workflows name here the lane of the code an entry belongs to and, on an entry the code paused
+     * on, the continuation that runs when its task finishes.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> metadata = new HashMap<>();
 
     // Adding to support Backward compatibility
     @Deprecated

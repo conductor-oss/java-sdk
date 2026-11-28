@@ -22,6 +22,7 @@ import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.tasks.TypedTask;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Data
@@ -104,6 +105,17 @@ public class Workflow extends Auditable {
     private List<Workflow> history = new LinkedList<>();
 
     private String idempotencyKey;
+
+    /** The engine's state of a native (code-first) workflow execution; null for other workflows. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private NativeState nativeState;
+
+    /**
+     * The task a FAILED workflow failed at: the task whose failure ended it, or for a native
+     * workflow the mark where its code threw. Null when no task caused the end.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String failedTaskId;
 
     private String rateLimitKey;
 

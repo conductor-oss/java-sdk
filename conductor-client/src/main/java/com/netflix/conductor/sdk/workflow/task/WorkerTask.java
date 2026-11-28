@@ -37,4 +37,13 @@ public @interface WorkerTask {
     // default is 1 which is good enough for most use cases
     // a number higher than 1 will have concurrent pollers doing poll and execute
     int pollerCount() default 1;
+
+    /** Retries after a failure, registered with the task definition; -1 keeps the default. */
+    int retryCount() default -1;
+
+    /** Seconds between retries, registered with the task definition; -1 keeps the default. */
+    int retryDelaySeconds() default -1;
+
+    /** Seconds a worker may hold the task before it is rescheduled; 0 keeps the default. */
+    int responseTimeoutSeconds() default 0;
 }

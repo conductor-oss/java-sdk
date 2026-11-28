@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// Run the kitchensink against a server (CONDUCTOR_SERVER_URL, default http://localhost:8080/api):
+//   ./gradlew :native-examples:run
+application {
+    mainClass = 'kitchensink.Main'
+}
+
+dependencies {
+    implementation project(':conductor-client')
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${versions.junit}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${versions.junit}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
+}
+
+// Task inputs are keyed by parameter name, read reflectively
+compileJava.options.compilerArgs << '-parameters'
+compileTestJava.options.compilerArgs << '-parameters'
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    environment 'CONDUCTOR_DEV', 'true'
+}
+
+// The examples, in the order to read them (src/main/java/examples, README.md):
+//   CONDUCTOR_SERVER_URL=http://localhost:8080/api ./gradlew :native-examples:ex01_hello_world
+[
+    ex01_hello_world      : 'HelloWorld',
+    ex02_conditionals     : 'Conditionals',
+    ex03_loops            : 'Loops',
+    ex04_parallel         : 'Parallel',
+    ex05_sub_workflows    : 'SubWorkflows',
+    ex06_signals          : 'Signals',
+    ex07_timers           : 'Timers',
+    ex08_error_handling   : 'ErrorHandling',
+    ex09_http             : 'HttpCalls',
+    ex10_human_in_the_loop: 'HumanInTheLoop',
+    ex11_llm              : 'LlmCalls',
+    ex12_mcp              : 'McpTools',
+    ex13_agent            : 'AgentCalls',
+    ex14_agent_harness    : 'AgentHarness',
+    ex15_strict_determinism: 'StrictDeterminism',
+].each { example, mainClassName ->
+    tasks.register(example, JavaExec) {
+        group = 'examples'
+        description = "Runs examples.${example}.${mainClassName}"
+        classpath = sourceSets.main.runtimeClasspath
+        mainClass = "examples.${example}.${mainClassName}"
+        environment 'CONDUCTOR_DEV', 'true'
+    }
+}

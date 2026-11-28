@@ -53,6 +53,8 @@ import com.netflix.conductor.client.metrics.MetricsCollector;
 import com.netflix.conductor.client.metrics.PayloadKind;
 import com.netflix.conductor.common.config.ObjectMapperProvider;
 
+import io.orkes.conductor.client.ApiClient;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
@@ -152,6 +154,15 @@ public class ConductorClient {
 
     public ConductorClient(String basePath) {
         this(new Builder<>().basePath(basePath));
+    }
+
+    /**
+     * A client configured from the environment: the server from {@code CONDUCTOR_SERVER_URL}
+     * (default {@code http://localhost:8080/api}), and key credentials from {@code
+     * CONDUCTOR_AUTH_KEY} and {@code CONDUCTOR_AUTH_SECRET} when both are set.
+     */
+    public static ConductorClient fromEnvironment() {
+        return new ApiClient();
     }
 
     public String getBasePath() {

@@ -1,0 +1,12 @@
+diff --git a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+--- a/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
++++ b/core/src/main/java/com/netflix/conductor/core/execution/NativeContinuationService.java
+@@ -581,7 +581,7 @@
+         Id id = awaited != null ? idOf(awaited) : idOf(workflow, laneOfSynthetic(messageId));
+         int retryCount = out.get(OUTPUT_RETRY_COUNT) instanceof Number c ? c.intValue() : -1;
+         int n = out.get(OUTPUT_N) instanceof Number number ? number.intValue() : -1;
+-        if (!marker.isLeased() || id.n() != n || marker.getRetryCount() != retryCount) {
++        if (!marker.isLeased() || id.n() != n) { // mutant no-retry-count-fence
+             Monitors.recordNativeStaleCompletion(workflow.getWorkflowName());
+             throw new ConflictException(
+                     "Continuation %s#%d of workflow %s is not leased at retry %d (%s)",

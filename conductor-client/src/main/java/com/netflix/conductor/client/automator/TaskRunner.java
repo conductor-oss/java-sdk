@@ -14,7 +14,6 @@ package com.netflix.conductor.client.automator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
@@ -81,7 +79,6 @@ class TaskRunner {
     private volatile boolean pollingAndExecuting = true;
     private final List<PollFilter> pollFilters;
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
-    private final LinkedBlockingQueue<Task> tasksTobeExecuted;
     private final boolean enableUpdateV2;
     private static final int LEASE_EXTEND_RETRY_COUNT = 3;
     private static final double LEASE_EXTEND_DURATION_FACTOR = 0.8;
@@ -100,6 +97,32 @@ class TaskRunner {
                List<PollFilter> pollFilters,
                EventDispatcher<TaskRunnerEvent> eventDispatcher,
                boolean useVirtualThreads) {
+        this(worker, taskClient, updateRetryCount, taskToDomain, workerNamePrefix, threadCount, taskPollTimeout,
+                pollFilters, eventDispatcher, useVirtualThreads, false, false, null);
+    }
+
+    /**
+     * @param updateV2 complete tasks with update-v2, which hands back this worker's next task to run
+     *     without a poll; also on when the {@code taskUpdateV2} system property or environment
+     *     variable is set
+     * @param domainFixed poll {@code fixedDomain}, whatever the properties and {@code taskToDomain}
+     *     say, as the native workflow host does for workflow code (see {@link
+     *     TaskRunnerConfigurer.Builder#withFixedDomain}); false to take the domain from them
+     * @param fixedDomain the task domain to poll when {@code domainFixed}; null for the shared queue
+     */
+    TaskRunner(Worker worker,
+               TaskClient taskClient,
+               int updateRetryCount,
+               Map<String, String> taskToDomain,
+               String workerNamePrefix,
+               int threadCount,
+               int taskPollTimeout,
+               List<PollFilter> pollFilters,
+               EventDispatcher<TaskRunnerEvent> eventDispatcher,
+               boolean useVirtualThreads,
+               boolean updateV2,
+               boolean domainFixed,
+               String fixedDomain) {
         this.worker = worker;
         this.taskClient = taskClient;
         this.updateRetryCount = updateRetryCount;
@@ -109,8 +132,7 @@ class TaskRunner {
         this.permits = new Semaphore(threadCount);
         this.pollFilters = pollFilters;
         this.eventDispatcher = eventDispatcher;
-        this.tasksTobeExecuted = new LinkedBlockingQueue<>();
-        this.enableUpdateV2 = Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
+        this.enableUpdateV2 = updateV2 || Boolean.parseBoolean(System.getProperty("taskUpdateV2", "false")) || Boolean.parseBoolean(System.getenv("taskUpdateV2"));
 
         LOGGER.info("taskUpdateV2 is set to {} for {}", this.enableUpdateV2, worker.getTaskDefName());
         //1. Is there a worker level override?
@@ -122,6 +144,9 @@ class TaskRunner {
         if (this.domain == null) {
             //3. was it supplied as part of the config?
             this.domain = taskToDomain.get(taskType);
+        }
+        if (domainFixed) {
+            this.domain = fixedDomain;
         }
 
         int defaultLoggingInterval = 100;
@@ -189,36 +214,46 @@ class TaskRunner {
                     stopwatch = null;
                 }
                 tasks.forEach(task -> {
-                    Future<Task> taskFuture;
-                    try {
-                        taskFuture = this.executorService.submit(() -> this.processTask(task));
-                    } catch (java.util.concurrent.RejectedExecutionException e) {
-                        LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
-                                task.getTaskId(), taskType, e);
+                    if (!submit(task)) {
                         permits.release();
-                        return;
-                    }
-
-                    if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
-                        ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
-                        if (existingFuture != null) {
-                            existingFuture.cancel(false);
-                        }
-
-                        long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
-                        ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
-                                extendLease(task, taskFuture),
-                                delay,
-                                delay,
-                                TimeUnit.SECONDS
-                        );
-                        leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
                     }
                 });
             } catch (Throwable t) {
                 LOGGER.error(t.getMessage(), t);
             }
         }
+    }
+
+    /**
+     * Runs a task on the executor, under a permit the caller holds. False when the executor refused
+     * it: the permit is then the caller's to release.
+     */
+    private boolean submit(Task task) {
+        Future<Task> taskFuture;
+        try {
+            taskFuture = this.executorService.submit(() -> this.processTask(task));
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            LOGGER.error("Task rejected by executor (likely shutting down); dropping task {} of type {}",
+                    task.getTaskId(), taskType, e);
+            return false;
+        }
+
+        if (task.getResponseTimeoutSeconds() > 0 && worker.leaseExtendEnabled()) {
+            ScheduledFuture<?> existingFuture = leaseExtendMap.remove(task.getTaskId());
+            if (existingFuture != null) {
+                existingFuture.cancel(false);
+            }
+
+            long delay = Math.round(task.getResponseTimeoutSeconds() * LEASE_EXTEND_DURATION_FACTOR);
+            ScheduledFuture<?> leaseExtendFuture = leaseExtendExecutorService.scheduleWithFixedDelay(
+                    extendLease(task, taskFuture),
+                    delay,
+                    delay,
+                    TimeUnit.SECONDS
+            );
+            leaseExtendMap.put(task.getTaskId(), leaseExtendFuture);
+        }
+        return true;
     }
 
     public void shutdown(int timeout) {
@@ -326,12 +361,6 @@ class TaskRunner {
         if (count < 1) {
             return Collections.emptyList();
         }
-        LOGGER.trace("in memory queue size for tasks: {}", tasksTobeExecuted.size());
-        List<Task> polled = new ArrayList<>(count);
-        tasksTobeExecuted.drainTo(polled, count);
-        if(!polled.isEmpty()) {
-            return polled;
-        }
         String workerId = worker.getIdentity();
         LOGGER.debug("poll {} in the domain {} with batch size {}", taskType, domain, count);
         return taskClient.batchPollTasksInDomain(
@@ -364,6 +393,21 @@ class TaskRunner {
     }
 
     private Task processTask(Task task) {
+        Task next = null;
+        try {
+            next = runTask(task);
+        } finally {
+            // the next task update-v2 handed back runs now, on this task's permit, rather than
+            // waiting for the poll loop, which may be in a long poll or its polling interval
+            if (next == null || !submit(next)) {
+                permits.release();
+            }
+        }
+        return task;
+    }
+
+    /** Runs one task and sends its result; returns the next task update-v2 handed back, or null. */
+    private Task runTask(Task task) {
         eventDispatcher.publish(new TaskExecutionStarted(taskType, task.getTaskId(), worker.getIdentity()));
         eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.incrementAndGet()));
 
@@ -373,8 +417,9 @@ class TaskRunner {
         LOGGER.trace("Executing task: {} of type: {} in worker: {} at {}", task.getTaskId(), taskType, worker.getClass().getSimpleName(), worker.getIdentity());
         LOGGER.trace("task {} is getting executed after {} ms of getting polled", task.getTaskId(), (System.currentTimeMillis() - task.getStartTime()));
         Stopwatch stopwatch = Stopwatch.createStarted();
+        Task next = null;
         try {
-            executeTask(worker, task);
+            next = executeTask(worker, task);
             stopwatch.stop();
             long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
             LOGGER.trace(
@@ -384,19 +429,19 @@ class TaskRunner {
         } catch (Throwable t) {
             task.setStatus(Task.Status.FAILED);
             TaskResult result = new TaskResult(task);
-            handleException(t, result, worker, task);
+            next = handleException(t, result, worker, task);
         } finally {
             cancelLeaseExtension(task.getTaskId());
-            permits.release();
             eventDispatcher.publish(new ActiveWorkersChanged(taskType, activeWorkerCount.decrementAndGet()));
         }
-        return task;
+        return next;
     }
 
-    private void executeTask(Worker worker, Task task) {
+    /** Runs the task and sends its result; returns the next task update-v2 handed back, or null. */
+    private Task executeTask(Worker worker, Task task) {
         if (task == null || task.getTaskDefName().isEmpty()) {
             LOGGER.warn("Empty task {}", worker.getTaskDefName());
-            return;
+            return null;
         }
 
         // Calculate  inbound network latency
@@ -442,7 +487,8 @@ class TaskRunner {
                 task.setStatus(Task.Status.FAILED);
                 result = new TaskResult(task);
             }
-            handleException(e, result, worker, task);
+            // sends the result; sent again below, update-v2 would hand back a second next task
+            return handleException(e, result, worker, task);
         }
 
         LOGGER.trace(
@@ -451,11 +497,13 @@ class TaskRunner {
                 worker.getClass().getSimpleName(),
                 worker.getIdentity(),
                 result.getStatus());
-        updateTaskResult(updateRetryCount, task, result, worker);
+        return updateTaskResult(updateRetryCount, task, result, worker);
     }
 
-    private void updateTaskResult(int count, Task task, TaskResult result, Worker worker) {
+    /** Sends the result; returns the next task update-v2 handed back, or null. */
+    private Task updateTaskResult(int count, Task task, TaskResult result, Worker worker) {
         Stopwatch updateStopwatch = Stopwatch.createStarted();
+        Task next = null;
         try {
             // upload if necessary
             Optional<String> optionalExternalStorageLocation =
@@ -475,14 +523,15 @@ class TaskRunner {
             result.getExecutionMetadata().setClientSendTime(clientSendTime);
             LOGGER.debug("Task {} outbound send time: {}", task.getTaskId(), clientSendTime);
 
-            if(enableUpdateV2) {
+            if(enableUpdateV2 && pollsNow()) {
                 Task nextTask = retryOperation(
                         (TaskResult taskResult) -> taskClient.updateTaskV2(taskResult, taskType),
                         count,
                         result,
                         "updateTaskV2");
                 if (nextTask != null) {
-                    tasksTobeExecuted.add(nextTask);
+                    nextTask.getExecutionMetadata().setClientReceiveTime(System.currentTimeMillis());
+                    next = nextTask;
                 }
             } else {
                 retryOperation(
@@ -520,6 +569,17 @@ class TaskRunner {
                             result.toString(), task.getTaskDefName(), worker.getIdentity()),
                     e);
         }
+        return next;
+    }
+
+    /**
+     * Whether the poll loop would take a task now: it is running, the worker is not paused and no
+     * poll filter holds it back. Only then is a result sent with update-v2, which hands back the
+     * next task.
+     */
+    private boolean pollsNow() {
+        return pollingAndExecuting && !worker.paused()
+                && pollFilters.stream().allMatch(filter -> filter.filter(taskType, domain));
     }
 
     private Optional<String> upload(TaskResult result, String taskType) {
@@ -547,14 +607,14 @@ class TaskRunner {
         throw new RuntimeException("Exhausted retries performing " + opName);
     }
 
-    private void handleException(Throwable t, TaskResult result, Worker worker, Task task) {
+    private Task handleException(Throwable t, TaskResult result, Worker worker, Task task) {
         LOGGER.error(String.format("Error while executing task %s", task.toString()), t);
         result.setStatus(TaskResult.Status.FAILED);
         result.setReasonForIncompletion("Error while executing the task: " + t);
         StringWriter stringWriter = new StringWriter();
         t.printStackTrace(new PrintWriter(stringWriter));
         result.log(stringWriter.toString());
-        updateTaskResult(updateRetryCount, task, result, worker);
+        return updateTaskResult(updateRetryCount, task, result, worker);
     }
 
     private Runnable extendLease(Task task, Future<Task> taskCompletableFuture) {

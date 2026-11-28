@@ -55,6 +55,9 @@ public class TaskRunnerConfigurer {
     private final EventDispatcher<TaskRunnerEvent> eventDispatcher;
     private final MetricsCollector metricsCollector;
     private final boolean useVirtualThreads;
+    private final boolean taskUpdateV2;
+    private final boolean domainFixed;
+    private final String fixedDomain;
 
     /**
      * @see TaskRunnerConfigurer.Builder
@@ -77,6 +80,9 @@ public class TaskRunnerConfigurer {
         this.eventDispatcher = builder.eventDispatcher;
         this.metricsCollector = builder.metricsCollector;
         this.useVirtualThreads = builder.useVirtualThreads;
+        this.taskUpdateV2 = builder.taskUpdateV2;
+        this.domainFixed = builder.domainFixed;
+        this.fixedDomain = builder.fixedDomain;
         builder.workers.forEach(this.workers::add);
         taskRunners = new LinkedList<>();
     }
@@ -181,7 +187,10 @@ public class TaskRunnerConfigurer {
                 taskPollTimeout,
                 pollFilters,
                 eventDispatcher,
-                useVirtualThreads);
+                useVirtualThreads,
+                taskUpdateV2,
+                domainFixed,
+                fixedDomain);
         // startWorker(worker) is executed by several threads.
         // taskRunners.add(taskRunner) without synchronization could lead to a race condition and unpredictable behavior,
         // including potential null values being inserted or corrupted state.
@@ -214,6 +223,9 @@ public class TaskRunnerConfigurer {
         private final List<PollFilter> pollFilters = new LinkedList<>();
         private final EventDispatcher<TaskRunnerEvent> eventDispatcher = new EventDispatcher<>();
         private boolean useVirtualThreads;
+        private boolean taskUpdateV2;
+        private boolean domainFixed;
+        private String fixedDomain;
 
         /**
          * Returns the event dispatcher used by this builder, allowing direct
@@ -382,6 +394,36 @@ public class TaskRunnerConfigurer {
 
         public Builder withUseVirtualThreads(boolean useVirtualThreads) {
             this.useVirtualThreads = useVirtualThreads;
+            return this;
+        }
+
+        /**
+         * Completes tasks with update-v2, which hands back the worker's next task to run without
+         * another poll. Also on for every configurer when the {@code taskUpdateV2} system property
+         * or environment variable is set.
+         */
+        public Builder withTaskUpdateV2(boolean taskUpdateV2) {
+            this.taskUpdateV2 = taskUpdateV2;
+            return this;
+        }
+
+        /**
+         * Used by the native workflow host ({@link org.conductoross.conductor.sdk.Workers}) to poll
+         * workflow code; other workers seldom need it.
+         *
+         * <p>Every worker polls {@code domain}, or with null the shared queue of its task type,
+         * whatever {@code conductor.worker.<task>.domain}, {@code conductor.worker.all.domain} and
+         * {@link #withTaskToDomain} say. Not called, the domain comes from those, as before.
+         *
+         * <p>Why the native host needs it: the server puts a workflow's continuations on the shared
+         * queue of its code type, or in the domain of the host it is pinned to, and ignores task
+         * domains for them. Without this, an app that sets {@code conductor.worker.all.domain} for
+         * its own workers would poll its workflow code in that domain too, where nothing arrives,
+         * and its native workflows would never progress.
+         */
+        public Builder withFixedDomain(String domain) {
+            this.domainFixed = true;
+            this.fixedDomain = domain;
             return this;
         }
 
